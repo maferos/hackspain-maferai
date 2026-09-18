@@ -1,4 +1,4 @@
 [submodule "third_party/AutoBio"]
-	path = third_party/AutoBio
+	path = simulation/third_party/AutoBio
 	url = https://github.com/autobio-bench/AutoBio.git
 	shallow = true

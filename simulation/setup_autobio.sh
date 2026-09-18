@@ -6,9 +6,13 @@ set -euo pipefail
 cd "$(dirname "$0")"
 DEST=third_party/AutoBio
 
-# AutoBio is a git submodule pinned to a known-good commit.
+# AutoBio is a git submodule pinned to a known-good commit. Submodule paths are
+# resolved from the repo root, so init it from there (this script lives in a
+# subdirectory of the repo).
+ROOT="$(git rev-parse --show-toplevel)"
+REL="${PWD#"$ROOT"/}"
 echo ">> Fetching AutoBio submodule into $DEST (~100 MB)"
-git submodule update --init --depth 1 "$DEST"
+git -C "$ROOT" submodule update --init --depth 1 "$REL/$DEST"
 
 # AutoBio targets Python 3.11 (see its autobio/README.md).
 if command -v uv >/dev/null 2>&1; then
