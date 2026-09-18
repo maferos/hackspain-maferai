@@ -824,15 +824,69 @@ width to decode, which no overview camera delivers. The fixed camera proposes
 a box, the wrist camera reads the label; `attach_barcodes` is for the
 close-up frame.
 
+### Measured on rendered bottles: finding them, and sizing them by geometry
+
+`scripts/render_bottles.py` builds the room of `scene.py` in MuJoCo -- the
+minihannover worktop, 6 x 1.5 m at z = 0.95, the GoPro at (7, 0, 3) aimed at
+its centre -- stands the bottle kit on it in random layouts, and renders
+frames with the exact box of every bottle read off a segmentation pass.
+`scripts/size_experiment.py` runs a backend on those frames at native
+resolution and, for each box, fits every vessel class with
+`locate(anchor="fit")` and keeps the smallest residual. Size is therefore a
+geometric answer, scored against the truth, never a label from the network.
+
+Two things came out of it.
+
+**`Vessel.silhouette_height_m` is 20 to 30 mm too tall for this kit.** It
+stacks the cap on the body (`height + cap - 1 mm`), but the kit's README
+seats the cap over the neck (`z = height - cap + 1 mm`), so a closed bottle is
+only 1 mm taller than its body: 217 mm for the 1 L, not 242. With the stacked
+height the fit called every size one step too small, on exact boxes as much
+as on detected ones (0 % right); with the kit's height it is right. The
+experiment carries both as `--cap-model scene|kit`, default `kit`. What is
+left after that is the shoulder: the topmost pixel is the far edge of the
+cap, not of a full-radius rim, which puts the predicted top 2 to 6 px too
+high and is what still costs the 2 L bottle.
+
+**Numbers.** 1080p Linear, native 1920 px input, kit cap height, 40 frames
+each, `world` / `coco`.
+
+Short bench, 2 x 0.8 m, everything 2.9 to 3.5 m from the camera, 177 bottles:
+
+| bottle | found | size right, of those found | position error, median |
+| --- | --- | --- | --- |
+| 100 ml | 95 % / 80 % | 100 % / 100 % | 5 mm |
+| 250 ml | 96 % / 72 % | 100 % / 100 % | 6 mm |
+| 500 ml | 100 % / 78 % | 100 % / 100 % | 7 mm |
+| 1 L | 100 % / 89 % | 100 % / 97 % | 9 mm |
+| 2 L | 100 % / 87 % | 97 % / 82 % | 12 mm |
+
+The minihannover bench, 2.9 to 4.4 m, 347 bottles, by distance to the camera:
+
+| distance | n | found | size right, of those found |
+| --- | --- | --- | --- |
+| under 3.0 m | 21 | 91 % / 48 % | 100 % / 80 % |
+| 3.0 to 3.5 m | 98 | 87 % / 41 % | 88 % / 95 % |
+| 3.5 to 4.0 m | 154 | 58 % / 47 % | 92 % / 92 % |
+| over 4.0 m | 74 | 23 % / 49 % | 82 % / 81 % |
+
+So at 1080p the size question is answered whenever the bottle is found: the
+geometry is right eight to ten times in ten from any distance, the 2 L
+excepted. Finding it is the problem, and it is the size floor again: past
+3.5 m YOLO-World loses the small bottles and past 4 m it loses three in four.
+COCO finds fewer up close and no fewer far away. Position error, 5 to 18 mm,
+is almost all geometry; the exact box gives 5 to 17.
+
 ### When rendered frames arrive
 
-1. Put the frames anywhere, e.g. `simulation/out/<scene>/` from
-   `render_dataset.py`, with the bottle kit placed on the bench.
-2. `python -m labvision.detector <folder> --backend both` and look at the
-   overlays. The summary line prints the median box side in pixels; if it is
-   under 48, fix the camera or the resolution before judging the model.
-3. With ground-truth boxes, run the benchmark proper (see
-   `docs/BENCHMARK.md`, section "Cuando lleguen frames de Isaac"; the
-   conversion script `scripts/isaac_to_gt.py` accepts YOLO `.txt` labels).
-4. If both backends fail on renders that pass the size floor, the next step
-   is a fine-tune on renderer-labelled frames, not another pretrained model.
+1. Render your own: `python scripts/render_bottles.py --frames 40`, with
+   `--width 3840 --height 2160` or `--lens narrow` to test the fixes above,
+   or put the team's frames next to a `gt.json` in the same format.
+2. Score: `python scripts/size_experiment.py <folder> --backend both`.
+   Overlays land in `<folder>/overlay_<backend>/`; `--oracle-only` scores the
+   geometry alone in seconds.
+3. Without ground truth: `python -m labvision.detector <folder> --backend both`.
+   The summary prints the median box side; under 48 px the camera is the
+   problem, not the model.
+4. If both backends fail on frames that pass the size floor, the next step is
+   a fine-tune on renderer-labelled frames, not another pretrained model.
