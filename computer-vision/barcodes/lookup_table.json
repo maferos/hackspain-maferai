@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "symbology": "EAN-13",
   "id_scheme": "sha256(sample.payload()) mod 10^9, prefixed '200', EAN-13 check digit appended",
   "phases": {
@@ -17,15 +17,15 @@
       "count": 100
     },
     "powder": {
-      "vessel": "jar",
+      "vessel": "flask",
       "prefix": "PWD",
       "materials": 20,
       "containers_ml": [
+        10.0,
+        20.0,
         30.0,
-        60.0,
-        125.0,
-        250.0,
-        500.0
+        50.0,
+        100.0
       ],
       "count": 100
     }
@@ -1132,1105 +1132,1105 @@
       "lot": "LOT-58050",
       "vessel_class": "flask_100ml"
     },
-    "2009067439660": {
-      "sha256": "82fcd5954c80110d51d7fc9ef0842868123962620cc6593e34d1747015272a9e",
+    "2000036464409": {
+      "sha256": "0fa9887955add2feffb9b44e3d67891c87101fc117741be5767e5181b3e96be8",
       "salt": 0,
       "sample_id": "PWD-0001",
       "material": "Vanillin",
       "cas": "121-33-5",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-77603",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2001885108377": {
-      "sha256": "37a4aa390ebe110592eb55001c1f6c5e3863b6572d6fd3abc78b1af3ee66f275",
+    "2004661682436": {
+      "sha256": "261cb525d15f74d2ac6eee0a5dbb0d2e37523fa4345ab94bf326dbce6ac461b3",
       "salt": 0,
       "sample_id": "PWD-0002",
       "material": "Vanillin",
       "cas": "121-33-5",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-75787",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2008150726144": {
-      "sha256": "0f68b2fe9670572d3eae283fd6a9220b490e484a2ef0deed061c2780acf3dd66",
+    "2001019432569": {
+      "sha256": "625a7b7026910959fbab2ecf8adee47c533c54938252805b9e043ea3822591d8",
       "salt": 0,
       "sample_id": "PWD-0003",
       "material": "Vanillin",
       "cas": "121-33-5",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-91430",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2006286354972": {
-      "sha256": "d9316d4b1e10810dd0f73c08c3476b9992d7f09fde497aef319f8866ca220769",
+    "2005211034606": {
+      "sha256": "132b6cc1bf1d2334a69071601ffa500ccfd0fbac59b8aeef9eb8dff04614ea64",
       "salt": 0,
       "sample_id": "PWD-0004",
       "material": "Vanillin",
       "cas": "121-33-5",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-95857",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2007983351912": {
-      "sha256": "2352f9d55361cc99b4f358a452b3391cfc34b0f8d280132aa7802fb3c12e16d7",
+    "2005043226675": {
+      "sha256": "b3ee1af2cb4d8af123963355196d0ad53272344fa37252c005466d005c6f146b",
       "salt": 0,
       "sample_id": "PWD-0005",
       "material": "Vanillin",
       "cas": "121-33-5",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-74836",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2009405684578": {
-      "sha256": "c2434a06760271e48d20775c6115a92383fb8e32bb42ff80b20dc3f606537989",
+    "2002224417600": {
+      "sha256": "def5b68eac137e1c6b4f6551bc8173e9779f6ca7e9bb71f052253f8f98debd20",
       "salt": 0,
       "sample_id": "PWD-0006",
       "material": "Ethylvanillin",
       "cas": "121-32-4",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-22848",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2009091874918": {
-      "sha256": "aee3a160a8e9ae5214220a776208dde599c8079e0ceef12e7f996b169a4791a3",
+    "2004646915542": {
+      "sha256": "2984729e4523fe997861404ca4527f5308e6d6fbf9b1d7c32326f9a2f7deb962",
       "salt": 0,
       "sample_id": "PWD-0007",
       "material": "Ethylvanillin",
       "cas": "121-32-4",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-18721",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2004415203863": {
-      "sha256": "438cfd33d1ccc2d2c7d71e3adac195d23cd32ed239dbb04822d642cb3f471b02",
+    "2000898134809": {
+      "sha256": "36489d69ed16e1670c8e214a5e3e67bc2887d5b3a99c5b5a54e6e97d5daa75e8",
       "salt": 0,
       "sample_id": "PWD-0008",
       "material": "Ethylvanillin",
       "cas": "121-32-4",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-11104",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2001888248629": {
-      "sha256": "d72db7171dfebc3801da412c26202c886103cc9b6722827a48a68d9c22fb851e",
+    "2008799347502": {
+      "sha256": "70566852570c98a278c622ed6f1428ede9a2a8b9075b41a089a982aedc48211e",
       "salt": 0,
       "sample_id": "PWD-0009",
       "material": "Ethylvanillin",
       "cas": "121-32-4",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-58772",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2000252975314": {
-      "sha256": "28ab895bee2f881560ef060dc5db0b094532e665e2c5e793694f81f76ce5367b",
+    "2001521297915": {
+      "sha256": "2dd023270e41846d4aa3f870c8e3f4a9476ef65f41e171cec1266cc18c27c8ff",
       "salt": 0,
       "sample_id": "PWD-0010",
       "material": "Ethylvanillin",
       "cas": "121-32-4",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-70986",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2007941458226": {
-      "sha256": "0b8264dd8d2513f937eff14190dfc21a69be59c27be8a415ea851ebb3879bc1e",
+    "2003372584848": {
+      "sha256": "32edb11c589e13ab360809dc9032c874e02bc0aa2e1406c9cb7d02e6ea52e9f4",
       "salt": 0,
       "sample_id": "PWD-0011",
       "material": "Coumarin",
       "cas": "91-64-5",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-68744",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2004167890991": {
-      "sha256": "2811760b285ae88ac18bc653dab2eff442998f7d44315b3f49fab8b3efebec6b",
+    "2007485673710": {
+      "sha256": "7ac8532d900c917470f9696d8dcefa5ba440eda2fa0a077ad68f5462e16c2b4b",
       "salt": 0,
       "sample_id": "PWD-0012",
       "material": "Coumarin",
       "cas": "91-64-5",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-79591",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2002205416523": {
-      "sha256": "b1de24a544df1c3919f77408a199e0517adcb51a8a1da5f6086002b0ea0038d4",
+    "2002800486303": {
+      "sha256": "498371af29c31e58c60cb287ba929095b9923570600e15157d5fd0100df7f3f6",
       "salt": 0,
       "sample_id": "PWD-0013",
       "material": "Coumarin",
       "cas": "91-64-5",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-52656",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2008604233723": {
-      "sha256": "5923fee1019076d012402244dd03e858b02816c92f3f699ef52e9d1b3e0d72cc",
+    "2009282482960": {
+      "sha256": "2bef9cfa68cbcd881bf0e6472a9f9d6e78a36c83fcf26d25b5040677164e9be8",
       "salt": 0,
       "sample_id": "PWD-0014",
       "material": "Coumarin",
       "cas": "91-64-5",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-35640",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2001496219226": {
-      "sha256": "b8d6b2e9ea2f4faf0c710d4c46484681b46569cffa2002f768c9ea943d6c10a2",
+    "2004963432128": {
+      "sha256": "f3a082312e9d96e92c924fe7cf313ddc7b5d7067ca399f9a75920e016fb19cac",
       "salt": 0,
       "sample_id": "PWD-0015",
       "material": "Coumarin",
       "cas": "91-64-5",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-69894",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2006554173359": {
-      "sha256": "9b6e2a33b0f75daef9d98efe1b1aac8c34ecb6601197f09d67eb2e6a59418ff7",
+    "2005009745479": {
+      "sha256": "7d0b6c851cbc2d91937f15da77ce618d502059d9caea0c534a549ce14fc39bd3",
       "salt": 0,
       "sample_id": "PWD-0016",
       "material": "Maltol",
       "cas": "118-71-8",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-67293",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2008968282559": {
-      "sha256": "bbdb0dff2ef0e498fd2bac35ab4fdf4510555a48d5a1c626f411e511353c9f5f",
+    "2005016133252": {
+      "sha256": "a7ae8e6b15f8a409d041c8982ce82bb82bd0ddf3d882a88b0651df916cd80f0d",
       "salt": 0,
       "sample_id": "PWD-0017",
       "material": "Maltol",
       "cas": "118-71-8",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-34629",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2004769106025": {
-      "sha256": "5c015ef551d343154d21cb48b048093a16e700a093b7213349160c0e7318d00a",
+    "2001865543815": {
+      "sha256": "50fc9d9e1d079aa954b10d674e08e21c0fa1c68742090b6430311bac5a51260d",
       "salt": 0,
       "sample_id": "PWD-0018",
       "material": "Maltol",
       "cas": "118-71-8",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-59278",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2008895242534": {
-      "sha256": "ff5fec102f6f3d5470d16751cc11badf318a688f0bbf1a9c3ce99f06fef6261d",
+    "2005107366408": {
+      "sha256": "00705410f54057ca45eea9fb587b7a0543c4660b1763cc36bfe2f7ba8bf48300",
       "salt": 0,
       "sample_id": "PWD-0019",
       "material": "Maltol",
       "cas": "118-71-8",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-84357",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2005783476347": {
-      "sha256": "02ba7a91f07f6203032b7e20648fde36880538e1837855d99e083d45a309ce72",
+    "2008588289853": {
+      "sha256": "9b2e4d7ce6ed84f89d4f7ecc6977f219ac2a2b02962ffc6e40ca3221891fc2b9",
       "salt": 0,
       "sample_id": "PWD-0020",
       "material": "Maltol",
       "cas": "118-71-8",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-38939",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2008975348101": {
-      "sha256": "7aebc0a6a5e6ff9ca1ae5e951108c17df9704be42613a3973716106092b06b5a",
+    "2004824371634": {
+      "sha256": "5301944b1ff229842ff72a99f3e006493a959a1797ab71bc36bcd53fde08ac2b",
       "salt": 0,
       "sample_id": "PWD-0021",
       "material": "Ethyl maltol",
       "cas": "4940-11-8",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-89204",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2008366857342": {
-      "sha256": "64845af657db99b6ccf4eeb172765825049a54255338789c00b1c3700419f7a6",
+    "2007198400139": {
+      "sha256": "8cebdeb9bbca8f1e7a2e3f8c51c7e6ef46252420e61845181d20f3235d52f50d",
       "salt": 0,
       "sample_id": "PWD-0022",
       "material": "Ethyl maltol",
       "cas": "4940-11-8",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-50543",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2009508653785": {
-      "sha256": "2533bd8147e1badbdb107bb7951614af21fbe662f0400fd365ac7619325e79e2",
+    "2000315135235": {
+      "sha256": "4ce54434b3eb2139f180adf01029ab9bbd05b57846036f6e8277db034bf3bbb3",
       "salt": 0,
       "sample_id": "PWD-0023",
       "material": "Ethyl maltol",
       "cas": "4940-11-8",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-86155",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2001340300568": {
-      "sha256": "10e29e289dbfb72fbfc00dfe0658dadd1f65483bba0033672cc9d89eaf04fce8",
+    "2008328522639": {
+      "sha256": "1e0f367c4feea7f0fec09c4f4062f202684c30f6a568d634d88a37f7d7531b27",
       "salt": 0,
       "sample_id": "PWD-0024",
       "material": "Ethyl maltol",
       "cas": "4940-11-8",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-45751",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2006009800465": {
-      "sha256": "f1a32a5756390494468f8726bcfa04219d0eccfd467da624dc96e30c467eae4e",
+    "2008219609371": {
+      "sha256": "ac3dd9ea5b0e20eb835b22cbcb1ca0b5fd2f57cddaea641b593ca952e23c50e9",
       "salt": 0,
       "sample_id": "PWD-0025",
       "material": "Ethyl maltol",
       "cas": "4940-11-8",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-27260",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2000786430082": {
-      "sha256": "a4a4a4421d483e3cdcadb29564be1398163d26e4739d77ce15c9d953acdd6540",
+    "2004084103242": {
+      "sha256": "8781ba6f84d3bef9542ecc7b6cc7803ea81e75f08f832c5aeee8ba30558c12d4",
       "salt": 0,
       "sample_id": "PWD-0026",
       "material": "Menthol",
       "cas": "2216-51-5",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-36337",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2006542088184": {
-      "sha256": "efa7b8c2c0b006cceb4813831090c753384254c02ca788225d8aedbb2b27fb32",
+    "2005606600980": {
+      "sha256": "0d8579ba471c59f6767251ae087457f154ad46a65b9ec9265efa1829a66ba482",
       "salt": 0,
       "sample_id": "PWD-0027",
       "material": "Menthol",
       "cas": "2216-51-5",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-69577",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2007325280726": {
-      "sha256": "b1c494b5f7b4eb031bb0a944ff6894b7cf3bb15221fdbfa577a647af871e25c8",
+    "2005130493881": {
+      "sha256": "5fad7a1d5d1841201a50d4cc204d6f91af38577a4190a955705a35372ebd652c",
       "salt": 0,
       "sample_id": "PWD-0028",
       "material": "Menthol",
       "cas": "2216-51-5",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-55346",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2009538866391": {
-      "sha256": "54be2f1335556a057fd6d4674b176e3ebfabff1a89476cd2346679658fbc49af",
+    "2006296916351": {
+      "sha256": "5d82531865464f993be85ba062376acb164ee368b2764ca873edf34bf2a8fef3",
       "salt": 0,
       "sample_id": "PWD-0029",
       "material": "Menthol",
       "cas": "2216-51-5",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-84212",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2006794291295": {
-      "sha256": "75402e56b44873ad7ad42c58f170bfb130640b4b8079474dec71de0880bd9e09",
+    "2004911950636": {
+      "sha256": "7e6688c79a6ef119d9eb2922666e8d422ce07c12a9b07f8d0c4e45fb5c1d8eb7",
       "salt": 0,
       "sample_id": "PWD-0030",
       "material": "Menthol",
       "cas": "2216-51-5",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-33370",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2007155622338": {
-      "sha256": "68c2d31855a6fd89ddebbd0f52610c33544142374d62c30f22d53a9e4c5e00f9",
+    "2007155044277": {
+      "sha256": "cbb143567a04bd62863bee553cf62936b9ca1533911e6cd53eb730df0a801b2b",
       "salt": 0,
       "sample_id": "PWD-0031",
       "material": "Thymol",
       "cas": "89-83-8",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-95899",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2003022987876": {
-      "sha256": "4b1359fd1732e00991e207a3bf0eb40b91359054779d4c179c76234bcce552a3",
+    "2005461555685": {
+      "sha256": "c0fd697b4a03020ae3ca065f9d20521f749c7107837db49c5a0f6579172a3230",
       "salt": 0,
       "sample_id": "PWD-0032",
       "material": "Thymol",
       "cas": "89-83-8",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-54677",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2009605403511": {
-      "sha256": "7919dd5597083c9c29173fa6a937b447adf83085e8e2f69dc99931c34c51fcbf",
+    "2002542831652": {
+      "sha256": "7065c7939819a743e6a94c0da882c3f9a37d872f43dff97bba35fe9aa009379d",
       "salt": 0,
       "sample_id": "PWD-0033",
       "material": "Thymol",
       "cas": "89-83-8",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-51257",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2008537345395": {
-      "sha256": "fa570ddc9ddcedf94a2f18b6ed494de03b4a638f7779075773a4875d32e73e8b",
+    "2003758655902": {
+      "sha256": "84f41e64ea5d15c31bb0b0b45b4390c905fdd465d775cf076f7fe9d194d17cf6",
       "salt": 0,
       "sample_id": "PWD-0034",
       "material": "Thymol",
       "cas": "89-83-8",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-56706",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2007671646085": {
-      "sha256": "d8ab1dfcba50f34e4e02832265d04132587eb110f6400394be7ef8ac54aac2c0",
+    "2003425053598": {
+      "sha256": "8323eab2e3aa384d09620707cc7fe3d67cf35cea4b50f3343e597e3e95b6c58f",
       "salt": 0,
       "sample_id": "PWD-0035",
       "material": "Thymol",
       "cas": "89-83-8",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-57984",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2002923464653": {
-      "sha256": "21f594ee5f2de95c0c87beebfae0f6a72ae244b276c692cac3bdb7384eb12c61",
+    "2009981752418": {
+      "sha256": "a520fe55e60d671a6cbea03d9bc54f47df5edec0175e9b1f3a1b73ab6c125209",
       "salt": 0,
       "sample_id": "PWD-0036",
       "material": "Camphor",
       "cas": "76-22-2",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-39861",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2005968482309": {
-      "sha256": "588268cfc7df8398a2c4a5560123439454f4a39838181e6f95e45a9d2a44f666",
+    "2007658595184": {
+      "sha256": "53fdf3abf6f0b9c9baf303ae332185f5ed3253c440d3168389c162cbec79e2be",
       "salt": 0,
       "sample_id": "PWD-0037",
       "material": "Camphor",
       "cas": "76-22-2",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-31945",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2001983943498": {
-      "sha256": "fb9e9c9205b9ebb551ab8609537204e1fd6f00679992dae2b5f52fb10be6a3ed",
+    "2000957013113": {
+      "sha256": "38a9f6c5d0e1d23116bd5cb60fad86489c22c9b86d0f76c33b9f9129a901033f",
       "salt": 0,
       "sample_id": "PWD-0038",
       "material": "Camphor",
       "cas": "76-22-2",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-49057",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2009746525011": {
-      "sha256": "eca1935ea0a7a736a8aa6abbb237cd0fe8fa630b0f9ddd9dafff8651ade43055",
+    "2008992174974": {
+      "sha256": "020dc7e287c48fa1117a8ef3775011e1e224d8d4f96bcc3500e73b52e1f49a59",
       "salt": 0,
       "sample_id": "PWD-0039",
       "material": "Camphor",
       "cas": "76-22-2",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-74159",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2003340267063": {
-      "sha256": "6077f87602998f95a759e3f2a291d5441be5288f491cec7447c394aba634c3d2",
+    "2006325989790": {
+      "sha256": "a5be7c7cc4afbc6fc8a46d32689d286f3cb03df63a8121238cc3d474c75fabc3",
       "salt": 0,
       "sample_id": "PWD-0040",
       "material": "Camphor",
       "cas": "76-22-2",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-46353",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2004210315822": {
-      "sha256": "d50f692435de71ad670947644272834206a603b8dbae19fc093f44f1a615e89e",
+    "2009085086846": {
+      "sha256": "9dac7d44bb3a75ca2fde3e371f8f2160770bb33fd3196caa024ba30cfc2dde0c",
       "salt": 0,
       "sample_id": "PWD-0041",
       "material": "Piperonal",
       "cas": "120-57-0",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-56401",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2007513919827": {
-      "sha256": "ef3c9a6d3307c8b2f537706d05db43f9fcb6b983f84f269baf3d4d0f8e62deee",
+    "2005150349779": {
+      "sha256": "53d6c0ba03f5fe8ba512ffd56748c531750b1097fff729c2e8d9e24148e4a561",
       "salt": 0,
       "sample_id": "PWD-0042",
       "material": "Piperonal",
       "cas": "120-57-0",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-39369",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2004772003090": {
-      "sha256": "ce7f65f2433963d65994f8f4737f91116f182fd086de91f92bf030cf45485db5",
+    "2005529672057": {
+      "sha256": "399c9a55dd5efd8e297d3deaccc4f63e18e62c8399a78d4c9b40820d49333c25",
       "salt": 0,
       "sample_id": "PWD-0043",
       "material": "Piperonal",
       "cas": "120-57-0",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-24639",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2006450614727": {
-      "sha256": "54f64ba8a612e2035bec70df5ae5230140fc29c2e8e8e0fac9c371f61fc06560",
+    "2000016627688": {
+      "sha256": "41dad96312f66b04abbb3c2669bec9a7f2fcef4d6755777d3875327aab23e530",
       "salt": 0,
       "sample_id": "PWD-0044",
       "material": "Piperonal",
       "cas": "120-57-0",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-20114",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2009290250902": {
-      "sha256": "750e0e55cf385668d8c57be1c37367a5562c00b1ec7377c08b5c9c525fdf9c42",
+    "2008578793094": {
+      "sha256": "bb4bcc3491bee7ffa5ab8416e999458e45f00eae8785d12dcc00a94aeb482f0d",
       "salt": 0,
       "sample_id": "PWD-0045",
       "material": "Piperonal",
       "cas": "120-57-0",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-61721",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2009004123584": {
-      "sha256": "341dc40cde97f1cf44008f0e1c3acecbf63eea3bbd4555e48c8b531c8b5d8dc6",
+    "2001185322039": {
+      "sha256": "33b032489fce53feb72e8df4afb80bedd8271a6dd213a11e802f68dd0824966b",
       "salt": 0,
       "sample_id": "PWD-0046",
       "material": "Indole",
       "cas": "120-72-9",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-84591",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2001300048493": {
-      "sha256": "23575f9886a9de46b0cb690aca13f9b082faeee36bd40e4939c3438644159f71",
+    "2005165639568": {
+      "sha256": "93ac234f21456c4d261dd2f1eae8456fc62d882d5ad0e197f84a847dee02d3f4",
       "salt": 0,
       "sample_id": "PWD-0047",
       "material": "Indole",
       "cas": "120-72-9",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-68073",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2002698371699": {
-      "sha256": "cc8df623cc3828442a8b66e44be73f52747e210bdb5a0f3234fdccb327744d71",
+    "2006348884744": {
+      "sha256": "68e55dff944698ca74607feb7ed5158e3e5724ef3585eb2b7b21c0193e292d1a",
       "salt": 0,
       "sample_id": "PWD-0048",
       "material": "Indole",
       "cas": "120-72-9",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-19338",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2009593555605": {
-      "sha256": "afebd3b9258ad0df09e6e2b336b648a360f6c8cee60c984b55a64328ac5b02a8",
+    "2001417186002": {
+      "sha256": "8eb7f24304400f60a06fec16016c84c49f1b5620e089cb490df78681c637c048",
       "salt": 0,
       "sample_id": "PWD-0049",
       "material": "Indole",
       "cas": "120-72-9",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-63064",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2002980506457": {
-      "sha256": "17d72c704225018c0d2e5dfe7a24a511cbc6bbe33df06dcf7079a76d5abd1a55",
+    "2004195850363": {
+      "sha256": "60b444e502ac3d3070eab2be163fdc294ae43904430d2f9725286526fa597a0c",
       "salt": 0,
       "sample_id": "PWD-0050",
       "material": "Indole",
       "cas": "120-72-9",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-89533",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2002838955901": {
-      "sha256": "6b35500c5e5eb0c89845cb76fb0baf5e2594aba5d290964dd2b53182836bcb26",
+    "2000377063897": {
+      "sha256": "b31421bf4b2385fc852f485fbc1cad3b6c24b0c2223324ee2407d10f95ee5a95",
       "salt": 0,
       "sample_id": "PWD-0051",
       "material": "Musk ketone",
       "cas": "81-14-1",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-18324",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2009426747399": {
-      "sha256": "60f5ee8e2339aa078c80b69a5f032dc6dc0c4a1ef16f8679dc23adf6110c6b33",
+    "2004916074634": {
+      "sha256": "e40df20e341c6b82f1a0414df1847d2ee3d6894650d21d78dcb6f1a29981dda7",
       "salt": 0,
       "sample_id": "PWD-0052",
       "material": "Musk ketone",
       "cas": "81-14-1",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-12390",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2007646456602": {
-      "sha256": "ebfc8c2d6fc7c4e183434c5949af2872795a406ff4aea4a982a8c36cf49d731c",
+    "2006941415260": {
+      "sha256": "5a5fd64db89582708b477959b7b4d853ccffea5e3758a92cf03756ea2b763a56",
       "salt": 0,
       "sample_id": "PWD-0053",
       "material": "Musk ketone",
       "cas": "81-14-1",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-15892",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2005324096447": {
-      "sha256": "ea0f4adb263ba3f09d5cbea8c6b2f547c5bc90da31447e9f2018e1938ddaa32c",
+    "2005407136855": {
+      "sha256": "e7162453cb55455e5e7499008053acdd34e1f0c24fcd85733ae451fbb827b2d5",
       "salt": 0,
       "sample_id": "PWD-0054",
       "material": "Musk ketone",
       "cas": "81-14-1",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-43640",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2001677738157": {
-      "sha256": "f652803011cf58ca9cf559b03c05b73f8e628d2a6a990f69bb67aee1f65c2077",
+    "2005998282450": {
+      "sha256": "904aada87c9ea8e04149671be88dc6c1f831665e1af846e2e822e75412a95315",
       "salt": 0,
       "sample_id": "PWD-0055",
       "material": "Musk ketone",
       "cas": "81-14-1",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-82046",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2006256062838": {
-      "sha256": "5f9e479378fbca9f54cd68f87c13f90eecf307d9ae04b1baf579ed8346bdb68b",
+    "2002810383319": {
+      "sha256": "f24256ac8fd3fad5985a0c0027af9f4f7a025626a651de1806edf5880ede5ffb",
       "salt": 0,
       "sample_id": "PWD-0056",
       "material": "Tonalide",
       "cas": "21145-77-7",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-15880",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2006546895504": {
-      "sha256": "f817585a6f66fa17d06de46ade0ff0100486368881e4a35c5c74e756eacfa10e",
+    "2001430873446": {
+      "sha256": "aad87e7cbabf9cae1c208f0af243d3a0afae144e15dae9c7404bef8f728700f0",
       "salt": 0,
       "sample_id": "PWD-0057",
       "material": "Tonalide",
       "cas": "21145-77-7",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-75616",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2005016872014": {
-      "sha256": "666f82a4d8a5d5c1bc0f2a1225941ce7601329e34dd4344fed834f953d8c09a1",
+    "2004450523131": {
+      "sha256": "c1ed0a635483d76c1dc22c85f965462b7e4e9080384d69327ef5f9b504bc7199",
       "salt": 0,
       "sample_id": "PWD-0058",
       "material": "Tonalide",
       "cas": "21145-77-7",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-70783",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2002894280382": {
-      "sha256": "3bc9f58729287fa809b5ad971216e126c7b1b0caadfe9e697ec93aa28338d446",
+    "2001463776387": {
+      "sha256": "b16e22e489180714d990c5ea87de1ac7eefd2b58f01b7dcda92989fb4daf25a6",
       "salt": 0,
       "sample_id": "PWD-0059",
       "material": "Tonalide",
       "cas": "21145-77-7",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-39244",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2005382192037": {
-      "sha256": "967ef6ef381ae212db7ca7f67a023a7ae54c0112335e3e848534ec4616ba86c3",
+    "2004228881784": {
+      "sha256": "867bba3442ae6c29bdc5643ad3b4b810b4a748bfe634b962051ab8882c947cf2",
       "salt": 0,
       "sample_id": "PWD-0060",
       "material": "Tonalide",
       "cas": "21145-77-7",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-16953",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2004915639100": {
-      "sha256": "bfeff9780f9cc340b880560449dbfdb760f0639ce58f246be8c3aaac4e14c786",
+    "2003992347397": {
+      "sha256": "f8379b4867247a1d9c3b4ca93e136ed13105266e1b9aa14dd46596f482c2f8b3",
       "salt": 0,
       "sample_id": "PWD-0061",
       "material": "Sclareolide",
       "cas": "564-20-5",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-38717",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2003477822708": {
-      "sha256": "ca614769114314f7000b23a2ffc7e7667a5379857e4e092d38a68df586013a7e",
+    "2000589829281": {
+      "sha256": "8f3ec2066b1229a00138e2a5ac4f8c2f4e789846b13242101e1d94bdbed4f810",
       "salt": 0,
       "sample_id": "PWD-0062",
       "material": "Sclareolide",
       "cas": "564-20-5",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-14097",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2007086721858": {
-      "sha256": "af78c2bd6fbdee746f6261f32ac1a454282eed1660cb1a9baca030f8dc7a4cb9",
+    "2008784536799": {
+      "sha256": "c6ac820c6c41437db9e90a08379c6eb0d5974c367143213db1d7c7079f2129af",
       "salt": 0,
       "sample_id": "PWD-0063",
       "material": "Sclareolide",
       "cas": "564-20-5",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-55445",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2005649550037": {
-      "sha256": "af5644c4435132806c7f81394402315c350bc2dee531cc50b2a5ed2187fb297b",
+    "2001254789855": {
+      "sha256": "4da1bb49ab9d3a7675d46e32f73801e112b10f8deb43d6256eadeda0ebd04649",
       "salt": 0,
       "sample_id": "PWD-0064",
       "material": "Sclareolide",
       "cas": "564-20-5",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-36986",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2001444720811": {
-      "sha256": "d3d4f3b67d240471228242e89e4c1089298b090dc5a5eaa6204870e217288211",
+    "2007626353525": {
+      "sha256": "acf008ba79c8b46e3eb23308715009774166e767dd1f5e40437ce4edd83b2858",
       "salt": 0,
       "sample_id": "PWD-0065",
       "material": "Sclareolide",
       "cas": "564-20-5",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-85078",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2009760273738": {
-      "sha256": "d57156931df5ca2fa70f6fa0f61f29634ab2f7196ab23cdf80d5ed794d97c4ed",
+    "2007348008611": {
+      "sha256": "c7acc3885853c5cce884e3eb876c8ea77cb484b81489b1246d6ad7ecf413bddd",
       "salt": 0,
       "sample_id": "PWD-0066",
       "material": "Cedryl acetate",
       "cas": "77-54-3",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-96260",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2000081362453": {
-      "sha256": "fd5c540c9136b9eaeef6950426defbfc2b3bf19d45909cb2d8c57f4305548235",
+    "2009796677005": {
+      "sha256": "177acbe0dc939ef292ee4ce5572c661469e25f30d35b7a03b9a89cbac3929ef4",
       "salt": 0,
       "sample_id": "PWD-0067",
       "material": "Cedryl acetate",
       "cas": "77-54-3",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-81790",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2009483247702": {
-      "sha256": "a527bf80d54a058aaa1119e3e19973b0a07b3a86626d6f7a4c8c84148619cda2",
+    "2009743629156": {
+      "sha256": "c7db1585023a25204ff78a32c0e40e4d78f2ef7b6ca312dfbca965318f0c5b23",
       "salt": 0,
       "sample_id": "PWD-0068",
       "material": "Cedryl acetate",
       "cas": "77-54-3",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-38405",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2003056320960": {
-      "sha256": "ca43ed253a156805b1150d37e737f977c025d2b26a014430c7e5c1881b807560",
+    "2006429563773": {
+      "sha256": "7a1efd6025a71ad687e368febac8f41708baf25a21827f8c8bdd244d05ac7c59",
       "salt": 0,
       "sample_id": "PWD-0069",
       "material": "Cedryl acetate",
       "cas": "77-54-3",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-80088",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2008669179820": {
-      "sha256": "f67191b6d6388fad8091c3c602586558654997cc922088e495d2e82ca239a65e",
+    "2009893733574": {
+      "sha256": "847e2c72994c0c88fe65340bff89adcf46569ae12d83566ee5494938094983ad",
       "salt": 0,
       "sample_id": "PWD-0070",
       "material": "Cedryl acetate",
       "cas": "77-54-3",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-82777",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2001761993752": {
-      "sha256": "24ac9c46777d3ead0d1697c570f41730ed731b39df0ff86c298563add59b06cf",
+    "2004016148426": {
+      "sha256": "45c27edc42c335c2b0d45e00e962e022f9364b0a4e486aaca56baffd32ae27fa",
       "salt": 0,
       "sample_id": "PWD-0071",
       "material": "Methyl cinnamate",
       "cas": "103-26-4",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-28865",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2001358591736": {
-      "sha256": "db7bf4f0967235265b9fe39d85c9476bece592e5a7db4bda0001f1876b0a77e5",
+    "2001158090453": {
+      "sha256": "ab8cce85cb4893019153fe0e07c882c3e8e59813530220bff2c3bdba4ccf5315",
       "salt": 0,
       "sample_id": "PWD-0072",
       "material": "Methyl cinnamate",
       "cas": "103-26-4",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-42551",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2005218362542": {
-      "sha256": "9cce60f6b893263a9c6f0089781cd81a1700b16df5c9664570725132792858de",
+    "2004640909660": {
+      "sha256": "de11f9d02738b8915c297fee97ae0a50c70e5a363f7e03b98d17540558d92356",
       "salt": 0,
       "sample_id": "PWD-0073",
       "material": "Methyl cinnamate",
       "cas": "103-26-4",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-18861",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2002933334908": {
-      "sha256": "604a2d529db249a39726c9737c125ffa68e3a67481bb1b0c5eb147ad841c73f2",
+    "2001089696786": {
+      "sha256": "4514e97e540f9e49d566b38d2f45007a5b5f8b2ab68cbaf5c9b64b72581d5cce",
       "salt": 0,
       "sample_id": "PWD-0074",
       "material": "Methyl cinnamate",
       "cas": "103-26-4",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-17164",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2002603771859": {
-      "sha256": "6724201f839206d9e3b5fee198f3ab51ab75e00799bf624784acd1c99a43a061",
+    "2003110873425": {
+      "sha256": "2202ca38709a8840319c5cbf7860e13be9206367c80b593a271459f98fbd7aee",
       "salt": 0,
       "sample_id": "PWD-0075",
       "material": "Methyl cinnamate",
       "cas": "103-26-4",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-69290",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2002608852959": {
-      "sha256": "c662379fa7ae4a7107099e1ff0e5258c90d0d5f370a03f8333fc4c5781f02d2f",
+    "2009812191553": {
+      "sha256": "33c8e92d8b50c7bd4e0565fb8415e1393db57396de7cf60b09e60fefa8b86f53",
       "salt": 0,
       "sample_id": "PWD-0076",
       "material": "Benzyl cinnamate",
       "cas": "103-41-3",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-44932",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2008503266778": {
-      "sha256": "eddfbd8f52bce98f66030cbf3779202ece4c704f0f05417a1006e0cf5f8c4695",
+    "2006382937819": {
+      "sha256": "514605a5fc880171136c2397bd48788d65db70d8ff7d2a6b44d06cba1f7bfb15",
       "salt": 0,
       "sample_id": "PWD-0077",
       "material": "Benzyl cinnamate",
       "cas": "103-41-3",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-51750",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2001834445966": {
-      "sha256": "2f64587ae00c6e1c53577e1a85b93cb79df43451b1f1d47a16a025656ace8a74",
+    "2008028240420": {
+      "sha256": "bfb3c920bd72f8c1e0e5e80db01a00d04bfb3d17aff011c269ef917951e0eb6a",
       "salt": 0,
       "sample_id": "PWD-0078",
       "material": "Benzyl cinnamate",
       "cas": "103-41-3",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-52549",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2005594161906": {
-      "sha256": "4939462831a681ca415907e961e9972d2dc60fdca86cb51c3b8f3007acdb257e",
+    "2005023537142": {
+      "sha256": "fa93516c1e0d47f5b96ae6354f7b6bad8454bab4e814b5c601b2fb48d7b7b932",
       "salt": 0,
       "sample_id": "PWD-0079",
       "material": "Benzyl cinnamate",
       "cas": "103-41-3",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-48123",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2000707583187": {
-      "sha256": "90894d0165e5d327e8808032cd775086853dc379fdf4166334ec5f81516377ae",
+    "2002922912773": {
+      "sha256": "d989248596a43baed97431d2680332d3ff7a82b789b9d7e69b65706f882dbecd",
       "salt": 0,
       "sample_id": "PWD-0080",
       "material": "Benzyl cinnamate",
       "cas": "103-41-3",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-78641",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2008235305806": {
-      "sha256": "f049fe745e64975bb3c07cf75c091301276c728d18ea3d8afacc60089ff43654",
+    "2000100913048": {
+      "sha256": "e600045080eb1ad26f992b58300ad435fc21a96e2756a5a2e7f4f61d0eb20f28",
       "salt": 0,
       "sample_id": "PWD-0081",
       "material": "Cinnamic acid",
       "cas": "621-82-9",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-43492",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2007940628125": {
-      "sha256": "104e13b7f114a6142a440ddd36417bcab18d2bcc9e53f68fee0a3a4c4104cddc",
+    "2000778493439": {
+      "sha256": "8fbd9ba7a36a540641f64075d1410676fc2c7b89a27b3c7bf1306ac33cfdb2ff",
       "salt": 0,
       "sample_id": "PWD-0082",
       "material": "Cinnamic acid",
       "cas": "621-82-9",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-71122",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2007359820820": {
-      "sha256": "a870615072ba9b083c417dd4e823a35e5cc2c4387e23265820d5a1859ef62402",
+    "2006893233998": {
+      "sha256": "3d497390c22f5dc0c37c84600adc651e33ce292907d3ef07feae4a8f8f1ccb87",
       "salt": 0,
       "sample_id": "PWD-0083",
       "material": "Cinnamic acid",
       "cas": "621-82-9",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-79318",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2002897685368": {
-      "sha256": "7e47870b682dedf14c78de3788787bcbe52145cd2261ca4c86bf409dd4b2ac58",
+    "2004462309105": {
+      "sha256": "b534f3da38963374dee90796749ca3cb25df438385239ec08d201a0971a5417e",
       "salt": 0,
       "sample_id": "PWD-0084",
       "material": "Cinnamic acid",
       "cas": "621-82-9",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-86112",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2002238530791": {
-      "sha256": "90e253bb120118c66919b17534240775a127c020e65507c8f0f46fc2480e8a17",
+    "2006353738667": {
+      "sha256": "c69f54eed8ef9671dfb315d43b132fec96d26dca70b646a3883e4116dae5512a",
       "salt": 0,
       "sample_id": "PWD-0085",
       "material": "Cinnamic acid",
       "cas": "621-82-9",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-48433",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2005894446383": {
-      "sha256": "ddbcdd4c715ebf15a6ece8399a34409f48ec2eaca1eaecef73b6bafbcc4d981e",
+    "2002977596287": {
+      "sha256": "b5d7cb9e4deba9ba38190f8664154112d319d31f1fa5ec42e3f0db23b00b6f8c",
       "salt": 0,
       "sample_id": "PWD-0086",
       "material": "Diphenyl ether",
       "cas": "101-84-8",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-51333",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2008703975661": {
-      "sha256": "012d5b8c462f69353a13fa9eb443b7362b854e1c2478af78ddd097bcb91dea7e",
+    "2009896495738": {
+      "sha256": "af09aad6c74cb6afb7dbcf08e1bc3b0ff4c6cb8384dda236af3aafff8a6782a5",
       "salt": 0,
       "sample_id": "PWD-0087",
       "material": "Diphenyl ether",
       "cas": "101-84-8",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-89710",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2004907715553": {
-      "sha256": "fe7e8ee1b214fbb06582901431f319c70a99f8a7e5484417d615772de0da9863",
+    "2000029064937": {
+      "sha256": "0dd2f4f337fb4bc95d4ad749ee5810c66db7ed0d5a60f04d77cf1fbf3e95f77d",
       "salt": 0,
       "sample_id": "PWD-0088",
       "material": "Diphenyl ether",
       "cas": "101-84-8",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-58491",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2001205447858": {
-      "sha256": "34d31c337da29704343b8268583fabd6c911deeb6931de817eaa1bd5c8f92611",
+    "2004010679568": {
+      "sha256": "97b4b83ce735cd7fd34ba02cee978cf789a3b4ae429a819ce9052558b803cdb4",
       "salt": 0,
       "sample_id": "PWD-0089",
       "material": "Diphenyl ether",
       "cas": "101-84-8",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-24097",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2003770726451": {
-      "sha256": "87d334401755c7bc0f3fed6a4197463d6236892d15ed81cc2d68f47eb53a8405",
+    "2007056291541": {
+      "sha256": "778ef877436b2078cecbf3675944ac24033ca72f65adc829d4c96811c86449e2",
       "salt": 0,
       "sample_id": "PWD-0090",
       "material": "Diphenyl ether",
       "cas": "101-84-8",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-53192",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2004237593142": {
-      "sha256": "1d33d1f6d7b13ae2b820ce8772e98a2b7ad11a9e58f40746e4e30b27bac96bd2",
+    "2006689354050": {
+      "sha256": "a5165fde342fda75cb884f2df03b75561cca1e1f809e67e99d6b4644713ebeed",
       "salt": 0,
       "sample_id": "PWD-0091",
       "material": "Exaltolide",
       "cas": "106-02-5",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-66480",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2003100319858": {
-      "sha256": "f360da9bc4a3b0bbb4bd2b412b39785edb3ae6cbef14a3b0e456654433a14071",
+    "2001080996892": {
+      "sha256": "68abfa32cf2392f6f726dc789ff2bc81decdd5462697a7769a63d89ad7d91269",
       "salt": 0,
       "sample_id": "PWD-0092",
       "material": "Exaltolide",
       "cas": "106-02-5",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-45865",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2008240244657": {
-      "sha256": "cade7bf6bea753d498d9a88fa97f6d2c05dc74061db455d3bbfc0a3e21656391",
+    "2009860396801": {
+      "sha256": "71cb28bbce6b4269f2631244b9414176aad88745af28b08827a61b9e4c6baf80",
       "salt": 0,
       "sample_id": "PWD-0093",
       "material": "Exaltolide",
       "cas": "106-02-5",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-78041",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2005629154224": {
-      "sha256": "bbaa3768e0190392dcd010a0256bf8826c4047b18ab5531da4ae16efb43ea65e",
+    "2009320440334": {
+      "sha256": "6db1c756de0c8085a039a9542a333d78911483b9994f8860252d00edc50d7101",
       "salt": 0,
       "sample_id": "PWD-0094",
       "material": "Exaltolide",
       "cas": "106-02-5",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-36179",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2002758821003": {
-      "sha256": "fa928974e40f812ec571cca4a12498918fcafebaa705492b4cd7a7e34e0bbc74",
+    "2008353689284": {
+      "sha256": "98e6b15938a8bf08dcac97b4f6d1c6da5d8f11ffe6101da8986e118742585fe0",
       "salt": 0,
       "sample_id": "PWD-0095",
       "material": "Exaltolide",
       "cas": "106-02-5",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-24012",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     },
-    "2001434304335": {
-      "sha256": "4d7c78276fb81be7f54d8db0f1b204251966503063bec2448f2cc350971fad21",
+    "2000359890572": {
+      "sha256": "74502bae1d3373b8f9ef44a3fd7bbc7a5619612ef24e938b7468b67af84e5041",
       "salt": 0,
       "sample_id": "PWD-0096",
       "material": "Phenylacetic acid",
       "cas": "103-82-2",
       "phase": "powder",
-      "container_ml": 30.0,
+      "container_ml": 10.0,
       "lot": "LOT-20422",
-      "vessel_class": "jar_30ml"
+      "vessel_class": "flask_10ml"
     },
-    "2006388914432": {
-      "sha256": "2f8a96429b3a8d5f25429fbdf8cf06833a8bb380c737bac100ef0edcdb1cf9b3",
+    "2000747746856": {
+      "sha256": "4220b176a23731fe5b9c9a64c5b4d264369fa5820a556635ddbc24a16a747e9d",
       "salt": 0,
       "sample_id": "PWD-0097",
       "material": "Phenylacetic acid",
       "cas": "103-82-2",
       "phase": "powder",
-      "container_ml": 60.0,
+      "container_ml": 20.0,
       "lot": "LOT-40536",
-      "vessel_class": "jar_60ml"
+      "vessel_class": "flask_20ml"
     },
-    "2006537952636": {
-      "sha256": "d340cdb9259e8f0bba13ea95b18381b6cd9fe1d53a26a98e369a3bb5f8e31dbf",
+    "2004557709988": {
+      "sha256": "46a09b20ffeb7fe0bf0daec360ddc651e8469482b1edd14573ab8336b1c4bb76",
       "salt": 0,
       "sample_id": "PWD-0098",
       "material": "Phenylacetic acid",
       "cas": "103-82-2",
       "phase": "powder",
-      "container_ml": 125.0,
+      "container_ml": 30.0,
       "lot": "LOT-67945",
-      "vessel_class": "jar_125ml"
+      "vessel_class": "flask_30ml"
     },
-    "2005730954768": {
-      "sha256": "2e2ce58d6903e67b494b71abb8682332c21c36b4d7b6f8c5e6a605c0e0b65634",
+    "2006410753886": {
+      "sha256": "dcd4fc5aaf68773f05e77829e64479a3974586d22b43d3a24745368c72aa2ebc",
       "salt": 0,
       "sample_id": "PWD-0099",
       "material": "Phenylacetic acid",
       "cas": "103-82-2",
       "phase": "powder",
-      "container_ml": 250.0,
+      "container_ml": 50.0,
       "lot": "LOT-24029",
-      "vessel_class": "jar_250ml"
+      "vessel_class": "flask_50ml"
     },
-    "2004832475881": {
-      "sha256": "5107fb3798dc1bf8bc2f8e1b6f383675683a3e743f51bfff034f12960967c3e4",
+    "2005614286138": {
+      "sha256": "b5daf78d2d166d471b6c645389dfaa480f7f5a1f7d38edeb232b8ea595ed7285",
       "salt": 0,
       "sample_id": "PWD-0100",
       "material": "Phenylacetic acid",
       "cas": "103-82-2",
       "phase": "powder",
-      "container_ml": 500.0,
+      "container_ml": 100.0,
       "lot": "LOT-96527",
-      "vessel_class": "jar_500ml"
+      "vessel_class": "flask_100ml"
     }
   }
 }

@@ -66,18 +66,35 @@ def test_cas_numbers_are_unique_across_the_catalogue() -> None:
     assert len(set(cas)) == len(cas)
 
 
-def test_powders_are_in_jars_and_liquids_in_flasks() -> None:
-    """Solids need a wide mouth for a spatula, so they are never in a flask."""
-    for sample in registry.default_samples():
-        expected = "flask" if sample.phase == "liquid" else "jar"
-        assert sample.vessel_class.startswith(expected + "_"), sample
+def test_both_phases_share_one_container_series() -> None:
+    """Container size must not give the phase away.
+
+    If powders lived in their own labware, a detector could read "powder" off
+    the vessel shape and never decode the barcode -- the same shortcut the
+    cross product exists to close.
+    """
+    samples = registry.default_samples()
+    by_phase = {
+        phase: {s.container_ml for s in samples if s.phase == phase}
+        for phase in {s.phase for s in samples}
+    }
+    assert len(by_phase) == 2
+    assert len(set(map(frozenset, by_phase.values()))) == 1
+    assert {s.vessel_class for s in samples} == {
+        f"flask_{v:g}ml" for v in registry.FLASK_VOLUMES_ML
+    }
 
 
-def test_vessel_class_is_derived_from_phase_and_size() -> None:
+def test_there_are_only_five_vessel_classes() -> None:
+    classes = {s.vessel_class for s in registry.default_samples()}
+    assert len(classes) == 5
+    assert all(c.startswith("flask_") for c in classes)
+
+
+def test_vessel_class_does_not_encode_phase() -> None:
     liquid = registry.Sample("SMP-1", "Limonene", "5989-27-5", "liquid", 50.0, "L1")
-    powder = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder", 250.0, "L1")
-    assert liquid.vessel_class == "flask_50ml"
-    assert powder.vessel_class == "jar_250ml"
+    powder = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder", 50.0, "L1")
+    assert liquid.vessel_class == powder.vessel_class == "flask_50ml"
 
 
 def test_vessel_class_rejects_an_unknown_phase() -> None:
