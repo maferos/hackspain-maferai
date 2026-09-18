@@ -1,0 +1,5 @@
+# AutoBio (https://github.com/autobio-bench/AutoBio) ships a prebuilt MuJoCo plugin
+# (libmjlab.so.3.3.0) linked against libmujoco.so.3.3.0, so its scenes need this
+# exact MuJoCo version. Installed into a separate env (.venv-autobio) by setup_autobio.sh.
+mujoco==3.3.0
+numpy>=1.26,<2.3

@@ -2,3 +2,7 @@
 __pycache__/
 *.pyc
 MUJOCO_LOG.TXT
+third_party/AutoBio/
+.venv-autobio/
+MJDATA.TXT
+MJMODEL.TXT
