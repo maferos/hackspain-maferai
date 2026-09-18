@@ -40,6 +40,19 @@ On macOS, run passive-viewer scripts with `mjpython` instead of `python`.
 Viewer controls: double-click to select a body, Ctrl + right-drag to push it,
 Space to pause, Backspace to reset, and the left/right panels toggle rendering options.
 
+## Lab furniture
+
+`minihannover` is our own 6.0 x 1.5 m lab bench (work surface at 0.90 m), generated
+for both simulators from a single script:
+
+```bash
+python scripts/generate_minihannover.py                       # regenerate the assets
+python scripts/view_model.py models/minihannover_scene.xml    # look at it
+```
+
+It ships as MJCF (boxes, and a mesh variant), URDF for the Isaac Lab importer, and an
+OBJ interchange mesh. See [`assets/minihannover/README.md`](assets/minihannover/README.md).
+
 ## AutoBio lab scenes
 
 [AutoBio](https://github.com/autobio-bench/AutoBio) ([paper](https://arxiv.org/abs/2505.14030)) provides
@@ -72,10 +85,14 @@ use `scripts/view_autobio.py` instead.
 | `requirements.txt` | Python dependencies (`mujoco`, `numpy`) |
 | `install.sh` | One-shot environment setup + verification |
 | `models/hello.xml` | Demo scene: floor + falling box, sphere, capsule |
+| `models/minihannover_scene.xml` | Demo scene: the `minihannover` bench on a floor |
 | `scripts/check_install.py` | Headless check that loads and steps the model |
 | `requirements-autobio.txt` | Pinned MuJoCo 3.3.0 env for AutoBio |
 | `third_party/AutoBio` | AutoBio git submodule (models, meshes, plugin) |
 | `setup_autobio.sh` | Fetches the AutoBio submodule + creates `.venv-autobio` |
 | `scripts/view_autobio.py` | Loads AutoBio's plugin and opens a lab scene in the viewer |
 | `scripts/view_model.py` | Opens a model in the interactive viewer and simulates it in real time |
-| `assets/` | Raw 3D models of lab instruments (GC-MS, UV-Vis), reference only |
+| `assets/minihannover/` | `minihannover` lab bench: MJCF + URDF + OBJ (generated) |
+| `scripts/generate_minihannover.py` | Single source of truth for the `minihannover` assets |
+| `assets/README.md` | Which assets each simulator can consume, and their gotchas |
+| `assets/gc-ms/`, `assets/uv-vs-nr/` | Raw 3D models of lab instruments, reference only |
