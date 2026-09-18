@@ -1,0 +1,7 @@
+# MuJoCo physics engine + Python bindings.
+# The wheel bundles the native MuJoCo library and the interactive 3D viewer
+# (mujoco.viewer, OpenGL/GLFW) — no separate download is needed.
+mujoco>=3.13.0,<4
+
+# Used by the bindings for mjModel/mjData arrays.
+numpy>=1.26
