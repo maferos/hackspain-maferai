@@ -447,7 +447,7 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
 | `labvision/bottles.py` | Sticks each powder label onto the bottle of its size |
-| `tests/` | 243 tests, plus 25 doctests |
+| `tests/` | 244 tests, plus 25 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
@@ -596,8 +596,12 @@ python -m labvision.bottles
 ```
 
 That writes one GLB per powder sample to `assets/agrochemical-bottles/labelled/`
-— `PWD-0001_<code>.glb` and so on, 100 files, about 60 MB, gitignored for the
-same reason the label PNGs are.
+— `PWD-0001_<code>.glb` and so on, 100 files, about 60 MB. Unlike the label PNGs
+these **are committed**, so the simulation side can use them without installing
+this package. They are deterministic: regenerating from the same lookup table
+rewrites them byte for byte, so rerun the command and commit the result whenever
+a powder barcode, the label layout or the kit's bottles change. A file whose
+name no longer matches a row of the table is stale and should be deleted.
 
 **The bottle is never chosen, it is looked up.** `labelled_bottle` takes a
 registry row and nothing else; the bottle comes from that row's `container_ml`,

@@ -186,6 +186,24 @@ def test_labelled_bottle_roundtrips_through_disk(tmp_path: Path) -> None:
         assert view["byteOffset"] + view["byteLength"] <= len(loaded.buffer)
 
 
+def test_committed_labelled_bottles_are_not_stale() -> None:
+    """The GLBs in the repo must be the ones the current catalogue produces.
+
+    A changed powder barcode changes a file name, and a changed label or bottle
+    changes file contents, so both are compared. Regenerate with
+    ``python -m labvision.bottles`` when this fails.
+    """
+    committed = {p.name: p for p in (KIT / "labelled").glob("*.glb")}
+    entries = powder_entries()
+    assert set(committed) == {f"{e.sample.sample_id}_{e.code}.glb" for e in entries}
+    for entry in entries[:: len(registry.BOTTLE_VOLUMES_ML) + 1]:
+        name = f"{entry.sample.sample_id}_{entry.code}.glb"
+        fresh, _ = bottles.labelled_bottle(entry, KIT)
+        on_disk = bottles.read_glb(committed[name])
+        assert on_disk.document == fresh.document, name
+        assert on_disk.buffer == fresh.buffer, name
+
+
 def test_liquids_are_skipped_and_refused() -> None:
     liquid = registry.build_registry(registry.default_samples(1))[0]
     with pytest.raises(bottles.BottleError, match="only powders"):
