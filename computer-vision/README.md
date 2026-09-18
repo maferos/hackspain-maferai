@@ -712,12 +712,18 @@ away, lighting and the camera's resolution, none of which are tested here yet.
 
 ## Not done yet
 
-The labels are on their bottles as GLB, which Isaac Lab can import but MuJoCo
-cannot: MuJoCo needs the sticker as an OBJ plus a PNG texture, and the scene in
-`simulation/` still uses the unlabelled bottles. Wiring the labelled ones into
-the MuJoCo scene, and carrying the label corners as pose-model
-keypoints so the quad comes from the network rather than the localiser, is the
-next step and is not part of this work.
+The labelled bottles are in the MuJoCo scene: `simulation/tools/build_labelled_bottles.py`
+turns the GLBs into MJCF bodies with the sticker as an OBJ plus a PNG texture, and
+`simulation/models/minihannover_scene.xml` uses them for every sample container,
+six powders and seven liquids. The first decode from a rendered frame works: at
+0.3 m and 1280 x 720, the 100 ml amber bottle reads as `SMP-0005`. At 0.45 m the
+same labels are about one pixel per module and do not read, which is the
+resolution floor above and not something new. The ~690 amber bottles of the
+shelving library are still the room generator's decorative ones, a different
+shape with blank labels.
+
+Carrying the label corners as pose-model keypoints, so the quad comes from the
+network rather than the localiser, is the next step and is not part of this work.
 
 On the placement side, three things are open and each is small:
 

@@ -28,17 +28,23 @@
     <model name="balance" file="../assets/balance/balance.xml"/>
     <model name="gc_ms" file="../assets/gc_ms/gc_ms.xml"/>
     <model name="uv_vis_nir" file="../assets/uv_vis_nir/uv_vis_nir.xml"/>
-    <model name="amber_060ml" file="../assets/amber_bottles/amber_060ml.xml"/>
-    <model name="amber_100ml" file="../assets/amber_bottles/amber_100ml.xml"/>
-    <model name="jar_250ml" file="../assets/reagent_jars/jar_250ml.xml"/>
-    <model name="jar_500ml" file="../assets/reagent_jars/jar_500ml.xml"/>
-    <model name="jar_1000ml" file="../assets/reagent_jars/jar_1000ml.xml"/>
-    <model name="bottle_500ml" file="../assets/agro_bottles/bottle_500ml.xml"/>
-    <model name="bottle_1l" file="../assets/agro_bottles/bottle_1l.xml"/>
-    <model name="bottle_2l" file="../assets/agro_bottles/bottle_2l.xml"/>
-    <model name="cap_500ml" file="../assets/agro_bottles/cap_500ml.xml"/>
-    <model name="cap_1l" file="../assets/agro_bottles/cap_1l.xml"/>
-    <model name="cap_2l" file="../assets/agro_bottles/cap_2l.xml"/>
+    <!-- Sample containers: every one is a catalogued sample carrying its own EAN-13
+         label (assets/labelled_bottles, from tools/build_labelled_bottles.py). Powders
+         are in white HDPE bottles, liquids in amber glass; the barcode resolves to the
+         sample through computer-vision/barcodes/lookup_table.json. -->
+    <model name="pwd_0004" file="../assets/labelled_bottles/PWD-0004.xml"/>  <!-- Vanillin, 1 L -->
+    <model name="pwd_0008" file="../assets/labelled_bottles/PWD-0008.xml"/>  <!-- Ethylvanillin, 500 ml -->
+    <model name="pwd_0012" file="../assets/labelled_bottles/PWD-0012.xml"/>  <!-- Coumarin, 250 ml -->
+    <model name="pwd_0020" file="../assets/labelled_bottles/PWD-0020.xml"/>  <!-- Maltol, 2 L -->
+    <model name="pwd_0024" file="../assets/labelled_bottles/PWD-0024.xml"/>  <!-- Ethyl maltol, 1 L -->
+    <model name="pwd_0026" file="../assets/labelled_bottles/PWD-0026.xml"/>  <!-- Menthol, 100 ml -->
+    <model name="smp_0005" file="../assets/labelled_bottles/SMP-0005.xml"/>  <!-- Limonene, 100 ml -->
+    <model name="smp_0009" file="../assets/labelled_bottles/SMP-0009.xml"/>  <!-- Linalool, 50 ml -->
+    <model name="smp_0013" file="../assets/labelled_bottles/SMP-0013.xml"/>  <!-- Geraniol, 30 ml -->
+    <model name="smp_0017" file="../assets/labelled_bottles/SMP-0017.xml"/>  <!-- Citral, 20 ml -->
+    <model name="smp_0021" file="../assets/labelled_bottles/SMP-0021.xml"/>  <!-- Eugenol, 10 ml -->
+    <model name="smp_0030" file="../assets/labelled_bottles/SMP-0030.xml"/>  <!-- Benzaldehyde, 100 ml -->
+    <model name="smp_0034" file="../assets/labelled_bottles/SMP-0034.xml"/>  <!-- Citronellol, 50 ml -->
   </asset>
 
   <include file="../assets/minihannover/minihannover.xml"/>
@@ -57,14 +63,19 @@
       <attach model="sink" body="sink" prefix="sink_"/>
     </frame>
 
+    <!-- Angles in this file are RADIANS: the bench include (minihannover.xml) sets
+         <compiler angle="radian"/>, and an include's compiler applies to the file that
+         includes it. (Attached models such as lab_room.xml compile on their own, in
+         degrees.) euler="0 0 180" here is 180 rad, which lands at -127 degrees. -->
+
     <!-- Five analytical balances along the bench, on the worktop (z = 0.90) in front of
-         the gantry. Keypads face the aisle: -y side as converted, +y side turned 180
-         degrees. Two stand on the framed mats the room generator draws (4 mm). -->
+         the gantry. Keypads face the aisle: -y side as converted, +y side turned half a
+         turn. Two stand on the framed mats the room generator draws (4 mm). -->
     <frame pos="-1.85 -0.51 0.904"><attach model="balance" body="balance" prefix="balance_1_"/></frame>
     <frame pos="-0.2 -0.51 0.9"><attach model="balance" body="balance" prefix="balance_2_"/></frame>
     <frame pos="1.3 -0.51 0.9"><attach model="balance" body="balance" prefix="balance_3_"/></frame>
-    <frame pos="-1.0 0.51 0.9" euler="0 0 180"><attach model="balance" body="balance" prefix="balance_4_"/></frame>
-    <frame pos="0.75 0.51 0.904" euler="0 0 180"><attach model="balance" body="balance" prefix="balance_5_"/></frame>
+    <frame pos="-1.0 0.51 0.9" euler="0 0 3.1416"><attach model="balance" body="balance" prefix="balance_4_"/></frame>
+    <frame pos="0.75 0.51 0.904" euler="0 0 3.1416"><attach model="balance" body="balance" prefix="balance_5_"/></frame>
 
     <!-- Instruments on the left-wall instrument bench (top at z = 0.90), fronts facing
          the room (-y). Not in the reference video; added on request. The GC-MS size
@@ -72,25 +83,27 @@
     <frame pos="-5.85 1.78 0.9"><attach model="gc_ms" body="gc_ms" prefix="gc_ms_"/></frame>
     <frame pos="-4.5 1.75 0.9"><attach model="uv_vis_nir" body="uv_vis_nir" prefix="uv_vis_nir_"/></frame>
 
-    <!-- Entrance corner counter (top at z = 0.90): HDPE powder jars and white bottles. -->
-    <frame pos="-7.82 -2.36 0.9"><attach model="jar_1000ml" body="jar_1000ml" prefix="corner_jar_1_"/></frame>
-    <frame pos="-7.68 -2.3 0.9"><attach model="jar_500ml" body="jar_500ml" prefix="corner_jar_2_"/></frame>
-    <frame pos="-7.55 -2.38 0.9"><attach model="jar_250ml" body="jar_250ml" prefix="corner_jar_3_"/></frame>
-    <frame pos="-8.3 -1.95 0.9"><attach model="bottle_2l" body="bottle_2l" prefix="corner_bottle_1_"/></frame>
-    <frame pos="-8.3 -1.95 1.114"><attach model="cap_2l" body="cap_2l" prefix="corner_cap_1_"/></frame>
-    <frame pos="-8.3 -1.75 0.9"><attach model="bottle_1l" body="bottle_1l" prefix="corner_bottle_2_"/></frame>
-    <frame pos="-8.3 -1.75 1.091"><attach model="cap_1l" body="cap_1l" prefix="corner_cap_2_"/></frame>
-    <frame pos="-8.05 -1.45 0.9"><attach model="bottle_500ml" body="bottle_500ml" prefix="corner_bottle_3_"/></frame>
-    <frame pos="-8.05 -1.45 1.04"><attach model="cap_500ml" body="cap_500ml" prefix="corner_cap_3_"/></frame>
+    <!-- Entrance corner counter (top at z = 0.90): powder samples in white HDPE bottles,
+         capped, one of each size. A bottle's label faces its own -y; each is turned so
+         the label looks into the room, give or take, as bottles put down by hand do.
+         Welded, like the rest of the corner. -->
+    <frame pos="-7.82 -2.36 0.9" euler="0 0 3.0020"><attach model="pwd_0004" body="PWD-0004" prefix="corner_powder_1_"/></frame>
+    <frame pos="-7.68 -2.3 0.9" euler="0 0 3.4034"><attach model="pwd_0008" body="PWD-0008" prefix="corner_powder_2_"/></frame>
+    <frame pos="-7.55 -2.38 0.9" euler="0 0 2.7925"><attach model="pwd_0012" body="PWD-0012" prefix="corner_powder_3_"/></frame>
+    <frame pos="-8.3 -1.95 0.9" euler="0 0 1.7104"><attach model="pwd_0020" body="PWD-0020" prefix="corner_powder_4_"/></frame>
+    <frame pos="-8.3 -1.75 0.9" euler="0 0 1.3963"><attach model="pwd_0024" body="PWD-0024" prefix="corner_powder_5_"/></frame>
+    <frame pos="-8.05 -1.45 0.9" euler="0 0 2.0071"><attach model="pwd_0026" body="PWD-0026" prefix="corner_powder_6_"/></frame>
 
-    <!-- Loose amber bottles on the worktop: the movable objects. Each is a free body
-         wrapping the converted kit bottle (inertia="exact", 65 g / 96 g). -->
-    <body name="amber_loose_1" pos="-2.25 -0.6 0.9"><freejoint/><attach model="amber_060ml" body="amber_060ml" prefix="amber_loose_1_"/></body>
-    <body name="amber_loose_2" pos="-2.33 -0.46 0.9"><freejoint/><attach model="amber_100ml" body="amber_100ml" prefix="amber_loose_2_"/></body>
-    <body name="amber_loose_3" pos="0.72 -0.62 0.9"><freejoint/><attach model="amber_060ml" body="amber_060ml" prefix="amber_loose_3_"/></body>
-    <body name="amber_loose_4" pos="0.82 -0.5 0.9"><freejoint/><attach model="amber_100ml" body="amber_100ml" prefix="amber_loose_4_"/></body>
-    <body name="amber_loose_5" pos="0.1 0.58 0.9"><freejoint/><attach model="amber_060ml" body="amber_060ml" prefix="amber_loose_5_"/></body>
-    <body name="amber_loose_6" pos="0.2 0.45 0.9"><freejoint/><attach model="amber_100ml" body="amber_100ml" prefix="amber_loose_6_"/></body>
-    <body name="amber_loose_7" pos="1.95 0.62 0.9"><freejoint/><attach model="amber_060ml" body="amber_060ml" prefix="amber_loose_7_"/></body>
+    <!-- Loose amber bottles on the worktop: the movable objects, and liquid samples, all
+         five sizes. Each is a free body wrapping a labelled bottle (inertia="exact", so
+         an empty 100 ml weighs 91 g). Labels face the aisle the bottle stands next to:
+         -y as converted, +y turned about 180 degrees. -->
+    <body name="amber_loose_1" pos="-2.25 -0.6 0.9" euler="0 0 0.2094"><freejoint/><attach model="smp_0009" body="SMP-0009" prefix="amber_loose_1_"/></body>
+    <body name="amber_loose_2" pos="-2.33 -0.46 0.9" euler="0 0 -0.3491"><freejoint/><attach model="smp_0005" body="SMP-0005" prefix="amber_loose_2_"/></body>
+    <body name="amber_loose_3" pos="0.72 -0.62 0.9" euler="0 0 -0.1396"><freejoint/><attach model="smp_0021" body="SMP-0021" prefix="amber_loose_3_"/></body>
+    <body name="amber_loose_4" pos="0.82 -0.5 0.9" euler="0 0 0.4363"><freejoint/><attach model="smp_0030" body="SMP-0030" prefix="amber_loose_4_"/></body>
+    <body name="amber_loose_5" pos="0.1 0.58 0.9" euler="0 0 2.9671"><freejoint/><attach model="smp_0013" body="SMP-0013" prefix="amber_loose_5_"/></body>
+    <body name="amber_loose_6" pos="0.2 0.45 0.9" euler="0 0 3.4907"><freejoint/><attach model="smp_0034" body="SMP-0034" prefix="amber_loose_6_"/></body>
+    <body name="amber_loose_7" pos="1.95 0.62 0.9" euler="0 0 3.2289"><freejoint/><attach model="smp_0017" body="SMP-0017" prefix="amber_loose_7_"/></body>
   </worldbody>
 </mujoco>
