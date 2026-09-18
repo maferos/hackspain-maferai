@@ -22,3 +22,9 @@ pytest>=8.0
 # used in test_ean13.py to pin our L/G/R tables against an independent
 # implementation. Those two tests skip cleanly when it is absent.
 python-barcode>=0.16
+
+# Vessel detector (labvision/detector.py). Pulls in torch; on a machine without
+# a GPU the CPU wheel is what pip resolves, and it is enough for the benchmark
+# numbers quoted in the module. YOLO-World also fetches a CLIP text encoder on
+# first use. Weights (~100 MB) download on first use into the working directory.
+ultralytics>=8.3

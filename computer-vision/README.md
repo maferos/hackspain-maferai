@@ -660,3 +660,81 @@ On the placement side, three things are open and each is small:
 - **Flask dimensions.** `VESSELS` carries the measured agrochemical bottles;
   the five `flask_*` classes the registry knows about have no dimensions
   recorded anywhere yet, so they need `radius` and `height` passed by hand.
+
+## The detector: from a frame to boxes
+
+`labvision/detector.py` is the piece between the frame and everything above:
+it says *there is a vessel in these pixels*. The barcode inside the box gives
+the identity, `scene.locate` turns the box into a bench position. Nothing was
+trained: ten pretrained detectors were benchmarked on real lab photographs and
+two were kept. The full write-up, with overlays for every model and photo, is
+`docs/BENCHMARK.md` at the repo root (in Spanish) and
+https://claude.ai/artifact/FvnEarQtYJLTaUpLs1AXp4.
+
+| backend | model | when | CPU, 960 px input |
+| --- | --- | --- | --- |
+| `world` | YOLO-World large, everyday prompts | best quality; reliable down to 24 px of vessel side | 1.9 s/frame |
+| `coco` | YOLO11 small, COCO classes filtered to bottle/cup/glass/vase/bowl | no prompts; most robust on small empty vessels; a laptop | 0.7 s/frame |
+
+```python
+from labvision.detector import Detector, attach_barcodes
+from labvision.scene import VESSELS, default_camera, locate
+
+boxes = Detector("world").detect(frame)          # or Detector("coco")
+attach_barcodes(frame, boxes)                     # sets box.barcode when a label decodes
+placement = locate(boxes[0].bbox, default_camera(), vessel=VESSELS["bottle_1000ml"])
+```
+
+Over a folder of frames, an image or a video, writing overlays and one JSON
+line per frame to `results/detect/`:
+
+```bash
+python -m labvision.detector ../simulation/out/minihannover_scene --backend both
+python -m labvision.detector frames/ --backend coco --barcodes --device cuda:0
+```
+
+The label a detector gives is not the identity. A beaker called `cup` is
+normal; YOLO-World's "cup" and "glass" prompts are what make empty glassware
+appear at all, and lab vocabulary on its own loses half of it. The threshold
+per backend is the best-F1 point from the benchmark; override with `--score`.
+
+### The size floor
+
+What decides whether a vessel is found is how many pixels it covers at the
+network input, not which model looks at it. Measured by shrinking the
+annotated photographs step by step:
+
+| vessel side at the network input | found |
+| --- | --- |
+| under 24 px | lost (COCO still gets 6 in 10 on tiny cups) |
+| 24 to 48 px | a coin toss |
+| 48 px and up | 8 to 9 in 10, and no better above 96 px |
+
+`apparent_size_px` predicts that number for a vessel, a range and a camera.
+At the room geometry in `scene.py` -- 3.23 m from the bench, 45 degree fovy,
+640x480 -- a 1 L bottle is **16 px wide** and a 100 ml bottle **8 px**, both
+under the floor. The wall camera as specified cannot feed a detector. Either
+of these fixes it, and the test suite pins the numbers:
+
+- Render at 1280x960 or more (the scene XML needs `offwidth`/`offheight` raised)
+  and infer at 1280: the 1 L bottle becomes 49 px, the 100 ml one 24 px.
+- Bring the camera to 1.5 m or closer, which is what a bench-mounted camera
+  would be anyway.
+
+Barcodes are a separate, harder floor: EAN-13 needs about 190 px of label
+width to decode, which no overview camera delivers. The fixed camera proposes
+a box, the wrist camera reads the label; `attach_barcodes` is for the
+close-up frame.
+
+### When rendered frames arrive
+
+1. Put the frames anywhere, e.g. `simulation/out/<scene>/` from
+   `render_dataset.py`, with the bottle kit placed on the bench.
+2. `python -m labvision.detector <folder> --backend both` and look at the
+   overlays. The summary line prints the median box side in pixels; if it is
+   under 48, fix the camera or the resolution before judging the model.
+3. With ground-truth boxes, run the benchmark proper (see
+   `docs/BENCHMARK.md`, section "Cuando lleguen frames de Isaac"; the
+   conversion script `scripts/isaac_to_gt.py` accepts YOLO `.txt` labels).
+4. If both backends fail on renders that pass the size floor, the next step
+   is a fine-tune on renderer-labelled frames, not another pretrained model.
