@@ -1,6 +1,7 @@
 .venv/
 __pycache__/
 *.pyc
+simulation/out/
 MUJOCO_LOG.TXT
 .venv-autobio/
 MJDATA.TXT

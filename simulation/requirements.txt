@@ -5,3 +5,6 @@ mujoco>=3.13.0,<4
 
 # Used by the bindings for mjModel/mjData arrays.
 numpy>=1.26
+
+# Writing rendered frames to PNG (scripts/render_dataset.py).
+pillow>=10
