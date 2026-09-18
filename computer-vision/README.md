@@ -676,6 +676,11 @@ https://claude.ai/artifact/FvnEarQtYJLTaUpLs1AXp4.
 | `world` | YOLO-World large, everyday prompts | best quality; reliable down to 24 px of vessel side | 1.9 s/frame |
 | `coco` | YOLO11 small, COCO classes filtered to bottle/cup/glass/vase/bowl | no prompts; most robust on small empty vessels; a laptop | 0.7 s/frame |
 
+The network input defaults to the frame's own size, not the usual 640 or 960,
+because at this scene's range downscaling pushes the whole bottle kit under
+the size floor (next section). A 1080p frame therefore costs about four times
+the figures above on a CPU; on a GPU it is still real time.
+
 ```python
 from labvision.detector import Detector, attach_barcodes
 from labvision.scene import VESSELS, default_camera, locate
@@ -711,15 +716,30 @@ annotated photographs step by step:
 | 48 px and up | 8 to 9 in 10, and no better above 96 px |
 
 `apparent_size_px` predicts that number for a vessel, a range and a camera.
-At the room geometry in `scene.py` -- 3.23 m from the bench, 45 degree fovy,
-640x480 -- a 1 L bottle is **16 px wide** and a 100 ml bottle **8 px**, both
-under the floor. The wall camera as specified cannot feed a detector. Either
-of these fixes it, and the test suite pins the numbers:
+For the scene's camera -- the GoPro in Linear mode, 3.23 m from the bench,
+f = 927 px at 1080p -- the bottle kit comes out as follows, side being the
+geometric mean of width and height, at the frame's own resolution:
 
-- Render at 1280x960 or more (the scene XML needs `offwidth`/`offheight` raised)
-  and infer at 1280: the 1 L bottle becomes 49 px, the 100 ml one 24 px.
-- Bring the camera to 1.5 m or closer, which is what a bench-mounted camera
-  would be anyway.
+| bottle | 1080p | 4K |
+| --- | --- | --- |
+| 100 ml | 13 x 28 px, side 19 | side 38 |
+| 250 ml | 17 x 38 px, side 25 | side 51 |
+| 500 ml | 21 x 47 px, side 32 | side 63 |
+| 1 L | 25 x 62 px, side 40 | side 79 |
+| 2 L | 33 x 70 px, side 48 | side 97 |
+
+At 1080p only the 2 L bottle reaches the reliable floor and the 100 ml one is
+lost outright; every size in between is a coin toss. And that is already at
+the native 1920 px input: inferring at 960 halves every side and nothing in
+the kit survives, which is why the detector defaults to the frame's own size.
+What makes this camera usable, in order of preference, and the test suite
+pins the 1080p numbers:
+
+- Capture or render at **4K** and infer at 3840: everything from 250 ml up is
+  reliable and the 100 ml bottle becomes a coin toss instead of a loss.
+- The **Narrow** digital lens at 1080p, which trades field of view for the
+  same gain (`gopro_intrinsics(lens="narrow")`).
+- Bring the camera closer; at 1.5 m the 1080p numbers double.
 
 Barcodes are a separate, harder floor: EAN-13 needs about 190 px of label
 width to decode, which no overview camera delivers. The fixed camera proposes

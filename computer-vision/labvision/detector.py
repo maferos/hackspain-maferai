@@ -22,9 +22,13 @@ a beaker labelled ``cup`` is normal and correct enough.
 The size floor matters more than the model. A vessel needs about **48 px of
 side at the network input** to be found reliably; between 24 and 48 px it is a
 coin toss; below 24 px it is lost. Check a camera against that before trusting
-it with :func:`apparent_size_px`: at the room geometry in :mod:`labvision.scene`
-(3.2 m from the bench, 45 degree fovy, 640x480) a 1 L bottle is 16 px wide, so
-the wall camera as specified cannot feed a detector at all.
+it with :func:`apparent_size_px`. The scene's camera in :mod:`labvision.scene`,
+a GoPro in Linear mode at 1080p 3.23 m from the bench, puts a 1 L bottle at
+25 x 62 px (a side of 40 px, coin-toss territory) and a 100 ml bottle at a side
+of 19 px, which is lost. That is at the frame's own resolution: inference at
+the usual 640 or 960 halves it or worse, which is why the default input here is
+the native frame. At 4K the 1 L bottle has a side of 79 px and the 250 ml one
+51 px, so 4K, or the Narrow lens at 1080p, is what makes that camera usable.
 
 Command line, over a folder of frames, a single image or a video::
 
@@ -76,8 +80,17 @@ SIDE_PX_RELIABLE = 48
 SIDE_PX_MARGINAL = 24
 """Below this side the vessel is lost; between this and reliable it is a coin toss."""
 
-DEFAULT_INPUT_PX = 960
-"""Long side the frame is resized to before inference. 640 loses the small vessels."""
+DEFAULT_INPUT_PX: int | None = None
+"""Long side the frame is resized to before inference. None keeps the frame's own
+size, rounded up to a multiple of 32. Downscaling a 1080p frame to 960 halves
+every vessel and pushes the whole bottle kit under the floor at 3.2 m."""
+
+
+def input_size_for(image: np.ndarray, input_px: int | None) -> int:
+    """Return the network input size for a frame: the override, or its own long side"""
+    if input_px is not None:
+        return input_px
+    return int(math.ceil(max(image.shape[:2]) / 32.0) * 32)
 
 
 @dataclass(frozen=True)
@@ -168,7 +181,8 @@ class Detector:
 
     Args:
         backend: Key in :data:`BACKENDS`.
-        input_px: Long side the frame is resized to before inference.
+        input_px: Long side the frame is resized to before inference, or None
+            for the frame's own size. See :data:`DEFAULT_INPUT_PX`.
         score: Confidence threshold, overriding the backend's measured optimum.
         device: Torch device such as ``"cuda:0"``; None picks a GPU if present.
         weights: Weights file, overriding the backend's.
@@ -181,7 +195,7 @@ class Detector:
         self,
         backend: str = "world",
         *,
-        input_px: int = DEFAULT_INPUT_PX,
+        input_px: int | None = DEFAULT_INPUT_PX,
         score: float | None = None,
         device: str | None = None,
         weights: str | None = None,
@@ -215,7 +229,7 @@ class Detector:
         """
         result = self.model.predict(
             image,
-            imgsz=self.input_px,
+            imgsz=input_size_for(image, self.input_px),
             conf=self.score,
             iou=0.6,
             agnostic_nms=True,
@@ -234,7 +248,7 @@ class Detector:
             boxes.append(Box(label, float(hit.conf), BBox(u_min, v_min, u_max, v_max)))
         return boxes
 
-    def warmup(self, shape: tuple[int, int, int] = (480, 640, 3)) -> None:
+    def warmup(self, shape: tuple[int, int, int] = (1080, 1920, 3)) -> None:
         """Run one blank frame so the first real one is not slowed by lazy setup"""
         self.detect(np.zeros(shape, np.uint8))
 
@@ -297,9 +311,10 @@ def apparent_size_px(
         (width_px, height_px) in the frame, or at the network input.
 
     Example:
+        >>> from labvision.scene import VESSELS
         >>> w, h = apparent_size_px(VESSELS["bottle_1000ml"], 3.23)
         >>> round(w), round(h)
-        (16, 39)
+        (25, 62)
     """
     cam = intrinsics or default_intrinsics()
     width_px = cam.fx * vessel.diameter_m / range_m
@@ -383,7 +398,12 @@ def main(argv: list[str] | None = None) -> None:
         choices=[*BACKENDS, "both"],
         help="'both' = world and coco",
     )
-    parser.add_argument("--input-px", type=int, default=DEFAULT_INPUT_PX)
+    parser.add_argument(
+        "--input-px",
+        type=int,
+        default=DEFAULT_INPUT_PX,
+        help="network input long side; default: the frame's own size",
+    )
     parser.add_argument(
         "--score", type=float, default=None, help="override the threshold"
     )

@@ -49,16 +49,26 @@ def test_attach_barcodes_reads_the_label_inside_the_box():
     assert decoy.barcode is None
 
 
-def test_apparent_size_matches_the_documented_wall_camera():
-    """The room camera puts a 1 L bottle at 16 px wide in a 640x480 frame.
+def test_apparent_size_matches_the_documented_scene_camera():
+    """The scene's GoPro at 1080p puts a 1 L bottle at 25 x 62 px from 3.23 m.
 
-    That is below the marginal floor, which is the point the module docstring
-    makes; if this number changes, so must that paragraph.
+    A side of 40 px sits between the marginal and the reliable floor, which is
+    the point the module docstring makes; if these numbers change, so must
+    that paragraph.
     """
     width, height = apparent_size_px(VESSELS["bottle_1000ml"], 3.23)
-    assert round(width) == 16
-    assert round(height) == 39
-    assert (width * height) ** 0.5 < SIDE_PX_RELIABLE
+    assert round(width) == 25
+    assert round(height) == 62
+    assert SIDE_PX_MARGINAL < (width * height) ** 0.5 < SIDE_PX_RELIABLE
+
+
+def test_native_input_size_is_the_long_side_rounded_to_32():
+    from labvision.detector import input_size_for
+
+    assert input_size_for(np.zeros((1080, 1920, 3), np.uint8), None) == 1920
+    assert input_size_for(np.zeros((481, 640, 3), np.uint8), None) == 640
+    assert input_size_for(np.zeros((1080, 1921, 3), np.uint8), None) == 1952
+    assert input_size_for(np.zeros((1080, 1920, 3), np.uint8), 960) == 960
 
 
 def test_apparent_size_scales_with_network_input():
