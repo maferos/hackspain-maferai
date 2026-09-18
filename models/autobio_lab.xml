@@ -1,0 +1,66 @@
+<!-- AutoBio "pick up centrifuge tube" scene on a bigger table, with a GC-MS and a
+     UV-Vis-NIR spectrophotometer from assets/ at either end.
+     Needs the AutoBio plugin: .venv-autobio/bin/python scripts/view_autobio.py models/autobio_lab.xml -->
+<mujoco model="autobio lab instruments">
+
+    <option integrator="implicitfast" impratio="10" cone="elliptic" noslip_iterations="2">
+        <flag multiccd="enable"/>
+    </option>
+    <visual>
+        <global azimuth="200" elevation="-25" offwidth="1280" offheight="960"/>
+    </visual>
+    <statistic center="0 0 0.9" extent="2.2"/>
+
+    <asset>
+        <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
+        <texture type="2d" name="groundplane" builtin="checker" mark="edge" rgb1="0.6 0.7 0.8" rgb2="0.4 0.5 0.6" markrgb="0.8 0.8 0.8" width="300" height="300"/>
+        <material name="groundplane" texture="groundplane" texuniform="true" texrepeat="5 5"/>
+        <model name="table" file="big_table.xml" content_type="text/xml" />
+        <model name="gc_ms" file="instruments/gc_ms.xml" content_type="text/xml" />
+        <model name="uv_vis_nir" file="instruments/uv_vis_nir.xml" content_type="text/xml" />
+        <model name="centrifuge_10slot" file="../third_party/AutoBio/autobio/model/object/centrifuge_10slot.gen.xml" content_type="text/xml" />
+        <model name="aloha" file="../third_party/AutoBio/autobio/model/robot/aloha_left.xml" content_type="text/xml" />
+        <model name="centrifuge_50ml_screw" file="../third_party/AutoBio/autobio/model/object/centrifuge_50ml_screw.xml" content_type="text/xml" />
+    </asset>
+
+    <worldbody>
+        <light directional="true" diffuse="0.8 0.8 0.8" ambient="0.3 0.3 0.3" pos="0 0 5" dir="0 0 -1"/>
+        <light pos="0 -2.5 2.5" dir="0 1 -0.8" diffuse="0.4 0.4 0.4"/>
+        <geom name="floor" pos="0 0 0" size="3 3 0.05" type="plane" material="groundplane"/>
+        <!-- Same frame as AutoBio's pickup.xml: table long axis runs along world y. -->
+        <body name="table" pos="0 0 0." quat="1 0 0 1">
+            <attach model="table" body="vention table" prefix="/"/>
+            <body name="aloha1" pos="0.0 0.1 0.824" quat="1 0 0 -1" >
+                <attach model="aloha" body="left/base_link" prefix="1/aloha:"/>
+            </body>
+            <body name="slot" pos="0.0 -0.3 0.854" quat="0 0 0 1">
+                <attach model="centrifuge_10slot" body="centrifuge_10slot" prefix="/"/>
+            </body>
+            <!-- Instruments stand at the table ends, backs to the rear edge, fronts facing -y. -->
+            <frame pos="-0.95 0.3 0.824">
+                <attach model="gc_ms" body="gc_ms" prefix="lab:"/>
+            </frame>
+            <frame pos="0.95 0.26 0.824">
+                <attach model="uv_vis_nir" body="uv_vis_nir" prefix="lab:"/>
+            </frame>
+            <camera name="table_cam_front" pos="0. -1.2 1.45" quat="0.819 0.574 0 0" fovy="45" resolution="1280 960"/>
+            <camera name="table_cam_left" pos="-1.2 0. 1.45" quat="0.579 0.406 -0.406 -0.579" fovy="45" resolution="1280 960"/>
+            <camera name="table_cam_wide" pos="0. -3.2 2.2" quat="0.866 0.5 0 0" fovy="50" resolution="1280 960"/>
+        </body>
+        <body name="centrifuge_50ml_screw_cap_wrap" pos="0 0 0.83" quat="1 0 0 0">
+            <joint name="centrifuge_50ml_screw_cap" type="free"/>
+            <attach model="centrifuge_50ml_screw" body="centrifuge_50ml_screw_cap" prefix="1/"/>
+        </body>
+        <body name="centrifuge_50ml_screw_body_wrap" pos="0 0 0.83" quat="1 0 0 0">
+            <joint name="centrifuge_50ml_screw_body" type="free"/>
+            <attach model="centrifuge_50ml_screw" body="centrifuge_50ml_screw_body" prefix="2/"/>
+        </body>
+    </worldbody>
+
+    <contact>
+        <pair geom1="1/nut" geom2="2/bolt" friction="1" solref="0.002 1"/>
+        <pair geom1="1/nut" geom2="2/body_cyl" friction="1" solref="0.002 1" solimp="0.9 0.95 0.001"/>
+        <pair geom1="1/cap_cyl" geom2="1/aloha:rightfinger" friction="1" solref="0.002 1" solimp="0.9 0.95 0.001"/>
+        <pair geom1="1/cap_cyl" geom2="1/aloha:leftfinger" friction="1" solref="0.002 1" solimp="0.9 0.95 0.001"/>
+    </contact>
+</mujoco>

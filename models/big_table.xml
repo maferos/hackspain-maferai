@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Enlarged version of AutoBio's model/misc/simple_table.xml: 3.0 m x 1.2 m top
+     (was 1.3 m x 0.82 m), same 0.824 m working height, so AutoBio objects placed
+     at z=0.824 still sit on the surface. -->
+<mujoco model="big table">
+    <compiler angle="radian" />
+
+    <default>
+        <default class="vention">
+            <geom conaffinity="0" contype="0" group="1"/>
+            <default class="vention_collision">
+                <geom conaffinity="1" condim="3" contype="0" group="3" margin="0.001" rgba=".4 .5 .6 1"/>
+            </default>
+        </default>
+    </default>
+
+    <asset>
+        <material name="vention_black" rgba="0.05 0.05 0.1 1" reflectance="0" shininess=".5"  />
+        <material name="vention_white" rgba="0.4 0.4 0.4 1" reflectance="0." shininess=".1"  />
+        <material name="vention_blue" rgba=".14 .30 .52 1" reflectance="10" shininess=".1"  />
+    </asset>
+
+    <worldbody>
+        <body name="vention table" childclass="vention">
+            <!-- leg floor pads -->
+            <geom type="cylinder" size="0.040 0.010" pos="-1.45 -.55 0.010" material="vention_black"/>
+            <geom type="cylinder" size="0.040 0.010" pos="1.45 -.55 0.010" material="vention_black"/>
+            <geom type="cylinder" size="0.040 0.010" pos="-1.45 0.55 0.010" material="vention_black"/>
+            <geom type="cylinder" size="0.040 0.010" pos="1.45 0.55 0.010" material="vention_black"/>
+
+            <!-- leg pad stems -->
+            <geom type="cylinder" size="0.010 0.020" pos="-1.45 -.55 0.030" material="vention_black"/>
+            <geom type="cylinder" size="0.010 0.020" pos="1.45 -.55 0.030" material="vention_black"/>
+            <geom type="cylinder" size="0.010 0.020" pos="-1.45 0.55 0.030" material="vention_black"/>
+            <geom type="cylinder" size="0.010 0.020" pos="1.45 0.55 0.030" material="vention_black"/>
+
+            <!-- legs -->
+            <geom type="box" size="0.023 0.023 .387" pos="-1.45 -.55 0.435" material="vention_blue"/>
+            <geom type="box" size="0.023 0.023 .387" pos="1.45 -.55 0.435" material="vention_blue"/>
+            <geom type="box" size="0.023 0.023 .387" pos="-1.45 0.55 0.435" material="vention_blue"/>
+            <geom type="box" size="0.023 0.023 .387" pos="1.45 0.55 0.435" material="vention_blue"/>
+
+            <!-- middle legs (two per long side) -->
+            <geom type="box" size="0.023 0.023 .337" pos="-0.5 0.55 0.440" material="vention_blue"/>
+            <geom type="box" size="0.023 0.023 .337" pos="0.5 0.55 0.440" material="vention_blue"/>
+            <geom type="box" size="0.023 0.023 .337" pos="-0.5 -.55 0.440" material="vention_blue"/>
+            <geom type="box" size="0.023 0.023 .337" pos="0.5 -.55 0.440" material="vention_blue"/>
+
+            <!-- top board -->
+            <geom type="box" size="1.500 0.600 0.023" pos="0 0 0.801" material="vention_white"/>
+            <geom type="box" size="1.502 0.602 0.023" pos="0 0 0.790" material="vention_blue"/>
+
+            <!-- bottom board -->
+            <geom type="box" size="1.450 0.550 0.005" pos="0 0 0.150" material="vention_white"/>
+            <geom type="box" size="1.452 0.552 0.023" pos="0 0 0.124" material="vention_blue"/>
+
+            <!-- collision -->
+            <geom type="box" size="1.502 0.602 0.411" pos="0 0 0.413" class="vention_collision"/>
+        </body>
+    </worldbody>
+
+</mujoco>

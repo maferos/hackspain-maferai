@@ -48,8 +48,26 @@ AutoBio is included as a git submodule (it has no license file, so its assets ar
 ```bash
 ./setup_autobio.sh     # fetches the AutoBio submodule (third_party/AutoBio), creates .venv-autobio, checks all scenes
 .venv-autobio/bin/python scripts/view_autobio.py --list                # available scenes
-.venv-autobio/bin/python scripts/view_autobio.py pickup                # open a scene in the 3D viewer
+.venv-autobio/bin/python scripts/view_autobio.py                       # our lab scene (autobio_lab)
+.venv-autobio/bin/python scripts/view_autobio.py pickup                # any AutoBio scene
 .venv-autobio/bin/python scripts/view_autobio.py mani_thermal_cycler
+```
+
+### Lab scene with our instruments
+
+`models/autobio_lab.xml` (the viewer's default scene) is AutoBio's *pick up centrifuge tube* setup
+(ALOHA arm, tube rack, 50 ml screw tube) on a bigger 3.0 m x 1.2 m table (`models/big_table.xml`),
+with the **GC-MS** (`assets/gc-ms`) at one end and the **UV-Vis-NIR spectrophotometer**
+(`assets/uv-vis-nir`) at the other.
+
+The instruments were converted from the OBJ files in `assets/` with `tools/convert_instrument.py`,
+which splits them into one mesh per material, turns them Z-up, scales them to metres and adds a box
+collider. To regenerate (or add another instrument):
+
+```bash
+unzip assets/uv-vis-nir/3d-model.obj.zip -d /tmp/uv && unzip assets/uv-vis-nir/3d-model.mtl.zip -d /tmp/uv
+.venv-autobio/bin/python tools/convert_instrument.py /tmp/uv/3d-model.obj --name uv_vis_nir --scale 0.0254   # inches
+# gc-ms: --name gc_ms --scale 0.0000314  (source units are arbitrary; this makes it ~1.0 m wide)
 ```
 
 `python -m mujoco.viewer` can't open most AutoBio scenes because it can't load the plugin first;
@@ -73,4 +91,8 @@ use `scripts/view_autobio.py` instead.
 | `third_party/AutoBio` | AutoBio git submodule (models, meshes, plugin) |
 | `setup_autobio.sh` | Fetches the AutoBio submodule + creates `.venv-autobio` |
 | `scripts/view_autobio.py` | Loads AutoBio's plugin and opens a lab scene in the viewer |
+| `models/autobio_lab.xml` | AutoBio pickup scene + GC-MS + UV-Vis-NIR on a big table |
+| `models/big_table.xml` | 3.0 m x 1.2 m version of AutoBio's table |
+| `models/instruments/` | MuJoCo meshes generated from `assets/` |
+| `tools/convert_instrument.py` | OBJ/MTL -> MuJoCo mesh + MJCF converter |
 | `scripts/view_model.py` | Opens a model in the interactive viewer and simulates it in real time |

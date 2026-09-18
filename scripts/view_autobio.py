@@ -3,8 +3,9 @@
 Requires the MuJoCo 3.3.0 env created by setup_autobio.sh:
     .venv-autobio/bin/python scripts/view_autobio.py [scene] [--list] [--check]
 
-`scene` is a name from third_party/AutoBio/autobio/model/scene (e.g. pickup,
-mani_thermal_cycler) or a path to an MJCF file. The stock
+`scene` is a name from models/ (e.g. autobio_lab, the default) or from
+third_party/AutoBio/autobio/model/scene (e.g. pickup, mani_thermal_cycler), or a
+path to an MJCF file. The stock
 `python -m mujoco.viewer` cannot open most AutoBio scenes because it has no way
 to load AutoBio's plugin library first.
 """
@@ -16,7 +17,9 @@ from pathlib import Path
 import mujoco
 import mujoco.viewer
 
-AUTOBIO = Path(__file__).resolve().parent.parent / "third_party" / "AutoBio" / "autobio"
+REPO = Path(__file__).resolve().parent.parent
+LOCAL_SCENES = REPO / "models"
+AUTOBIO = REPO / "third_party" / "AutoBio" / "autobio"
 SCENES = AUTOBIO / "model" / "scene"
 PLUGIN = AUTOBIO / f"libmjlab.so.{mujoco.__version__}"
 
@@ -35,21 +38,21 @@ def resolve_scene(name: str) -> Path:
     path = Path(name)
     if path.suffix == ".xml" and path.exists():
         return path
-    path = SCENES / f"{name}.xml"
-    if not path.exists():
-        sys.exit(f"Unknown scene '{name}'. Available: {', '.join(list_scenes())}")
-    return path
+    for path in (LOCAL_SCENES / f"{name}.xml", SCENES / f"{name}.xml"):
+        if path.exists():
+            return path
+    sys.exit(f"Unknown scene '{name}'. Available: {', '.join(list_scenes())}")
 
 
 def list_scenes() -> list[str]:
-    return sorted(p.stem for p in SCENES.glob("*.xml"))
+    return ["autobio_lab"] + sorted(p.stem for p in SCENES.glob("*.xml"))
 
 
 def check_all() -> None:
     failed = 0
     for name in list_scenes():
         try:
-            model = mujoco.MjModel.from_xml_path(str(SCENES / f"{name}.xml"))
+            model = mujoco.MjModel.from_xml_path(str(resolve_scene(name)))
             data = mujoco.MjData(model)
             mujoco.mj_step(model, data, nstep=100)
             print(f"  OK    {name:24s} bodies={model.nbody}")
@@ -74,7 +77,7 @@ def view(path: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    parser.add_argument("scene", nargs="?", default="pickup")
+    parser.add_argument("scene", nargs="?", default="autobio_lab")
     parser.add_argument("--list", action="store_true", help="list available scenes")
     parser.add_argument("--check", action="store_true", help="load and step every scene headless")
     args = parser.parse_args()

@@ -3,3 +3,6 @@
 # exact MuJoCo version. Installed into a separate env (.venv-autobio) by setup_autobio.sh.
 mujoco==3.3.0
 numpy>=1.26,<2.3
+
+# Only for tools/convert_instrument.py (OBJ -> MuJoCo meshes).
+trimesh>=4
