@@ -180,26 +180,47 @@ sidesteps the sensor's worst case entirely.
 ### What has to be known --- yes to both sets of parameters
 
 **Intrinsics are required.** Without a focal length in pixels and a principal
-point there is no map from a pixel to a direction at all. For a rendered
-camera they come from one number, the vertical field of view:
-`Intrinsics.from_fov(640, 480, fovy_deg=45)`. For a real lens, add the
-Brown-Conrady distortion coefficients too: a 2 % barrel left uncorrected is
-11 px at the frame edge, which out there is tens of centimetres of bench.
-Distortion is not optional on real optics, and it is exactly zero on a
-rendered frame.
+point there is no map from a pixel to a direction at all. The camera here is a
+**GoPro in Linear mode**, which is one number: 92 degrees across at 16:9, so
+`gopro_intrinsics(1920, 1080)` gives f = 927 px and a 60.4 degree vertical
+field of view.
 
-**Extrinsics are required, and position alone is not enough.** The given
-(7, 0, 3) fixes where the rays start; which way they point is three more
-numbers nobody has measured, and they matter more than anything else here: at
-this geometry **one degree of pan moves the answer 44 mm, one degree of tilt
-87 mm** --- larger than every other error in this document combined. So the
-orientation cannot be eyeballed:
+**Linear, not Wide, and that is not a preference.** MuJoCo's cameras are, in
+its own documentation, "perfect point cameras" --- a pinhole projection with
+no radial term. GoPro's native Wide capture is a fisheye and no pinhole render
+can produce it. The published fields of view say which mode is which without
+anyone having to take a view:
 
-| How | Call |
+| Digital lens | H | V published | V a rectilinear lens would give | |
+| --- | --- | --- | --- | --- |
+| Linear | 92 deg | 61 deg | 60.4 deg | matches |
+| Narrow | 73 deg | 45 deg | 45.2 deg | matches |
+| Wide | 118 deg | 69 deg | 86.2 deg | does not --- fisheye |
+
+A rectilinear lens ties its two fields of view together through the frame's
+aspect ratio, `V = 2 atan(tan(H/2) * 9/16)`. Linear and Narrow obey that;
+Wide misses by 17 degrees. So `gopro_intrinsics(lens="wide")` raises rather
+than silently modelling a fisheye as a pinhole. If the real camera does shoot
+Wide, de-warp first and hand the Brown-Conrady coefficients to `Intrinsics` ---
+a 2 % barrel left uncorrected is 11 px at the frame edge, which out there is
+tens of centimetres of bench. On a rendered frame distortion is exactly zero.
+
+**Extrinsics are required, and position alone is not enough.** (7, 0, 3) fixes
+where the rays start; which way they point is three more numbers, and they
+matter more than anything else here: at this geometry **one degree of pan
+moves the answer 44 mm and one degree of tilt 87 mm** --- larger than every
+other error in this document combined. Aiming at (7, 2.5, 0.95) fixes two of
+the three, and roll is zero by construction, so the camera is fully specified:
+
+| Situation | Call |
 | --- | --- |
-| Solve it from markers (the real answer) | `Camera.from_correspondences` --- four points on the bench whose (x, y) you measured with a tape, clicked in one frame |
-| Read it out of the simulator | `Camera.from_mujoco(intrinsics, data.cam_xpos[i], data.cam_xmat[i])` |
-| Assume it, knowingly | `Camera.look_at(intrinsics, (7, 0, 3), bench_centre)` --- what `default_camera()` does, and it is a guess |
+| Simulation --- exact, nothing to calibrate | `default_camera()`, i.e. `Camera.look_at(intrinsics, (7, 0, 3), (7, 2.5, 0.95))` |
+| Reading the pose back out of MuJoCo | `Camera.from_mujoco(intrinsics, data.cam_xpos[i], data.cam_xmat[i])` |
+| Real hardware | `Camera.from_correspondences` --- four points on the bench whose (x, y) you measured with a tape, clicked in one frame |
+
+The last row is not optional on a real mount. A bracket is aimed to a degree
+or two at best, and a degree is 44 mm, so a physical camera has to be solved
+from markers no matter how precisely its nominal aim is specified.
 
 **Unless you take the shortcut, in which case neither is needed.** If every
 answer is going to land on the same plane, the whole pinhole model collapses
@@ -218,23 +239,47 @@ projective map --- undistort first. Take this route if the camera is fixed and
 nothing else needs the camera model; take the full model if you also want
 vessel heights, mouths, or a second plane later.
 
-### The room
+### The room, and what the camera sees of it
 
 14 x 5 x 3 m, origin at a floor corner, X along the long wall. Camera at
-(7, 0, 3), bench top at z = 0.95, bench centred at (7, 2.5). That is a 3.23 m
-line of sight at **39 degrees of elevation**, which is a decent mounting ---
-below about 30 degrees the ray meets the plane at a grazing angle and pixel
-error slides a long way along it.
+(7, 0, 3) --- ceiling height, halfway along the long wall --- aimed at
+(7, 2.5, 0.95), the middle of the bench top. That is a 3.23 m line of sight at
+**39 degrees of elevation**, which is a decent mounting: below about 30 degrees
+the ray meets the plane at a grazing angle and pixel error slides a long way
+along it.
 
-Two numbers in `scene.py` are assumptions, not measurements, and both are one
-line to replace: **where the camera actually points** (see above) and **the
-bench footprint**, which is unknown, so `TABLE_SIZE` is None and the
-"is it even on the table" check is skipped.
+For the simulation side, that camera is this, and MuJoCo will render exactly
+the projection this package assumes:
 
-One consequence of the 45-degree field of view worth knowing before trusting a
-detection: aimed at the bench centre, **the top of the frame overshoots the
-back wall** (it would land at y = 6.8 m in a 5 m room). Pixels up there are
-looking at the wall, not the bench.
+```xml
+<camera name="bench" pos="7 0 3" mode="targetbody" target="bench"
+        fovy="60.4" resolution="1920 1080"/>
+```
+
+`fovy` is the vertical field of view, which is the one MuJoCo wants; 60.4
+degrees is the Linear lens at 16:9. If you would rather state the optics
+physically, `sensorsize="0.00605 0.0034" focal="0.00292 0.00292"` is the same
+camera --- the HERO11's measured 2.92 mm lens behind the sensor rectangle that
+gives the Linear field of view --- and MuJoCo computes `fovy` from it,
+overriding the attribute. Pointing it with `mode="targetbody"` beats writing
+a quaternion, and `Camera.from_mujoco` reads whatever pose comes out.
+
+What the frame actually contains, with a 92 x 60.4 degree lens aimed there:
+
+| Image row | What is there |
+| --- | --- |
+| 0 to 255 | the far wall and above --- **not bench** |
+| 255 | the foot of the far wall, bench y = 5.0 |
+| 540 | the bench centre, y = 2.5 |
+| 1080 | the nearest visible bench, y = 0.76 |
+
+So three quarters of the frame height is usable bench, and the near 0.76 m
+strip against the camera's own wall is out of shot. The horizon sits at
+v = -221, above the frame entirely, which means no pixel in a valid frame can
+fail the horizon test --- if a box trips that guard, the box is malformed.
+
+One number in `scene.py` is still unknown: **the bench footprint**, so
+`TABLE_SIZE` is None and the "is it even on the table" check is skipped.
 
 ### Which pixel of the box
 
@@ -291,33 +336,48 @@ off-axis vessels --- feed it the true lowest silhouette pixel instead and the
 error is 0.00 mm, which is what says the radius correction itself is right
 rather than merely helpful.
 
+There is deliberately no resolution column. These biases are **geometry**: they
+come from where the silhouette's extremes sit in the world, and a focal length
+only rescales that. Halve the frame and every number in the table is unchanged,
+which `test_the_anchor_bias_is_geometry_and_does_not_move_with_resolution`
+pins.
+
 ### The real limit is resolution, not geometry
 
 Since the geometry contributes nothing, all the error is the detector's,
 amplified by how many millimetres of bench a pixel covers. `plane_jacobian`
 gives that exactly, and its worst singular value is what `Placement` reports:
 
-| Frame | Near edge | Bench centre | Far edge |
+| GoPro Linear at | Near edge | Bench centre | Far edge |
 | --- | --- | --- | --- |
-| 640 x 480 | 5.1 mm/px | 8.8 mm/px | 13.5 mm/px |
-| 1920 x 1080 | 2.3 mm/px | 3.9 mm/px | 6.0 mm/px |
+| 1920 x 1080 | 3.2 mm/px | 5.5 mm/px | 8.4 mm/px |
+| 3840 x 2160 (4K) | 1.6 mm/px | 2.7 mm/px | 4.2 mm/px |
+| 5312 x 2988 (5.3K) | 1.2 mm/px | 2.0 mm/px | 3.1 mm/px |
 
-Which lands as, for a 1 L bottle at 640 x 480 with the `fit` anchor:
+Which lands as, for a 1 L bottle at 1080p with the `fit` anchor --- where its
+box is about 26 x 72 px:
 
 | Box noise | Mean error | p95 |
 | --- | --- | --- |
-| 0.5 px | 3 mm | 8 mm |
-| 1 px | 7 mm | 14 mm |
-| 2 px | 13 mm | 27 mm |
-| 3 px | 19 mm | 41 mm |
+| 0.5 px | 2 mm | 5 mm |
+| 1 px | 4 mm | 9 mm |
+| 2 px | 8 mm | 17 mm |
+| 3 px | 12 mm | 26 mm |
+| 5 px | 21 mm | 50 mm |
 
-So at 640 x 480 from 3.2 m, **a pixel is worth about a centimetre** and a
-realistic detector lands a couple of centimetres out --- and past about 5 px of
-noise the box is thinner than its own jitter and inverts. Inserting a pipette
-into a 50 mm mouth wants better than that. The levers, in order of effect:
-render and infer at 1920 x 1080 (2.3x), move the camera closer or narrow the
-lens, and raise the mounting angle. Note that none of them is a change to the
-maths.
+So at 1080p from 3.2 m **a pixel is worth 5.5 mm of bench**, and a detector
+good to a pixel or two lands within a centimetre --- enough to reach into a
+50 mm bottle mouth, not enough to be careless about. The levers, in order of
+effect: shoot 4K or 5.3K, which the camera does natively and which buys 2x and
+2.8x; switch the digital lens from Linear to Narrow, which trades a third of
+the field of view for a quarter off the error; move the camera closer; raise
+the mounting angle. None of them is a change to the maths.
+
+The wide end is where this gets dangerous. Every step towards a wider lens
+spends pixels on wall: Wide would be worse still, and it cannot be rendered or
+back-projected as a pinhole anyway. An action camera is the wrong instrument
+for a measurement like this, and Linear at 4K is about the best one can be
+asked to do.
 
 ### Where this stops being true
 
@@ -341,14 +401,20 @@ python -m labvision.scene --bbox 300 200 340 280 --vessel bottle_1000ml
 
 # The room's error budget, no detection needed
 python -m labvision.scene
+
+# At 4K, or with a narrower digital lens
+python -m labvision.scene --width 3840 --height 2160 --lens narrow
 ```
 
 ```python
 from labvision import scene
-from labvision.camera import Camera, Intrinsics
+from labvision.camera import Camera
 
-# Once: solve the pose from four measured markers on the bench
-intrinsics = Intrinsics.from_fov(640, 480, fovy_deg=45.0)
+# In simulation the camera is fully specified, so this is exact
+camera = scene.default_camera()
+
+# On real hardware, solve the pose from four measured markers on the bench
+intrinsics = scene.gopro_intrinsics(1920, 1080)          # or 3840, 2160
 camera = Camera.from_correspondences(intrinsics, marker_pixels, marker_world_xyz)
 
 # Per detection
@@ -368,7 +434,7 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/reader.py` | Localiser, both decoders, code-to-sample resolution |
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
-| `tests/` | 187 tests, plus 20 doctests |
+| `tests/` | 195 tests, plus 21 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
@@ -519,13 +585,14 @@ next step and is not part of this work.
 
 On the placement side, three things are open and each is small:
 
-- **The camera's real orientation**, from four markers on the bench. Until
-  then `default_camera()` only assumes it is aimed at the bench centre, and
-  that assumption dominates the error budget.
 - **The bench footprint**, so `on_table` stops returning None.
 - **A rendered end-to-end check.** The MuJoCo frame conversion is pinned
   against the hand-written back-projection that was measured in simulation,
-  but nothing here has yet been run against a frame rendered from this room.
+  but nothing here has yet been run against a frame rendered from this room
+  with the camera in the README's MJCF snippet.
+- **The real camera's pose**, if a physical GoPro ever replaces the rendered
+  one: four markers and `Camera.from_correspondences`, because a bracket is
+  never aimed to better than a degree and a degree is 44 mm.
 - **Flask dimensions.** `VESSELS` carries the measured agrochemical bottles;
   the five `flask_*` classes the registry knows about have no dimensions
   recorded anywhere yet, so they need `radius` and `height` passed by hand.

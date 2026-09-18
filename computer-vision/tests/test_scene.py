@@ -262,8 +262,8 @@ def test_a_box_above_the_horizon_is_not_standing_on_the_bench(
 # --- noise -----------------------------------------------------------------
 
 
-def test_one_pixel_of_box_noise_costs_about_a_centimetre(camera: Camera) -> None:
-    """The headline number: at this range and resolution, a pixel is ~9 mm."""
+def test_one_pixel_of_box_noise_costs_a_few_millimetres(camera: Camera) -> None:
+    """The headline number: a pixel is 5.5 mm of bench at 1080p, so 1 px is ~4 mm."""
     vessel = scene.VESSELS["bottle_1000ml"]
     rng = np.random.default_rng(42)
     errors = []
@@ -275,7 +275,7 @@ def test_one_pixel_of_box_noise_costs_about_a_centimetre(camera: Camera) -> None
             noisy = scene.BBox(*(np.array(clean.as_tuple()) + jitter))
             placed = scene.locate(noisy, camera, vessel=vessel)
             errors.append(np.linalg.norm(placed.position - _truth(x, y)))
-    assert 0.003 < np.mean(errors) < 0.015
+    assert 0.002 < np.mean(errors) < 0.008
 
 
 def test_the_error_budget_gets_worse_with_distance(camera: Camera) -> None:
@@ -307,6 +307,15 @@ def test_the_cli_reports_a_position(capsys: pytest.CaptureFixture[str]) -> None:
     out = capsys.readouterr().out
     assert "position" in out
     assert "mouth" in out
+
+
+def test_the_cli_fits_the_model_when_it_is_given_a_vessel(
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    scene.main(["--bbox", "300", "200", "340", "280", "--vessel", "bottle_1000ml"])
+    assert "anchor    fit" in capsys.readouterr().out
+    scene.main(["--bbox", "300", "200", "340", "280"])
+    assert "anchor    base" in capsys.readouterr().out
 
 
 def test_the_cli_prints_the_error_budget(capsys: pytest.CaptureFixture[str]) -> None:
@@ -342,3 +351,81 @@ def test_the_liquid_flasks_are_the_known_gap() -> None:
         if sample.phase == "liquid"
     }
     assert liquids.isdisjoint(scene.VESSELS)
+
+
+# --- the camera this scene assumes ----------------------------------------
+
+
+def test_the_published_gopro_fovs_say_which_lens_is_rectilinear() -> None:
+    """The arithmetic that decides what MuJoCo can render, not an opinion.
+
+    A rectilinear lens' horizontal and vertical fields of view are tied
+    together by the frame's aspect ratio. GoPro's published pair obeys that
+    for Linear and Narrow and breaks it badly for Wide, which is how we know
+    Wide is the fisheye capture and cannot be a pinhole render.
+    """
+    for name, (fovx, fovy, rectilinear) in scene.GOPRO_LENSES.items():
+        implied = math.degrees(
+            2.0 * math.atan(math.tan(math.radians(fovx) / 2.0) * 9.0 / 16.0)
+        )
+        if rectilinear:
+            assert implied == pytest.approx(fovy, abs=1.0), name
+        else:
+            assert abs(implied - fovy) > 10.0, name
+
+
+def test_the_default_camera_is_a_gopro_in_linear_mode() -> None:
+    intrinsics = scene.default_intrinsics()
+    assert intrinsics.fovx_deg == pytest.approx(92.0)
+    assert intrinsics.fovy_deg == pytest.approx(60.4, abs=0.1)
+    assert (intrinsics.width, intrinsics.height) == (1920, 1080)
+
+
+def test_the_fisheye_lens_is_refused() -> None:
+    with pytest.raises(GeometryError, match="fisheye"):
+        scene.gopro_intrinsics(lens="wide")
+
+
+def test_an_unknown_lens_is_refused() -> None:
+    with pytest.raises(GeometryError, match="lens"):
+        scene.gopro_intrinsics(lens="superview")
+
+
+def test_the_camera_is_aimed_at_the_bench_centre(camera: Camera) -> None:
+    assert scene.CAMERA_TARGET == (7.0, 2.5, 0.95)
+    assert camera.project(np.array(scene.CAMERA_TARGET)) == pytest.approx(
+        (camera.intrinsics.cx, camera.intrinsics.cy)
+    )
+
+
+def test_the_anchor_bias_is_geometry_and_does_not_move_with_resolution() -> None:
+    """Halving the pixels does not change a millimetre of the anchor bias.
+
+    Worth pinning because it is the reason the anchor table in the README
+    carries no resolution column: the bias comes from where the silhouette's
+    extremes are in the world, which a focal length only rescales.
+    """
+    vessel = scene.VESSELS["bottle_2000ml"]
+    errors = []
+    for width, height in ((1920, 1080), (960, 540)):
+        camera = scene.default_camera(scene.default_intrinsics(width, height))
+        box = scene.predict_bbox(
+            camera, _truth(6.4, 3.1),
+            radius=vessel.radius_m, height=vessel.silhouette_height_m(),
+        )
+        placed = scene.locate(box, camera, vessel=vessel, anchor="base")
+        errors.append(np.linalg.norm(placed.position - _truth(6.4, 3.1)))
+    assert errors[0] == pytest.approx(errors[1], abs=1e-4)
+
+
+def test_no_pixel_in_this_frame_is_above_the_horizon(
+    camera: Camera, bench: Plane,
+) -> None:
+    """The horizon sits above the frame with this lens
+
+    So the guard never fires by accident: a box that trips it is malformed.
+    """
+    from labvision.camera import horizon_line
+
+    a, b, c = horizon_line(camera, bench)
+    assert -(a * camera.intrinsics.cx + c) / b < 0.0

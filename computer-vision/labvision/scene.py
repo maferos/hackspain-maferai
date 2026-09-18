@@ -14,15 +14,18 @@ is at z = 0.95. The bench stands in the middle of the floor, so the camera
 looks 2.5 m in and 2.05 m down at it: a 3.23 m line of sight at 39 degrees of
 elevation.
 
-Two of those numbers are assumptions rather than measurements, and both are
-easy to replace once someone measures them:
+The camera is a **GoPro in Linear mode at 1080p** --- 92 degrees across,
+60.4 down, 927 px of focal length. Linear rather than Wide because MuJoCo
+renders pinholes and Wide is a fisheye; :func:`gopro_intrinsics` has the
+arithmetic that settles which is which.
 
-- **Where the camera points.** Only its position was given. The default aims
-  it at the middle of the bench, which is the sane mounting but not a fact.
-  Get the real thing from four markers on the bench with
-  :meth:`labvision.camera.Camera.from_correspondences`.
-- **The bench footprint.** Unknown, so ``TABLE_SIZE`` is None and the
-  "is it even on the table" check is skipped.
+One number here is still unknown rather than given: **the bench footprint**,
+so ``TABLE_SIZE`` is None and the "is it even on the table" check is skipped.
+And one is given but only nominal: the camera's **aim**. In simulation
+(7, 0, 3) looking at (7, 2.5, 0.95) is exact; on a real bracket it is good to
+a degree or two, and a degree is 44 mm of pan or 87 mm of tilt down there, so
+a real mount still has to be solved from markers with
+:meth:`labvision.camera.Camera.from_correspondences`.
 
 Which pixel to back-project
 ---------------------------
@@ -94,10 +97,32 @@ TABLE_CENTRE: tuple[float, float] = (7.0, 2.5)
 TABLE_SIZE: tuple[float, float] | None = None
 """Bench footprint in metres. Not measured yet, so on-table checks are skipped."""
 
-DEFAULT_WIDTH = 640
-DEFAULT_HEIGHT = 480
-DEFAULT_FOVY_DEG = 45.0
-"""Frame size and vertical field of view of the MuJoCo renders, as a default."""
+CAMERA_TARGET: tuple[float, float, float] = (*TABLE_CENTRE, TABLE_TOP_Z)
+"""World point the camera is aimed at: the middle of the bench top."""
+
+GOPRO_LENSES: dict[str, tuple[float, float, bool]] = {
+    "linear": (92.0, 61.0, True),
+    "narrow": (73.0, 45.0, True),
+    "wide": (118.0, 69.0, False),
+}
+"""GoPro digital lenses as (horizontal FOV, vertical FOV, is it rectilinear).
+
+Degrees at 16:9, as GoPro publishes them for the HERO10-13 family. The third
+entry is the one that matters here, and it is not a matter of opinion --- it
+is arithmetic. A rectilinear lens with a 92 degree horizontal field of view
+covers ``2 atan(tan(46 deg) * 9/16) = 60.4`` degrees vertically, and Linear's
+published 61 matches; Narrow's 73 and 45 match the same way. Wide's 118 would
+imply 86 degrees vertically against a published 69, so Wide is not a
+rectilinear projection --- it is the fisheye capture.
+
+That distinction decides which of these MuJoCo can render.
+``test_scene.py`` pins the arithmetic.
+"""
+
+DEFAULT_LENS = "linear"
+DEFAULT_WIDTH = 1920
+DEFAULT_HEIGHT = 1080
+"""The camera this scene assumes: a GoPro in Linear mode at 1080p."""
 
 ANCHORS = ("auto", "fit", "base", "centre")
 """How a box is reduced to a position. ``auto`` fits when it can, anchors
@@ -285,6 +310,8 @@ class Placement:
             footprint is unknown.
         clipped: Whether the box touched the image border, which makes the
             answer unreliable whatever it says.
+        anchor: Which of :data:`ANCHORS` actually produced this, with
+            ``"auto"`` already resolved to the one it chose.
         residual_px: RMS disagreement in pixels between the observed box and
             the box the fitted position would produce, or None unless the
             ``fit`` anchor was used. A large value means the detection does
@@ -300,6 +327,7 @@ class Placement:
     inside_room: bool
     on_table: bool | None
     clipped: bool
+    anchor: str = "base"
     residual_px: float | None = None
 
 
@@ -315,22 +343,71 @@ def table_plane(z: float = TABLE_TOP_Z) -> Plane:
     return Plane.horizontal(z)
 
 
-def default_intrinsics(
+def gopro_intrinsics(
     width: int = DEFAULT_WIDTH,
     height: int = DEFAULT_HEIGHT,
-    fovy_deg: float = DEFAULT_FOVY_DEG,
+    lens: str = DEFAULT_LENS,
 ) -> Intrinsics:
-    """Intrinsics matching the MuJoCo renders, as a stand-in for a calibration
+    """Intrinsics for a GoPro as MuJoCo can actually render one
+
+    MuJoCo's cameras are, in its own words, "perfect point cameras" --- a
+    pinhole projection with no radial term. A GoPro's native **Wide** capture
+    is a fisheye and cannot be rendered by it at all; what can is the
+    **Linear** digital lens, which is precisely GoPro's rectilinear,
+    de-warped mode, and which is therefore the default here.
+
+    The preset fixes the focal length from the lens's horizontal field of
+    view at 16:9 and keeps pixels square, so rendering at another aspect
+    ratio keeps this horizontal angle and lets the vertical one follow from
+    the frame shape --- which is what a fixed lens in front of a differently
+    cropped sensor does.
 
     Args:
         width: Frame width in pixels.
         height: Frame height in pixels.
-        fovy_deg: Vertical field of view, MuJoCo's ``fovy``.
+        lens: A key of :data:`GOPRO_LENSES`.
+
+    Returns:
+        Ideal pinhole intrinsics, no distortion, principal point centred.
+
+    Raises:
+        GeometryError: If the lens is unknown, or if it is one of the fisheye
+            modes, which no pinhole model and no MuJoCo render can represent.
+
+    Example:
+        >>> round(gopro_intrinsics().fx, 1)
+        927.1
+    """
+    if lens not in GOPRO_LENSES:
+        raise GeometryError(f"lens must be one of {sorted(GOPRO_LENSES)}, "
+                            f"got {lens!r}")
+    fovx_deg, _, rectilinear = GOPRO_LENSES[lens]
+    if not rectilinear:
+        raise GeometryError(
+            f"the {lens!r} lens is a fisheye: its published horizontal and "
+            "vertical fields of view are not those of any pinhole camera, and "
+            "MuJoCo renders pinholes only. Shoot Linear, or de-warp first and "
+            "pass the resulting distortion coefficients to Intrinsics."
+        )
+    return Intrinsics.from_fov(width, height, fovx_deg=fovx_deg)
+
+
+def default_intrinsics(
+    width: int = DEFAULT_WIDTH,
+    height: int = DEFAULT_HEIGHT,
+    lens: str = DEFAULT_LENS,
+) -> Intrinsics:
+    """The scene's camera intrinsics --- a GoPro in Linear mode
+
+    Args:
+        width: Frame width in pixels.
+        height: Frame height in pixels.
+        lens: A key of :data:`GOPRO_LENSES`.
 
     Returns:
         Ideal pinhole intrinsics, no distortion.
     """
-    return Intrinsics.from_fov(width, height, fovy_deg=fovy_deg)
+    return gopro_intrinsics(width, height, lens)
 
 
 def default_camera(
@@ -339,20 +416,24 @@ def default_camera(
     position: object = CAMERA_POSITION,
     target: object | None = None,
 ) -> Camera:
-    """The wall camera, aimed at the middle of the bench
+    """The wall camera: at (7, 0, 3), aimed at the middle of the bench
 
-    The aim is an assumption; see the module docstring. Replace this camera
-    with one solved from markers before trusting a millimetre.
+    Both the position and the aim are given, so in simulation this camera is
+    exact and nothing needs calibrating. On real hardware it is still only
+    the nominal mount: a bracket is never aimed to better than a degree or
+    two, and a degree is 44 mm of pan or 87 mm of tilt on this bench. Solve
+    the real thing with :meth:`~labvision.camera.Camera.from_correspondences`
+    before trusting a millimetre of it.
 
     Args:
         intrinsics: Pinhole model, defaulting to :func:`default_intrinsics`.
         position: Camera centre in world metres.
-        target: World point to look at, defaulting to the bench centre.
+        target: World point to look at, defaulting to :data:`CAMERA_TARGET`.
 
     Returns:
         The camera.
     """
-    aim = target if target is not None else (*TABLE_CENTRE, TABLE_TOP_Z)
+    aim = target if target is not None else CAMERA_TARGET
     return Camera.look_at(intrinsics or default_intrinsics(), position, aim)
 
 
@@ -639,6 +720,7 @@ def locate(
         raw_hit=hit,
         range_m=float(camera.range_to(position)),
         metres_per_pixel=metres_per_pixel(camera, anchor_uv, bench)[0],
+        anchor=anchor,
         residual_px=residual_px,
         inside_room=inside_room,
         on_table=on_table,
@@ -701,15 +783,16 @@ def main(argv: list[str] | None = None) -> None:
         "--vessel", choices=sorted(VESSELS), help="Vessel class, for its dimensions.",
     )
     parser.add_argument(
-        "--anchor", choices=ANCHORS, default="base",
-        help="Which point of the box to back-project (default: %(default)s).",
+        "--anchor", choices=ANCHORS, default="auto",
+        help="How to reduce the box to a position (default: %(default)s, which "
+             "fits the forward model when --vessel is given).",
     )
     parser.add_argument("--width", type=int, default=DEFAULT_WIDTH,
                         help="Frame width (default: %(default)s).")
     parser.add_argument("--height", type=int, default=DEFAULT_HEIGHT,
                         help="Frame height (default: %(default)s).")
-    parser.add_argument("--fovy", type=float, default=DEFAULT_FOVY_DEG,
-                        help="Vertical field of view (default: %(default)s).")
+    parser.add_argument("--lens", choices=sorted(GOPRO_LENSES), default=DEFAULT_LENS,
+                        help="GoPro digital lens (default: %(default)s).")
     parser.add_argument("--camera", type=float, nargs=3, default=list(CAMERA_POSITION),
                         metavar=("X", "Y", "Z"), help="Camera position in metres.")
     parser.add_argument("--target", type=float, nargs=3, metavar=("X", "Y", "Z"),
@@ -723,7 +806,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
 
     camera = default_camera(
-        default_intrinsics(args.width, args.height, args.fovy),
+        default_intrinsics(args.width, args.height, args.lens),
         position=args.camera,
         target=args.target,
     )
@@ -731,9 +814,12 @@ def main(argv: list[str] | None = None) -> None:
 
     if args.budget or args.bbox is None:
         centre = np.array([*TABLE_CENTRE, args.table_z])
-        print(f"camera   {tuple(camera.position.tolist())}  "
+        print(f"camera   {tuple(camera.position.tolist())} -> "
+              f"{tuple(args.target) if args.target else CAMERA_TARGET}")
+        print(f"lens     gopro {args.lens}, "
               f"{camera.intrinsics.fovx_deg:.1f} x {camera.intrinsics.fovy_deg:.1f} "
-              f"deg, {args.width}x{args.height}")
+              f"deg, {args.width}x{args.height}, f = "
+              f"{camera.intrinsics.fx:.0f} px")
         print(f"bench    z = {args.table_z} m, centre {TABLE_CENTRE}")
         print(f"sight    {camera.range_to(centre):.2f} m at "
               f"{_elevation_deg(camera, centre):.1f} deg elevation")
@@ -754,6 +840,8 @@ def main(argv: list[str] | None = None) -> None:
             "mouth": None if placement.mouth is None else placement.mouth.tolist(),
             "range_m": placement.range_m,
             "mm_per_pixel": placement.metres_per_pixel * 1000.0,
+            "anchor": placement.anchor,
+            "residual_px": placement.residual_px,
             "inside_room": placement.inside_room,
             "on_table": placement.on_table,
             "clipped": placement.clipped,
@@ -764,10 +852,14 @@ def main(argv: list[str] | None = None) -> None:
     if placement.mouth is not None:
         print(f"mouth     x={placement.mouth[0]:.3f}  y={placement.mouth[1]:.3f}  "
               f"z={placement.mouth[2]:.3f}  m")
-    correction = float(np.linalg.norm(placement.position - placement.raw_hit))
+    moved = float(np.linalg.norm(placement.position - placement.raw_hit))
     print(f"range     {placement.range_m:.3f} m")
     print(f"scale     {placement.metres_per_pixel * 1000:.1f} mm per pixel of error")
-    print(f"radius correction applied: {correction * 1000:.1f} mm")
+    print(f"anchor    {placement.anchor}, moved {moved * 1000:.1f} mm off the "
+          "raw ray-plane hit")
+    if placement.residual_px is not None:
+        print(f"residual  {placement.residual_px:.2f} px between the observed "
+              "box and this vessel standing there")
     if not placement.inside_room:
         print("WARNING: outside the room")
     if placement.on_table is False:
