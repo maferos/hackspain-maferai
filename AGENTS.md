@@ -14,6 +14,13 @@ Four people, split into two pairs:
 | Simulation        | Eki, Eloi    |
 | Computer Vision   | Nacho, Martí |
 
+### Simulation ownership
+
+| Who  | Platform | Focus                                                                                          |
+| ---- | -------- | ---------------------------------------------------------------------------------------------- |
+| Eki  | Linux    | MuJoCo + AutoBio (`simulation/`); AutoBio is Linux-only                                         |
+| Eloi | macOS    | IsaacLab-mlx — the Apple Silicon (MLX/Metal) port of Isaac Lab (external repo, `../IsaacLab-mlx`) |
+
 ## Conventions
 
 - Everything in this repo is written in English.
