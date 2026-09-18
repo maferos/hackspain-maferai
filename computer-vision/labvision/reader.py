@@ -46,7 +46,8 @@ SCANLINE_ROWS = 48
 """How many horizontal scanlines the fallback reader samples."""
 
 CLOSE_KERNELS: tuple[tuple[int, int], ...] = ((21, 3), (41, 5), (11, 3))
-"""Horizontal closing kernels used to merge bars into one blob, tried in order."""
+"""Closing kernels used to merge bars into one blob, as (across the bars, along
+them). Tried in order, each one both ways round."""
 
 QUIET_ZONE_MARGIN = 1.3
 """Factor the located bar blob is widened by, to take in the quiet zones."""
@@ -341,10 +342,16 @@ def locate_candidates(gray: np.ndarray) -> list[np.ndarray]:
     """Find quads that plausibly bound a barcode symbol
 
     A barcode is a dense run of parallel bars, so closing the thresholded image
-    with a wide, short horizontal kernel melts the bars into a single solid
-    blob while leaving text and background largely alone. The blobs are then
-    filtered by aspect ratio and area. Several kernel widths are tried because
-    the right one depends on the module width, which is not known in advance.
+    with a kernel that is long across the bars and short along them melts the
+    bars into a single solid blob while leaving text and background largely
+    alone. The blobs are then filtered by aspect ratio and area. Several kernel
+    lengths are tried because the right one depends on the module width, which
+    is not known in advance.
+
+    Each kernel is tried both ways round. Wide and flat, it bridges the gaps
+    between bars that stand upright; tall and narrow, it bridges bars that lie
+    flat, the "ladder" orientation a label takes on a narrow bottle. A flat
+    kernel alone never closes those gaps, and the symbol is not found at all.
 
     Args:
         gray: Single-channel image.
@@ -365,7 +372,9 @@ def locate_candidates(gray: np.ndarray) -> list[np.ndarray]:
     min_area = 0.0004 * gray.size
 
     found: list[tuple[float, np.ndarray]] = []
-    for kernel_size in CLOSE_KERNELS:
+    both_ways = [k for across, along in CLOSE_KERNELS
+                 for k in ((across, along), (along, across))]
+    for kernel_size in both_ways:
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, kernel_size)
         closed = cv2.morphologyEx(binary, cv2.MORPH_CLOSE, kernel)
         contours, _ = cv2.findContours(

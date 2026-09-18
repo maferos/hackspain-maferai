@@ -100,10 +100,17 @@ awkward habits worth knowing:
   empty points vector even on a successful decode, on every build tested here.
 
 **The localiser + scanline reader** is the fallback, and the only path that
-yields a quad. It closes the thresholded image with a wide, short horizontal
-kernel — which melts parallel bars into one solid blob while leaving text alone
-— filters the blobs by aspect ratio, rectifies each one, and reads it against
-the same module tables the encoder writes with.
+yields a quad. It closes the thresholded image with a kernel that is long across
+the bars and short along them — which melts parallel bars into one solid blob
+while leaving text alone — filters the blobs by aspect ratio, rectifies each one,
+and reads it against the same module tables the encoder writes with.
+
+**Each kernel is tried both ways round**, wide-and-flat and tall-and-narrow. A
+flat kernel bridges the gaps between bars that stand upright and does nothing
+for bars that lie flat, so with it alone a label in "ladder" orientation — which
+is how the labels sit on the powder bottles — was never found: 35 of the 100
+powder labels failed when turned a quarter turn, the 35 that OpenCV's detector
+also missed. Everything after the blob is found already worked at any angle.
 
 The two are unioned because a padding rung that decodes one label in a frame
 holding four would otherwise mask the three the localiser had already read.
@@ -111,7 +118,12 @@ holding four would otherwise mask the three the localiser had already read.
 ### Measured behaviour
 
 Over the 200 generated labels: **200/200 decode correctly**, 189 through OpenCV
-and 11 only through the fallback, all with a quad, at roughly 260 ms/image.
+and 11 only through the fallback, all with a quad, at roughly 320 ms/image. It
+was 260 ms before the kernels were tried both ways round.
+
+Turned a quarter turn, the 100 powder labels also decode **100/100**, flat and
+wrapped round a cylinder at 60, 90 and 120 degrees of arc, at full size and at
+3 px/module, with no code ever misread as another.
 
 Also verified: rotation from 0 to 90 degrees, upside-down labels, Gaussian noise
 at sigma 12, 3x3 blur, 0.45x downscaling, low contrast, four labels in one
@@ -435,7 +447,7 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
 | `labvision/bottles.py` | Sticks each powder label onto the bottle of its size |
-| `tests/` | 226 tests, plus 24 doctests |
+| `tests/` | 243 tests, plus 25 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
@@ -604,40 +616,56 @@ The label node carries `extras` a consumer can read without decoding anything:
 `corners_m` — the label's four corners in the bottle's frame, top-left first,
 which are the ground-truth keypoints for the label quad.
 
+### Turned a quarter turn, and why
+
+The label goes on in **ladder orientation**: bars lying flat, stacked up the
+bottle, text reading bottom to top. The embedded texture stays an upright label,
+identical to the PNG `labvision.registry` writes; it is the sticker's UVs that
+turn it. `corners_m` is named in the label's own frame for the same reason, so
+its top-left is the sticker's bottom-left as seen on the bottle.
+
+This is about what a cylinder does to a barcode. Seen head-on, a cylinder
+squeezes whatever runs *round* it, more towards the edges, and leaves alone
+whatever runs *up* it. A barcode's information is entirely in its bar widths.
+Upright, those widths run round the bottle and get squeezed unevenly, and the
+reader, which expects even modules, gives up. Turned, only the bar *lengths* are
+squeezed, and they carry nothing.
+
+All 100 powder labels, projected onto a cylinder and decoded:
+
+| Arc covered | 45° | 55° | 60° | 75° | 90° | 120° |
+| --- | --- | --- | --- | --- | --- | --- |
+| Upright | 100 | 100 | 86 | 72 | 74 | — |
+| Ladder | — | — | 100 | — | 100 | 100 |
+
+Upright there is a cliff just under 60 degrees, and staying below it meant a
+20 mm label at 51 % magnification on the 100 ml bottle. Ladder has no such
+limit, so the labels are sized by the wall instead.
+
 ### Label size follows the bottle
 
-Each label is printed as large as three limits allow: 150 % magnification, the
-height of the straight wall, and **50 degrees of the bottle's circumference**.
-On this kit the arc is the one that binds every time:
+Each label is printed as large as three limits allow: 200 % magnification, which
+is the EAN-13 specification's own ceiling; the height of the straight wall less a
+3 mm margin; and 90 degrees of circumference, which is there to keep the captions
+in view and never binds on this kit.
 
-| Bottle | Label | Module | Magnification |
-| --- | --- | --- | --- |
-| 100 ml | 20.2 x 9.9 mm | 0.17 mm | 51 % |
-| 250 ml | 26.4 x 12.9 mm | 0.22 mm | 66 % |
-| 500 ml | 32.5 x 15.8 mm | 0.27 mm | 81 % |
-| 1 L | 38.6 x 18.8 mm | 0.32 mm | 97 % |
-| 2 L | 50.8 x 24.8 mm | 0.42 mm | 127 % |
+| Bottle | Sticker (round x up) | Module | Magnification | Bound by |
+| --- | --- | --- | --- | --- |
+| 100 ml | 18.7 x 38.3 mm | 0.32 mm | 96 % | wall height |
+| 250 ml | 28.5 x 58.5 mm | 0.48 mm | 147 % | wall height |
+| 500 ml | 38.4 x 78.7 mm | 0.65 mm | 197 % | wall height |
+| 1 L | 38.9 x 79.9 mm | 0.66 mm | 200 % | magnification |
+| 2 L | 38.9 x 79.9 mm | 0.66 mm | 200 % | magnification |
 
-The 50 degrees is measured, not guessed. A barcode wrapped round a cylinder is
-squeezed towards its edges when seen head-on, and the reader expects even
-modules. All 100 powder labels, projected onto a cylinder and decoded:
+At the reader's floor of two pixels per module the 100 ml label needs about
+6 px/mm in the frame, and the 1 L and 2 L about 3.
+`test_embedded_label_decodes_flat_and_wrapped` pins the decode for every size as
+a camera would see it, and
+`test_ladder_labels_survive_far_more_wrap_than_upright_ones` pins the table above.
 
-| Arc covered | 45° | 55° | 60° | 75° | 90° |
-| --- | --- | --- | --- | --- | --- |
-| Decoded | 100 | 100 | 86 | 72 | 74 |
-
-So there is a cliff just under 60 degrees, and a nominal-size label on the 46 mm
-bottle would span 99. The cost of staying under it is small labels on small
-bottles: at two pixels per module the 100 ml label needs about 12 px/mm, so the
-camera has to be close. `test_embedded_label_decodes_flat_and_wrapped` pins the
-wrapped decode for every size.
-
-Turning the barcode 90 degrees ("ladder" orientation, the usual answer for
-narrow bottles, since curvature then squeezes bars along their length and leaves
-their widths alone) was tried and **rejected for now**: the reader decodes only
-65 of the 100 labels when they are rotated exactly 90 degrees, even flat. That
-is a reader weakness, not a geometry one, and fixing it would allow labels about
-twice as large on the 100 ml bottle.
+**What this does not show.** The wrap test is a head-on orthographic projection
+of a clean texture. A rendered frame adds perspective, a bottle turned partly
+away, lighting and the camera's resolution, none of which are tested here yet.
 
 ## Not done yet
 

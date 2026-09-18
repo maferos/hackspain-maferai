@@ -58,6 +58,33 @@ def test_decode_image_tolerates_rotation(angle: int, detector: object) -> None:
     assert _codes(rotated, detector) == [CODE]
 
 
+@pytest.mark.parametrize(
+    "turn", [cv2.ROTATE_90_CLOCKWISE, cv2.ROTATE_90_COUNTERCLOCKWISE],
+)
+def test_localiser_finds_a_ladder_label_that_fills_the_frame(turn: int) -> None:
+    """Regression: bars lying flat were invisible to the flat closing kernel.
+
+    With no margin round the label OpenCV's own detector is out of its depth, so
+    this rests on the localiser alone, and a third of the catalogue used to fail.
+    """
+    entries = registry.build_registry(registry.default_samples())[100:110]
+    for entry in entries:
+        ladder = cv2.rotate(registry.render_label(entry, 8), turn)
+        hits = reader.locate_and_decode(cv2.cvtColor(ladder, cv2.COLOR_BGR2GRAY))
+        assert [code for code, _ in hits] == [entry.code], entry.sample.sample_id
+
+
+def test_decode_image_returns_a_quad_for_a_ladder_label(detector: object) -> None:
+    tag = cv2.rotate(ean13.render_tag(CODE, "LIMONENE", "SMP-0001"),
+                     cv2.ROTATE_90_COUNTERCLOCKWISE)
+    detection = reader.decode_image(tag, detector)[0]
+    assert detection.code == CODE
+    assert detection.corners is not None
+    # The quad is as tall as the symbol is long, not squashed into a flat box.
+    extent = detection.corners.max(axis=0) - detection.corners.min(axis=0)
+    assert extent[1] > 2 * extent[0]
+
+
 def test_decode_image_tolerates_noise_and_blur(detector: object) -> None:
     tag = ean13.render_tag(CODE, "LIMONENE", "SMP-0001")
     rng = np.random.default_rng(0)

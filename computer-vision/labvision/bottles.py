@@ -9,8 +9,15 @@ the rendered label embedded as its texture. The bottle mesh is left untouched.
 
 Which bottle a label goes on is never a choice. It follows from the sample's
 ``container_ml``, so a 2 L barcode cannot end up on a 100 ml bottle, and the
-label is sized from the bottle it lands on: as large as the wall allows, capped
-so it never wraps too far round a narrow bottle to be read.
+label is sized from the bottle it lands on, as large as the wall allows.
+
+The label goes on turned a quarter turn, in "ladder" orientation: the bars lie
+flat, stacked up the bottle, and the text reads from bottom to top. That is how
+barcodes go on narrow bottles, because of what curvature does. Seen head-on, a
+cylinder squeezes whatever runs round it and leaves alone whatever runs up it.
+An upright barcode has its bar *widths* running round the bottle, which is the
+one thing a reader measures, so it stops decoding once it wraps about 55 degrees.
+A ladder barcode has only its bar *lengths* squeezed, which carry no information.
 
 Everything is read from the GLB rather than copied from the kit's generator, so
 regenerating the kit with different dimensions needs no change here.
@@ -43,18 +50,21 @@ BOTTLE_GLB_STEMS: dict[float, str] = {
 NOMINAL_MODULE_M = 0.00033
 """Width of one EAN-13 module at 100 % magnification, 0.33 mm."""
 
-MAX_MAGNIFICATION = 1.5
-"""Largest label printed, as a multiple of nominal. The specification allows up
-to 2.0; 1.5 keeps the label a label rather than a wrap on the 2 L bottle."""
+MAX_MAGNIFICATION = 2.0
+"""Largest label printed, as a multiple of nominal. This is the ceiling the
+EAN-13 specification itself sets."""
 
-MAX_ARC_DEG = 50.0
+MAX_ARC_DEG = 90.0
 """Most of the bottle's circumference a label may cover.
 
-A barcode wrapped round a cylinder is squeezed towards its edges when seen
-head-on, and the reader, which expects even modules, gives up quickly. Measured
-over all 100 powder labels projected onto a cylinder: every one decodes up to 55
-degrees of arc, 86 at 60 degrees and 72 at 75. The nominal-size label on the
-46 mm bottle would span 99 degrees. 50 keeps a margin below the cliff.
+In ladder orientation this is not a decoding limit: all 100 powder labels,
+projected onto a cylinder, decode at 60, 90 and 120 degrees of arc, down to three
+pixels per module. It only keeps the whole label, captions included, in view from
+one side. On the kit as it stands the wall height or MAX_MAGNIFICATION binds
+first, and no label reaches it.
+
+For comparison, the same labels stuck on upright decode 100 out of 100 up to 55
+degrees, 86 at 60 and 72 at 75, which is why they are not stuck on upright.
 """
 
 WALL_MARGIN_M = 0.003
@@ -65,8 +75,8 @@ LABEL_OFFSET_M = 0.0002
 the two surfaces from z-fighting in a renderer with a coarse depth buffer."""
 
 ARC_SEGMENTS = 32
-"""Quads round the label's arc. The arc is at most 50 degrees, so each facet
-turns through under 2 degrees."""
+"""Quads round the label's arc. The arc is at most 90 degrees, so each facet
+turns through under 3 degrees."""
 
 TEXTURE_MODULE_PX = 8
 """Pixels per barcode module in the embedded texture."""
@@ -120,11 +130,14 @@ class LabelPatch:
         positions: Vertex positions in metres, shape (n, 3).
         normals: Unit vertex normals pointing away from the bottle, shape (n, 3).
         uvs: Texture coordinates with the glTF origin at top left, shape (n, 2).
+            They turn the texture a quarter turn anticlockwise, so the embedded
+            image stays an upright label and only its mapping is rotated.
         indices: Triangle vertex indices, counter-clockwise seen from outside.
         module_m: Printed width of one barcode module.
-        width_m: Label width measured round the arc.
-        height_m: Label height.
-        arc_deg: Angle the label spans round the bottle.
+        width_m: Extent of the sticker round the arc, which is the printed
+            label's height, since the label is turned.
+        height_m: Extent of the sticker up the bottle, the printed label's width.
+        arc_deg: Angle the sticker spans round the bottle.
     """
 
     positions: np.ndarray
@@ -140,14 +153,19 @@ class LabelPatch:
     def corners_m(self) -> list[list[float]]:
         """Corner positions, as top-left, top-right, bottom-right, bottom-left
 
+        The names are the printed label's own, not the viewer's. The label is
+        turned a quarter turn anticlockwise, so its top-left corner sits at the
+        sticker's bottom left as seen on the bottle, and its top edge runs up the
+        sticker's left side.
+
         Returns:
-            Four (x, y, z) points in the bottle's frame, in the order a reader
-            would meet them looking at the label. These are the ground-truth
-            keypoints of the label quad.
+            Four (x, y, z) points in the bottle's frame. These are the
+            ground-truth keypoints of the label quad, in an order that maps
+            straight onto an upright label image.
         """
         bottom = self.positions[: ARC_SEGMENTS + 1]
         top = self.positions[ARC_SEGMENTS + 1 :]
-        picked = (top[0], top[-1], bottom[-1], bottom[0])
+        picked = (bottom[0], top[0], top[-1], bottom[-1])
         return [[round(float(c), 6) for c in p] for p in picked]
 
 
@@ -260,15 +278,17 @@ def straight_wall(glb: Glb) -> Wall:
 def label_patch(wall: Wall, modules_wide: float, modules_high: float) -> LabelPatch:
     """Build the sticker mesh for one bottle, sized to that bottle
 
-    The label is printed as large as three limits allow: MAX_MAGNIFICATION, the
-    MAX_ARC_DEG of circumference it may cover, and the height of the straight
-    wall less a margin. It is centred on the wall's height and faces +Z, the
-    front of a glTF model.
+    The label is turned a quarter turn, so its width runs up the bottle and its
+    height runs round it. It is printed as large as three limits allow:
+    MAX_MAGNIFICATION, the height of the straight wall less a margin, and the
+    MAX_ARC_DEG of circumference it may cover. It is centred on the wall's height
+    and faces +Z, the front of a glTF model.
 
     Args:
         wall: The bottle's straight wall, from straight_wall.
-        modules_wide: Label width in barcode modules, margins included.
-        modules_high: Label height in barcode modules.
+        modules_wide: Width of the upright label in barcode modules, margins
+            included. This is the side that ends up running up the bottle.
+        modules_high: Height of the upright label in barcode modules.
 
     Returns:
         The patch, two rows of vertices round the arc.
@@ -276,31 +296,33 @@ def label_patch(wall: Wall, modules_wide: float, modules_high: float) -> LabelPa
     Example:
         >>> patch = label_patch(Wall(0.023, 0.006, 0.050), 121, 59)
         >>> round(patch.arc_deg), round(patch.module_m * 1e3, 3)
-        (50, 0.167)
+        (46, 0.314)
         >>> patch = label_patch(Wall(0.058, 0.015, 0.142), 121, 59)
         >>> round(patch.arc_deg), round(patch.module_m * 1e3, 3)
-        (50, 0.42)
+        (38, 0.66)
     """
     radius = wall.radius_m + LABEL_OFFSET_M
     module = min(
         NOMINAL_MODULE_M * MAX_MAGNIFICATION,
-        radius * math.radians(MAX_ARC_DEG) / modules_wide,
-        (wall.top_m - wall.bottom_m - 2 * WALL_MARGIN_M) / modules_high,
+        radius * math.radians(MAX_ARC_DEG) / modules_high,
+        (wall.top_m - wall.bottom_m - 2 * WALL_MARGIN_M) / modules_wide,
     )
-    width, height = module * modules_wide, module * modules_high
+    width, height = module * modules_high, module * modules_wide
     arc = width / radius
     middle = (wall.bottom_m + wall.top_m) / 2
     y_bottom, y_top = middle - height / 2, middle + height / 2
 
     # Angle runs from +Z towards +X, which is left to right for someone facing
-    # the label, so u grows with it. Bottom row first, then the top row.
-    u = np.linspace(0.0, 1.0, ARC_SEGMENTS + 1)
-    angle = (u - 0.5) * arc
+    # the bottle. Bottom row first, then the top row. The texture is turned a
+    # quarter turn anticlockwise: its left edge (u = 0) lies along the bottom of
+    # the sticker, and its top edge (v = 0) up the sticker's left side.
+    across = np.linspace(0.0, 1.0, ARC_SEGMENTS + 1)
+    angle = (across - 0.5) * arc
     side = np.stack([np.sin(angle), np.zeros_like(angle), np.cos(angle)], axis=1)
     bottom = side * radius + [0.0, y_bottom, 0.0]
     top = side * radius + [0.0, y_top, 0.0]
-    uv_bottom = np.stack([u, np.ones_like(u)], axis=1)
-    uv_top = np.stack([u, np.zeros_like(u)], axis=1)
+    uv_bottom = np.stack([np.zeros_like(across), across], axis=1)
+    uv_top = np.stack([np.ones_like(across), across], axis=1)
 
     k = np.arange(ARC_SEGMENTS)
     n = ARC_SEGMENTS + 1

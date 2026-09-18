@@ -113,9 +113,24 @@ def test_label_sits_on_the_straight_wall(entry: registry.Entry) -> None:
 
 
 def test_bigger_bottles_get_bigger_labels() -> None:
-    widths = [bottles.labelled_bottle(e, KIT)[1].width_m for e in one_entry_per_size()]
-    assert widths == sorted(widths)
-    assert widths[0] < widths[-1]
+    patches = [bottles.labelled_bottle(e, KIT)[1] for e in one_entry_per_size()]
+    modules = [patch.module_m for patch in patches]
+    assert modules == sorted(modules)
+    assert modules[0] < modules[-1]
+
+
+def test_label_is_turned_so_its_width_runs_up_the_bottle() -> None:
+    """Ladder orientation: the long side of the label is vertical."""
+    for entry in one_entry_per_size():
+        _, patch = bottles.labelled_bottle(entry, KIT)
+        assert patch.height_m > patch.width_m
+        assert patch.height_m / patch.width_m == pytest.approx(484 / 236, rel=1e-6)
+
+
+def test_no_label_is_smaller_than_nominal_by_much() -> None:
+    """The point of turning the labels: even the 100 ml one is near full size."""
+    smallest = bottles.labelled_bottle(one_entry_per_size()[0], KIT)[1]
+    assert smallest.module_m / bottles.NOMINAL_MODULE_M > 0.9
 
 
 def test_label_triangles_face_outwards() -> None:
@@ -125,12 +140,24 @@ def test_label_triangles_face_outwards() -> None:
     assert np.einsum("ij,ij->i", face_normals, a).min() > 0
 
 
-def test_label_corners_run_clockwise_from_top_left() -> None:
+def test_label_corners_are_named_in_the_labels_own_frame() -> None:
+    """The label is turned anticlockwise, so its top edge runs up the left side."""
     patch = bottles.label_patch(bottles.Wall(0.044, 0.011, 0.136), 121, 59)
     top_left, top_right, bottom_right, bottom_left = np.array(patch.corners_m)
-    assert top_left[0] < 0 < top_right[0]
-    assert top_left[1] > bottom_left[1]
-    assert bottom_right[0] == pytest.approx(top_right[0])
+    assert top_left[0] == pytest.approx(top_right[0]) and top_left[0] < 0
+    assert bottom_left[0] == pytest.approx(bottom_right[0]) and bottom_left[0] > 0
+    assert top_right[1] > top_left[1]
+    assert bottom_right[1] > bottom_left[1]
+
+
+def test_texture_is_turned_by_its_uvs_not_by_its_pixels() -> None:
+    patch = bottles.label_patch(bottles.Wall(0.044, 0.011, 0.136), 121, 59)
+    low = patch.positions[:, 1] == patch.positions[:, 1].min()
+    leftmost = patch.positions[:, 0] == patch.positions[:, 0].min()
+    # The label's left edge (u = 0) lies along the bottom of the sticker, and its
+    # top edge (v = 0) runs up the sticker's left side.
+    assert np.all(patch.uvs[low, 0] == 0.0)
+    assert np.all(patch.uvs[leftmost, 1] == 0.0)
 
 
 def test_labelling_leaves_the_bottle_mesh_untouched() -> None:
@@ -186,13 +213,25 @@ def test_read_glb_rejects_a_file_that_is_not_glb(tmp_path: Path) -> None:
 def test_embedded_label_decodes_flat_and_wrapped(entry: registry.Entry) -> None:
     """The texture on the bottle must read back as that sample's own code.
 
-    Checked twice: flat, as embedded, and squeezed the way a camera facing the
-    bottle sees it, which is what MAX_ARC_DEG exists to keep readable.
+    Checked twice: flat, as embedded, and as a camera facing the bottle sees it,
+    turned a quarter turn and squeezed round the cylinder.
     """
     labelled, patch = bottles.labelled_bottle(entry, KIT)
     flat = label_image(labelled)
+    assert flat.shape[1] > flat.shape[0]
     assert {d.code for d in reader.decode_image(flat)} == {entry.code}
 
-    wrapped = seen_on_cylinder(flat, patch.arc_deg)
-    assert wrapped.shape[1] < flat.shape[1]
+    on_bottle = cv2.rotate(flat, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    wrapped = seen_on_cylinder(on_bottle, patch.arc_deg)
+    assert wrapped.shape[1] < on_bottle.shape[1]
+    assert {d.code for d in reader.decode_image(wrapped)} == {entry.code}
+
+
+@pytest.mark.parametrize("arc_deg", [60, 90, 120])
+def test_ladder_labels_survive_far_more_wrap_than_upright_ones(arc_deg: int) -> None:
+    """Curvature squeezes bar lengths, not widths, once the label is turned."""
+    entry = one_entry_per_size()[0]
+    flat = label_image(bottles.labelled_bottle(entry, KIT)[0])
+    on_bottle = cv2.rotate(flat, cv2.ROTATE_90_COUNTERCLOCKWISE)
+    wrapped = seen_on_cylinder(on_bottle, arc_deg)
     assert {d.code for d in reader.decode_image(wrapped)} == {entry.code}
