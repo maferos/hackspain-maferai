@@ -446,8 +446,8 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/reader.py` | Localiser, both decoders, code-to-sample resolution |
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
-| `labvision/bottles.py` | Sticks each powder label onto the bottle of its size |
-| `tests/` | 244 tests, plus 25 doctests |
+| `labvision/bottles.py` | Sticks each label onto the bottle of its phase and size |
+| `tests/` | 280 tests, plus 25 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
@@ -589,31 +589,56 @@ amber storage-bottle size for aroma chemicals, which is the closer analogue for
 a raw-material inventory. Change one entry in `FLASK_VOLUMES_ML` and regenerate
 if you want strict ISO sizes.
 
-## Labels on the powder bottles
+## Labels on the bottles
 
 ```bash
-python -m labvision.bottles
+python -m labvision.bottles                 # both kits
+python -m labvision.bottles --phase liquid  # one of them
 ```
 
-That writes one GLB per powder sample to `assets/agrochemical-bottles/labelled/`
-— `PWD-0001_<code>.glb` and so on, 100 files, about 60 MB. Unlike the label PNGs
-these **are committed**, so the simulation side can use them without installing
-this package. They are deterministic: regenerating from the same lookup table
-rewrites them byte for byte, so rerun the command and commit the result whenever
-a powder barcode, the label layout or the kit's bottles change. A file whose
-name no longer matches a row of the table is stale and should be deleted.
+Each phase has a kit of bottle models under `assets/`, and every sample gets a
+copy of its bottle with its label stuck on:
+
+| Phase | Kit | Bottles | Labelled models |
+| --- | --- | --- | --- |
+| Liquid | `assets/amber-bottles` | amber glass, closed, white cap | `labelled/SMP-XXXX_<code>.glb`, 100 files, ~31 MB |
+| Powder | `assets/agrochemical-bottles` | white HDPE, open | `labelled/PWD-XXXX_<code>.glb`, 100 files, ~60 MB |
+
+The liquid sizes — 10, 20, 30, 50, 100 ml — are exactly the amber kit's, so no
+liquid barcode had to change. The kit also has a 60 ml bottle that no sample
+uses: adding a size renumbers the samples, which reissues every liquid barcode.
+In the registry the liquid `vessel_class` is still `flask_*ml`; the name predates
+the kit and renaming it is a schema change for another day.
+
+Unlike the label PNGs these models **are committed**, so the simulation side can
+use them without installing this package. They are deterministic: regenerating
+from the same lookup table rewrites them byte for byte, so rerun the command and
+commit the result whenever a barcode, the label layout or a kit's bottles
+change. A file whose name no longer matches a row of the table is stale and
+should be deleted. `test_committed_labelled_bottles_are_not_stale` fails when
+they drift.
 
 **The bottle is never chosen, it is looked up.** `labelled_bottle` takes a
-registry row and nothing else; the bottle comes from that row's `container_ml`,
-so a 2 L barcode cannot land on a 100 ml bottle. Liquid rows are refused: they
-have no bottle.
+registry row and nothing else; the kit comes from that row's `phase` and the
+bottle from its `container_ml`, so a 2 L barcode cannot land on a 100 ml bottle,
+nor a liquid's on a powder bottle — 100 ml exists in both kits, and the phase
+decides which one it is.
 
 The kit's GLBs have no UVs, so the label is not painted on. It is a separate
 **sticker mesh**: a thin curved patch 0.2 mm off the bottle's straight wall, with
 its own UVs and the label PNG embedded as its texture, added as a child node of
-the bottle. The bottle's mesh and material are carried over byte for byte. The
+the bottle. The bottle's meshes and materials are carried over byte for byte. The
 wall is measured from the GLB, not copied from the kit's generator, so a
-regenerated kit needs no change here.
+regenerated kit needs no change here. The amber files hold a closed bottle, with
+the cap listed first, so the bottle is taken to be the tallest mesh in the file.
+
+**On glass the sticker has a back.** The amber bottles are see-through, which a
+one-sided sticker handles badly either way: drawn on one side it vanishes when
+seen from behind through the bottle, and drawn on both it shows its barcode
+mirrored through the glass — which the reader will happily decode, since it
+reads mirrored symbols. So on a bottle whose material transmits light the label
+gets a second, plain white face turned inwards, as the back of a paper label is.
+The opaque HDPE bottles do not need one and do not get one.
 
 The label node carries `extras` a consumer can read without decoding anything:
 `code`, `sample_id`, `material`, `container_ml`, `vessel_class`, `module_mm` and
@@ -653,16 +678,30 @@ is the EAN-13 specification's own ceiling; the height of the straight wall less 
 3 mm margin; and 90 degrees of circumference, which is there to keep the captions
 in view and never binds on this kit.
 
-| Bottle | Sticker (round x up) | Module | Magnification | Bound by |
-| --- | --- | --- | --- | --- |
-| 100 ml | 18.7 x 38.3 mm | 0.32 mm | 96 % | wall height |
-| 250 ml | 28.5 x 58.5 mm | 0.48 mm | 147 % | wall height |
-| 500 ml | 38.4 x 78.7 mm | 0.65 mm | 197 % | wall height |
-| 1 L | 38.9 x 79.9 mm | 0.66 mm | 200 % | magnification |
-| 2 L | 38.9 x 79.9 mm | 0.66 mm | 200 % | magnification |
+| Bottle | Sticker (round x up) | Module | Magnification | Arc | Bound by |
+| --- | --- | --- | --- | --- | --- |
+| Liquid 10 ml | 12.3 x 25.3 mm | 0.21 mm | 63 % | 63° | wall height |
+| Liquid 20 ml | 17.9 x 36.8 mm | 0.30 mm | 92 % | 73° | wall height |
+| Liquid 30 ml | 21.2 x 43.5 mm | 0.36 mm | 109 % | 76° | wall height |
+| Liquid 50 ml | 25.4 x 52.0 mm | 0.43 mm | 130 % | 76° | wall height |
+| Liquid 100 ml | 34.0 x 69.7 mm | 0.58 mm | 174 % | 81° | wall height |
+| Powder 100 ml | 18.7 x 38.3 mm | 0.32 mm | 96 % | 46° | wall height |
+| Powder 250 ml | 28.5 x 58.5 mm | 0.48 mm | 147 % | 54° | wall height |
+| Powder 500 ml | 38.4 x 78.7 mm | 0.65 mm | 197 % | 59° | wall height |
+| Powder 1 L | 38.9 x 79.9 mm | 0.66 mm | 200 % | 50° | magnification |
+| Powder 2 L | 38.9 x 79.9 mm | 0.66 mm | 200 % | 38° | magnification |
 
-At the reader's floor of two pixels per module the 100 ml label needs about
-6 px/mm in the frame, and the 1 L and 2 L about 3.
+Every liquid label fills its wall top to bottom, so it cannot be made larger
+without changing the label itself: the amber bottles are simply short. The 10 ml
+one is 52 mm tall with 31 mm of straight wall, and its label comes out at 63 %.
+Stood upright instead, and kept under the 55 degrees an upright label survives,
+the same label would be 11 mm wide at 27 %. The amber labels also wrap further
+round their narrow bottles than the powder ones, up to 81 degrees, which is well
+inside what ladder orientation was measured to take.
+
+At the reader's floor of two pixels per module the 10 ml liquid label needs about
+10 px/mm in the frame, the 100 ml powder label about 6, and the 1 L and 2 L
+about 3.
 `test_embedded_label_decodes_flat_and_wrapped` pins the decode for every size as
 a camera would see it, and
 `test_ladder_labels_survive_far_more_wrap_than_upright_ones` pins the table above.
@@ -673,9 +712,10 @@ away, lighting and the camera's resolution, none of which are tested here yet.
 
 ## Not done yet
 
-The powder labels are on their bottles as GLB, which Isaac Lab can import but
-MuJoCo cannot: MuJoCo needs the sticker as an OBJ plus a PNG texture. Liquids
-have no labware yet. Wiring either into the MuJoCo scene, and carrying the label corners as pose-model
+The labels are on their bottles as GLB, which Isaac Lab can import but MuJoCo
+cannot: MuJoCo needs the sticker as an OBJ plus a PNG texture, and the scene in
+`simulation/` still uses the unlabelled bottles. Wiring the labelled ones into
+the MuJoCo scene, and carrying the label corners as pose-model
 keypoints so the quad comes from the network rather than the localiser, is the
 next step and is not part of this work.
 

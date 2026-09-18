@@ -9,3 +9,13 @@ Procedural, Blender 5.0, no third-party licences. Regenerate: `blender -b -P gen
 Sizes: 10 ml Ø22×52 PP18 · 20 ml Ø28×66 PP18 · 30 ml Ø32×75 PP20 · 50 ml Ø38×89 PP25 · 60 ml Ø40×95 PP25 · 100 ml Ø47×113 PP28
 Scaling: body k=(V/60)^(1/3); neck snapped to standard PP finish; cap derived from neck.
 Conventions: metres, origin bottom-centre, glTF +Y up. Amber glass = Principled transmission + Volume Absorption (exports as KHR_materials_volume).
+
+## Barcode labels
+
+`labelled/` holds one GLB per liquid sample (100 files, named `<sample id>_<barcode>.glb`): the closed bottle with its EAN-13 label attached as a separate sticker mesh on the straight wall. The label is turned a quarter turn, bars lying flat, so the curve of the bottle does not distort the bar widths, and it has a plain white back so that it looks like paper, not a mirrored barcode, when seen through the glass from behind. Which sample each barcode names is in `computer-vision/barcodes/lookup_table.json`. Regenerate from `computer-vision/` after any change to the liquid barcodes or to the bottles:
+
+```bash
+python -m labvision.bottles --phase liquid
+```
+
+Each barcode goes on the bottle of its own size (10, 20, 30, 50, 100 ml); the 60 ml bottle is not used. Details in `computer-vision/README.md`.

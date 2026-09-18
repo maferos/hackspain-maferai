@@ -1,4 +1,4 @@
-"""Tests for sticking powder labels onto the bottle kit."""
+"""Tests for sticking sample labels onto the bottle kits."""
 
 import math
 from pathlib import Path
@@ -9,23 +9,37 @@ import pytest
 
 from labvision import bottles, reader, registry
 
-KIT = Path(__file__).parents[2] / "assets" / "agrochemical-bottles"
+ASSETS = Path(__file__).parents[2] / "assets"
 
-# Body diameter of each bottle in millimetres, from the kit's README.
-KIT_DIAMETERS_MM = {100.0: 46, 250.0: 60, 500.0: 74, 1000.0: 88, 2000.0: 116}
+# Body diameter of each bottle in millimetres, from each kit's README.
+DIAMETERS_MM = {
+    "powder": {100.0: 46, 250.0: 60, 500.0: 74, 1000.0: 88, 2000.0: 116},
+    "liquid": {10.0: 22, 20.0: 28, 30.0: 32, 50.0: 38, 100.0: 47},
+}
+
+# The label image is 484 x 236 px at 4 px per module.
+LABEL_ASPECT = 484 / 236
 
 
-def powder_entries() -> list[registry.Entry]:
+def entries_of(phase: str) -> list[registry.Entry]:
     entries = registry.build_registry(registry.default_samples())
-    return [e for e in entries if e.sample.phase == "powder"]
+    return [e for e in entries if e.sample.phase == phase]
 
 
 def one_entry_per_size() -> list[registry.Entry]:
-    return powder_entries()[: len(registry.BOTTLE_VOLUMES_ML)]
+    """The first compound of each phase, in each of its five bottle sizes."""
+    return entries_of("liquid")[:5] + entries_of("powder")[:5]
 
 
 def vessel_class(entry: registry.Entry) -> str:
     return entry.sample.vessel_class
+
+
+def bottle_mesh_radius(glb: bottles.Glb) -> float:
+    document = glb.document
+    mesh = document["meshes"][document["nodes"][bottles.bottle_node(glb)]["mesh"]]
+    bounds = document["accessors"][mesh["primitives"][0]["attributes"]["POSITION"]]
+    return bounds["max"][0]
 
 
 def accessor_array(glb: bottles.Glb, index: int, width: int, dtype: str) -> np.ndarray:
@@ -60,46 +74,74 @@ def seen_on_cylinder(label: np.ndarray, arc_deg: float) -> np.ndarray:
     return cv2.remap(label, map_x, map_y, cv2.INTER_AREA, borderValue=(255, 255, 255))
 
 
-def test_every_powder_size_has_a_bottle_in_the_kit() -> None:
-    assert set(bottles.BOTTLE_GLB_STEMS) == set(registry.BOTTLE_VOLUMES_ML)
-    for volume in registry.BOTTLE_VOLUMES_ML:
-        assert bottles.bottle_path(volume, KIT).exists(), volume
+def test_every_catalogue_size_has_a_bottle_in_its_kit() -> None:
+    assert set(bottles.KITS) == {spec.name for spec in registry.PHASES}
+    for spec in registry.PHASES:
+        kit = bottles.KITS[spec.name]
+        assert set(kit.files) == set(spec.containers_ml), spec.name
+        for name in kit.files.values():
+            assert (ASSETS / kit.directory / "glb" / name).exists(), name
 
 
 def test_bottle_path_rejects_a_size_the_kit_lacks() -> None:
+    sample = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder", 50.0, "L1")
     with pytest.raises(bottles.BottleError, match="no 50 ml bottle"):
-        bottles.bottle_path(50.0, KIT)
+        bottles.bottle_path(sample, ASSETS)
 
 
-@pytest.mark.parametrize("volume", registry.BOTTLE_VOLUMES_ML)
-def test_straight_wall_matches_the_kit_dimensions(volume: float) -> None:
-    wall = bottles.straight_wall(bottles.read_glb(bottles.bottle_path(volume, KIT)))
-    diameter = KIT_DIAMETERS_MM[volume] / 1000
-    assert wall.radius_m == pytest.approx(diameter / 2, abs=1e-5)
-    # The heel is rounded at an eighth of the diameter, and the wall starts there.
-    assert wall.bottom_m == pytest.approx(0.125 * diameter, abs=1e-4)
-    assert wall.top_m > wall.bottom_m + 0.04
+def test_bottle_path_rejects_a_phase_without_a_kit() -> None:
+    sample = registry.Sample("X-1", "M", "C", "plasma", 50.0, "L1")
+    with pytest.raises(bottles.BottleError, match="no kit holds plasma"):
+        bottles.bottle_path(sample, ASSETS)
+
+
+def test_the_same_size_means_a_different_bottle_in_each_phase() -> None:
+    """100 ml is in both series; the phase decides which bottle it is."""
+    liquid = registry.Sample("SMP-1", "Limonene", "5989-27-5", "liquid", 100.0, "L1")
+    powder = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder", 100.0, "L1")
+    assert bottles.bottle_path(liquid, ASSETS).parts[-3] == "amber-bottles"
+    assert bottles.bottle_path(powder, ASSETS).parts[-3] == "agrochemical-bottles"
+
+
+def test_bottle_node_picks_the_bottle_not_its_cap() -> None:
+    """The amber files list the cap first; measuring it finds no wall at all."""
+    sample = entries_of("liquid")[0].sample
+    glb = bottles.read_glb(bottles.bottle_path(sample, ASSETS))
+    node = glb.document["nodes"][bottles.bottle_node(glb)]
+    assert node["name"].startswith("Bottle_")
+    assert glb.document["nodes"][0]["name"].startswith("Cap_")
+
+
+@pytest.mark.parametrize("entry", one_entry_per_size(), ids=vessel_class)
+def test_straight_wall_matches_the_kit_dimensions(entry: registry.Entry) -> None:
+    sample = entry.sample
+    wall = bottles.straight_wall(bottles.read_glb(bottles.bottle_path(sample, ASSETS)))
+    diameter = DIAMETERS_MM[sample.phase][sample.container_ml] / 1000
+    # The READMEs round to the millimetre.
+    assert wall.radius_m == pytest.approx(diameter / 2, abs=3e-4)
+    assert 0 < wall.bottom_m < 0.02
+    assert wall.top_m > wall.bottom_m + 0.03
 
 
 @pytest.mark.parametrize("entry", one_entry_per_size(), ids=vessel_class)
 def test_label_goes_on_the_bottle_of_its_own_size(entry: registry.Entry) -> None:
-    """A 2 L barcode must never land on a 100 ml bottle."""
-    labelled, _ = bottles.labelled_bottle(entry, KIT)
-    bottle_bounds = labelled.document["accessors"][0]["max"]
-    expected = KIT_DIAMETERS_MM[entry.sample.container_ml] / 2000
-    assert bottle_bounds[0] == pytest.approx(expected, abs=1e-5)
+    """A 2 L barcode must never land on a 100 ml bottle, nor on an amber one."""
+    sample = entry.sample
+    labelled, _ = bottles.labelled_bottle(entry, ASSETS)
+    expected = DIAMETERS_MM[sample.phase][sample.container_ml] / 2000
+    assert bottle_mesh_radius(labelled) == pytest.approx(expected, abs=3e-4)
 
     extras = labelled.document["nodes"][-1]["extras"]
     assert extras["code"] == entry.code
-    assert extras["container_ml"] == entry.sample.container_ml
-    assert extras["vessel_class"] == f"bottle_{entry.sample.container_ml:g}ml"
+    assert extras["container_ml"] == sample.container_ml
+    assert extras["vessel_class"] == sample.vessel_class
 
 
 @pytest.mark.parametrize("entry", one_entry_per_size(), ids=vessel_class)
 def test_label_sits_on_the_straight_wall(entry: registry.Entry) -> None:
-    bottle = bottles.read_glb(bottles.bottle_path(entry.sample.container_ml, KIT))
+    bottle = bottles.read_glb(bottles.bottle_path(entry.sample, ASSETS))
     wall = bottles.straight_wall(bottle)
-    _, patch = bottles.labelled_bottle(entry, KIT)
+    _, patch = bottles.labelled_bottle(entry, ASSETS)
 
     radii = np.hypot(patch.positions[:, 0], patch.positions[:, 2])
     assert radii == pytest.approx(wall.radius_m + bottles.LABEL_OFFSET_M, abs=1e-6)
@@ -112,25 +154,41 @@ def test_label_sits_on_the_straight_wall(entry: registry.Entry) -> None:
     assert np.einsum("ij,ij->i", patch.normals, patch.positions).min() > 0
 
 
-def test_bigger_bottles_get_bigger_labels() -> None:
-    patches = [bottles.labelled_bottle(e, KIT)[1] for e in one_entry_per_size()]
+@pytest.mark.parametrize("phase", ["liquid", "powder"])
+def test_bigger_bottles_get_bigger_labels(phase: str) -> None:
+    patches = [bottles.labelled_bottle(e, ASSETS)[1] for e in entries_of(phase)[:5]]
     modules = [patch.module_m for patch in patches]
     assert modules == sorted(modules)
     assert modules[0] < modules[-1]
 
 
-def test_label_is_turned_so_its_width_runs_up_the_bottle() -> None:
+@pytest.mark.parametrize("entry", one_entry_per_size(), ids=vessel_class)
+def test_label_is_turned_so_its_width_runs_up_the_bottle(
+    entry: registry.Entry,
+) -> None:
     """Ladder orientation: the long side of the label is vertical."""
-    for entry in one_entry_per_size():
-        _, patch = bottles.labelled_bottle(entry, KIT)
-        assert patch.height_m > patch.width_m
-        assert patch.height_m / patch.width_m == pytest.approx(484 / 236, rel=1e-6)
+    _, patch = bottles.labelled_bottle(entry, ASSETS)
+    assert patch.height_m > patch.width_m
+    assert patch.height_m / patch.width_m == pytest.approx(LABEL_ASPECT, rel=1e-6)
 
 
-def test_no_label_is_smaller_than_nominal_by_much() -> None:
+def test_no_powder_label_is_smaller_than_nominal_by_much() -> None:
     """The point of turning the labels: even the 100 ml one is near full size."""
-    smallest = bottles.labelled_bottle(one_entry_per_size()[0], KIT)[1]
+    smallest = bottles.labelled_bottle(entries_of("powder")[0], ASSETS)[1]
     assert smallest.module_m / bottles.NOMINAL_MODULE_M > 0.9
+
+
+def test_liquid_labels_are_as_large_as_their_short_bottles_allow() -> None:
+    """Every liquid label is bound by wall height, so it fills the wall."""
+    for entry in entries_of("liquid")[:5]:
+        bottle = bottles.read_glb(bottles.bottle_path(entry.sample, ASSETS))
+        wall = bottles.straight_wall(bottle)
+        _, patch = bottles.labelled_bottle(entry, ASSETS)
+        room = wall.top_m - wall.bottom_m - 2 * bottles.WALL_MARGIN_M
+        assert patch.height_m == pytest.approx(room, abs=1e-6), entry.sample.sample_id
+    # The 10 ml bottle is 52 mm tall, and its label is still over half size.
+    smallest = bottles.labelled_bottle(entries_of("liquid")[0], ASSETS)[1]
+    assert smallest.module_m / bottles.NOMINAL_MODULE_M > 0.6
 
 
 def test_label_triangles_face_outwards() -> None:
@@ -160,20 +218,47 @@ def test_texture_is_turned_by_its_uvs_not_by_its_pixels() -> None:
     assert np.all(patch.uvs[leftmost, 1] == 0.0)
 
 
-def test_labelling_leaves_the_bottle_mesh_untouched() -> None:
-    entry = powder_entries()[0]
-    bottle = bottles.read_glb(bottles.bottle_path(entry.sample.container_ml, KIT))
-    labelled, _ = bottles.labelled_bottle(entry, KIT)
+@pytest.mark.parametrize("phase", ["liquid", "powder"])
+def test_labelling_leaves_the_bottle_untouched(phase: str) -> None:
+    entry = entries_of(phase)[0]
+    bottle = bottles.read_glb(bottles.bottle_path(entry.sample, ASSETS))
+    labelled, _ = bottles.labelled_bottle(entry, ASSETS)
     assert labelled.buffer[: len(bottle.buffer)] == bottle.buffer
-    assert labelled.document["meshes"][0] == bottle.document["meshes"][0]
-    assert len(labelled.document["meshes"]) == 2
-    assert labelled.document["nodes"][0]["children"] == [1]
+    assert labelled.document["meshes"][:-1] == bottle.document["meshes"]
+    assert labelled.document["materials"][: len(bottle.document["materials"])] == (
+        bottle.document["materials"]
+    )
+    label_node = len(labelled.document["nodes"]) - 1
+    parent = labelled.document["nodes"][bottles.bottle_node(labelled)]
+    assert label_node in parent["children"]
+
+
+def test_only_a_see_through_bottle_gets_a_white_back_on_its_label() -> None:
+    """Through glass a one-sided label vanishes and a two-sided one reads mirrored."""
+    powder, _ = bottles.labelled_bottle(entries_of("powder")[0], ASSETS)
+    liquid, patch = bottles.labelled_bottle(entries_of("liquid")[0], ASSETS)
+    assert len(powder.document["meshes"][-1]["primitives"]) == 1
+
+    front, back = liquid.document["meshes"][-1]["primitives"]
+    assert "TEXCOORD_0" in front["attributes"]
+    assert "TEXCOORD_0" not in back["attributes"]
+    material = liquid.document["materials"][back["material"]]
+    assert "baseColorTexture" not in material["pbrMetallicRoughness"]
+
+    points = accessor_array(liquid, back["attributes"]["POSITION"], 3, "<f4")
+    normals = accessor_array(liquid, back["attributes"]["NORMAL"], 3, "<f4")
+    # Between the glass and the printed face, and facing the bottle's axis.
+    radii = np.hypot(points[:, 0], points[:, 2])
+    printed = np.hypot(patch.positions[:, 0], patch.positions[:, 2])
+    assert radii.max() < printed.min()
+    assert np.einsum("ij,ij->i", normals, points).max() < 0
 
 
 def test_labelled_bottle_roundtrips_through_disk(tmp_path: Path) -> None:
-    entry = powder_entries()[0]
-    paths = bottles.write_labelled_bottles([entry], KIT, tmp_path)
+    entry = entries_of("powder")[0]
+    paths = bottles.write_labelled_bottles([entry], ASSETS, tmp_path)
     assert [p.name for p in paths] == [f"{entry.sample.sample_id}_{entry.code}.glb"]
+    assert paths[0].parent == tmp_path
 
     loaded = bottles.read_glb(paths[0])
     assert len(paths[0].read_bytes()) % 4 == 0
@@ -186,33 +271,34 @@ def test_labelled_bottle_roundtrips_through_disk(tmp_path: Path) -> None:
         assert view["byteOffset"] + view["byteLength"] <= len(loaded.buffer)
 
 
-def test_committed_labelled_bottles_are_not_stale() -> None:
+def test_each_labelled_bottle_is_kept_in_its_own_kit() -> None:
+    liquid, powder = entries_of("liquid")[0], entries_of("powder")[0]
+    assert bottles.labelled_path(liquid, ASSETS).parent == (
+        ASSETS / "amber-bottles" / "labelled"
+    )
+    assert bottles.labelled_path(powder, ASSETS).parent == (
+        ASSETS / "agrochemical-bottles" / "labelled"
+    )
+
+
+@pytest.mark.parametrize("phase", ["liquid", "powder"])
+def test_committed_labelled_bottles_are_not_stale(phase: str) -> None:
     """The GLBs in the repo must be the ones the current catalogue produces.
 
-    A changed powder barcode changes a file name, and a changed label or bottle
-    changes file contents, so both are compared. Regenerate with
+    A changed barcode changes a file name, and a changed label or bottle changes
+    file contents, so both are compared. Regenerate with
     ``python -m labvision.bottles`` when this fails.
     """
-    committed = {p.name: p for p in (KIT / "labelled").glob("*.glb")}
-    entries = powder_entries()
-    assert set(committed) == {f"{e.sample.sample_id}_{e.code}.glb" for e in entries}
-    for entry in entries[:: len(registry.BOTTLE_VOLUMES_ML) + 1]:
-        name = f"{entry.sample.sample_id}_{entry.code}.glb"
-        fresh, _ = bottles.labelled_bottle(entry, KIT)
-        on_disk = bottles.read_glb(committed[name])
-        assert on_disk.document == fresh.document, name
-        assert on_disk.buffer == fresh.buffer, name
-
-
-def test_liquids_are_skipped_and_refused() -> None:
-    liquid = registry.build_registry(registry.default_samples(1))[0]
-    with pytest.raises(bottles.BottleError, match="only powders"):
-        bottles.labelled_bottle(liquid, KIT)
-
-
-def test_write_labelled_bottles_skips_liquid_rows(tmp_path: Path) -> None:
-    liquid = registry.build_registry(registry.default_samples(1))
-    assert bottles.write_labelled_bottles(liquid, KIT, tmp_path) == []
+    entries = entries_of(phase)
+    folder = bottles.labelled_path(entries[0], ASSETS).parent
+    committed = {p.name for p in folder.glob("*.glb")}
+    assert committed == {bottles.labelled_path(e, ASSETS).name for e in entries}
+    # Every sixth row walks through all five sizes.
+    for entry in entries[::6]:
+        fresh, _ = bottles.labelled_bottle(entry, ASSETS)
+        on_disk = bottles.read_glb(bottles.labelled_path(entry, ASSETS))
+        assert on_disk.document == fresh.document, entry.sample.sample_id
+        assert on_disk.buffer == fresh.buffer, entry.sample.sample_id
 
 
 def test_read_glb_reports_a_missing_file(tmp_path: Path) -> None:
@@ -234,7 +320,7 @@ def test_embedded_label_decodes_flat_and_wrapped(entry: registry.Entry) -> None:
     Checked twice: flat, as embedded, and as a camera facing the bottle sees it,
     turned a quarter turn and squeezed round the cylinder.
     """
-    labelled, patch = bottles.labelled_bottle(entry, KIT)
+    labelled, patch = bottles.labelled_bottle(entry, ASSETS)
     flat = label_image(labelled)
     assert flat.shape[1] > flat.shape[0]
     assert {d.code for d in reader.decode_image(flat)} == {entry.code}
@@ -248,8 +334,8 @@ def test_embedded_label_decodes_flat_and_wrapped(entry: registry.Entry) -> None:
 @pytest.mark.parametrize("arc_deg", [60, 90, 120])
 def test_ladder_labels_survive_far_more_wrap_than_upright_ones(arc_deg: int) -> None:
     """Curvature squeezes bar lengths, not widths, once the label is turned."""
-    entry = one_entry_per_size()[0]
-    flat = label_image(bottles.labelled_bottle(entry, KIT)[0])
+    entry = entries_of("powder")[0]
+    flat = label_image(bottles.labelled_bottle(entry, ASSETS)[0])
     on_bottle = cv2.rotate(flat, cv2.ROTATE_90_COUNTERCLOCKWISE)
     wrapped = seen_on_cylinder(on_bottle, arc_deg)
     assert {d.code for d in reader.decode_image(wrapped)} == {entry.code}

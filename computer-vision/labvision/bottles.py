@@ -1,14 +1,16 @@
-"""Stick each powder sample's barcode label onto the bottle it belongs to.
+"""Stick each sample's barcode label onto the bottle it belongs to.
 
-The powder labware is the white HDPE bottle kit in
-``assets/agrochemical-bottles``: one GLB per bottle size, with positions and
-normals but no UVs, so a label cannot be painted onto the bottle itself. This
-module adds the label the way a real one is added, as a separate sticker: a thin
-curved patch that hugs the bottle's straight wall, carries its own UVs and has
-the rendered label embedded as its texture. The bottle mesh is left untouched.
+Each phase has its own labware, a kit of GLBs under ``assets/``: powders go in the
+white HDPE bottles of ``agrochemical-bottles``, liquids in the amber glass bottles
+of ``amber-bottles``. Neither kit has UVs, so a label cannot be painted onto the
+bottle itself. This module adds the label the way a real one is added, as a
+separate sticker: a thin curved patch that hugs the bottle's straight wall,
+carries its own UVs and has the rendered label embedded as its texture. The
+bottle's meshes are left untouched.
 
 Which bottle a label goes on is never a choice. It follows from the sample's
-``container_ml``, so a 2 L barcode cannot end up on a 100 ml bottle, and the
+phase and ``container_ml``, so a 2 L barcode cannot end up on a 100 ml bottle, nor
+a liquid's on a powder bottle, and the
 label is sized from the bottle it lands on, as large as the wall allows.
 
 The label goes on turned a quarter turn, in "ladder" orientation: the bars lie
@@ -38,14 +40,48 @@ from labvision import registry
 
 logger = logging.getLogger(__name__)
 
-BOTTLE_GLB_STEMS: dict[float, str] = {
-    100.0: "100ml",
-    250.0: "250ml",
-    500.0: "500ml",
-    1000.0: "1l",
-    2000.0: "2l",
-}
-"""Kit file stem for each powder ``container_ml``, as in ``bottle_<stem>_*.glb``."""
+ASSETS_DIR = Path(__file__).resolve().parents[2] / "assets"
+"""The repository's ``assets`` directory, which holds every kit."""
+
+
+@dataclass(frozen=True)
+class Kit:
+    """The labware of one phase: a directory of bottle models, one per size.
+
+    Attributes:
+        phase: The registry phase stored in these bottles.
+        directory: Kit directory name under ``assets``. Its ``glb`` folder holds
+            the models and its ``labelled`` folder receives the labelled ones.
+        files: GLB file name for each ``container_ml`` the phase uses.
+    """
+
+    phase: str
+    directory: str
+    files: dict[float, str]
+
+
+POWDER_KIT = Kit("powder", "agrochemical-bottles", {
+    100.0: "bottle_100ml_hdpe_white.glb",
+    250.0: "bottle_250ml_hdpe_white.glb",
+    500.0: "bottle_500ml_hdpe_white.glb",
+    1000.0: "bottle_1l_hdpe_white.glb",
+    2000.0: "bottle_2l_hdpe_white.glb",
+})
+"""White HDPE bottles, open, cap in a separate file."""
+
+LIQUID_KIT = Kit("liquid", "amber-bottles", {
+    10.0: "amber_bottle_010ml.glb",
+    20.0: "amber_bottle_020ml.glb",
+    30.0: "amber_bottle_030ml.glb",
+    50.0: "amber_bottle_050ml.glb",
+    100.0: "amber_bottle_100ml.glb",
+})
+"""Amber glass bottles, closed, the cap a child node of the bottle. The kit also
+has a 60 ml bottle, which no liquid row uses: adding a size to the catalogue
+renumbers the samples and so reissues every liquid barcode."""
+
+KITS: dict[str, Kit] = {kit.phase: kit for kit in (POWDER_KIT, LIQUID_KIT)}
+"""The kit for each registry phase."""
 
 NOMINAL_MODULE_M = 0.00033
 """Width of one EAN-13 module at 100 % magnification, 0.33 mm."""
@@ -223,19 +259,30 @@ def write_glb(glb: Glb, path: Path) -> Path:
 def bottle_node(glb: Glb) -> int:
     """Find the node that carries the bottle mesh
 
+    The powder kit's files hold the bottle alone, but the liquid kit's hold a
+    closed bottle, with the cap as a second mesh listed first. The bottle is the
+    tallest mesh in either.
+
     Args:
-        glb: A bottle model from the kit.
+        glb: A bottle model from a kit.
 
     Returns:
-        Index of the first node with a mesh.
+        Index of the mesh node whose mesh is tallest.
 
     Raises:
         BottleError: If no node has a mesh.
     """
-    for index, node in enumerate(glb.document.get("nodes", [])):
-        if "mesh" in node:
-            return index
-    raise BottleError("bottle model has no mesh node")
+    document = glb.document
+    heights: dict[int, float] = {}
+    for index, node in enumerate(document.get("nodes", [])):
+        if "mesh" not in node:
+            continue
+        primitive = document["meshes"][node["mesh"]]["primitives"][0]
+        bounds = document["accessors"][primitive["attributes"]["POSITION"]]
+        heights[index] = bounds["max"][1] - bounds["min"][1]
+    if not heights:
+        raise BottleError("bottle model has no mesh node")
+    return max(heights, key=heights.__getitem__)
 
 
 def straight_wall(glb: Glb) -> Wall:
@@ -354,6 +401,11 @@ def attach_label(
     The bottle's own mesh, material and buffers are carried over unchanged; the
     label's geometry and its PNG are appended to the same binary buffer.
 
+    On a see-through bottle the sticker also gets a plain white back, facing
+    into the bottle. Without one the label would vanish when seen from behind
+    through the glass; with the printed face shown on both sides instead, the
+    barcode would read, mirrored, through the bottle, which no paper label does.
+
     Args:
         glb: The bottle model. Not modified.
         patch: Sticker mesh, from label_patch.
@@ -418,14 +470,35 @@ def attach_label(
             "roughnessFactor": 0.6,
         },
     })
-    document["meshes"].append({
-        "name": name,
-        "primitives": [{
-            "attributes": attributes,
-            "indices": indices,
+    primitives = [{
+        "attributes": attributes,
+        "indices": indices,
+        "material": len(document["materials"]) - 1,
+    }]
+    if is_see_through(glb):
+        inwards = patch.positions.copy()
+        radius = np.hypot(inwards[:, 0], inwards[:, 2])
+        inwards[:, [0, 2]] *= ((radius - LABEL_OFFSET_M / 2) / radius)[:, None]
+        flipped = patch.indices.reshape(-1, 3)[:, ::-1].reshape(-1)
+        document["materials"].append({
+            "name": "Label_back",
+            "pbrMetallicRoughness": {
+                "baseColorFactor": [0.95, 0.95, 0.93, 1.0],
+                "metallicFactor": 0.0,
+                "roughnessFactor": 0.7,
+            },
+        })
+        primitives.append({
+            "attributes": {
+                "POSITION": add_accessor(inwards, "VEC3", _ARRAY_BUFFER, True),
+                "NORMAL": add_accessor(-patch.normals, "VEC3", _ARRAY_BUFFER, False),
+            },
+            "indices": add_accessor(
+                np.ascontiguousarray(flipped), "SCALAR", _ELEMENT_ARRAY_BUFFER, False,
+            ),
             "material": len(document["materials"]) - 1,
-        }],
-    })
+        })
+    document["meshes"].append({"name": name, "primitives": primitives})
     document["nodes"].append({
         "name": name,
         "mesh": len(document["meshes"]) - 1,
@@ -439,51 +512,78 @@ def attach_label(
     return Glb(document, bytes(buffer))
 
 
-def bottle_path(container_ml: float, kit_dir: Path) -> Path:
-    """Locate the kit's bottle for a container size
+def is_see_through(glb: Glb) -> bool:
+    """Tell whether the bottle is made of something light passes through
 
     Args:
-        container_ml: A powder container capacity from BOTTLE_VOLUMES_ML.
-        kit_dir: The ``assets/agrochemical-bottles`` directory.
+        glb: A bottle model from a kit.
 
     Returns:
-        Path of that size's bottle GLB.
-
-    Raises:
-        BottleError: If the kit has no bottle of that capacity.
-
-    Example:
-        >>> bottle_path(1000.0, Path("kit")).name
-        'bottle_1l_hdpe_white.glb'
+        True when the bottle mesh's material transmits light, as the amber glass
+        does and the white HDPE does not.
     """
-    stem = BOTTLE_GLB_STEMS.get(container_ml)
-    if stem is None:
-        raise BottleError(f"the kit has no {container_ml:g} ml bottle")
-    return kit_dir / "glb" / f"bottle_{stem}_hdpe_white.glb"
+    document = glb.document
+    mesh = document["meshes"][document["nodes"][bottle_node(glb)]["mesh"]]
+    material = document["materials"][mesh["primitives"][0]["material"]]
+    return "KHR_materials_transmission" in material.get("extensions", {})
 
 
-def labelled_bottle(entry: registry.Entry, kit_dir: Path) -> tuple[Glb, LabelPatch]:
-    """Put a sample's label on the bottle that sample is stored in
-
-    The bottle is chosen from the sample's own ``container_ml``, never passed
-    in, so a label cannot be attached to a bottle of another size.
+def bottle_path(sample: registry.Sample, assets_dir: Path = ASSETS_DIR) -> Path:
+    """Locate the bottle a sample is stored in
 
     Args:
-        entry: A powder row of the registry.
-        kit_dir: The ``assets/agrochemical-bottles`` directory.
+        sample: The sample. Its phase picks the kit and its container_ml the
+            bottle within it.
+        assets_dir: The repository's ``assets`` directory.
+
+    Returns:
+        Path of that bottle's GLB.
+
+    Raises:
+        BottleError: If the phase has no kit, or the kit no bottle of that size.
+
+    Example:
+        >>> powder = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder",
+        ...                          1000.0, "L1")
+        >>> bottle_path(powder, Path("assets")).as_posix()
+        'assets/agrochemical-bottles/glb/bottle_1l_hdpe_white.glb'
+        >>> liquid = registry.Sample("SMP-1", "Limonene", "5989-27-5", "liquid",
+        ...                          50.0, "L1")
+        >>> bottle_path(liquid, Path("assets")).as_posix()
+        'assets/amber-bottles/glb/amber_bottle_050ml.glb'
+    """
+    kit = KITS.get(sample.phase)
+    if kit is None:
+        raise BottleError(f"no kit holds {sample.phase} samples")
+    name = kit.files.get(sample.container_ml)
+    if name is None:
+        raise BottleError(
+            f"the {sample.phase} kit has no {sample.container_ml:g} ml bottle"
+        )
+    return assets_dir / kit.directory / "glb" / name
+
+
+def labelled_bottle(
+    entry: registry.Entry,
+    assets_dir: Path = ASSETS_DIR,
+) -> tuple[Glb, LabelPatch]:
+    """Put a sample's label on the bottle that sample is stored in
+
+    The bottle is chosen from the sample's own phase and ``container_ml``, never
+    passed in, so a label cannot be attached to a bottle of another size or kind.
+
+    Args:
+        entry: A row of the registry.
+        assets_dir: The repository's ``assets`` directory.
 
     Returns:
         The labelled model, and the patch that was attached to it.
 
     Raises:
-        BottleError: If the sample is not a powder, or the kit lacks its bottle.
+        BottleError: If no kit has a bottle for the sample.
     """
     sample = entry.sample
-    if sample.phase != registry.POWDER.name:
-        raise BottleError(
-            f"{sample.sample_id} is a {sample.phase}, and only powders go in bottles"
-        )
-    bottle = read_glb(bottle_path(sample.container_ml, kit_dir))
+    bottle = read_glb(bottle_path(sample, assets_dir))
     image = registry.render_label(entry, TEXTURE_MODULE_PX)
     patch = label_patch(
         straight_wall(bottle),
@@ -508,30 +608,51 @@ def labelled_bottle(entry: registry.Entry, kit_dir: Path) -> tuple[Glb, LabelPat
     return labelled, patch
 
 
-def write_labelled_bottles(
-    entries: list[registry.Entry],
-    kit_dir: Path,
-    out_dir: Path,
-) -> list[Path]:
-    """Write one labelled bottle model per powder row
+def labelled_path(entry: registry.Entry, assets_dir: Path = ASSETS_DIR) -> Path:
+    """Say where a sample's labelled bottle is kept
 
     Args:
-        entries: Registry rows. Liquid rows are skipped, as they have no bottle.
-        kit_dir: The ``assets/agrochemical-bottles`` directory.
-        out_dir: Directory for the GLBs. Created if absent.
+        entry: A row of the registry.
+        assets_dir: The repository's ``assets`` directory.
+
+    Returns:
+        ``<kit>/labelled/<sample id>_<code>.glb``, inside the sample's own kit.
+
+    Raises:
+        BottleError: If the sample's phase has no kit.
+    """
+    kit = KITS.get(entry.sample.phase)
+    if kit is None:
+        raise BottleError(f"no kit holds {entry.sample.phase} samples")
+    name = f"{entry.sample.sample_id}_{entry.code}.glb"
+    return assets_dir / kit.directory / "labelled" / name
+
+
+def write_labelled_bottles(
+    entries: list[registry.Entry],
+    assets_dir: Path = ASSETS_DIR,
+    out_dir: Path | None = None,
+) -> list[Path]:
+    """Write one labelled bottle model per registry row
+
+    Args:
+        entries: Registry rows to label.
+        assets_dir: The repository's ``assets`` directory.
+        out_dir: Directory for every GLB. When omitted each model goes to the
+            ``labelled`` folder of its own kit, which is where they are kept.
 
     Returns:
         The paths written, in entry order.
 
     Raises:
-        BottleError: If the kit lacks a bottle that some powder row needs.
+        BottleError: If a kit lacks a bottle that some row needs.
     """
     paths = []
     for entry in entries:
-        if entry.sample.phase != registry.POWDER.name:
-            continue
-        labelled, patch = labelled_bottle(entry, kit_dir)
-        path = out_dir / f"{entry.sample.sample_id}_{entry.code}.glb"
+        labelled, patch = labelled_bottle(entry, assets_dir)
+        path = labelled_path(entry, assets_dir)
+        if out_dir is not None:
+            path = out_dir / path.name
         paths.append(write_glb(labelled, path))
         logger.debug(
             "%s: %.1f x %.1f mm label over %.0f degrees",
@@ -541,18 +662,17 @@ def write_labelled_bottles(
 
 
 def main() -> None:
-    """Generate the labelled powder bottles."""
-    kit = Path(__file__).resolve().parents[2] / "assets" / "agrochemical-bottles"
+    """Generate the labelled bottles of every kit."""
     parser = argparse.ArgumentParser(
-        description="Stick every powder barcode onto the bottle of its size.",
+        description="Stick every barcode onto the bottle of its phase and size.",
     )
     parser.add_argument(
-        "out_dir", type=Path, nargs="?", default=kit / "labelled",
-        help="Directory for the labelled GLBs (default: <kit>/labelled).",
+        "--assets", type=Path, default=ASSETS_DIR,
+        help="The repository's assets directory, which holds the kits.",
     )
     parser.add_argument(
-        "--kit", type=Path, default=kit,
-        help="The agrochemical-bottles asset directory.",
+        "--phase", choices=sorted(KITS), default=None,
+        help="Label only this phase's bottles (default: every phase).",
     )
     parser.add_argument(
         "--seed", type=int, default=registry.DEFAULT_SEED,
@@ -562,17 +682,20 @@ def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
     entries = registry.build_registry(registry.default_samples(seed=args.seed))
-    paths = write_labelled_bottles(entries, args.kit, args.out_dir)
-    print(f"{len(paths)} labelled bottles -> {args.out_dir}")
-    for container_ml in BOTTLE_GLB_STEMS:
-        first = next(e for e in entries if e.sample.container_ml == container_ml
-                     and e.sample.phase == registry.POWDER.name)
-        _, patch = labelled_bottle(first, args.kit)
-        print(
-            f"  {container_ml:>6g} ml: label {patch.width_m * 1e3:.1f} x "
-            f"{patch.height_m * 1e3:.1f} mm, {patch.arc_deg:.0f} deg of arc, "
-            f"{patch.module_m / NOMINAL_MODULE_M:.0%} magnification"
-        )
+    for kit in KITS.values():
+        if args.phase not in (None, kit.phase):
+            continue
+        rows = [e for e in entries if e.sample.phase == kit.phase]
+        paths = write_labelled_bottles(rows, args.assets)
+        print(f"{len(paths)} {kit.phase} bottles -> {paths[0].parent}")
+        for container_ml in kit.files:
+            first = next(e for e in rows if e.sample.container_ml == container_ml)
+            _, patch = labelled_bottle(first, args.assets)
+            print(
+                f"  {container_ml:>6g} ml: label {patch.width_m * 1e3:.1f} x "
+                f"{patch.height_m * 1e3:.1f} mm, {patch.arc_deg:.0f} deg of arc, "
+                f"{patch.module_m / NOMINAL_MODULE_M:.0%} magnification"
+            )
 
 
 if __name__ == "__main__":
