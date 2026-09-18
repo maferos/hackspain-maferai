@@ -6,3 +6,9 @@ MUJOCO_LOG.TXT
 .venv-autobio/
 MJDATA.TXT
 MJMODEL.TXT
+
+# Labelled powder bottles are build output: 100 GLBs, about 60 MB, made from the
+# committed kit and the committed lookup table by:
+#
+#   cd computer-vision && python -m labvision.bottles
+assets/agrochemical-bottles/labelled/

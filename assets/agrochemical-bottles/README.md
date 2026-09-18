@@ -20,3 +20,13 @@ Kit de botes blancos tipo "bala" para agroquímicos (HDPE blanco satinado, tapó
 - `generate_agro_bottles.py` — generador (`pip install bpy`, `python generate_agro_bottles.py`). Editar la tabla `SET` para cambiar tamaños o nº de estrías.
 
 Bote y tapón son objetos separados; para cerrar un bote, colocar el tapón en z = alto sin tapón − alto del tapón + 1 mm aprox.
+
+## Barcode labels
+
+`labelled/` (not in git) holds one GLB per powder sample, with its EAN-13 label attached as a separate sticker mesh on the bottle's straight wall. Generate it from `computer-vision/`:
+
+```bash
+python -m labvision.bottles
+```
+
+Each barcode goes on the bottle of its own size (100 mL, 250 mL, 500 mL, 1 L, 2 L); `Bote_1L_ancho` is not used. Details in `computer-vision/README.md`.

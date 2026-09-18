@@ -24,6 +24,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 import cv2
+import numpy as np
 
 from labvision import ean13
 
@@ -520,6 +521,32 @@ def load_table(path: Path) -> dict[str, dict[str, object]]:
     return table["entries"]
 
 
+def render_label(entry: Entry, module_px: int = 4) -> np.ndarray:
+    """Render the printed label of one registry row
+
+    Args:
+        entry: The row whose barcode and captions go on the label.
+        module_px: Pixels per module. Defaults to 4.
+
+    Returns:
+        The label as a BGR image: the symbol, the material name under it, then
+        the sample id, container size and phase.
+
+    Example:
+        >>> render_label(build_registry(default_samples(1))[0]).shape
+        (236, 484, 3)
+    """
+    return ean13.render_tag(
+        entry.code,
+        caption=entry.sample.material,
+        subcaption=(
+            f"{entry.sample.sample_id}  {entry.sample.container_ml:g} ML  "
+            f"{entry.sample.phase.upper()}"
+        ),
+        module_px=module_px,
+    )
+
+
 def write_label_images(
     entries: list[Entry],
     out_dir: Path,
@@ -541,15 +568,7 @@ def write_label_images(
     out_dir.mkdir(parents=True, exist_ok=True)
     paths = []
     for entry in entries:
-        image = ean13.render_tag(
-            entry.code,
-            caption=entry.sample.material,
-            subcaption=(
-                f"{entry.sample.sample_id}  {entry.sample.container_ml:g} ML  "
-                f"{entry.sample.phase.upper()}"
-            ),
-            module_px=module_px,
-        )
+        image = render_label(entry, module_px)
         path = out_dir / f"{entry.sample.sample_id}_{entry.code}.png"
         if not cv2.imwrite(str(path), image):
             raise RegistryError(f"could not write label image: {path}")

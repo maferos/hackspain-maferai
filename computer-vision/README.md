@@ -434,7 +434,8 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/reader.py` | Localiser, both decoders, code-to-sample resolution |
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
-| `tests/` | 195 tests, plus 21 doctests |
+| `labvision/bottles.py` | Sticks each powder label onto the bottle of its size |
+| `tests/` | 226 tests, plus 24 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
@@ -576,10 +577,73 @@ amber storage-bottle size for aroma chemicals, which is the closer analogue for
 a raw-material inventory. Change one entry in `FLASK_VOLUMES_ML` and regenerate
 if you want strict ISO sizes.
 
+## Labels on the powder bottles
+
+```bash
+python -m labvision.bottles
+```
+
+That writes one GLB per powder sample to `assets/agrochemical-bottles/labelled/`
+— `PWD-0001_<code>.glb` and so on, 100 files, about 60 MB, gitignored for the
+same reason the label PNGs are.
+
+**The bottle is never chosen, it is looked up.** `labelled_bottle` takes a
+registry row and nothing else; the bottle comes from that row's `container_ml`,
+so a 2 L barcode cannot land on a 100 ml bottle. Liquid rows are refused: they
+have no bottle.
+
+The kit's GLBs have no UVs, so the label is not painted on. It is a separate
+**sticker mesh**: a thin curved patch 0.2 mm off the bottle's straight wall, with
+its own UVs and the label PNG embedded as its texture, added as a child node of
+the bottle. The bottle's mesh and material are carried over byte for byte. The
+wall is measured from the GLB, not copied from the kit's generator, so a
+regenerated kit needs no change here.
+
+The label node carries `extras` a consumer can read without decoding anything:
+`code`, `sample_id`, `material`, `container_ml`, `vessel_class`, `module_mm` and
+`corners_m` — the label's four corners in the bottle's frame, top-left first,
+which are the ground-truth keypoints for the label quad.
+
+### Label size follows the bottle
+
+Each label is printed as large as three limits allow: 150 % magnification, the
+height of the straight wall, and **50 degrees of the bottle's circumference**.
+On this kit the arc is the one that binds every time:
+
+| Bottle | Label | Module | Magnification |
+| --- | --- | --- | --- |
+| 100 ml | 20.2 x 9.9 mm | 0.17 mm | 51 % |
+| 250 ml | 26.4 x 12.9 mm | 0.22 mm | 66 % |
+| 500 ml | 32.5 x 15.8 mm | 0.27 mm | 81 % |
+| 1 L | 38.6 x 18.8 mm | 0.32 mm | 97 % |
+| 2 L | 50.8 x 24.8 mm | 0.42 mm | 127 % |
+
+The 50 degrees is measured, not guessed. A barcode wrapped round a cylinder is
+squeezed towards its edges when seen head-on, and the reader expects even
+modules. All 100 powder labels, projected onto a cylinder and decoded:
+
+| Arc covered | 45° | 55° | 60° | 75° | 90° |
+| --- | --- | --- | --- | --- | --- |
+| Decoded | 100 | 100 | 86 | 72 | 74 |
+
+So there is a cliff just under 60 degrees, and a nominal-size label on the 46 mm
+bottle would span 99. The cost of staying under it is small labels on small
+bottles: at two pixels per module the 100 ml label needs about 12 px/mm, so the
+camera has to be close. `test_embedded_label_decodes_flat_and_wrapped` pins the
+wrapped decode for every size.
+
+Turning the barcode 90 degrees ("ladder" orientation, the usual answer for
+narrow bottles, since curvature then squeezes bars along their length and leaves
+their widths alone) was tried and **rejected for now**: the reader decodes only
+65 of the 100 labels when they are rotated exactly 90 degrees, even flat. That
+is a reader weakness, not a geometry one, and fixing it would allow labels about
+twice as large on the 100 ml bottle.
+
 ## Not done yet
 
-The label is currently a standalone PNG. Wiring it onto a vessel in the MuJoCo
-scene as a textured geom, and carrying the label corners as pose-model
+The powder labels are on their bottles as GLB, which Isaac Lab can import but
+MuJoCo cannot: MuJoCo needs the sticker as an OBJ plus a PNG texture. Liquids
+have no labware yet. Wiring either into the MuJoCo scene, and carrying the label corners as pose-model
 keypoints so the quad comes from the network rather than the localiser, is the
 next step and is not part of this work.
 
