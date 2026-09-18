@@ -1,0 +1,39 @@
+<!-- Stick-figure lab worker, ~1.75 m tall, standing at the origin and facing +x with
+     the right arm reaching forward over a table. Visual only (no contacts; its mass is
+     irrelevant because it is mocap): autobio_lab.xml wraps each copy in a mocap body that
+     scripts/spawner.py moves around. The "hand" site is where tubes are released. -->
+<mujoco model="human figure">
+    <default>
+        <default class="human">
+            <geom contype="0" conaffinity="0" group="1" type="capsule"/>
+        </default>
+    </default>
+
+    <asset>
+        <material name="human_skin" rgba="0.87 0.69 0.56 1"/>
+        <material name="human_coat" rgba="0.95 0.95 0.97 1"/>
+        <material name="human_pants" rgba="0.18 0.22 0.35 1"/>
+        <material name="human_shoes" rgba="0.1 0.1 0.1 1"/>
+        <material name="human_glove" rgba="0.35 0.55 0.95 1"/>
+    </asset>
+
+    <worldbody>
+        <body name="human" childclass="human">
+            <geom type="box" size="0.12 0.05 0.03" pos="0.04 0.1 0.03" material="human_shoes"/>
+            <geom type="box" size="0.12 0.05 0.03" pos="0.04 -0.1 0.03" material="human_shoes"/>
+            <geom size="0.065" fromto="0 0.1 0.08 0 0.1 0.86" material="human_pants"/>
+            <geom size="0.065" fromto="0 -0.1 0.08 0 -0.1 0.86" material="human_pants"/>
+            <geom size="0.16" fromto="0 0 0.9 0 0 1.35" material="human_coat"/>
+            <geom size="0.05" fromto="0 0 1.48 0 0 1.55" material="human_skin"/>
+            <geom type="sphere" size="0.11" pos="0 0 1.65" material="human_skin"/>
+            <!-- left arm hanging -->
+            <geom size="0.05" fromto="0 0.22 1.42 0.02 0.25 1.0" material="human_coat"/>
+            <geom type="sphere" size="0.045" pos="0.02 0.25 0.95" material="human_skin"/>
+            <!-- right arm reaching forward and slightly down -->
+            <geom size="0.05" fromto="0 -0.22 1.42 0.3 -0.15 1.3" material="human_coat"/>
+            <geom size="0.045" fromto="0.3 -0.15 1.3 0.58 -0.02 1.15" material="human_coat"/>
+            <geom type="sphere" size="0.05" pos="0.62 0 1.13" material="human_glove"/>
+            <site name="hand" pos="0.62 0 1.08" size="0.01"/>
+        </body>
+    </worldbody>
+</mujoco>

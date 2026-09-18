@@ -1,5 +1,9 @@
-<!-- AutoBio "pick up centrifuge tube" scene on a bigger table, with a GC-MS and a
-     UV-Vis-NIR spectrophotometer from assets/ at either end.
+<!-- AutoBio "pick up centrifuge tube" scene on a 5 m table: the robot arm in the
+     middle flanked by a GC-MS and a UV-Vis-NIR spectrophotometer from assets/, and a
+     circular spawn zone at each end of the table. scripts/spawner.py (run through
+     view_autobio.py) walks a lab worker up to a zone and drops a 50 ml tube into it,
+     using the pre-allocated worker and tube bodies at the bottom of the worldbody
+     (MuJoCo can't add bodies at runtime).
      Needs the AutoBio plugin: .venv-autobio/bin/python scripts/view_autobio.py models/autobio_lab.xml -->
 <mujoco model="autobio lab instruments">
 
@@ -9,7 +13,7 @@
     <visual>
         <global azimuth="200" elevation="-25" offwidth="1280" offheight="960"/>
     </visual>
-    <statistic center="0 0 0.9" extent="2.2"/>
+    <statistic center="0 0 0.9" extent="3.2"/>
 
     <asset>
         <texture type="skybox" builtin="gradient" rgb1="0.3 0.5 0.7" rgb2="0 0 0" width="512" height="3072"/>
@@ -20,13 +24,15 @@
         <model name="uv_vis_nir" file="instruments/uv_vis_nir.xml" content_type="text/xml" />
         <model name="centrifuge_10slot" file="../third_party/AutoBio/autobio/model/object/centrifuge_10slot.gen.xml" content_type="text/xml" />
         <model name="aloha" file="../third_party/AutoBio/autobio/model/robot/aloha_left.xml" content_type="text/xml" />
+        <model name="human" file="human_figure.xml" content_type="text/xml" />
+        <model name="centrifuge_50ml" file="../third_party/AutoBio/autobio/model/object/centrifuge_50ml.gen.xml" content_type="text/xml" />
         <model name="centrifuge_50ml_screw" file="../third_party/AutoBio/autobio/model/object/centrifuge_50ml_screw.xml" content_type="text/xml" />
     </asset>
 
     <worldbody>
         <light directional="true" diffuse="0.8 0.8 0.8" ambient="0.3 0.3 0.3" pos="0 0 5" dir="0 0 -1"/>
         <light pos="0 -2.5 2.5" dir="0 1 -0.8" diffuse="0.4 0.4 0.4"/>
-        <geom name="floor" pos="0 0 0" size="3 3 0.05" type="plane" material="groundplane"/>
+        <geom name="floor" pos="0 0 0" size="6 6 0.05" type="plane" material="groundplane"/>
         <!-- Same frame as AutoBio's pickup.xml: table long axis runs along world y. -->
         <body name="table" pos="0 0 0." quat="1 0 0 1">
             <attach model="table" body="vention table" prefix="/"/>
@@ -36,16 +42,19 @@
             <body name="slot" pos="0.0 -0.3 0.854" quat="0 0 0 1">
                 <attach model="centrifuge_10slot" body="centrifuge_10slot" prefix="/"/>
             </body>
-            <!-- Instruments stand at the table ends, backs to the rear edge, fronts facing -y. -->
-            <frame pos="-0.95 0.3 0.824">
+            <!-- Instruments flank the robot, backs to the rear edge, fronts facing -y. -->
+            <frame pos="-0.85 0.35 0.824">
                 <attach model="gc_ms" body="gc_ms" prefix="lab:"/>
             </frame>
-            <frame pos="0.95 0.26 0.824">
+            <frame pos="0.85 0.3 0.824">
                 <attach model="uv_vis_nir" body="uv_vis_nir" prefix="lab:"/>
             </frame>
             <camera name="table_cam_front" pos="0. -1.2 1.45" quat="0.819 0.574 0 0" fovy="45" resolution="1280 960"/>
-            <camera name="table_cam_left" pos="-1.2 0. 1.45" quat="0.579 0.406 -0.406 -0.579" fovy="45" resolution="1280 960"/>
-            <camera name="table_cam_wide" pos="0. -3.2 2.2" quat="0.866 0.5 0 0" fovy="50" resolution="1280 960"/>
+            <camera name="table_cam_left" pos="-3.6 0. 2.5" quat="0.579 0.406 -0.406 -0.579" fovy="45" resolution="1280 960"/>
+            <!-- Spawn zones at both ends; spawner.py finds them by the "spawn_zone" prefix. -->
+            <site name="spawn_zone_left" type="cylinder" size="0.25 0.0008" pos="-2.1 0 0.8248" rgba="1 0.55 0.1 0.6"/>
+            <site name="spawn_zone_right" type="cylinder" size="0.25 0.0008" pos="2.1 0 0.8248" rgba="1 0.55 0.1 0.6"/>
+            <camera name="table_cam_wide" pos="0. -5.4 3.0" quat="0.866 0.5 0 0" fovy="50" resolution="1280 960"/>
         </body>
         <body name="centrifuge_50ml_screw_cap_wrap" pos="0 0 0.83" quat="1 0 0 0">
             <joint name="centrifuge_50ml_screw_cap" type="free"/>
@@ -54,6 +63,65 @@
         <body name="centrifuge_50ml_screw_body_wrap" pos="0 0 0.83" quat="1 0 0 0">
             <joint name="centrifuge_50ml_screw_body" type="free"/>
             <attach model="centrifuge_50ml_screw" body="centrifuge_50ml_screw_body" prefix="2/"/>
+        </body>
+
+        <!-- Spawner pool: one worker per zone (mocap, visual only) and 10 tubes that
+             wait off-stage at x=20 m until spawner.py teleports them over a zone. -->
+        <body name="worker_left" mocap="true" pos="0 0 -10">
+            <attach model="human" body="human" prefix="worker_left:"/>
+        </body>
+        <body name="worker_right" mocap="true" pos="0 0 -10">
+            <attach model="human" body="human" prefix="worker_right:"/>
+        </body>
+        <body name="drop_tube_0" pos="20.0 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_0"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_0:"/>
+            <geom name="drop_tube_0_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_1" pos="20.1 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_1"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_1:"/>
+            <geom name="drop_tube_1_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_2" pos="20.2 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_2"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_2:"/>
+            <geom name="drop_tube_2_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_3" pos="20.3 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_3"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_3:"/>
+            <geom name="drop_tube_3_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_4" pos="20.4 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_4"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_4:"/>
+            <geom name="drop_tube_4_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_5" pos="20.5 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_5"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_5:"/>
+            <geom name="drop_tube_5_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_6" pos="20.6 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_6"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_6:"/>
+            <geom name="drop_tube_6_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_7" pos="20.7 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_7"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_7:"/>
+            <geom name="drop_tube_7_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_8" pos="20.8 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_8"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_8:"/>
+            <geom name="drop_tube_8_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
+        </body>
+        <body name="drop_tube_9" pos="20.9 0 0.02" quat="0.7071 0.7071 0 0">
+            <freejoint name="drop_tube_9"/>
+            <attach model="centrifuge_50ml" body="centrifuge_50ml" prefix="drop_tube_9:"/>
+            <geom name="drop_tube_9_cap" type="cylinder" size="0.0165 0.009" pos="0 0 0.121" rgba="0.1 0.45 0.95 1" contype="0" conaffinity="0" group="1" mass="0.004"/>
         </body>
     </worldbody>
 

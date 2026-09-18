@@ -56,9 +56,18 @@ AutoBio is included as a git submodule (it has no license file, so its assets ar
 ### Lab scene with our instruments
 
 `models/autobio_lab.xml` (the viewer's default scene) is AutoBio's *pick up centrifuge tube* setup
-(ALOHA arm, tube rack, 50 ml screw tube) on a bigger 3.0 m x 1.2 m table (`models/big_table.xml`),
-with the **GC-MS** (`assets/gc-ms`) at one end and the **UV-Vis-NIR spectrophotometer**
-(`assets/uv-vis-nir`) at the other.
+(ALOHA arm, tube rack, 50 ml screw tube) on a 5.0 m x 1.4 m table (`models/big_table.xml`).
+The robot arm is in the middle, flanked by the **GC-MS** (`assets/gc-ms`) on one side and the
+**UV-Vis-NIR spectrophotometer** (`assets/uv-vis-nir`) on the other.
+
+At each end of the table there is an orange circular **spawn zone**. While the viewer runs,
+`scripts/spawner.py` sends a lab worker (`models/human_figure.xml`) walking up to one zone at a time
+(alternating), and the worker drops a 50 ml tube into the circle before walking away. The default is
+one spawn every 3 s of sim time; change it with
+`.venv-autobio/bin/python scripts/view_autobio.py --interval 1.5`.
+MuJoCo can't add bodies to a running model, so the scene holds a fixed pool (one mocap worker per
+zone and 10 tubes parked off-stage at x = 20 m). Tubes are reused oldest-first once all 10 are on the
+table. `--check` also runs the spawner and fails if a dropped tube misses the table.
 
 The instruments were converted from the OBJ files in `assets/` with `tools/convert_instrument.py`,
 which splits them into one mesh per material, turns them Z-up, scales them to metres and adds a box
@@ -91,8 +100,10 @@ use `scripts/view_autobio.py` instead.
 | `third_party/AutoBio` | AutoBio git submodule (models, meshes, plugin) |
 | `setup_autobio.sh` | Fetches the AutoBio submodule + creates `.venv-autobio` |
 | `scripts/view_autobio.py` | Loads AutoBio's plugin and opens a lab scene in the viewer |
-| `models/autobio_lab.xml` | AutoBio pickup scene + GC-MS + UV-Vis-NIR on a big table |
-| `models/big_table.xml` | 3.0 m x 1.2 m version of AutoBio's table |
+| `models/autobio_lab.xml` | AutoBio pickup scene + GC-MS + UV-Vis-NIR + spawn zones on a big table |
+| `models/big_table.xml` | 5.0 m x 1.4 m version of AutoBio's table |
+| `models/human_figure.xml` | Stick-figure lab worker used by the spawner |
+| `scripts/spawner.py` | Walks workers to the spawn zones and drops tubes |
 | `models/instruments/` | MuJoCo meshes generated from `assets/` |
 | `tools/convert_instrument.py` | OBJ/MTL -> MuJoCo mesh + MJCF converter |
 | `scripts/view_model.py` | Opens a model in the interactive viewer and simulates it in real time |
