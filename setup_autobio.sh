@@ -6,18 +6,14 @@ set -euo pipefail
 cd "$(dirname "$0")"
 DEST=third_party/AutoBio
 
-if [ ! -d "$DEST/.git" ]; then
-  echo ">> Cloning AutoBio into $DEST (~100 MB)"
-  git clone --depth 1 https://github.com/autobio-bench/AutoBio.git "$DEST"
-else
-  echo ">> $DEST already present, pulling latest"
-  git -C "$DEST" pull --ff-only
-fi
+# AutoBio is a git submodule pinned to a known-good commit.
+echo ">> Fetching AutoBio submodule into $DEST (~100 MB)"
+git submodule update --init --depth 1 "$DEST"
 
 # AutoBio targets Python 3.11 (see its autobio/README.md).
 if command -v uv >/dev/null 2>&1; then
   echo ">> Creating .venv-autobio (Python 3.11) with uv"
-  uv venv --python 3.11 .venv-autobio
+  uv venv --clear --python 3.11 .venv-autobio
   uv pip install --python .venv-autobio/bin/python -r requirements-autobio.txt
 else
   echo ">> Creating .venv-autobio with ${PYTHON:-python3.11}"

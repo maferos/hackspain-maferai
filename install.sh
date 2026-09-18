@@ -21,7 +21,7 @@ fi
 
 if command -v uv >/dev/null 2>&1; then
   echo ">> Creating .venv with uv"
-  uv venv --python "$PYTHON" .venv
+  uv venv --clear --python "$PYTHON" .venv
   uv pip install --python .venv/bin/python -r requirements.txt
 else
   echo ">> Creating .venv with venv/pip"

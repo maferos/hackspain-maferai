@@ -43,10 +43,10 @@ Space to pause, Backspace to reset, and the left/right panels toggle rendering o
 [AutoBio](https://github.com/autobio-bench/AutoBio) ([paper](https://arxiv.org/abs/2505.14030)) provides
 MuJoCo models of a biology lab (centrifuges, pipettes, thermal cycler/mixer, tube racks, robot arms).
 Its scenes need AutoBio's prebuilt plugin `libmjlab.so.3.3.0`, which only works with **MuJoCo 3.3.0**,
-so they run in a separate environment (`.venv-autobio`, Python 3.11) from the main `.venv`.
+AutoBio is included as a git submodule (it has no license file, so its assets are referenced rather than copied), and its scenes run in a separate environment (`.venv-autobio`, Python 3.11) from the main `.venv`.
 
 ```bash
-./setup_autobio.sh     # clones AutoBio into third_party/AutoBio (git-ignored), creates .venv-autobio, checks all scenes
+./setup_autobio.sh     # fetches the AutoBio submodule (third_party/AutoBio), creates .venv-autobio, checks all scenes
 .venv-autobio/bin/python scripts/view_autobio.py --list                # available scenes
 .venv-autobio/bin/python scripts/view_autobio.py pickup                # open a scene in the 3D viewer
 .venv-autobio/bin/python scripts/view_autobio.py mani_thermal_cycler
@@ -70,6 +70,7 @@ use `scripts/view_autobio.py` instead.
 | `models/hello.xml` | Demo scene: floor + falling box, sphere, capsule |
 | `scripts/check_install.py` | Headless check that loads and steps the model |
 | `requirements-autobio.txt` | Pinned MuJoCo 3.3.0 env for AutoBio |
-| `setup_autobio.sh` | Fetches AutoBio + creates `.venv-autobio` |
+| `third_party/AutoBio` | AutoBio git submodule (models, meshes, plugin) |
+| `setup_autobio.sh` | Fetches the AutoBio submodule + creates `.venv-autobio` |
 | `scripts/view_autobio.py` | Loads AutoBio's plugin and opens a lab scene in the viewer |
 | `scripts/view_model.py` | Opens a model in the interactive viewer and simulates it in real time |
