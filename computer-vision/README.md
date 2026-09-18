@@ -29,10 +29,10 @@ than a SHA-256 digest, so the digest is **truncated**:
 
 | Step | Value |
 | --- | --- |
-| Canonical payload | `SMP-0001\|Limonene\|5989-27-5\|10\|LOT-50378` |
-| `sha256(payload)` | `5d43d253bfec2d4e...` |
-| `int(digest, 16) mod 10^9` | `775369325` |
-| Prefix `200`, append check digit | `2007753693259` |
+| Canonical payload | `SMP-0001\|Limonene\|5989-27-5\|liquid\|10\|LOT-50378` |
+| `sha256(payload)` | `59443a004775eea7...` |
+| `int(digest, 16) mod 10^9` | `694390669` |
+| Prefix `200`, append check digit | `2006943906698` |
 
 The `200` prefix is the GS1 range reserved for internal and in-store codes, so
 these will never collide with a real retail product.
@@ -49,20 +49,21 @@ barcode**. Re-print a label after editing a sample.
 ## Generating the labels
 
 **The label images are not in the repo.** They are deterministic build output —
-one command regenerates all 100, byte-identically:
+one command regenerates all 200, byte-identically:
 
 ```bash
 python -m labvision.registry barcodes
 ```
 
-That writes `barcodes/SMP-XXXX_<code>.png`, one per sample, and rewrites
-`barcodes/lookup_table.json`. Takes a couple of seconds.
+That writes one PNG per sample — `barcodes/SMP-XXXX_<code>.png` for liquids and
+`barcodes/PWD-XXXX_<code>.png` for powders — and rewrites
+`barcodes/lookup_table.json`. Takes a few seconds.
 
 What **is** committed is `barcodes/lookup_table.json` — the lookup table itself,
-100 entries keyed by barcode. That one matters: it is the mapping, it is small
+200 entries keyed by barcode. That one matters: it is the mapping, it is small
 and diffable, and a decoded barcode is meaningless without it.
 
-The images are left out because they are 3.4 MB of binaries that would be
+The images are left out because they are ~7 MB of binaries that would be
 rewritten wholesale by any change to the renderer. Nothing is lost: the table
 pins every code, and the generator is reproducible from it.
 
@@ -70,7 +71,7 @@ Flags worth knowing — `python -m labvision.registry --help`:
 
 | Flag | Effect |
 | --- | --- |
-| `--count N` | Generate only the first N of the grid |
+| `--count N` | Generate only the first N of the catalogue (liquids first) |
 | `--module-px N` | Pixels per barcode module (default 4, floor is 2) |
 | `--no-images` | Rewrite only the lookup table |
 | `--seed N` | Change the lot numbers, and so every barcode |
@@ -103,8 +104,8 @@ holding four would otherwise mask the three the localiser had already read.
 
 ### Measured behaviour
 
-Over the 100 generated labels: **100/100 decode correctly**, 96 through OpenCV
-and 4 only through the fallback, all 100 with a quad, at roughly 260 ms/image.
+Over the 200 generated labels: **200/200 decode correctly**, 192 through OpenCV
+and 8 only through the fallback, all with a quad, at roughly 260 ms/image.
 
 Also verified: rotation from 0 to 90 degrees, upside-down labels, Gaussian noise
 at sigma 12, 3x3 blur, 0.45x downscaling, low contrast, four labels in one
@@ -156,8 +157,8 @@ convenience, not a capability the library lacks.
 | `labvision/ean13.py` | Check digit, module encode/decode, rendering |
 | `labvision/registry.py` | Samples, hash-to-code, lookup table, label PNGs |
 | `labvision/reader.py` | Localiser, both decoders, code-to-sample resolution |
-| `tests/` | 99 tests, plus 17 doctests |
-| `barcodes/lookup_table.json` | The committed lookup table |
+| `tests/` | 106 tests, plus 17 doctests |
+| `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
 
@@ -166,11 +167,12 @@ convenience, not a capability the library lacks.
 # your global pip.conf and without a valid CodeArtifact token
 pip install -r requirements.txt
 
-# Generate the 100 labels and the lookup table (labels are gitignored)
+# Generate all 200 labels and the lookup table (labels are gitignored)
 python -m labvision.registry barcodes
 
 # Read a label back and resolve it
-python -m labvision.reader barcodes/SMP-0001_2007753693259.png
+python -m labvision.reader barcodes/SMP-0001_2006943906698.png \
+                        barcodes/PWD-0001_2009067439660.png
 
 # Anything OpenCV can open, several files at once, as JSON
 python -m labvision.reader photo.jpg --table barcodes/lookup_table.json --json
@@ -200,16 +202,57 @@ for detection, record in reader.resolve(
 
 ## Sample catalogue
 
-The catalogue is the **full cross product** of 20 compounds and 5 flask sizes —
-every compound in every size, 20 x 5 = 100 barcodes. Material varies slowest, so
-`SMP-0001..0005` are Limonene at 10, 20, 30, 50 and 100 ml.
+**200 barcodes: two phases, each a full cross product of compounds x container
+sizes.**
 
-| Axis | Values |
-| --- | --- |
-| Compounds | 20 flavour & fragrance raw materials, real CAS numbers |
-| Flask sizes | 10, 20, 30, 50, 100 ml |
+| Phase | Compounds | Containers | Ids | Codes |
+| --- | --- | --- | --- | --- |
+| Liquid | 20 | flasks — 10, 20, 30, 50, 100 ml | `SMP-0001..0100` | 100 |
+| Powder | 20 | wide-mouth jars — 30, 60, 125, 250, 500 ml | `PWD-0001..0100` | 100 |
 
-Only the lot number is random, under `DEFAULT_SEED`.
+Material varies slowest, so `SMP-0001..0005` are Limonene at each flask size and
+`PWD-0001..0005` are Vanillin at each jar size. Only the lot number is random,
+under `DEFAULT_SEED`.
+
+The detector class name follows the phase: `flask_10ml` … `flask_100ml` for
+liquids, `jar_30ml` … `jar_500ml` for powders — 10 vessel classes in total.
+
+### Why powders get different labware
+
+A powder cannot be handled in a flask. You need a **wide mouth** to get a
+spatula in and the solid out, which is why the solids series is jars rather
+than volumetric flasks, and why the sizes are larger.
+
+### Phase is a property of the compound, not a choice
+
+A compound is solid or liquid at room temperature; it does not get to be both.
+`POWDER_MATERIALS` carries each one's melting point as a comment, which is the
+evidence for it being there:
+
+| Compound | mp °C | | Compound | mp °C |
+| --- | --- | --- | --- | --- |
+| Camphor | 175–177 | | Vanillin | 81–83 |
+| Maltol | 160–164 | | Phenylacetic acid | 76–78 |
+| Musk ketone | 135–137 | | Ethylvanillin | 76–78 |
+| Cinnamic acid | 133 | | Coumarin | 69–71 |
+| Sclareolide | 120–124 | | Tonalide | 54 |
+| Ethyl maltol | 89–92 | | Indole | 52–54 |
+| Thymol | 49–51 | | Cedryl acetate | 44–46 |
+| Benzyl cinnamate | 39 | | Menthol | 36–38 |
+| Piperonal | 35–37 | | Exaltolide | 35 |
+| Methyl cinnamate | 34–38 | | Diphenyl ether | 27–29 |
+
+Four of these — **Camphor, Vanillin, Thymol and Menthol** — were originally in
+the liquid list. They are not liquids, and moving them is why the liquid codes
+were reissued when powders were added. Their replacements are Phenylethyl
+alcohol, Methyl salicylate, Linalyl acetate and cis-3-Hexen-1-ol.
+
+Two borderline cases stay in the liquid list deliberately: **Anethole**
+(mp 20–21 °C) and **alpha-Terpineol** (mp ~35 °C) are both solid on a cold
+bench, but are supplied and handled as liquids commercially.
+
+`test_no_compound_appears_in_both_phases` and
+`test_powders_are_in_jars_and_liquids_in_flasks` keep this honest.
 
 ### Why a cross product and not two cycling lists
 

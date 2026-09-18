@@ -10,52 +10,91 @@ from labvision import ean13, registry
 
 def test_default_catalogue_has_the_expected_size_and_ids() -> None:
     samples = registry.default_samples()
-    assert len(samples) == registry.DEFAULT_SAMPLE_COUNT == 100
+    assert len(samples) == registry.DEFAULT_SAMPLE_COUNT == 200
     assert samples[0].sample_id == "SMP-0001"
-    assert samples[-1].sample_id == "SMP-0100"
-    assert len({s.sample_id for s in samples}) == 100
+    assert samples[99].sample_id == "SMP-0100"
+    assert samples[100].sample_id == "PWD-0001"
+    assert samples[-1].sample_id == "PWD-0100"
+    assert len({s.sample_id for s in samples}) == 200
 
 
 def test_default_catalogue_is_reproducible() -> None:
     assert registry.default_samples() == registry.default_samples()
 
 
-def test_default_catalogue_is_the_full_cross_product() -> None:
-    """Every compound must appear in every flask size, exactly once."""
-    samples = registry.default_samples()
-    materials = {name for name, _ in registry.MATERIALS}
-    volumes = set(registry.FLASK_VOLUMES_ML)
+@pytest.mark.parametrize("spec", registry.PHASES, ids=lambda s: s.name)
+def test_each_phase_is_the_full_cross_product(spec: registry.PhaseSpec) -> None:
+    """Every compound must appear in every container size for its phase."""
+    samples = [s for s in registry.default_samples() if s.phase == spec.name]
+    materials = {name for name, _ in spec.materials}
+    volumes = set(spec.containers_ml)
 
     assert {s.material for s in samples} == materials
-    assert {s.flask_ml for s in samples} == volumes
-    assert len(samples) == len(materials) * len(volumes)
+    assert {s.container_ml for s in samples} == volumes
+    assert len(samples) == spec.size == len(materials) * len(volumes)
 
-    pairs = [(s.material, s.flask_ml) for s in samples]
+    pairs = [(s.material, s.container_ml) for s in samples]
     assert len(set(pairs)) == len(pairs)
     assert set(pairs) == {(m, v) for m in materials for v in volumes}
 
 
-def test_compound_is_not_correlated_with_flask_size() -> None:
+@pytest.mark.parametrize("spec", registry.PHASES, ids=lambda s: s.name)
+def test_compound_is_not_correlated_with_container_size(
+    spec: registry.PhaseSpec,
+) -> None:
     """Guards the bug the cross product exists to avoid.
 
-    Cycling 20 materials against 5 volumes in step locks each compound to one
-    volume, which would let a model infer the compound from flask size alone.
+    Cycling 20 materials against 5 sizes in step locks each compound to one
+    size, which would let a model infer the compound from container size alone.
     """
     samples = registry.default_samples()
-    for material, _ in registry.MATERIALS:
-        sizes = {s.flask_ml for s in samples if s.material == material}
-        assert sizes == set(registry.FLASK_VOLUMES_ML), material
+    for material, _ in spec.materials:
+        sizes = {s.container_ml for s in samples if s.material == material}
+        assert sizes == set(spec.containers_ml), material
 
 
-def test_vessel_class_is_derived_from_flask_size() -> None:
-    sample = registry.Sample("SMP-0001", "Limonene", "5989-27-5", 50.0, "L1")
-    assert sample.vessel_class == "flask_50ml"
-    assert registry.Sample("S", "M", "C", 1.5, "L").vessel_class == "flask_1.5ml"
+def test_no_compound_appears_in_both_phases() -> None:
+    """A material is either a liquid or a solid; it cannot be catalogued as both."""
+    liquids = {name for name, _ in registry.LIQUID_MATERIALS}
+    powders = {name for name, _ in registry.POWDER_MATERIALS}
+    assert liquids & powders == set()
 
 
-def test_default_samples_rejects_a_count_beyond_the_grid() -> None:
+def test_cas_numbers_are_unique_across_the_catalogue() -> None:
+    pairs = registry.LIQUID_MATERIALS + registry.POWDER_MATERIALS
+    cas = [c for _, c in pairs]
+    assert len(set(cas)) == len(cas)
+
+
+def test_powders_are_in_jars_and_liquids_in_flasks() -> None:
+    """Solids need a wide mouth for a spatula, so they are never in a flask."""
+    for sample in registry.default_samples():
+        expected = "flask" if sample.phase == "liquid" else "jar"
+        assert sample.vessel_class.startswith(expected + "_"), sample
+
+
+def test_vessel_class_is_derived_from_phase_and_size() -> None:
+    liquid = registry.Sample("SMP-1", "Limonene", "5989-27-5", "liquid", 50.0, "L1")
+    powder = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder", 250.0, "L1")
+    assert liquid.vessel_class == "flask_50ml"
+    assert powder.vessel_class == "jar_250ml"
+
+
+def test_vessel_class_rejects_an_unknown_phase() -> None:
+    bad = registry.Sample("X-1", "M", "C", "plasma", 10.0, "L1")
+    with pytest.raises(registry.RegistryError, match="unknown phase"):
+        _ = bad.vessel_class
+
+
+def test_default_samples_rejects_a_count_beyond_the_catalogue() -> None:
     with pytest.raises(ValueError, match="must be <="):
         registry.default_samples(registry.DEFAULT_SAMPLE_COUNT + 1)
+
+
+def test_partial_count_stops_inside_the_liquid_phase() -> None:
+    samples = registry.default_samples(7)
+    assert len(samples) == 7
+    assert {s.phase for s in samples} == {"liquid"}
 
 
 def test_default_samples_rejects_a_non_positive_count() -> None:
@@ -65,15 +104,15 @@ def test_default_samples_rejects_a_non_positive_count() -> None:
 
 def test_payload_is_stable_and_field_ordered() -> None:
     sample = registry.Sample(
-        "SMP-0001", "Limonene", "5989-27-5", 50.0, "LOT-1234",
+        "SMP-0001", "Limonene", "5989-27-5", "liquid", 50.0, "LOT-1234",
     )
-    assert sample.payload() == "SMP-0001|Limonene|5989-27-5|50|LOT-1234"
+    assert sample.payload() == "SMP-0001|Limonene|5989-27-5|liquid|50|LOT-1234"
 
 
 def test_payload_change_changes_the_code() -> None:
     """The barcode is derived from the record, so a differing record differs."""
-    a = registry.Sample("SMP-0001", "Limonene", "5989-27-5", 50.0, "L1")
-    b = registry.Sample("SMP-0001", "Limonene", "5989-27-5", 100.0, "L1")
+    a = registry.Sample("SMP-0001", "Limonene", "5989-27-5", "liquid", 50.0, "L1")
+    b = registry.Sample("SMP-0001", "Limonene", "5989-27-5", "liquid", 100.0, "L1")
     assert registry.sha256_of(a) != registry.sha256_of(b)
 
 
@@ -98,9 +137,9 @@ def test_code_from_digest_rejects_non_hex() -> None:
 
 def test_every_code_in_the_catalogue_is_valid_and_unique() -> None:
     entries = registry.build_registry(registry.default_samples())
-    assert len(entries) == 100
+    assert len(entries) == 200
     codes = [e.code for e in entries]
-    assert len(set(codes)) == 100
+    assert len(set(codes)) == 200
     assert all(ean13.is_valid(c) for c in codes)
     assert all(c.startswith(registry.INTERNAL_PREFIX) for c in codes)
 
@@ -148,7 +187,7 @@ def test_table_roundtrips_through_disk(tmp_path: Path) -> None:
     path = registry.save_table(entries, tmp_path / "lookup_table.json")
     loaded = registry.load_table(path)
 
-    assert len(loaded) == 100
+    assert len(loaded) == 200
     for entry in entries:
         record = loaded[entry.code]
         assert record["sample_id"] == entry.sample.sample_id

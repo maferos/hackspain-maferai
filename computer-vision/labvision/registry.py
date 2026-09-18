@@ -35,55 +35,76 @@ INTERNAL_PREFIX = "200"
 DIGITS_FROM_HASH = 9
 """Decimal digits of the payload taken from the digest."""
 
-DEFAULT_SAMPLE_COUNT = 100
-"""Size of the default catalogue: every material in every flask size.
-
-Asserted against ``len(MATERIALS) * len(FLASK_VOLUMES_ML)`` below, so adding a
-compound or a volume without updating this is caught at import.
-"""
-
 DEFAULT_SEED = 20260918
 """Seed fixing the default catalogue, so the table is reproducible."""
 
-REGISTRY_VERSION = 1
-"""Schema version written into the lookup table."""
+REGISTRY_VERSION = 2
+"""Schema version written into the lookup table.
 
-# Nominal flask capacities in millilitres. 10, 20, 50 and 100 are standard
-# volumetric-flask sizes (ISO 1042); 30 is not in that series, whose neighbour is
-# 25, but it is a common amber storage-bottle size for aroma chemicals, which is
-# the closer analogue for a raw-material inventory.
+Version 2 introduced the liquid/powder split: ``flask_ml`` became
+``container_ml`` and a ``phase`` field was added.
+"""
+
+# Nominal flask capacities in millilitres, for liquids. 10, 20, 50 and 100 are
+# standard volumetric capacities (ISO 1042); 30 is not in that series, whose
+# neighbour is 25, but it is a common amber storage-bottle size for aroma
+# chemicals, which suits a raw-material inventory better.
 FLASK_VOLUMES_ML: tuple[float, ...] = (10.0, 20.0, 30.0, 50.0, 100.0)
 
-# Flavour and fragrance raw materials with their CAS numbers.
-MATERIALS: tuple[tuple[str, str], ...] = (
+# Nominal jar capacities in millilitres, for powders. Solids need a wide mouth
+# so a spatula fits, which rules flasks out entirely; this is the standard
+# straight-sided wide-mouth amber jar series.
+JAR_VOLUMES_ML: tuple[float, ...] = (30.0, 60.0, 125.0, 250.0, 500.0)
+
+# Flavour and fragrance raw materials that are LIQUID at room temperature,
+# with their CAS numbers.
+LIQUID_MATERIALS: tuple[tuple[str, str], ...] = (
     ("Limonene", "5989-27-5"),
     ("Linalool", "78-70-6"),
     ("Geraniol", "106-24-1"),
     ("Citral", "5392-40-5"),
     ("Eugenol", "97-53-0"),
-    ("Vanillin", "121-33-5"),
     ("Benzaldehyde", "100-52-7"),
-    ("Menthol", "2216-51-5"),
     ("Citronellol", "106-22-9"),
     ("Nerol", "106-25-2"),
-    ("Camphor", "76-22-2"),
     ("Anethole", "104-46-1"),
     ("Cinnamaldehyde", "104-55-2"),
-    ("Thymol", "89-83-8"),
     ("Carvone", "99-49-0"),
     ("alpha-Pinene", "80-56-8"),
     ("alpha-Terpineol", "98-55-5"),
     ("Farnesol", "4602-84-0"),
     ("Nerolidol", "7212-44-4"),
     ("Benzyl acetate", "140-11-4"),
+    ("Phenylethyl alcohol", "60-12-8"),
+    ("Methyl salicylate", "119-36-8"),
+    ("Linalyl acetate", "115-95-7"),
+    ("cis-3-Hexen-1-ol", "928-96-1"),
 )
 
-_GRID_SIZE = len(MATERIALS) * len(FLASK_VOLUMES_ML)
-if _GRID_SIZE != DEFAULT_SAMPLE_COUNT:  # pragma: no cover
-    raise RuntimeError(
-        f"DEFAULT_SAMPLE_COUNT is {DEFAULT_SAMPLE_COUNT} but the grid is "
-        f"{len(MATERIALS)} x {len(FLASK_VOLUMES_ML)} = {_GRID_SIZE}"
-    )
+# Raw materials that are SOLID at room temperature, handled as powders or
+# crystals. The melting point in the comment is why each one is here.
+POWDER_MATERIALS: tuple[tuple[str, str], ...] = (
+    ("Vanillin", "121-33-5"),            # mp 81-83 C
+    ("Ethylvanillin", "121-32-4"),       # mp 76-78 C
+    ("Coumarin", "91-64-5"),             # mp 69-71 C
+    ("Maltol", "118-71-8"),              # mp 160-164 C
+    ("Ethyl maltol", "4940-11-8"),       # mp 89-92 C
+    ("Menthol", "2216-51-5"),            # mp 36-38 C
+    ("Thymol", "89-83-8"),               # mp 49-51 C
+    ("Camphor", "76-22-2"),              # mp 175-177 C
+    ("Piperonal", "120-57-0"),           # mp 35-37 C, heliotropin
+    ("Indole", "120-72-9"),              # mp 52-54 C
+    ("Musk ketone", "81-14-1"),          # mp 135-137 C
+    ("Tonalide", "21145-77-7"),          # mp 54 C
+    ("Sclareolide", "564-20-5"),         # mp 120-124 C
+    ("Cedryl acetate", "77-54-3"),       # mp 44-46 C
+    ("Methyl cinnamate", "103-26-4"),    # mp 34-38 C
+    ("Benzyl cinnamate", "103-41-3"),    # mp 39 C
+    ("Cinnamic acid", "621-82-9"),       # mp 133 C
+    ("Diphenyl ether", "101-84-8"),      # mp 27-29 C
+    ("Exaltolide", "106-02-5"),          # mp 35 C
+    ("Phenylacetic acid", "103-82-2"),   # mp 76-78 C
+)
 
 
 class RegistryError(Exception):
@@ -91,41 +112,99 @@ class RegistryError(Exception):
 
 
 @dataclass(frozen=True)
-class Sample:
-    """One compound in one flask size: a single cell of the catalogue grid.
-
-    The catalogue is the full cross product of the materials and the flask
-    volumes, so a sample is uniquely identified by that pair. The lot is
-    incidental detail carried for realism.
+class PhaseSpec:
+    """One physical phase and the labware that goes with it.
 
     Attributes:
-        sample_id: Human-facing identifier, such as ``SMP-0001``.
-        material: Raw material the flask contains.
+        name: ``"liquid"`` or ``"powder"``, as written into the table.
+        prefix: Sample-id prefix, ``SMP`` for liquids and ``PWD`` for powders.
+        vessel: Vessel noun used to build the detector class name.
+        materials: Compounds in this phase, as (name, CAS) pairs.
+        containers_ml: Nominal container capacities offered for this phase.
+    """
+
+    name: str
+    prefix: str
+    vessel: str
+    materials: tuple[tuple[str, str], ...]
+    containers_ml: tuple[float, ...]
+
+    @property
+    def size(self) -> int:
+        """Number of samples in this phase's grid
+
+        Returns:
+            The cross-product size, compounds times container sizes.
+        """
+        return len(self.materials) * len(self.containers_ml)
+
+
+LIQUID = PhaseSpec("liquid", "SMP", "flask", LIQUID_MATERIALS, FLASK_VOLUMES_ML)
+POWDER = PhaseSpec("powder", "PWD", "jar", POWDER_MATERIALS, JAR_VOLUMES_ML)
+
+PHASES: tuple[PhaseSpec, ...] = (LIQUID, POWDER)
+"""Every phase in the catalogue, in the order they are generated."""
+
+DEFAULT_SAMPLE_COUNT = sum(p.size for p in PHASES)
+"""Size of the default catalogue: every compound in every container size.
+
+Derived from PHASES rather than written down, so adding a compound or a
+container size cannot leave it stale.
+"""
+
+
+@dataclass(frozen=True)
+class Sample:
+    """One compound in one container size: a single cell of a phase's grid.
+
+    Each phase's catalogue is the full cross product of its materials and its
+    container sizes, so a sample is uniquely identified by (phase, material,
+    container). The lot is incidental detail carried for realism.
+
+    Attributes:
+        sample_id: Human-facing identifier, ``SMP-0001`` for liquids and
+            ``PWD-0001`` for powders.
+        material: Raw material the container holds.
         cas: CAS registry number of that material.
-        flask_ml: Nominal flask capacity in millilitres, from FLASK_VOLUMES_ML.
+        phase: ``"liquid"`` or ``"powder"``.
+        container_ml: Nominal container capacity in millilitres. Flask sizes for
+            liquids, wide-mouth jar sizes for powders.
         lot: Supplier lot reference.
     """
 
     sample_id: str
     material: str
     cas: str
-    flask_ml: float
+    phase: str
+    container_ml: float
     lot: str
 
     @property
     def vessel_class(self) -> str:
-        """Detector class name for this flask size, such as ``flask_50ml``
+        """Detector class name, such as ``flask_50ml`` or ``jar_250ml``
 
-        Derived rather than stored, so it cannot drift from flask_ml.
+        Derived rather than stored, so it cannot drift from phase or
+        container_ml. The vessel noun differs by phase because a powder needs a
+        wide mouth and so is never in a flask.
 
         Returns:
             The class label the vision model would predict.
 
+        Raises:
+            RegistryError: If phase is not a known phase name.
+
         Example:
-            >>> Sample("SMP-0001", "Limonene", "5989-27-5", 50.0, "L1").vessel_class
+            >>> Sample("SMP-1", "Limonene", "5989-27-5", "liquid", 50.0,
+            ...        "L1").vessel_class
             'flask_50ml'
+            >>> Sample("PWD-1", "Vanillin", "121-33-5", "powder", 250.0,
+            ...        "L1").vessel_class
+            'jar_250ml'
         """
-        return f"flask_{self.flask_ml:g}ml"
+        for spec in PHASES:
+            if spec.name == self.phase:
+                return f"{spec.vessel}_{self.container_ml:g}ml"
+        raise RegistryError(f"unknown phase: {self.phase!r}")
 
     def payload(self) -> str:
         """Render the record as the canonical string that gets hashed
@@ -137,15 +216,16 @@ class Sample:
             A newline-free, pipe-separated canonical form of the record.
 
         Example:
-            >>> Sample("SMP-0001", "Limonene", "5989-27-5", 50.0,
+            >>> Sample("SMP-0001", "Limonene", "5989-27-5", "liquid", 50.0,
             ...        "LOT-1234").payload()
-            'SMP-0001|Limonene|5989-27-5|50|LOT-1234'
+            'SMP-0001|Limonene|5989-27-5|liquid|50|LOT-1234'
         """
         return "|".join((
             self.sample_id,
             self.material,
             self.cas,
-            f"{self.flask_ml:g}",
+            self.phase,
+            f"{self.container_ml:g}",
             self.lot,
         ))
 
@@ -179,7 +259,8 @@ def sha256_of(sample: Sample, salt: int = 0) -> str:
         The lowercase hex SHA-256 digest.
 
     Example:
-        >>> len(sha256_of(Sample("SMP-0001", "Limonene", "5989-27-5", 50.0, "L1")))
+        >>> s = Sample("SMP-0001", "Limonene", "5989-27-5", "liquid", 50.0, "L1")
+        >>> len(sha256_of(s))
         64
     """
     payload = sample.payload() if salt == 0 else f"{sample.payload()}#{salt}"
@@ -266,59 +347,62 @@ def default_samples(
 ) -> list[Sample]:
     """Build the reproducible default catalogue of samples
 
-    The catalogue is the **full cross product** of MATERIALS and
-    FLASK_VOLUMES_ML — every compound in every flask size, 20 x 5 = 100 rows.
+    For each phase the catalogue is the **full cross product** of its materials
+    and its container sizes — every compound in every size. Liquids come first
+    (20 compounds x 5 flasks), then powders (20 x 5 jars), 200 rows in all.
     Material varies slowest, so SMP-0001..0005 are the five flask sizes of the
-    first compound.
+    first liquid.
 
     Taking the cross product rather than cycling both lists in step matters:
-    cycling 20 materials against 5 volumes locks each compound to one volume,
-    which would let a vision model infer the compound from flask size alone and
+    cycling 20 materials against 5 sizes locks each compound to one size, which
+    would let a vision model infer the compound from container size alone and
     never read the barcode.
 
     Only the lot is random, under a fixed seed.
 
     Args:
-        count: How many samples to produce, taken from the front of the grid.
-            Defaults to DEFAULT_SAMPLE_COUNT, the whole of it.
+        count: How many samples to produce, taken from the front of the
+            catalogue. Defaults to DEFAULT_SAMPLE_COUNT, the whole of it.
         seed: Seed for the lot draws. Defaults to DEFAULT_SEED.
 
     Returns:
-        The catalogue, ordered by sample id.
+        The catalogue, liquids then powders, each ordered by sample id.
 
     Raises:
-        ValueError: If count is not positive or exceeds the size of the grid.
+        ValueError: If count is not positive or exceeds the catalogue size.
 
     Example:
         >>> s = default_samples()
-        >>> s[0].material, s[0].flask_ml
-        ('Limonene', 10.0)
-        >>> s[1].material, s[1].flask_ml
-        ('Limonene', 20.0)
+        >>> s[0].material, s[0].container_ml, s[0].phase
+        ('Limonene', 10.0, 'liquid')
+        >>> s[100].sample_id, s[100].material, s[100].phase
+        ('PWD-0001', 'Vanillin', 'powder')
     """
-    grid_size = _GRID_SIZE
     if count < 1:
         raise ValueError(f"count must be >= 1, got {count}")
-    if count > grid_size:
+    if count > DEFAULT_SAMPLE_COUNT:
+        shape = " + ".join(
+            f"{len(p.materials)}x{len(p.containers_ml)}" for p in PHASES
+        )
         raise ValueError(
-            f"count must be <= {grid_size} "
-            f"({len(MATERIALS)} materials x {len(FLASK_VOLUMES_ML)} volumes), "
-            f"got {count}"
+            f"count must be <= {DEFAULT_SAMPLE_COUNT} ({shape}), got {count}"
         )
     rng = random.Random(seed)
-    samples = []
-    for i, (material, cas) in enumerate(MATERIALS):
-        for j, flask_ml in enumerate(FLASK_VOLUMES_ML):
-            index = i * len(FLASK_VOLUMES_ML) + j
-            if index >= count:
-                break
-            samples.append(Sample(
-                sample_id=f"SMP-{index + 1:04d}",
-                material=material,
-                cas=cas,
-                flask_ml=flask_ml,
-                lot=f"LOT-{rng.randint(10000, 99999)}",
-            ))
+    samples: list[Sample] = []
+    for spec in PHASES:
+        for i, (material, cas) in enumerate(spec.materials):
+            for j, container_ml in enumerate(spec.containers_ml):
+                if len(samples) >= count:
+                    return samples
+                index = i * len(spec.containers_ml) + j + 1
+                samples.append(Sample(
+                    sample_id=f"{spec.prefix}-{index:04d}",
+                    material=material,
+                    cas=cas,
+                    phase=spec.name,
+                    container_ml=container_ml,
+                    lot=f"LOT-{rng.randint(10000, 99999)}",
+                ))
     return samples
 
 
@@ -342,9 +426,15 @@ def to_table(entries: list[Entry]) -> dict[str, object]:
             f"sha256(sample.payload()) mod 10^{DIGITS_FROM_HASH}, "
             f"prefixed {INTERNAL_PREFIX!r}, EAN-13 check digit appended"
         ),
-        "grid": {
-            "materials": len(MATERIALS),
-            "flask_volumes_ml": list(FLASK_VOLUMES_ML),
+        "phases": {
+            spec.name: {
+                "vessel": spec.vessel,
+                "prefix": spec.prefix,
+                "materials": len(spec.materials),
+                "containers_ml": list(spec.containers_ml),
+                "count": spec.size,
+            }
+            for spec in PHASES
         },
         "count": len(entries),
         "entries": {
@@ -435,7 +525,10 @@ def write_label_images(
         image = ean13.render_tag(
             entry.code,
             caption=entry.sample.material,
-            subcaption=f"{entry.sample.sample_id}  {entry.sample.flask_ml:g} ML",
+            subcaption=(
+                f"{entry.sample.sample_id}  {entry.sample.container_ml:g} ML  "
+                f"{entry.sample.phase.upper()}"
+            ),
             module_px=module_px,
         )
         path = out_dir / f"{entry.sample.sample_id}_{entry.code}.png"

@@ -537,8 +537,8 @@ def main() -> None:
         else:
             print(
                 f"{row['code']}  [{row['decoder']}]  {sample['sample_id']}  "
-                f"{sample['material']:<16} {sample['flask_ml']:>5g} ml  "
-                f"lot {sample['lot']}"
+                f"{sample['material']:<20} {sample['container_ml']:>5g} ml  "
+                f"{sample['phase']:<7} lot {sample['lot']}"
             )
 
 
