@@ -1,0 +1,24 @@
+# Project-scoped index. Your global pip.conf points at Mafer's CodeArtifact
+# repository, which serves internal packages and is left alone. Adding PyPI as
+# an *extra* index here lets this project install public wheels without any
+# global change -- pip searches both and takes whichever has the package.
+#
+# This also means `pip install -r requirements.txt` works while the CodeArtifact
+# token is expired (it warns about the 401 and falls through to PyPI).
+--extra-index-url https://pypi.org/simple
+
+# Barcode generation, rendering and reading.
+#
+# cv2.barcode lives in the main objdetect module from OpenCV 4.8 onwards, so
+# plain opencv-python is enough; the contrib build is not required.
+numpy>=1.26
+opencv-python>=4.8
+
+# Tests
+pytest>=8.0
+
+# Test oracle only. python-barcode encodes EAN-13 but cannot decode it -- there
+# is no reader in the package -- so it cannot replace labvision/reader.py. It is
+# used in test_ean13.py to pin our L/G/R tables against an independent
+# implementation. Those two tests skip cleanly when it is absent.
+python-barcode>=0.16

@@ -1,0 +1,237 @@
+# computer-vision
+
+Barcode identity for the lab robot. Every sample on the bench carries a printed
+EAN-13 label; the barcode holds nothing but an identifier, and everything the
+robot needs to know about the sample is looked up from that identifier in a
+table.
+
+Owners: Nacho, Martí (see `AGENTS.md`).
+
+## The idea in one line
+
+```
+sample record --sha256--> 12 digits --EAN-13--> printed label
+                              |
+                       lookup_table.json
+                              |
+        label --reader--> code --> the sample record back again
+```
+
+The barcode is a *pointer*, not a container. Nothing about the material, the
+volume or the lot is recoverable from the bars alone — resolving a code always
+means consulting the table. That keeps the label stable when a record's
+contents change, and keeps the printed symbol to a fixed 95 modules.
+
+## Hash to code
+
+EAN-13 carries twelve free decimal digits plus a check digit, which is far less
+than a SHA-256 digest, so the digest is **truncated**:
+
+| Step | Value |
+| --- | --- |
+| Canonical payload | `SMP-0001\|Limonene\|5989-27-5\|10\|LOT-50378` |
+| `sha256(payload)` | `5d43d253bfec2d4e...` |
+| `int(digest, 16) mod 10^9` | `775369325` |
+| Prefix `200`, append check digit | `2007753693259` |
+
+The `200` prefix is the GS1 range reserved for internal and in-store codes, so
+these will never collide with a real retail product.
+
+Nine digits is about 30 bits. For a hundred samples a collision is very
+unlikely, but "very unlikely" is not "impossible", so `build_registry` checks
+for one and re-hashes the loser with an incrementing salt until it lands
+somewhere free. The salt is recorded in the table, so the mapping stays
+reproducible rather than depending on insertion luck.
+
+Because the code is derived from the record, **changing any field changes the
+barcode**. Re-print a label after editing a sample.
+
+## Generating the labels
+
+**The label images are not in the repo.** They are deterministic build output —
+one command regenerates all 100, byte-identically:
+
+```bash
+python -m labvision.registry barcodes
+```
+
+That writes `barcodes/SMP-XXXX_<code>.png`, one per sample, and rewrites
+`barcodes/lookup_table.json`. Takes a couple of seconds.
+
+What **is** committed is `barcodes/lookup_table.json` — the lookup table itself,
+100 entries keyed by barcode. That one matters: it is the mapping, it is small
+and diffable, and a decoded barcode is meaningless without it.
+
+The images are left out because they are 3.4 MB of binaries that would be
+rewritten wholesale by any change to the renderer. Nothing is lost: the table
+pins every code, and the generator is reproducible from it.
+
+Flags worth knowing — `python -m labvision.registry --help`:
+
+| Flag | Effect |
+| --- | --- |
+| `--count N` | Generate only the first N of the grid |
+| `--module-px N` | Pixels per barcode module (default 4, floor is 2) |
+| `--no-images` | Rewrite only the lookup table |
+| `--seed N` | Change the lot numbers, and so every barcode |
+
+## The reader
+
+Two decoders sit behind one `decode_image` call, and their results are merged
+rather than raced.
+
+**OpenCV** (`cv2.barcode.BarcodeDetector`) is the primary decoder. It has two
+awkward habits worth knowing:
+
+- **It will not find a barcode that fills the frame.** It searches a fixed set of
+  scales relative to the image, so a tight crop is invisible to it. The setters
+  that used to widen those scales — `setDetectorScales`, `setGradientThreshold` —
+  are **no longer exposed** on OpenCV 4.9, so conditioning the image is the only
+  lever left. `decode_image` therefore works through a ladder of white padding
+  and upscaling.
+- **It does not return corner coordinates.** `detectAndDecodeMulti` hands back an
+  empty points vector even on a successful decode, on every build tested here.
+
+**The localiser + scanline reader** is the fallback, and the only path that
+yields a quad. It closes the thresholded image with a wide, short horizontal
+kernel — which melts parallel bars into one solid blob while leaving text alone
+— filters the blobs by aspect ratio, rectifies each one, and reads it against
+the same module tables the encoder writes with.
+
+The two are unioned because a padding rung that decodes one label in a frame
+holding four would otherwise mask the three the localiser had already read.
+
+### Measured behaviour
+
+Over the 100 generated labels: **100/100 decode correctly**, 96 through OpenCV
+and 4 only through the fallback, all 100 with a quad, at roughly 260 ms/image.
+
+Also verified: rotation from 0 to 90 degrees, upside-down labels, Gaussian noise
+at sigma 12, 3x3 blur, 0.45x downscaling, low contrast, four labels in one
+frame, and tight crops that fill the frame. The one hard requirement is that the
+**whole symbol including its quiet zones is inside the image** — clip a corner
+and it stops decoding.
+
+## The resolution floor
+
+EAN-13 is 95 modules wide, and OpenCV needs roughly **two pixels per module**, so
+a label must be about **190 px wide in the frame** to decode.
+
+This is why `render_symbol` takes *pixels per module* rather than a target
+width: the caller pins the module width exactly instead of inferring it from an
+image size. The default of 4 px/module gives a 460 px label, comfortably clear
+of the floor.
+
+The same floor is what forces a two-stage pipeline on real frames — locate the
+label at low resolution, then rectify and decode the crop from the
+full-resolution frame, never from the downscaled one.
+
+## Why the encoder is hand-written
+
+`python-barcode` would have done the encoding. It is installed here as a test
+dependency, and the reason we do not use it for the real thing is narrower than
+"one less dependency":
+
+**It cannot decode.** The package is encode-only — there is no reader, scanner
+or decoder anywhere in it. So `decode_modules` and the L/G/R tables have to
+exist regardless, for `reader.py` to work at all. Using the library would
+replace only the encode half and leave the two halves resting on different
+tables, which is exactly what the round-trip tests are there to catch.
+
+So the tables are ours, and `python-barcode` is used as an **independent
+oracle** instead: `test_ean13.py` checks our check digit and our full 95-module
+pattern against it over 1000 random codes. They agree exactly. That is more
+value than importing it would have given, and the tests skip cleanly on a
+machine without it.
+
+The one genuine ergonomic win is that `render_symbol` takes *pixels per module*
+directly. `python-barcode` gets there too, via `module_width` in millimetres
+times `dpi`, and lands within a pixel across the symbol — so this is a
+convenience, not a capability the library lacks.
+
+## Layout
+
+| Path | Purpose |
+| --- | --- |
+| `labvision/ean13.py` | Check digit, module encode/decode, rendering |
+| `labvision/registry.py` | Samples, hash-to-code, lookup table, label PNGs |
+| `labvision/reader.py` | Localiser, both decoders, code-to-sample resolution |
+| `tests/` | 99 tests, plus 17 doctests |
+| `barcodes/lookup_table.json` | The committed lookup table |
+
+## Usage
+
+```bash
+# requirements.txt adds PyPI as an extra index, so this works without touching
+# your global pip.conf and without a valid CodeArtifact token
+pip install -r requirements.txt
+
+# Generate the 100 labels and the lookup table (labels are gitignored)
+python -m labvision.registry barcodes
+
+# Read a label back and resolve it
+python -m labvision.reader barcodes/SMP-0001_2007753693259.png
+
+# Anything OpenCV can open, several files at once, as JSON
+python -m labvision.reader photo.jpg --table barcodes/lookup_table.json --json
+
+pytest tests
+pytest --doctest-modules labvision
+```
+
+`python -m labvision.registry --help` covers `--count`, `--seed`, `--module-px`
+and `--no-images`.
+
+### From Python
+
+```python
+from pathlib import Path
+
+import cv2
+
+from labvision import reader, registry
+
+table = registry.load_table(Path("barcodes/lookup_table.json"))
+for detection, record in reader.resolve(
+    reader.decode_image(cv2.imread("frame.png")), table
+):
+    print(detection.code, record["material"], detection.corners)
+```
+
+## Sample catalogue
+
+The catalogue is the **full cross product** of 20 compounds and 5 flask sizes —
+every compound in every size, 20 x 5 = 100 barcodes. Material varies slowest, so
+`SMP-0001..0005` are Limonene at 10, 20, 30, 50 and 100 ml.
+
+| Axis | Values |
+| --- | --- |
+| Compounds | 20 flavour & fragrance raw materials, real CAS numbers |
+| Flask sizes | 10, 20, 30, 50, 100 ml |
+
+Only the lot number is random, under `DEFAULT_SEED`.
+
+### Why a cross product and not two cycling lists
+
+The earlier version cycled 20 materials against 5 vessel classes in step. Since
+5 divides 20, that locked each compound to exactly one vessel size — Limonene
+was always the 50 ml tube — covering just 20 of the 100 possible pairs.
+
+That is fine for exercising the barcode path and wrong for training data: a
+vision model could learn *flask size implies compound* and never read the
+barcode at all. `test_compound_is_not_correlated_with_flask_size` guards it.
+
+### A note on the sizes
+
+10, 20, 50 and 100 ml are standard volumetric-flask capacities (ISO 1042). 30 ml
+is **not** in that series — its neighbour there is 25 ml — but it is a common
+amber storage-bottle size for aroma chemicals, which is the closer analogue for
+a raw-material inventory. Change one entry in `FLASK_VOLUMES_ML` and regenerate
+if you want strict ISO sizes.
+
+## Not done yet
+
+The label is currently a standalone PNG. Wiring it onto a vessel in the MuJoCo
+scene as a textured geom, and carrying the label corners as pose-model
+keypoints so the quad comes from the network rather than the localiser, is the
+next step and is not part of this work.

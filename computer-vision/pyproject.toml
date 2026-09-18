@@ -1,0 +1,21 @@
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "UP", "B", "SIM", "D"]
+
+# D400/D415 require the summary line to end in a period. The house style asks
+# for the opposite ("one sentence, imperative mood, no period"), so they are off.
+# D104 is off because labvision/__init__.py is deliberately empty.
+ignore = ["D400", "D415", "D104"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+# Test names are the documentation; a docstring is added only when a test needs
+# to explain why it exists rather than what it does.
+"tests/*" = ["D103"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

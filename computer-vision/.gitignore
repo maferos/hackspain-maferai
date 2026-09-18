@@ -1,0 +1,15 @@
+# Label images are deterministic build output, not source. The lookup table they
+# belong to IS committed; regenerate the images with:
+#
+#   python -m labvision.registry barcodes
+#
+# They reproduce byte-identically, so there is nothing to lose by not storing
+# 100 binaries that would churn on every change to the renderer.
+barcodes/*.png
+
+# macOS Finder metadata
+.DS_Store
+
+# Tool caches (pytest and ruff also self-ignore, this is belt and braces)
+.pytest_cache/
+.ruff_cache/

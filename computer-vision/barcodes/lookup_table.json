@@ -1,0 +1,1018 @@
+{
+  "version": 1,
+  "symbology": "EAN-13",
+  "id_scheme": "sha256(sample.payload()) mod 10^9, prefixed '200', EAN-13 check digit appended",
+  "grid": {
+    "materials": 20,
+    "flask_volumes_ml": [
+      10.0,
+      20.0,
+      30.0,
+      50.0,
+      100.0
+    ]
+  },
+  "count": 100,
+  "entries": {
+    "2007753693259": {
+      "sha256": "5d43d253bfec2d4e4640c1971d487756c99cc8f7226919c17c87e058ba66fe6d",
+      "salt": 0,
+      "sample_id": "SMP-0001",
+      "material": "Limonene",
+      "cas": "5989-27-5",
+      "flask_ml": 10.0,
+      "lot": "LOT-50378",
+      "vessel_class": "flask_10ml"
+    },
+    "2004055273073": {
+      "sha256": "3d109047688e5dae109090f45a13a5cb9719228f9e7216649a87566c2550a90b",
+      "salt": 0,
+      "sample_id": "SMP-0002",
+      "material": "Limonene",
+      "cas": "5989-27-5",
+      "flask_ml": 20.0,
+      "lot": "LOT-30196",
+      "vessel_class": "flask_20ml"
+    },
+    "2004528119419": {
+      "sha256": "185cd596449f9475e21bc77b46ff570aa519d223fa4751d6855bbfe1c45218a5",
+      "salt": 0,
+      "sample_id": "SMP-0003",
+      "material": "Limonene",
+      "cas": "5989-27-5",
+      "flask_ml": 30.0,
+      "lot": "LOT-90982",
+      "vessel_class": "flask_30ml"
+    },
+    "2004240545602": {
+      "sha256": "2d472bd290b35d150a140b624cf073abdf54ce882558f668a8310f879f3f7b20",
+      "salt": 0,
+      "sample_id": "SMP-0004",
+      "material": "Limonene",
+      "cas": "5989-27-5",
+      "flask_ml": 50.0,
+      "lot": "LOT-16612",
+      "vessel_class": "flask_50ml"
+    },
+    "2007684105326": {
+      "sha256": "625254fc104b69b88d1f055755fc04145991d7d922dccbdec8ac01d5002cbba4",
+      "salt": 0,
+      "sample_id": "SMP-0005",
+      "material": "Limonene",
+      "cas": "5989-27-5",
+      "flask_ml": 100.0,
+      "lot": "LOT-89516",
+      "vessel_class": "flask_100ml"
+    },
+    "2006459682376": {
+      "sha256": "265e1c0e8366d522375de4f28d22afe5d38bbe9a78bdc0a8e210918447de436d",
+      "salt": 0,
+      "sample_id": "SMP-0006",
+      "material": "Linalool",
+      "cas": "78-70-6",
+      "flask_ml": 10.0,
+      "lot": "LOT-66519",
+      "vessel_class": "flask_10ml"
+    },
+    "2009903837490": {
+      "sha256": "51d1f5b0abbfbc6421f8592373fbb51d272ac7fe82b7b9d55fbd3bc3f2a2ac85",
+      "salt": 0,
+      "sample_id": "SMP-0007",
+      "material": "Linalool",
+      "cas": "78-70-6",
+      "flask_ml": 20.0,
+      "lot": "LOT-56147",
+      "vessel_class": "flask_20ml"
+    },
+    "2004560515309": {
+      "sha256": "e12b8ec0c36422625bbe59cbf4c81e49a257234528960e92f9ea153b8417154a",
+      "salt": 0,
+      "sample_id": "SMP-0008",
+      "material": "Linalool",
+      "cas": "78-70-6",
+      "flask_ml": 30.0,
+      "lot": "LOT-92359",
+      "vessel_class": "flask_30ml"
+    },
+    "2007576296095": {
+      "sha256": "44fb55afe6b4f774cf8c4f92989747363b2233e0b30b0f3c9e8efc69cce65ea9",
+      "salt": 0,
+      "sample_id": "SMP-0009",
+      "material": "Linalool",
+      "cas": "78-70-6",
+      "flask_ml": 50.0,
+      "lot": "LOT-52639",
+      "vessel_class": "flask_50ml"
+    },
+    "2005582262141": {
+      "sha256": "56f8297cbe32f353b99fd63b3d3be64ab8d38367db60c4e79de5b3cd9586fb26",
+      "salt": 0,
+      "sample_id": "SMP-0010",
+      "material": "Linalool",
+      "cas": "78-70-6",
+      "flask_ml": 100.0,
+      "lot": "LOT-96411",
+      "vessel_class": "flask_100ml"
+    },
+    "2005572298075": {
+      "sha256": "0ec537f9bdc810900ec545d33ff23da8e2ac5a64e49248982c29bb242b5edaef",
+      "salt": 0,
+      "sample_id": "SMP-0011",
+      "material": "Geraniol",
+      "cas": "106-24-1",
+      "flask_ml": 10.0,
+      "lot": "LOT-30543",
+      "vessel_class": "flask_10ml"
+    },
+    "2002393720204": {
+      "sha256": "e8d349a1ead67de83ebabcc7de85795953c6e46f011e31f7b9ecfd924293e0f4",
+      "salt": 0,
+      "sample_id": "SMP-0012",
+      "material": "Geraniol",
+      "cas": "106-24-1",
+      "flask_ml": 20.0,
+      "lot": "LOT-56938",
+      "vessel_class": "flask_20ml"
+    },
+    "2006489258145": {
+      "sha256": "3bd19e9209fff169275c25d580a01012a2d7623b43c2dfbe19981753c06b9c76",
+      "salt": 0,
+      "sample_id": "SMP-0013",
+      "material": "Geraniol",
+      "cas": "106-24-1",
+      "flask_ml": 30.0,
+      "lot": "LOT-24360",
+      "vessel_class": "flask_30ml"
+    },
+    "2005074396453": {
+      "sha256": "65643e84e657fc4f218ca5efa8c371e7f84c458dddd5d99432e91c87b0424e1d",
+      "salt": 0,
+      "sample_id": "SMP-0014",
+      "material": "Geraniol",
+      "cas": "106-24-1",
+      "flask_ml": 50.0,
+      "lot": "LOT-81936",
+      "vessel_class": "flask_50ml"
+    },
+    "2005637980242": {
+      "sha256": "d6ae6da44627e82332c2909fc48a5e5d35e3cfa56503f3b1ba7e4a719c37d208",
+      "salt": 0,
+      "sample_id": "SMP-0015",
+      "material": "Geraniol",
+      "cas": "106-24-1",
+      "flask_ml": 100.0,
+      "lot": "LOT-87308",
+      "vessel_class": "flask_100ml"
+    },
+    "2003274253866": {
+      "sha256": "ec7aedc90d2174d0e72663fd1779c247da82e9b51c705a27bb7a1369c400b36a",
+      "salt": 0,
+      "sample_id": "SMP-0016",
+      "material": "Citral",
+      "cas": "5392-40-5",
+      "flask_ml": 10.0,
+      "lot": "LOT-58428",
+      "vessel_class": "flask_10ml"
+    },
+    "2008377299575": {
+      "sha256": "ab9204681346a592f9d627d85d057e0bad4271ab0178813ec6f8c05e0053aea5",
+      "salt": 0,
+      "sample_id": "SMP-0017",
+      "material": "Citral",
+      "cas": "5392-40-5",
+      "flask_ml": 20.0,
+      "lot": "LOT-26360",
+      "vessel_class": "flask_20ml"
+    },
+    "2005980526562": {
+      "sha256": "ec5ca968b103702c83b239176b7f8e8fec9c24d9faf9c6d0f1fdded76965b530",
+      "salt": 0,
+      "sample_id": "SMP-0018",
+      "material": "Citral",
+      "cas": "5392-40-5",
+      "flask_ml": 30.0,
+      "lot": "LOT-22824",
+      "vessel_class": "flask_30ml"
+    },
+    "2000313724479": {
+      "sha256": "3dff316ec85231bb72e858ada5660f6b8292ea4f1c51ffc78ce45f55a97c609f",
+      "salt": 0,
+      "sample_id": "SMP-0019",
+      "material": "Citral",
+      "cas": "5392-40-5",
+      "flask_ml": 50.0,
+      "lot": "LOT-38534",
+      "vessel_class": "flask_50ml"
+    },
+    "2000156198659": {
+      "sha256": "de7152799464140f3bb4cf94fe4f3dd764959e9cce55a3d65426b6314ec84f19",
+      "salt": 0,
+      "sample_id": "SMP-0020",
+      "material": "Citral",
+      "cas": "5392-40-5",
+      "flask_ml": 100.0,
+      "lot": "LOT-34947",
+      "vessel_class": "flask_100ml"
+    },
+    "2003243372840": {
+      "sha256": "081477cff07bd734ebcdf26237d817537686bd51bdbef469b5dccd47dd676e84",
+      "salt": 0,
+      "sample_id": "SMP-0021",
+      "material": "Eugenol",
+      "cas": "97-53-0",
+      "flask_ml": 10.0,
+      "lot": "LOT-16095",
+      "vessel_class": "flask_10ml"
+    },
+    "2006242380922": {
+      "sha256": "aa4b11f280042ecd145d58476b1c818ca63de9251e14901487c0c451c727220c",
+      "salt": 0,
+      "sample_id": "SMP-0022",
+      "material": "Eugenol",
+      "cas": "97-53-0",
+      "flask_ml": 20.0,
+      "lot": "LOT-54083",
+      "vessel_class": "flask_20ml"
+    },
+    "2000882999209": {
+      "sha256": "46de6b73e1eb71bf59899dc3d0764fae7945ac31f334bc771976eda14c871590",
+      "salt": 0,
+      "sample_id": "SMP-0023",
+      "material": "Eugenol",
+      "cas": "97-53-0",
+      "flask_ml": 30.0,
+      "lot": "LOT-33883",
+      "vessel_class": "flask_30ml"
+    },
+    "2004250816990": {
+      "sha256": "c5949220cdeb118c8df7762163d5e79313f91870f2e0527e1e4b4736b81df563",
+      "salt": 0,
+      "sample_id": "SMP-0024",
+      "material": "Eugenol",
+      "cas": "97-53-0",
+      "flask_ml": 50.0,
+      "lot": "LOT-97394",
+      "vessel_class": "flask_50ml"
+    },
+    "2006207714052": {
+      "sha256": "d185fd5106842cebbef7f06c0fd35399aea2b60fff5f51b6292fbc35684e744d",
+      "salt": 0,
+      "sample_id": "SMP-0025",
+      "material": "Eugenol",
+      "cas": "97-53-0",
+      "flask_ml": 100.0,
+      "lot": "LOT-89042",
+      "vessel_class": "flask_100ml"
+    },
+    "2005876522531": {
+      "sha256": "cc9f1fd8771155e2e1519d0444da1b31bbb68430e5b3c88d5ae144febec9ae9d",
+      "salt": 0,
+      "sample_id": "SMP-0026",
+      "material": "Vanillin",
+      "cas": "121-33-5",
+      "flask_ml": 10.0,
+      "lot": "LOT-47941",
+      "vessel_class": "flask_10ml"
+    },
+    "2006844779049": {
+      "sha256": "ad1f94359b08ab3d1696399559263b5f3c6b35e7f86ec06be8ef5b037a89a5d0",
+      "salt": 0,
+      "sample_id": "SMP-0027",
+      "material": "Vanillin",
+      "cas": "121-33-5",
+      "flask_ml": 20.0,
+      "lot": "LOT-40843",
+      "vessel_class": "flask_20ml"
+    },
+    "2004342277081": {
+      "sha256": "a02519c75ada69860620b412dd2ba372e8aaa52896637784aa1a62d4abdd8dfc",
+      "salt": 0,
+      "sample_id": "SMP-0028",
+      "material": "Vanillin",
+      "cas": "121-33-5",
+      "flask_ml": 30.0,
+      "lot": "LOT-89440",
+      "vessel_class": "flask_30ml"
+    },
+    "2006336509949": {
+      "sha256": "73adfa4ed899ff3d21e36aba0cdd5e2d74da49b6b38c6a157fa429bbc1f69732",
+      "salt": 0,
+      "sample_id": "SMP-0029",
+      "material": "Vanillin",
+      "cas": "121-33-5",
+      "flask_ml": 50.0,
+      "lot": "LOT-92325",
+      "vessel_class": "flask_50ml"
+    },
+    "2002984193127": {
+      "sha256": "e6517ad77843169304c4758f059c6a92192c703626a734ce015c75cf0c358a70",
+      "salt": 0,
+      "sample_id": "SMP-0030",
+      "material": "Vanillin",
+      "cas": "121-33-5",
+      "flask_ml": 100.0,
+      "lot": "LOT-75195",
+      "vessel_class": "flask_100ml"
+    },
+    "2003263523024": {
+      "sha256": "b9eeec9922d123c3665593f52263dba8710be9696a7a23dfad27f00a6cfb91ae",
+      "salt": 0,
+      "sample_id": "SMP-0031",
+      "material": "Benzaldehyde",
+      "cas": "100-52-7",
+      "flask_ml": 10.0,
+      "lot": "LOT-99825",
+      "vessel_class": "flask_10ml"
+    },
+    "2007084277333": {
+      "sha256": "fc27a02f1351ef5e55ff3a38219915444ca841f6d3e4d3fc86590397398777d5",
+      "salt": 0,
+      "sample_id": "SMP-0032",
+      "material": "Benzaldehyde",
+      "cas": "100-52-7",
+      "flask_ml": 20.0,
+      "lot": "LOT-46472",
+      "vessel_class": "flask_20ml"
+    },
+    "2000106968431": {
+      "sha256": "279307db6b82dd9424391192f7fcec0aa6ea57fd7b2bfe74dd4157f5bd951c8b",
+      "salt": 0,
+      "sample_id": "SMP-0033",
+      "material": "Benzaldehyde",
+      "cas": "100-52-7",
+      "flask_ml": 30.0,
+      "lot": "LOT-82880",
+      "vessel_class": "flask_30ml"
+    },
+    "2008272223620": {
+      "sha256": "5a24d6339306614b541c95b9a245afa26c23b624880dd4be561e9eb284c8295a",
+      "salt": 0,
+      "sample_id": "SMP-0034",
+      "material": "Benzaldehyde",
+      "cas": "100-52-7",
+      "flask_ml": 50.0,
+      "lot": "LOT-39411",
+      "vessel_class": "flask_50ml"
+    },
+    "2008612512308": {
+      "sha256": "02bdcf4122977c5d9c8251443940384b85e53ce2265ad34ca7db9a4c5b396c9e",
+      "salt": 0,
+      "sample_id": "SMP-0035",
+      "material": "Benzaldehyde",
+      "cas": "100-52-7",
+      "flask_ml": 100.0,
+      "lot": "LOT-97500",
+      "vessel_class": "flask_100ml"
+    },
+    "2009982877820": {
+      "sha256": "37b9f289584fb1591727e16bc38aa910956e89284cae9f616a85295620f8a9a6",
+      "salt": 0,
+      "sample_id": "SMP-0036",
+      "material": "Menthol",
+      "cas": "2216-51-5",
+      "flask_ml": 10.0,
+      "lot": "LOT-81596",
+      "vessel_class": "flask_10ml"
+    },
+    "2003850750727": {
+      "sha256": "75ab717d1fc5740b028360b042a96201c3adbb4f56a11abcb3bba97c19ec8180",
+      "salt": 0,
+      "sample_id": "SMP-0037",
+      "material": "Menthol",
+      "cas": "2216-51-5",
+      "flask_ml": 20.0,
+      "lot": "LOT-74821",
+      "vessel_class": "flask_20ml"
+    },
+    "2006214308176": {
+      "sha256": "15b65fe0ee10bc5f901aceae08a89497430eee4b8d2b3d5d2ee15e3a442a8c21",
+      "salt": 0,
+      "sample_id": "SMP-0038",
+      "material": "Menthol",
+      "cas": "2216-51-5",
+      "flask_ml": 30.0,
+      "lot": "LOT-76373",
+      "vessel_class": "flask_30ml"
+    },
+    "2008449686302": {
+      "sha256": "7e9c0dfbc117951480ad97dd7330cd2513097faf671102abb90d2b36f18fdeb6",
+      "salt": 0,
+      "sample_id": "SMP-0039",
+      "material": "Menthol",
+      "cas": "2216-51-5",
+      "flask_ml": 50.0,
+      "lot": "LOT-18499",
+      "vessel_class": "flask_50ml"
+    },
+    "2001820758964": {
+      "sha256": "215023bb60ad1464977394853e7cdc247edaf1f00c39a61d329acd4fcb9547f8",
+      "salt": 0,
+      "sample_id": "SMP-0040",
+      "material": "Menthol",
+      "cas": "2216-51-5",
+      "flask_ml": 100.0,
+      "lot": "LOT-82836",
+      "vessel_class": "flask_100ml"
+    },
+    "2006245689749": {
+      "sha256": "6bc9959f895f595f331fdccfc01e098f845106fb7027b09cfc704f174cc1908e",
+      "salt": 0,
+      "sample_id": "SMP-0041",
+      "material": "Citronellol",
+      "cas": "106-22-9",
+      "flask_ml": 10.0,
+      "lot": "LOT-30535",
+      "vessel_class": "flask_10ml"
+    },
+    "2007190606638": {
+      "sha256": "30c2eda951c0eb167695f5bad344e60f913a47c23989c0ca79a77c19845500b7",
+      "salt": 0,
+      "sample_id": "SMP-0042",
+      "material": "Citronellol",
+      "cas": "106-22-9",
+      "flask_ml": 20.0,
+      "lot": "LOT-36364",
+      "vessel_class": "flask_20ml"
+    },
+    "2004467464823": {
+      "sha256": "a631097543cf64de7f48c2b7948f142d7c25282f49aadc7dfb2dae81a231c172",
+      "salt": 0,
+      "sample_id": "SMP-0043",
+      "material": "Citronellol",
+      "cas": "106-22-9",
+      "flask_ml": 30.0,
+      "lot": "LOT-26920",
+      "vessel_class": "flask_30ml"
+    },
+    "2006422962757": {
+      "sha256": "ec0b8e18dd0e3d1efbb2230319b98bc5ef0a565153b1d44fc141208c77e1e7d3",
+      "salt": 0,
+      "sample_id": "SMP-0044",
+      "material": "Citronellol",
+      "cas": "106-22-9",
+      "flask_ml": 50.0,
+      "lot": "LOT-42080",
+      "vessel_class": "flask_50ml"
+    },
+    "2009518471997": {
+      "sha256": "c92e61512fc2411ab31677c8917b0dcefcc4690ffb7dec6a613b02ac9dc8511f",
+      "salt": 0,
+      "sample_id": "SMP-0045",
+      "material": "Citronellol",
+      "cas": "106-22-9",
+      "flask_ml": 100.0,
+      "lot": "LOT-94662",
+      "vessel_class": "flask_100ml"
+    },
+    "2005657344567": {
+      "sha256": "4719ee10c85bd7f4ef730609a56c4c29e33c31fd62d2f529ce9a4031e858d238",
+      "salt": 0,
+      "sample_id": "SMP-0046",
+      "material": "Nerol",
+      "cas": "106-25-2",
+      "flask_ml": 10.0,
+      "lot": "LOT-88347",
+      "vessel_class": "flask_10ml"
+    },
+    "2005860822722": {
+      "sha256": "f79da540e07d1bde4fec025fca81a4eb640150910be9ec8f077e3ac0318b69e0",
+      "salt": 0,
+      "sample_id": "SMP-0047",
+      "material": "Nerol",
+      "cas": "106-25-2",
+      "flask_ml": 20.0,
+      "lot": "LOT-30810",
+      "vessel_class": "flask_20ml"
+    },
+    "2005402884751": {
+      "sha256": "b2bab2ca8dd6cbf060a13ef95415870750c9fdc75fe26e63c0c4cbf8327eb5db",
+      "salt": 0,
+      "sample_id": "SMP-0048",
+      "material": "Nerol",
+      "cas": "106-25-2",
+      "flask_ml": 30.0,
+      "lot": "LOT-25050",
+      "vessel_class": "flask_30ml"
+    },
+    "2002082513360": {
+      "sha256": "8393b04358e52f4d1745b34d03cf1d11aa712004c36f5bdfc31b9c422410c3c8",
+      "salt": 0,
+      "sample_id": "SMP-0049",
+      "material": "Nerol",
+      "cas": "106-25-2",
+      "flask_ml": 50.0,
+      "lot": "LOT-59541",
+      "vessel_class": "flask_50ml"
+    },
+    "2007174078055": {
+      "sha256": "40a51a66f6d9e6fc4d175346cb70582c4590e7ce7de145e63dc646bd5c803c3d",
+      "salt": 0,
+      "sample_id": "SMP-0050",
+      "material": "Nerol",
+      "cas": "106-25-2",
+      "flask_ml": 100.0,
+      "lot": "LOT-44348",
+      "vessel_class": "flask_100ml"
+    },
+    "2007843605773": {
+      "sha256": "67af83a1f1e08d1f5ccb79cf8d7ef52d701a578cd31fd06421c9742046eae681",
+      "salt": 0,
+      "sample_id": "SMP-0051",
+      "material": "Camphor",
+      "cas": "76-22-2",
+      "flask_ml": 10.0,
+      "lot": "LOT-64911",
+      "vessel_class": "flask_10ml"
+    },
+    "2008248449078": {
+      "sha256": "d2a250ee08836e089c9c1cde9ce46e02044abd44b525e10edd2436fbbd0dfe6b",
+      "salt": 0,
+      "sample_id": "SMP-0052",
+      "material": "Camphor",
+      "cas": "76-22-2",
+      "flask_ml": 20.0,
+      "lot": "LOT-44275",
+      "vessel_class": "flask_20ml"
+    },
+    "2001056356620": {
+      "sha256": "cd1bdd50039d9a0b2bca43bbf12b2d5ba9cb1394426d8660ce4e05df35f1074e",
+      "salt": 0,
+      "sample_id": "SMP-0053",
+      "material": "Camphor",
+      "cas": "76-22-2",
+      "flask_ml": 30.0,
+      "lot": "LOT-17891",
+      "vessel_class": "flask_30ml"
+    },
+    "2007390833698": {
+      "sha256": "91bc7f74c58eb432709a4c3d7bf5634dbfa2256386d8947771d004d132843c69",
+      "salt": 0,
+      "sample_id": "SMP-0054",
+      "material": "Camphor",
+      "cas": "76-22-2",
+      "flask_ml": 50.0,
+      "lot": "LOT-45979",
+      "vessel_class": "flask_50ml"
+    },
+    "2008310091570": {
+      "sha256": "cb6e02aca73629fb71c9a531f40fba99ded933b9da37788820c769f77514e585",
+      "salt": 0,
+      "sample_id": "SMP-0055",
+      "material": "Camphor",
+      "cas": "76-22-2",
+      "flask_ml": 100.0,
+      "lot": "LOT-77056",
+      "vessel_class": "flask_100ml"
+    },
+    "2002739629086": {
+      "sha256": "faf6237a60a3aef9e1f5d7236ab45576c8bc9bb0c7e3541aa75afe8f7999919c",
+      "salt": 0,
+      "sample_id": "SMP-0056",
+      "material": "Anethole",
+      "cas": "104-46-1",
+      "flask_ml": 10.0,
+      "lot": "LOT-81716",
+      "vessel_class": "flask_10ml"
+    },
+    "2001456811606": {
+      "sha256": "562bde3dbdc169953831b8b81d0e07990fcbe606ffc564738c024acab55ec708",
+      "salt": 0,
+      "sample_id": "SMP-0057",
+      "material": "Anethole",
+      "cas": "104-46-1",
+      "flask_ml": 20.0,
+      "lot": "LOT-41688",
+      "vessel_class": "flask_20ml"
+    },
+    "2002722760864": {
+      "sha256": "a9d59085a240e1dc56a4641fa27498beb83814161b6e6317c62ab2c0d5ac5676",
+      "salt": 0,
+      "sample_id": "SMP-0058",
+      "material": "Anethole",
+      "cas": "104-46-1",
+      "flask_ml": 30.0,
+      "lot": "LOT-31562",
+      "vessel_class": "flask_30ml"
+    },
+    "2008296197884": {
+      "sha256": "f350fa9b630856d0d8d38b9af9727eb49bdf1fad75901fde28c488557cc9c44c",
+      "salt": 0,
+      "sample_id": "SMP-0059",
+      "material": "Anethole",
+      "cas": "104-46-1",
+      "flask_ml": 50.0,
+      "lot": "LOT-44279",
+      "vessel_class": "flask_50ml"
+    },
+    "2003220989108": {
+      "sha256": "035473fda42c60f3faef2411221d1066b142118ce4e127493dd005e312d7eade",
+      "salt": 0,
+      "sample_id": "SMP-0060",
+      "material": "Anethole",
+      "cas": "104-46-1",
+      "flask_ml": 100.0,
+      "lot": "LOT-14934",
+      "vessel_class": "flask_100ml"
+    },
+    "2008481689729": {
+      "sha256": "587e22a34abe5857883174cb84931222c97f3472276006e650f013feea71fa0c",
+      "salt": 0,
+      "sample_id": "SMP-0061",
+      "material": "Cinnamaldehyde",
+      "cas": "104-55-2",
+      "flask_ml": 10.0,
+      "lot": "LOT-83188",
+      "vessel_class": "flask_10ml"
+    },
+    "2000624381699": {
+      "sha256": "6d0d73c7ffaac3f17c5421557aaf6c2e549acc764ac7fd06904470a11a7acd19",
+      "salt": 0,
+      "sample_id": "SMP-0062",
+      "material": "Cinnamaldehyde",
+      "cas": "104-55-2",
+      "flask_ml": 20.0,
+      "lot": "LOT-91827",
+      "vessel_class": "flask_20ml"
+    },
+    "2008239733186": {
+      "sha256": "f53a2c94968722de95543b75e727861e6a7cbe7f70edefb65e5e2063b521fbc6",
+      "salt": 0,
+      "sample_id": "SMP-0063",
+      "material": "Cinnamaldehyde",
+      "cas": "104-55-2",
+      "flask_ml": 30.0,
+      "lot": "LOT-80480",
+      "vessel_class": "flask_30ml"
+    },
+    "2000805180974": {
+      "sha256": "f3f8729c523186aa9e7b9fe8138ae939d6c0267ca52ced0c9e9dda8d13902dd1",
+      "salt": 0,
+      "sample_id": "SMP-0064",
+      "material": "Cinnamaldehyde",
+      "cas": "104-55-2",
+      "flask_ml": 50.0,
+      "lot": "LOT-31985",
+      "vessel_class": "flask_50ml"
+    },
+    "2007272414908": {
+      "sha256": "c37ba9174dcec93ef21cfa45cde59731b9c868118749561071324d1733721d12",
+      "salt": 0,
+      "sample_id": "SMP-0065",
+      "material": "Cinnamaldehyde",
+      "cas": "104-55-2",
+      "flask_ml": 100.0,
+      "lot": "LOT-12147",
+      "vessel_class": "flask_100ml"
+    },
+    "2003600488085": {
+      "sha256": "842316cb6b97382967e0505470c5908683823ecd4037393910bed23225a79aa8",
+      "salt": 0,
+      "sample_id": "SMP-0066",
+      "material": "Thymol",
+      "cas": "89-83-8",
+      "flask_ml": 10.0,
+      "lot": "LOT-28000",
+      "vessel_class": "flask_10ml"
+    },
+    "2007415491117": {
+      "sha256": "8307038ad2a24be4e51a536ea93848a53dd7871faafe270815a04d0fb6932a37",
+      "salt": 0,
+      "sample_id": "SMP-0067",
+      "material": "Thymol",
+      "cas": "89-83-8",
+      "flask_ml": 20.0,
+      "lot": "LOT-17687",
+      "vessel_class": "flask_20ml"
+    },
+    "2002610536045": {
+      "sha256": "54740fea93325dba6c705d00901bfb9f20997b6cb949ade7a54280c9bad176a4",
+      "salt": 0,
+      "sample_id": "SMP-0068",
+      "material": "Thymol",
+      "cas": "89-83-8",
+      "flask_ml": 30.0,
+      "lot": "LOT-13624",
+      "vessel_class": "flask_30ml"
+    },
+    "2000810228425": {
+      "sha256": "c43cfd56c55496750a7dfe2d140ad43e5660b093a729755adb8f90cf7d0ca97a",
+      "salt": 0,
+      "sample_id": "SMP-0069",
+      "material": "Thymol",
+      "cas": "89-83-8",
+      "flask_ml": 50.0,
+      "lot": "LOT-31608",
+      "vessel_class": "flask_50ml"
+    },
+    "2004723770255": {
+      "sha256": "d9db75fc0ff65c257dfd1252e5985e254d46625f7fe6619cbb76a29f763ed8c1",
+      "salt": 0,
+      "sample_id": "SMP-0070",
+      "material": "Thymol",
+      "cas": "89-83-8",
+      "flask_ml": 100.0,
+      "lot": "LOT-76352",
+      "vessel_class": "flask_100ml"
+    },
+    "2000382617757": {
+      "sha256": "753cc0470348f40d3192bd50f42d00fb37ee338e5b376f23751b751e0113fa0f",
+      "salt": 0,
+      "sample_id": "SMP-0071",
+      "material": "Carvone",
+      "cas": "99-49-0",
+      "flask_ml": 10.0,
+      "lot": "LOT-17609",
+      "vessel_class": "flask_10ml"
+    },
+    "2003583613689": {
+      "sha256": "5ab4c8fbba4d69ba554e935a5dfff3bdb96a81be4c5fd030e602f99042cc0718",
+      "salt": 0,
+      "sample_id": "SMP-0072",
+      "material": "Carvone",
+      "cas": "99-49-0",
+      "flask_ml": 20.0,
+      "lot": "LOT-14019",
+      "vessel_class": "flask_20ml"
+    },
+    "2005451641916": {
+      "sha256": "b32bdf1a76b84032bc40e5f0db6a5910404dbb90e037a39aabe6d2f4c793739f",
+      "salt": 0,
+      "sample_id": "SMP-0073",
+      "material": "Carvone",
+      "cas": "99-49-0",
+      "flask_ml": 30.0,
+      "lot": "LOT-64509",
+      "vessel_class": "flask_30ml"
+    },
+    "2003710452938": {
+      "sha256": "15b1c94391734576bc5861f2a281cdb6e4b837a485015fd87d2ea1f6206381ad",
+      "salt": 0,
+      "sample_id": "SMP-0074",
+      "material": "Carvone",
+      "cas": "99-49-0",
+      "flask_ml": 50.0,
+      "lot": "LOT-24844",
+      "vessel_class": "flask_50ml"
+    },
+    "2000100918876": {
+      "sha256": "4df15db3b2dcff24cab4c1012c3de1a462aa03d314bc4f3ac71e849f26ce6f6f",
+      "salt": 0,
+      "sample_id": "SMP-0075",
+      "material": "Carvone",
+      "cas": "99-49-0",
+      "flask_ml": 100.0,
+      "lot": "LOT-91355",
+      "vessel_class": "flask_100ml"
+    },
+    "2003693828751": {
+      "sha256": "4f65da0f21197b5ee7329c8bf811252d4080afc5a0067ddefd034861eb2a01db",
+      "salt": 0,
+      "sample_id": "SMP-0076",
+      "material": "alpha-Pinene",
+      "cas": "80-56-8",
+      "flask_ml": 10.0,
+      "lot": "LOT-51888",
+      "vessel_class": "flask_10ml"
+    },
+    "2008312391326": {
+      "sha256": "97bb643245fb02e4ca7b66bfbcdd55311935228c360830c3b9af3cb0d50223dc",
+      "salt": 0,
+      "sample_id": "SMP-0077",
+      "material": "alpha-Pinene",
+      "cas": "80-56-8",
+      "flask_ml": 20.0,
+      "lot": "LOT-91951",
+      "vessel_class": "flask_20ml"
+    },
+    "2008529602819": {
+      "sha256": "23f2be14a0ad4b54a9d234f0e657d8438191a0833e4b502c70e3b0273a1fc019",
+      "salt": 0,
+      "sample_id": "SMP-0078",
+      "material": "alpha-Pinene",
+      "cas": "80-56-8",
+      "flask_ml": 30.0,
+      "lot": "LOT-49099",
+      "vessel_class": "flask_30ml"
+    },
+    "2002779400195": {
+      "sha256": "fcb3fcbb4b5f9a239de8a379bed5fa1de263dfdcf59af41b8df7c144a3b29733",
+      "salt": 0,
+      "sample_id": "SMP-0079",
+      "material": "alpha-Pinene",
+      "cas": "80-56-8",
+      "flask_ml": 50.0,
+      "lot": "LOT-68717",
+      "vessel_class": "flask_50ml"
+    },
+    "2008237034773": {
+      "sha256": "4a70973ba60bd94f79f3b7b8cf9f3131a3df543ce4a229883304d19f229e23b5",
+      "salt": 0,
+      "sample_id": "SMP-0080",
+      "material": "alpha-Pinene",
+      "cas": "80-56-8",
+      "flask_ml": 100.0,
+      "lot": "LOT-42166",
+      "vessel_class": "flask_100ml"
+    },
+    "2009687489953": {
+      "sha256": "3e27bd4d0790c2a7cd7c7d512a58735d7199b9c80424423eef1b56d73315f5c3",
+      "salt": 0,
+      "sample_id": "SMP-0081",
+      "material": "alpha-Terpineol",
+      "cas": "98-55-5",
+      "flask_ml": 10.0,
+      "lot": "LOT-25650",
+      "vessel_class": "flask_10ml"
+    },
+    "2003043053345": {
+      "sha256": "0a788b55ec2dd5f07cd0d287fbbc4c87cbe8a5152fe7fc80d8a399191121bab6",
+      "salt": 0,
+      "sample_id": "SMP-0082",
+      "material": "alpha-Terpineol",
+      "cas": "98-55-5",
+      "flask_ml": 20.0,
+      "lot": "LOT-67073",
+      "vessel_class": "flask_20ml"
+    },
+    "2006819805667": {
+      "sha256": "609cfbb48793824af003d5ddd14c77d3bea92bdc2a7a62a5b58abfdcbb804c96",
+      "salt": 0,
+      "sample_id": "SMP-0083",
+      "material": "alpha-Terpineol",
+      "cas": "98-55-5",
+      "flask_ml": 30.0,
+      "lot": "LOT-51078",
+      "vessel_class": "flask_30ml"
+    },
+    "2009100338011": {
+      "sha256": "d1c056152cbce39f591e761bd43969e928b8598d8eea5d270c356150cfb52d89",
+      "salt": 0,
+      "sample_id": "SMP-0084",
+      "material": "alpha-Terpineol",
+      "cas": "98-55-5",
+      "flask_ml": 50.0,
+      "lot": "LOT-68880",
+      "vessel_class": "flask_50ml"
+    },
+    "2002155998575": {
+      "sha256": "abd5fcaaed64eaa02ddbcd77da0267eaf9eada64d59ef8c139d19a4169a0ecf1",
+      "salt": 0,
+      "sample_id": "SMP-0085",
+      "material": "alpha-Terpineol",
+      "cas": "98-55-5",
+      "flask_ml": 100.0,
+      "lot": "LOT-15185",
+      "vessel_class": "flask_100ml"
+    },
+    "2007437628072": {
+      "sha256": "1bcf3f7313e9097b9d81aa98e68f43d529c21552810c3ac8e3cf4ddb1325df77",
+      "salt": 0,
+      "sample_id": "SMP-0086",
+      "material": "Farnesol",
+      "cas": "4602-84-0",
+      "flask_ml": 10.0,
+      "lot": "LOT-42131",
+      "vessel_class": "flask_10ml"
+    },
+    "2007093904015": {
+      "sha256": "7aeb35d8d491208a281ce4e85c598738cfb1f0790136a3d6e3c668ebd66c8241",
+      "salt": 0,
+      "sample_id": "SMP-0087",
+      "material": "Farnesol",
+      "cas": "4602-84-0",
+      "flask_ml": 20.0,
+      "lot": "LOT-66874",
+      "vessel_class": "flask_20ml"
+    },
+    "2002299948979": {
+      "sha256": "40f978f0357d61fa2276139d6163b1be35285593e6983b655a2430e1f57d4391",
+      "salt": 0,
+      "sample_id": "SMP-0088",
+      "material": "Farnesol",
+      "cas": "4602-84-0",
+      "flask_ml": 30.0,
+      "lot": "LOT-69498",
+      "vessel_class": "flask_30ml"
+    },
+    "2003174965616": {
+      "sha256": "4522dcabc87affa0c298c5e1da221c4979daea03d0b2c0d4d39d0f61f5d84cf1",
+      "salt": 0,
+      "sample_id": "SMP-0089",
+      "material": "Farnesol",
+      "cas": "4602-84-0",
+      "flask_ml": 50.0,
+      "lot": "LOT-63004",
+      "vessel_class": "flask_50ml"
+    },
+    "2004898967238": {
+      "sha256": "b9c16a0115bf2b85bcd956d641de238a03953bd28ef344ec8846e7955fd72d13",
+      "salt": 0,
+      "sample_id": "SMP-0090",
+      "material": "Farnesol",
+      "cas": "4602-84-0",
+      "flask_ml": 100.0,
+      "lot": "LOT-92766",
+      "vessel_class": "flask_100ml"
+    },
+    "2003897990001": {
+      "sha256": "7420872f1a451ef5764c59ead7b2fad7618b8c5865d0bd051ed16e78ea8f4058",
+      "salt": 0,
+      "sample_id": "SMP-0091",
+      "material": "Nerolidol",
+      "cas": "7212-44-4",
+      "flask_ml": 10.0,
+      "lot": "LOT-15044",
+      "vessel_class": "flask_10ml"
+    },
+    "2006034927441": {
+      "sha256": "b548d4572dfbe0fd4c8643ee1ecadaf8bfc894eb7e281592e9e50af2e6f0e588",
+      "salt": 0,
+      "sample_id": "SMP-0092",
+      "material": "Nerolidol",
+      "cas": "7212-44-4",
+      "flask_ml": 20.0,
+      "lot": "LOT-36915",
+      "vessel_class": "flask_20ml"
+    },
+    "2007545870318": {
+      "sha256": "a952620a46238319be560baaad00f5d00fb8650bfcb9c267c38cb1dae0df9197",
+      "salt": 0,
+      "sample_id": "SMP-0093",
+      "material": "Nerolidol",
+      "cas": "7212-44-4",
+      "flask_ml": 30.0,
+      "lot": "LOT-57644",
+      "vessel_class": "flask_30ml"
+    },
+    "2001796986736": {
+      "sha256": "351b253b3f2ca74e3d0b58cc36aacbbc40918bb31d8e30475eaa452196eac1f1",
+      "salt": 0,
+      "sample_id": "SMP-0094",
+      "material": "Nerolidol",
+      "cas": "7212-44-4",
+      "flask_ml": 50.0,
+      "lot": "LOT-37465",
+      "vessel_class": "flask_50ml"
+    },
+    "2005060001446": {
+      "sha256": "656658a0b9fc5f7fd96c3d0fe0866e56f5370c37c570694ad972d9189ff98f10",
+      "salt": 0,
+      "sample_id": "SMP-0095",
+      "material": "Nerolidol",
+      "cas": "7212-44-4",
+      "flask_ml": 100.0,
+      "lot": "LOT-10308",
+      "vessel_class": "flask_100ml"
+    },
+    "2006108637139": {
+      "sha256": "74baf1cf6a3ab15d2f0ee997c903e1c40fb5153c9340826b948e84d5acd3d661",
+      "salt": 0,
+      "sample_id": "SMP-0096",
+      "material": "Benzyl acetate",
+      "cas": "140-11-4",
+      "flask_ml": 10.0,
+      "lot": "LOT-65249",
+      "vessel_class": "flask_10ml"
+    },
+    "2008697493462": {
+      "sha256": "fe6cfa63d96ab53ed2513a9207874636dbc2ac55b38b7ac73b409388eb73b462",
+      "salt": 0,
+      "sample_id": "SMP-0097",
+      "material": "Benzyl acetate",
+      "cas": "140-11-4",
+      "flask_ml": 20.0,
+      "lot": "LOT-57678",
+      "vessel_class": "flask_20ml"
+    },
+    "2000509572235": {
+      "sha256": "f7adb936a051705f006d9610aba1088cd0d128550284e9cc42cfe4763e488fa7",
+      "salt": 0,
+      "sample_id": "SMP-0098",
+      "material": "Benzyl acetate",
+      "cas": "140-11-4",
+      "flask_ml": 30.0,
+      "lot": "LOT-92383",
+      "vessel_class": "flask_30ml"
+    },
+    "2001304272320": {
+      "sha256": "8a3913bbb4268dba712c11ebf07b99aeb9070e6eb143be41c4fec9bc83eb6560",
+      "salt": 0,
+      "sample_id": "SMP-0099",
+      "material": "Benzyl acetate",
+      "cas": "140-11-4",
+      "flask_ml": 50.0,
+      "lot": "LOT-58497",
+      "vessel_class": "flask_50ml"
+    },
+    "2006944532681": {
+      "sha256": "923a8246bde9bcfa881d4a2f9981576ad02b29c22463eadefe2e7a83657dc014",
+      "salt": 0,
+      "sample_id": "SMP-0100",
+      "material": "Benzyl acetate",
+      "cas": "140-11-4",
+      "flask_ml": 100.0,
+      "lot": "LOT-58050",
+      "vessel_class": "flask_100ml"
+    }
+  }
+}
