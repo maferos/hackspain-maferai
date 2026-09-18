@@ -7,6 +7,12 @@ table.
 
 Owners: Nacho, Martí (see `AGENTS.md`).
 
+Two halves. **Identity** --- a printed EAN-13 label per sample, and a reader
+for it. **Placement** --- turning a detector's bounding box into metres on the
+bench, from one camera, using the bench plane in place of a depth sensor. The
+first half is everything up to *Why the encoder is hand-written*; the second
+is *From a box in the image to a point on the bench*.
+
 ## The idea in one line
 
 ```
@@ -150,6 +156,209 @@ directly. `python-barcode` gets there too, via `module_width` in millimetres
 times `dpi`, and lands within a pixel across the symbol — so this is a
 convenience, not a capability the library lacks.
 
+## From a box in the image to a point on the bench
+
+The second half of this package. A detector says *there is a 1 L bottle in
+these pixels*; the robot needs *there is a 1 L bottle at (7.21, 2.34, 0.95)*.
+One camera can do that, and here is exactly what it takes.
+
+### Why one camera is enough
+
+A pixel is not a point, it is a ray: the object could be anywhere along it,
+and that missing degree of freedom is what a second camera or a depth sensor
+normally buys back. It can be bought back for free instead, because a vessel
+standing on the bench has a coordinate we already know --- its base is on the
+bench plane, z = 0.95. Intersect the ray with that plane and all three
+coordinates fall out. With an exact box the recovery is exact; nothing is
+approximated by the geometry itself.
+
+For glassware this is not merely the cheap option, it is the better one.
+Structured-light and stereo depth sensors fail on transparent and specular
+surfaces, and depth for glass is an open research problem. A geometric prior
+sidesteps the sensor's worst case entirely.
+
+### What has to be known --- yes to both sets of parameters
+
+**Intrinsics are required.** Without a focal length in pixels and a principal
+point there is no map from a pixel to a direction at all. For a rendered
+camera they come from one number, the vertical field of view:
+`Intrinsics.from_fov(640, 480, fovy_deg=45)`. For a real lens, add the
+Brown-Conrady distortion coefficients too: a 2 % barrel left uncorrected is
+11 px at the frame edge, which out there is tens of centimetres of bench.
+Distortion is not optional on real optics, and it is exactly zero on a
+rendered frame.
+
+**Extrinsics are required, and position alone is not enough.** The given
+(7, 0, 3) fixes where the rays start; which way they point is three more
+numbers nobody has measured, and they matter more than anything else here: at
+this geometry **one degree of pan moves the answer 44 mm, one degree of tilt
+87 mm** --- larger than every other error in this document combined. So the
+orientation cannot be eyeballed:
+
+| How | Call |
+| --- | --- |
+| Solve it from markers (the real answer) | `Camera.from_correspondences` --- four points on the bench whose (x, y) you measured with a tape, clicked in one frame |
+| Read it out of the simulator | `Camera.from_mujoco(intrinsics, data.cam_xpos[i], data.cam_xmat[i])` |
+| Assume it, knowingly | `Camera.look_at(intrinsics, (7, 0, 3), bench_centre)` --- what `default_camera()` does, and it is a guess |
+
+**Unless you take the shortcut, in which case neither is needed.** If every
+answer is going to land on the same plane, the whole pinhole model collapses
+into one 3x3 homography between pixels and bench coordinates, and it can be
+fitted from four known points without a focal length or a pose ever being
+named:
+
+```python
+homography = homography_from_points(bench_xy, image_uv)   # four points, no calibration
+positions = apply_homography(np.linalg.inv(homography), boxes_bottom_centre)
+```
+
+`test_camera.py` checks this returns the same matrix the full calibration
+builds. The one thing it cannot absorb is lens distortion, which is not a
+projective map --- undistort first. Take this route if the camera is fixed and
+nothing else needs the camera model; take the full model if you also want
+vessel heights, mouths, or a second plane later.
+
+### The room
+
+14 x 5 x 3 m, origin at a floor corner, X along the long wall. Camera at
+(7, 0, 3), bench top at z = 0.95, bench centred at (7, 2.5). That is a 3.23 m
+line of sight at **39 degrees of elevation**, which is a decent mounting ---
+below about 30 degrees the ray meets the plane at a grazing angle and pixel
+error slides a long way along it.
+
+Two numbers in `scene.py` are assumptions, not measurements, and both are one
+line to replace: **where the camera actually points** (see above) and **the
+bench footprint**, which is unknown, so `TABLE_SIZE` is None and the
+"is it even on the table" check is skipped.
+
+One consequence of the 45-degree field of view worth knowing before trusting a
+detection: aimed at the bench centre, **the top of the frame overshoots the
+back wall** (it would land at y = 6.8 m in a 5 m room). Pixels up there are
+looking at the wall, not the bench.
+
+### Which pixel of the box
+
+A box is four numbers and a position is two, so something has to say what
+stands for the object. Three ways, in decreasing order of what they need and
+increasing order of error:
+
+**`fit`** --- invert the forward model. `predict_bbox` computes the exact box
+an upright cylinder of known radius and height would produce, so the position
+is just the one whose predicted box matches the observed one: Gauss-Newton on
+the four edge residuals, started from the base anchor, converging in two or
+three steps and 0.7 ms. It uses all four edges instead of throwing three away,
+and it has **no anchor bias at all**. It also returns a residual, which is the
+only thing in the pipeline that notices a detection labelled as the wrong
+vessel. This is the default whenever the dimensions are known --- and for powders
+they are, since `scene.VESSELS` is keyed by `Sample.vessel_class`, so a
+decoded barcode indexes straight into it. The liquid `flask_*` classes have
+no dimensions recorded anywhere yet, so they fall back to the base anchor
+until someone measures them.
+
+**`base`** --- back-project the **bottom-centre** of the box, which images the
+contact patch and so is already on the plane. Needs no height. It has one bias
+that must be corrected: the lowest pixel of a vessel of radius r is not its
+axis but the point of its base circle nearest the camera, so the raw
+intersection lands short by exactly r. The direction to push it back is not
+"towards the camera along the floor" --- it is the in-plane normal to the
+iso-v line, which falls straight out of the Jacobian. Skip that correction and
+these bottles land **23 to 59 mm** off, which dwarfs the pixel noise.
+
+**`centre`** --- back-project the **centre** of the box against a plane lifted
+to half the vessel height. For when the base is occluded or cropped. Needs the
+height, and keeps a residual bias because the box centre is not the image of
+the mid-height point under perspective.
+
+Whichever is used, the answer returned is the base centre on the bench; the
+mouth, which is where a pipette goes, is that plus the vessel height.
+
+### Measured
+
+Against exact boxes --- `predict_bbox` is the oracle, so ground truth is known
+--- over 25 positions spanning a 1.6 m square of bench, mean error in mm:
+
+| Vessel | `fit` | `centre` | `base` | `base`, correction off |
+| --- | --- | --- | --- | --- |
+| bottle_100ml | 0.00 | 0.7 | 3.2 | 23 |
+| bottle_250ml | 0.00 | 1.2 | 4.4 | 30 |
+| bottle_500ml | 0.00 | 1.9 | 5.6 | 38 |
+| bottle_1000ml | 0.00 | 3.2 | 7.9 | 45 |
+| bottle_1000ml_wide | 0.00 | 2.3 | 5.6 | 51 |
+| bottle_2000ml | 0.00 | 4.1 | 8.5 | 59 |
+
+The residual on `base` is entirely the box's u-centre drifting off the axis for
+off-axis vessels --- feed it the true lowest silhouette pixel instead and the
+error is 0.00 mm, which is what says the radius correction itself is right
+rather than merely helpful.
+
+### The real limit is resolution, not geometry
+
+Since the geometry contributes nothing, all the error is the detector's,
+amplified by how many millimetres of bench a pixel covers. `plane_jacobian`
+gives that exactly, and its worst singular value is what `Placement` reports:
+
+| Frame | Near edge | Bench centre | Far edge |
+| --- | --- | --- | --- |
+| 640 x 480 | 5.1 mm/px | 8.8 mm/px | 13.5 mm/px |
+| 1920 x 1080 | 2.3 mm/px | 3.9 mm/px | 6.0 mm/px |
+
+Which lands as, for a 1 L bottle at 640 x 480 with the `fit` anchor:
+
+| Box noise | Mean error | p95 |
+| --- | --- | --- |
+| 0.5 px | 3 mm | 8 mm |
+| 1 px | 7 mm | 14 mm |
+| 2 px | 13 mm | 27 mm |
+| 3 px | 19 mm | 41 mm |
+
+So at 640 x 480 from 3.2 m, **a pixel is worth about a centimetre** and a
+realistic detector lands a couple of centimetres out --- and past about 5 px of
+noise the box is thinner than its own jitter and inverts. Inserting a pipette
+into a 50 mm mouth wants better than that. The levers, in order of effect:
+render and infer at 1920 x 1080 (2.3x), move the camera closer or narrow the
+lens, and raise the mounting angle. Note that none of them is a change to the
+maths.
+
+### Where this stops being true
+
+The plane has to be real. A vessel in a rack, on a shelf, held by the gripper
+or knocked over is not at z = 0.95, and the error is systematic rather than
+noisy --- 5 cm of unmodelled height at this geometry is about 6 cm of position
+error. If vessels can sit at several known heights, classify the surface and
+switch planes. If the heights are arbitrary, one camera is not enough and this
+approach does not apply.
+
+Three guards are reported rather than assumed away: `clipped` (the box touches
+the frame border, so its edges are the frame's and not the object's),
+`inside_room` / `on_table`, and the `fit` residual. A detection above the
+horizon raises instead --- geometrically, it cannot be standing on the bench.
+
+### Using it
+
+```bash
+# Where is this box, and how much is a pixel worth there?
+python -m labvision.scene --bbox 300 200 340 280 --vessel bottle_1000ml
+
+# The room's error budget, no detection needed
+python -m labvision.scene
+```
+
+```python
+from labvision import scene
+from labvision.camera import Camera, Intrinsics
+
+# Once: solve the pose from four measured markers on the bench
+intrinsics = Intrinsics.from_fov(640, 480, fovy_deg=45.0)
+camera = Camera.from_correspondences(intrinsics, marker_pixels, marker_world_xyz)
+
+# Per detection
+placed = scene.locate(scene.BBox(*box), camera, vessel=scene.VESSELS["bottle_1000ml"])
+placed.position          # base centre, metres, on the bench plane
+placed.mouth             # where the pipette goes
+placed.metres_per_pixel  # what a pixel of detection error costs here
+placed.residual_px       # how well the box matches that vessel standing there
+```
+
 ## Layout
 
 | Path | Purpose |
@@ -157,7 +366,9 @@ convenience, not a capability the library lacks.
 | `labvision/ean13.py` | Check digit, module encode/decode, rendering |
 | `labvision/registry.py` | Samples, hash-to-code, lookup table, label PNGs |
 | `labvision/reader.py` | Localiser, both decoders, code-to-sample resolution |
-| `tests/` | 108 tests, plus 17 doctests |
+| `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
+| `labvision/scene.py` | The room, box anchors, box-to-position |
+| `tests/` | 187 tests, plus 20 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
@@ -176,6 +387,9 @@ python -m labvision.reader barcodes/SMP-0001_2006943906698.png \
 
 # Anything OpenCV can open, several files at once, as JSON
 python -m labvision.reader photo.jpg --table barcodes/lookup_table.json --json
+
+# Where on the bench is this detection?
+python -m labvision.scene --bbox 300 200 340 280 --vessel bottle_1000ml
 
 pytest tests
 pytest --doctest-modules labvision
@@ -302,3 +516,16 @@ The label is currently a standalone PNG. Wiring it onto a vessel in the MuJoCo
 scene as a textured geom, and carrying the label corners as pose-model
 keypoints so the quad comes from the network rather than the localiser, is the
 next step and is not part of this work.
+
+On the placement side, three things are open and each is small:
+
+- **The camera's real orientation**, from four markers on the bench. Until
+  then `default_camera()` only assumes it is aimed at the bench centre, and
+  that assumption dominates the error budget.
+- **The bench footprint**, so `on_table` stops returning None.
+- **A rendered end-to-end check.** The MuJoCo frame conversion is pinned
+  against the hand-written back-projection that was measured in simulation,
+  but nothing here has yet been run against a frame rendered from this room.
+- **Flask dimensions.** `VESSELS` carries the measured agrochemical bottles;
+  the five `flask_*` classes the registry knows about have no dimensions
+  recorded anywhere yet, so they need `radius` and `height` passed by hand.
