@@ -27,7 +27,7 @@ echo ">> Verifying: loading every AutoBio scene"
 cat <<'MSG'
 
 Done. Launch the 3D viewer with:
-  .venv-autobio/bin/python scripts/view_autobio.py            # default scene: pickup
+  .venv-autobio/bin/python scripts/view_autobio.py            # default scene: autobio_lab
   .venv-autobio/bin/python scripts/view_autobio.py --list     # list available scenes
   .venv-autobio/bin/python scripts/view_autobio.py mani_thermal_cycler
 MSG

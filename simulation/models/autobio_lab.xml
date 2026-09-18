@@ -1,5 +1,5 @@
 <!-- AutoBio "pick up centrifuge tube" scene on a 5 m table: the robot arm in the
-     middle flanked by a GC-MS and a UV-Vis-NIR spectrophotometer from assets/, and a
+     middle flanked by a GC-MS and a UV-Vis-NIR spectrophotometer from ../assets/, and a
      circular spawn zone at each end of the table. scripts/spawner.py (run through
      view_autobio.py) walks a lab worker up to a zone and drops a 50 ml tube into it,
      using the pre-allocated worker and tube bodies at the bottom of the worldbody
