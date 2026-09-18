@@ -104,8 +104,8 @@ holding four would otherwise mask the three the localiser had already read.
 
 ### Measured behaviour
 
-Over the 200 generated labels: **200/200 decode correctly**, 193 through OpenCV
-and 7 only through the fallback, all with a quad, at roughly 260 ms/image.
+Over the 200 generated labels: **200/200 decode correctly**, 189 through OpenCV
+and 11 only through the fallback, all with a quad, at roughly 260 ms/image.
 
 Also verified: rotation from 0 to 90 degrees, upside-down labels, Gaussian noise
 at sigma 12, 3x3 blur, 0.45x downscaling, low contrast, four labels in one
@@ -157,7 +157,7 @@ convenience, not a capability the library lacks.
 | `labvision/ean13.py` | Check digit, module encode/decode, rendering |
 | `labvision/registry.py` | Samples, hash-to-code, lookup table, label PNGs |
 | `labvision/reader.py` | Localiser, both decoders, code-to-sample resolution |
-| `tests/` | 107 tests, plus 17 doctests |
+| `tests/` | 108 tests, plus 17 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
@@ -172,7 +172,7 @@ python -m labvision.registry barcodes
 
 # Read a label back and resolve it
 python -m labvision.reader barcodes/SMP-0001_2006943906698.png \
-                        barcodes/PWD-0001_2000036464409.png
+                        barcodes/PWD-0001_2005217175150.png
 
 # Anything OpenCV can open, several files at once, as JSON
 python -m labvision.reader photo.jpg --table barcodes/lookup_table.json --json
@@ -208,31 +208,44 @@ sizes.**
 | Phase | Compounds | Containers | Ids | Codes |
 | --- | --- | --- | --- | --- |
 | Liquid | 20 | flasks — 10, 20, 30, 50, 100 ml | `SMP-0001..0100` | 100 |
-| Powder | 20 | flasks — 10, 20, 30, 50, 100 ml | `PWD-0001..0100` | 100 |
+| Powder | 20 | bottles — 100, 250, 500, 1000, 2000 ml | `PWD-0001..0100` | 100 |
 
 Material varies slowest, so `SMP-0001..0005` are Limonene at each flask size and
-`PWD-0001..0005` are Vanillin at each. Only the lot number is random, under
-`DEFAULT_SEED`.
+`PWD-0001..0005` are Vanillin at each bottle size. Only the lot number is
+random, under `DEFAULT_SEED`.
 
-**Both phases share one container series**, so there are just five vessel
-classes — `flask_10ml`, `flask_20ml`, `flask_30ml`, `flask_50ml`,
-`flask_100ml` — and `vessel_class` says nothing about phase.
+**Each phase has its own labware**, so there are ten vessel classes: five
+flasks — `flask_10ml`, `flask_20ml`, `flask_30ml`, `flask_50ml`, `flask_100ml` —
+and five bottles — `bottle_100ml`, `bottle_250ml`, `bottle_500ml`,
+`bottle_1000ml`, `bottle_2000ml`.
 
-### Why one series, when real powders go in jars
+### Why powders are in bottles
 
-A real powder would be stored in a wide-mouth jar: a solid needs a mouth wide
-enough for a spatula, and a volumetric flask has none. An earlier version of
-this catalogue modelled that with a separate 30/60/125/250/500 ml jar series.
+The powder sizes are not free choices: they are the white HDPE bottles in
+`assets/agrochemical-bottles`, which is what the simulation renders powders in.
+A powder row has to name a bottle that exists as a mesh, and
+`test_powder_sizes_match_the_bottle_kit` checks each size against the kit's
+`glb/` files.
 
-Sharing one series instead is a **deliberate simplification**, for the same
-reason each phase is a cross product rather than a cycled pairing: if powders
-had their own labware, a detector could read "powder" off the vessel shape and
-never decode the barcode at all. Keeping container size independent of phase
-closes that shortcut, and collapses ten vessel classes to five.
+| `container_ml` | Kit object | Body Ø | Height without cap |
+| --- | --- | --- | --- |
+| 100 | `Bote_100mL` | 46 mm | 97 mm |
+| 250 | `Bote_250mL` | 60 mm | 131 mm |
+| 500 | `Bote_500mL` | 74 mm | 164 mm |
+| 1000 | `Bote_1L` | 88 mm | 216 mm |
+| 2000 | `Bote_2L` | 116 mm | 245 mm |
 
-The phase is still carried in the record — it is what tells the robot how to
-dispense — it just is not inferable from the container.
-`test_both_phases_share_one_container_series` pins this.
+The kit has a sixth bottle, the wide-mouth `Bote_1L_ancho`. It is left out of
+the catalogue because it shares its nominal capacity with `Bote_1L`, and
+`container_ml` could not tell the two apart.
+
+Version 3 of the table put powders in the flask series instead, so that a
+detector could not read "powder" off the vessel shape and skip the barcode.
+That shortcut is open again — a bottle means powder — and it is accepted: phase
+only tells the robot how to dispense, while the compound, which is what the
+barcode is for, is still a full cross product against bottle size. Moving
+powders changed every powder barcode; the 100 liquid codes are the same as in
+version 3.
 
 ### Phase is a property of the compound, not a choice
 
@@ -273,9 +286,9 @@ was always the 50 ml tube — covering just 20 of the 100 possible pairs.
 
 That is fine for exercising the barcode path and wrong for training data: a
 vision model could learn *flask size implies compound* and never read the
-barcode at all. `test_compound_is_not_correlated_with_flask_size` guards it.
+barcode at all. `test_compound_is_not_correlated_with_container_size` guards it.
 
-### A note on the sizes
+### A note on the flask sizes
 
 10, 20, 50 and 100 ml are standard volumetric-flask capacities (ISO 1042). 30 ml
 is **not** in that series — its neighbour there is 25 ml — but it is a common

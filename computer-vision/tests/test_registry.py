@@ -66,35 +66,40 @@ def test_cas_numbers_are_unique_across_the_catalogue() -> None:
     assert len(set(cas)) == len(cas)
 
 
-def test_both_phases_share_one_container_series() -> None:
-    """Container size must not give the phase away.
-
-    If powders lived in their own labware, a detector could read "powder" off
-    the vessel shape and never decode the barcode -- the same shortcut the
-    cross product exists to close.
-    """
+def test_each_phase_has_its_own_labware() -> None:
+    """Liquids live in flasks and powders in bottles, five sizes of each."""
     samples = registry.default_samples()
     by_phase = {
-        phase: {s.container_ml for s in samples if s.phase == phase}
+        phase: {s.vessel_class for s in samples if s.phase == phase}
         for phase in {s.phase for s in samples}
     }
-    assert len(by_phase) == 2
-    assert len(set(map(frozenset, by_phase.values()))) == 1
-    assert {s.vessel_class for s in samples} == {
-        f"flask_{v:g}ml" for v in registry.FLASK_VOLUMES_ML
+    assert by_phase == {
+        "liquid": {f"flask_{v:g}ml" for v in registry.FLASK_VOLUMES_ML},
+        "powder": {f"bottle_{v:g}ml" for v in registry.BOTTLE_VOLUMES_ML},
     }
 
 
-def test_there_are_only_five_vessel_classes() -> None:
+def test_powder_sizes_match_the_bottle_kit() -> None:
+    """Every powder row must name a bottle that exists in the asset kit."""
+    assert registry.BOTTLE_VOLUMES_ML == (100.0, 250.0, 500.0, 1000.0, 2000.0)
+    glb_dir = Path(__file__).parents[2] / "assets" / "agrochemical-bottles" / "glb"
+    stems = {100.0: "100ml", 250.0: "250ml", 500.0: "500ml", 1000.0: "1l", 2000.0: "2l"}
+    for volume in registry.BOTTLE_VOLUMES_ML:
+        assert (glb_dir / f"bottle_{stems[volume]}_hdpe_white.glb").exists(), volume
+
+
+def test_there_are_ten_vessel_classes() -> None:
     classes = {s.vessel_class for s in registry.default_samples()}
-    assert len(classes) == 5
-    assert all(c.startswith("flask_") for c in classes)
+    assert len(classes) == 10
+    assert len([c for c in classes if c.startswith("flask_")]) == 5
+    assert len([c for c in classes if c.startswith("bottle_")]) == 5
 
 
-def test_vessel_class_does_not_encode_phase() -> None:
+def test_vessel_class_follows_the_phase() -> None:
     liquid = registry.Sample("SMP-1", "Limonene", "5989-27-5", "liquid", 50.0, "L1")
-    powder = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder", 50.0, "L1")
-    assert liquid.vessel_class == powder.vessel_class == "flask_50ml"
+    powder = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder", 1000.0, "L1")
+    assert liquid.vessel_class == "flask_50ml"
+    assert powder.vessel_class == "bottle_1000ml"
 
 
 def test_vessel_class_rejects_an_unknown_phase() -> None:

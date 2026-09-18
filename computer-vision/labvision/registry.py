@@ -38,31 +38,39 @@ DIGITS_FROM_HASH = 9
 DEFAULT_SEED = 20260918
 """Seed fixing the default catalogue, so the table is reproducible."""
 
-REGISTRY_VERSION = 3
+REGISTRY_VERSION = 4
 """Schema version written into the lookup table.
 
 Version 2 introduced the liquid/powder split: ``flask_ml`` became
 ``container_ml`` and a ``phase`` field was added. Version 3 gave both phases the
-same container series, so ``vessel_class`` no longer encodes phase and the
-``jar_*`` classes are gone. The field set is unchanged between 2 and 3, so the
-bump exists to stop a consumer keyed on ``jar_*`` reading a v3 table as if
-nothing had moved.
+same container series, so ``vessel_class`` no longer encoded phase and the
+``jar_*`` classes were gone. Version 4 gives powders their own labware again,
+the white HDPE bottles in ``assets/agrochemical-bottles``: powder rows move to
+the ``bottle_*`` classes and every powder barcode changes, while liquid rows are
+untouched. The field set is unchanged since 2, so the bumps exist to stop a
+consumer keyed on the old class names reading a newer table as if nothing had
+moved.
 """
 
 # Nominal flask capacities in millilitres. 10, 20, 50 and 100 are standard
 # volumetric capacities (ISO 1042); 30 is not in that series, whose neighbour is
 # 25, but it is a common amber storage-bottle size for aroma chemicals, which
 # suits a raw-material inventory better.
-#
-# BOTH phases use this one series, which is a deliberate simplification rather
-# than an oversight. A real powder would be stored in a wide-mouth jar, because
-# a solid needs a mouth wide enough for a spatula and a volumetric flask has
-# none; the earlier catalogue modelled that with a separate 30/60/125/250/500 ml
-# jar series. Sharing one series instead collapses ten vessel classes to five
-# and keeps container size independent of phase, so a detector cannot infer
-# "powder" from the vessel shape and skip reading the barcode -- the same
-# argument that makes each phase a cross product rather than a cycled pairing.
 FLASK_VOLUMES_ML: tuple[float, ...] = (10.0, 20.0, 30.0, 50.0, 100.0)
+
+# Nominal powder-bottle capacities in millilitres. These are the sizes of the
+# white HDPE bottle kit in ``assets/agrochemical-bottles`` (Bote_100mL, _250mL,
+# _500mL, _1L and _2L), which is the labware the simulation renders powders in,
+# so a powder row must name a bottle that actually exists as a mesh. The kit's
+# sixth bottle, the wide-mouth 1 L, is left out: it has the same nominal
+# capacity as the regular 1 L, and container_ml could not tell the two apart.
+#
+# Version 3 of the catalogue put powders in the flask series above, so that a
+# detector could not read "powder" off the vessel shape and skip the barcode.
+# That shortcut is now open again -- a bottle means powder -- and is accepted:
+# phase only tells the robot how to dispense, while the compound, which is what
+# the barcode is for, is still a full cross product against bottle size.
+BOTTLE_VOLUMES_ML: tuple[float, ...] = (100.0, 250.0, 500.0, 1000.0, 2000.0)
 
 # Flavour and fragrance raw materials that are LIQUID at room temperature,
 # with their CAS numbers.
@@ -126,9 +134,8 @@ class PhaseSpec:
     Attributes:
         name: ``"liquid"`` or ``"powder"``, as written into the table.
         prefix: Sample-id prefix, ``SMP`` for liquids and ``PWD`` for powders.
-        vessel: Vessel noun used to build the detector class name. Currently
-            ``"flask"`` for both phases; the field stays so a phase can be given
-            its own labware again without reshaping anything.
+        vessel: Vessel noun used to build the detector class name, ``"flask"``
+            for liquids and ``"bottle"`` for powders.
         materials: Compounds in this phase, as (name, CAS) pairs.
         containers_ml: Nominal container capacities offered for this phase.
     """
@@ -150,7 +157,7 @@ class PhaseSpec:
 
 
 LIQUID = PhaseSpec("liquid", "SMP", "flask", LIQUID_MATERIALS, FLASK_VOLUMES_ML)
-POWDER = PhaseSpec("powder", "PWD", "flask", POWDER_MATERIALS, FLASK_VOLUMES_ML)
+POWDER = PhaseSpec("powder", "PWD", "bottle", POWDER_MATERIALS, BOTTLE_VOLUMES_ML)
 
 PHASES: tuple[PhaseSpec, ...] = (LIQUID, POWDER)
 """Every phase in the catalogue, in the order they are generated."""
@@ -177,9 +184,9 @@ class Sample:
         material: Raw material the container holds.
         cas: CAS registry number of that material.
         phase: ``"liquid"`` or ``"powder"``. This drives how the robot dispenses
-            the contents; it no longer implies different labware.
-        container_ml: Nominal container capacity in millilitres, from the one
-            shared flask series both phases draw on.
+            the contents, and decides the labware: flasks or bottles.
+        container_ml: Nominal container capacity in millilitres, from the
+            phase's own series: flasks for liquids, bottles for powders.
         lot: Supplier lot reference.
     """
 
@@ -192,15 +199,15 @@ class Sample:
 
     @property
     def vessel_class(self) -> str:
-        """Detector class name, such as ``flask_50ml``
+        """Detector class name, such as ``flask_50ml`` or ``bottle_500ml``
 
         Derived rather than stored, so it cannot drift from phase or
-        container_ml. Both phases currently use flasks, so the class name says
-        nothing about phase — which is the point. A detector that could read
-        "powder" off the vessel shape would have a shortcut around the barcode.
+        container_ml. The vessel noun comes from the phase, so the class name
+        gives the phase away but never the compound.
 
         Returns:
-            The class label the vision model would predict. Five values in all.
+            The class label the vision model would predict. Ten values in all,
+            five flasks and five bottles.
 
         Raises:
             RegistryError: If phase is not a known phase name.
@@ -209,9 +216,9 @@ class Sample:
             >>> Sample("SMP-1", "Limonene", "5989-27-5", "liquid", 50.0,
             ...        "L1").vessel_class
             'flask_50ml'
-            >>> Sample("PWD-1", "Vanillin", "121-33-5", "powder", 50.0,
+            >>> Sample("PWD-1", "Vanillin", "121-33-5", "powder", 1000.0,
             ...        "L1").vessel_class
-            'flask_50ml'
+            'bottle_1000ml'
         """
         for spec in PHASES:
             if spec.name == self.phase:
@@ -361,7 +368,7 @@ def default_samples(
 
     For each phase the catalogue is the **full cross product** of its materials
     and its container sizes — every compound in every size. Liquids come first
-    (20 compounds x 5 flasks), then powders (20 x 5 flasks), 200 rows in all.
+    (20 compounds x 5 flasks), then powders (20 x 5 bottles), 200 rows in all.
     Material varies slowest, so SMP-0001..0005 are the five flask sizes of the
     first liquid.
 
@@ -387,8 +394,8 @@ def default_samples(
         >>> s = default_samples()
         >>> s[0].material, s[0].container_ml, s[0].phase
         ('Limonene', 10.0, 'liquid')
-        >>> s[100].sample_id, s[100].material, s[100].phase
-        ('PWD-0001', 'Vanillin', 'powder')
+        >>> s[100].sample_id, s[100].material, s[100].container_ml
+        ('PWD-0001', 'Vanillin', 100.0)
     """
     if count < 1:
         raise ValueError(f"count must be >= 1, got {count}")
