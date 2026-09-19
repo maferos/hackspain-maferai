@@ -154,6 +154,10 @@ panels continue to read live lab state.
 Copy the Drive `General MAFER AI/hackathon/yolo26n_rail_general/yolo26n_rail_general.pt` weights to
 `computer-vision/weights/yolo26n_rail_general.pt` (or set `VIEW_REPLAY_WEIGHTS`).
 Replay detection uses rail weights at 1280 px and confidence 0.47, and requires
-Ultralytics in the backend environment. The backend and frontend must use the
+Ultralytics in the backend environment. It crops the fixed general camera to
+the table band (30–75% of frame height, full width) before inference, removing
+background while preserving the samples. Boxes are translated back to full-video
+coordinates; playback stays at its original resolution. Recheck this crop if
+the camera framing changes. The backend and frontend must use the
 same `view/frontend/public/renders/rail_global.mp4`. Videos still play without
 the backend or weights; only detection becomes unavailable.

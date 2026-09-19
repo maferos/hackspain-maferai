@@ -6,6 +6,19 @@ import sys
 import time
 
 
+# Fixed general camera: keep the entire bench width and a margin above its
+# samples. Fractions preserve the crop when the recording resolution changes.
+TABLE_TOP = 0.30
+TABLE_BOTTOM = 0.75
+
+
+def table_region(frame):
+    height = frame.shape[0]
+    top = int(height * TABLE_TOP)
+    bottom = math.ceil(height * TABLE_BOTTOM)
+    return frame[top:bottom, :], top
+
+
 def main():
     output = sys.stdout
     with contextlib.redirect_stdout(sys.stderr):
@@ -35,9 +48,14 @@ def main():
             ok, frame = video.read()
             if not ok:
                 raise RuntimeError("Cannot decode replay frame")
-            result = model.predict(frame, imgsz=1280, conf=0.47, verbose=False)[0]
+            cropped, top = table_region(frame)
+            result = model.predict(cropped, imgsz=1280, conf=0.47, verbose=False)[0]
+            # Ultralytics returns coordinates in the original crop's pixels;
+            # only the crop offset is needed, not an inference-size rescale.
+            coordinates = result.boxes.xyxy.cpu().numpy().copy()
+            coordinates[:, [1, 3]] += top
             boxes = [[round(float(v), 1) for v in xyxy] + [round(float(score), 3)]
-                     for xyxy, score in zip(result.boxes.xyxy.cpu().numpy(),
+                     for xyxy, score in zip(coordinates,
                                            result.boxes.conf.cpu().numpy(), strict=True)]
             payload = {"time": target, "width": frame.shape[1], "height": frame.shape[0],
                        "boxes": boxes, "inference_ms": round(sum(result.speed.values()), 1),
