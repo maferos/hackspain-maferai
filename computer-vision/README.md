@@ -643,10 +643,12 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
 | `labvision/bottles.py` | Sticks each label onto the bottle of its phase and size |
+| `labvision/detector.py` | YOLO backends (YOLO-World, YOLO26 COCO, the fine-tuned fixed-camera YOLO26n): a frame in, bottle boxes out |
+| `labvision/evaluation.py` | Scores detector boxes against simulator truth; the worktop filter for the fixed camera |
 | `labvision/identify.py` | Reads the ArUco ring inside a detector box, or the whole frame, and names the sample |
 | `labvision/perception.py` | The fixed camera proposes, the wrist camera confirms and places the bottle |
 | `labvision/world.py` | The bottles the vision system found, in the console's vessel shape |
-| `tests/` | 371 tests, plus 30 doctests |
+| `tests/` | 408 tests, plus 30 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
