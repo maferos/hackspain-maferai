@@ -53,7 +53,7 @@ def write_frame(folder: Path, number: str = "0000") -> None:
         [(1, 40, 5, 60, 50, 0.4), (0, 10, 20, 17, 34, 0.0), (2, 70, 5, 99, 60, 0.0)],
         dtype=DTYPE,
     )
-    labels = {"0": {"class": "amber_10ml"}, "1": {"class": "PWD-0005"},
+    labels = {"0": {"class": "amber_10ml"}, "1": {"class": "SMP-0004"},
               "2": {"class": "balance"}}  # fmt: skip
     np.save(folder / f"bounding_box_2d_tight_{number}.npy", tight)
     np.save(folder / f"bounding_box_2d_loose_{number}.npy", loose)
@@ -116,14 +116,14 @@ def test_convert_keeps_bottles_pairs_tight_with_loose_and_drops_the_rest(tmp_pat
     (frame,) = gt["frames"]
     assert (out / frame["file"]).exists()
     assert cv2.imread(str(out / frame["file"])).shape == (80, 100, 3)
-    amber, hdpe = frame["bottles"]
+    amber, named = frame["bottles"]
     assert (amber["phase"], amber["container_ml"]) == ("liquid", 10.0)
-    assert (hdpe["phase"], hdpe["sample_id"]) == ("powder", "PWD-0005")
+    assert (named["sample_id"], named["container_ml"]) == ("SMP-0004", 50.0)
     # Inclusive pixel maxima become exclusive box corners.
     assert amber["xyxy"] == [10, 20, 18, 35]
     # The loose box is found by prim path although the order differs.
-    assert hdpe["full_xyxy"] == [40, 5, 61, 51]
-    assert hdpe["visible_frac"] == pytest.approx(0.6)
+    assert named["full_xyxy"] == [40, 5, 61, 51]
+    assert named["visible_frac"] == pytest.approx(0.6)
     assert not amber["clipped"]
     truths = ev.truths_of(frame)
     assert [t.required for t in truths] == [True, True]

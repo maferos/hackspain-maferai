@@ -96,13 +96,10 @@ SHELF_GEOM = re.compile(r"^room_lib_((?:SMP|PWD)-\d{4})_(body|glass|cap|label)$"
 """A gantry bottle is three geoms of the room body, not a body of its own: the
 wall (``body`` for HDPE, ``glass`` for amber), the cap and the label."""
 
-EXTRA_SAMPLES = (
-    "PWD-0041", "PWD-0042", "PWD-0043", "PWD-0044", "PWD-0045",
-    "PWD-0061", "PWD-0062", "PWD-0063", "PWD-0064", "PWD-0065",
-    "SMP-0041", "SMP-0042", "SMP-0043", "SMP-0044", "SMP-0045",
-)  # fmt: skip
-"""Samples added on top of the scene's own: two of every powder bottle size and
-one more of every amber size. Each also stands on the gantry, so these repeat ids."""
+EXTRA_SAMPLES = tuple(f"SMP-{n:04d}" for n in range(41, 56))
+"""Samples added on top of the scene's own: the catalogue cycles through the five
+flask sizes, so these are three of every size. Each also stands on the gantry,
+so these repeat ids."""
 
 PARKED_Z = -5.0
 """Where an unused bottle waits, under the floor plane and out of every view."""

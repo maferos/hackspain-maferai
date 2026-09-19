@@ -96,8 +96,8 @@ def _wrist_frame(camera, markers):
 
 ROWS = {
     5: {"sample_id": "SMP-0006", "phase": "liquid", "vessel_class": "flask_10ml"},
-    9: {"sample_id": "PWD-0010", "phase": "powder", "vessel_class": "bottle_100ml"},
-    7: {"sample_id": "PWD-0020", "phase": "powder", "vessel_class": "bottle_2000ml"},
+    9: {"sample_id": "SMP-0010", "phase": "liquid", "vessel_class": "flask_100ml"},
+    7: {"sample_id": "SMP-0020", "phase": "liquid", "vessel_class": "flask_100ml"},
 }
 TARGET = (0.0, 0.0, BENCH_TOP_Z + 0.05)
 WRIST = Camera.look_at(INTRINSICS, (0.0, -0.3, 1.0), TARGET)
@@ -117,7 +117,7 @@ def test_confirm_names_the_ring_of_the_proposed_bottle_and_places_it():
     # _wrist_frame are the right place but not the right size, and the size
     # of a marker is part of where its bottle stands.
     frame = _ring_frame(WRIST, "flask_10ml", (0.0, 0.0), 5)
-    far = _ring_frame(WRIST, "bottle_100ml", (0.25, 0.05), 9)
+    far = _ring_frame(WRIST, "flask_100ml", (0.25, 0.05), 9)
     drawn = np.any(far != 150, axis=2)
     frame[drawn] = far[drawn]
     found = confirm(frame, WRIST, TARGET, ROWS)
@@ -128,7 +128,7 @@ def test_confirm_names_the_ring_of_the_proposed_bottle_and_places_it():
 def test_a_neighbours_ring_seen_past_the_proposal_is_passed_over():
     # A 2 L bottle 20 cm behind the proposal: its ring projects near the
     # proposal, but placed from that ring the bottle stands far from it.
-    behind = _ring_point("bottle_2000ml", (0.0, 0.2))
+    behind = _ring_point("flask_100ml", (0.0, 0.2))
     frame = _wrist_frame(WRIST, [(7, behind)])
     assert confirm(frame, WRIST, TARGET, ROWS) == Confirmation()
     near = _ring_point("flask_10ml", (0.01, 0.0))
@@ -137,7 +137,7 @@ def test_a_neighbours_ring_seen_past_the_proposal_is_passed_over():
 
 
 def test_confirm_reads_nothing_when_no_ring_is_near():
-    frame = _wrist_frame(WRIST, [(9, _ring_point("bottle_100ml", (0.25, 0.05)))])
+    frame = _wrist_frame(WRIST, [(9, _ring_point("flask_100ml", (0.25, 0.05)))])
     assert confirm(frame, WRIST, TARGET, ROWS) == Confirmation()
 
 
@@ -152,7 +152,7 @@ def test_perceived_prefers_the_refined_position():
 
 
 ROWS[11] = {"sample_id": "NEIGHBOUR", "phase": "liquid", "vessel_class": "flask_50ml"}
-ROWS[12] = {"sample_id": "PWD-0004", "phase": "powder", "vessel_class": "bottle_1000ml"}
+ROWS[12] = {"sample_id": "SMP-0005", "phase": "liquid", "vessel_class": "flask_100ml"}
 
 
 def test_the_ring_whose_bottle_stands_on_the_proposal_beats_a_nearer_pixel():
@@ -210,9 +210,9 @@ def test_refine_places_a_big_bottle_from_its_frontal_marker():
     camera = Camera.look_at(
         INTRINSICS, (0.0, -0.3, 1.0), (0.0, 0.0, BENCH_TOP_Z + 0.08)
     )
-    frame = _ring_frame(camera, "bottle_1000ml", (0.0, 0.0), 12)
+    frame = _ring_frame(camera, "flask_100ml", (0.0, 0.0), 12)
     found = confirm(frame, camera, (0.0, 0.0, BENCH_TOP_Z + 0.05), ROWS)
-    assert found.sample_id == "PWD-0004"
+    assert found.sample_id == "SMP-0005"
     assert math.dist(found.refined_xy, (0.0, 0.0)) < 0.004
 
 
@@ -259,7 +259,7 @@ def test_refine_marker_has_no_bias_on_the_smallest_or_the_largest_ring():
 
     camera = Camera.look_at(INTRINSICS, (0.0, -0.3, 1.1), (0.0, 0.0, BENCH_TOP_Z))
     facing = math.atan2(-0.3, 0.0)
-    for vessel in ("flask_10ml", "bottle_2000ml"):
+    for vessel in ("flask_10ml", "flask_100ml"):
         radius, height = ring_geometry(vessel)
         side = 0.75 * radius * 2 * math.pi / 8  # the kit's marker, 6 of 8 modules
         corners = _marker_corners(camera, (0.0, 0.0), radius, height, facing, side=side)
@@ -304,7 +304,7 @@ def test_confirm_places_a_turned_ring_by_the_way_its_marker_faces():
     camera = Camera.look_at(
         INTRINSICS, (0.0, -0.3, 1.0), (0.0, 0.0, BENCH_TOP_Z + 0.08)
     )
-    frame = _ring_frame(camera, "bottle_1000ml", (0.0, 0.0), 12, (-25, 20, 65))
+    frame = _ring_frame(camera, "flask_100ml", (0.0, 0.0), 12, (-25, 20, 65))
     found = confirm(frame, camera, (0.0, 0.0, BENCH_TOP_Z + 0.05), ROWS)
-    assert found.sample_id == "PWD-0004"
+    assert found.sample_id == "SMP-0005"
     assert math.dist(found.refined_xy, (0.0, 0.0)) < 0.003

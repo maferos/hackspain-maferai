@@ -1224,6 +1224,10 @@ S.perception_state(active_camera="overview", vessels=to_dashboard(found))
 
 ### Measured end to end in the scene
 
+These runs used catalogue v5, with amber flasks and HDPE bottles up to 2 L.
+On the liquids-only catalogue v6, a 2-layout check of the same script named
+15 of 16 visible bench bottles and none wrongly.
+
 `scripts/propose_confirm.py` runs the whole chain on rendered layouts: 6 to 10
 bottles of both kits at random on the aisle half of a 1.6 m stretch of bench,
 the general camera's frame through YOLO-World L with the bottle prompts
