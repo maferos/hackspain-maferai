@@ -71,6 +71,10 @@ above.
   recovering), and the next three.
 - **Robot** and **Balance** under the viewport.
 
+Every view (camera, inset camera, Robot, Balance, tasks) opens and closes from
+the buttons in the header, and the edges between views drag to resize them
+(double-click an edge to reset it). The layout is remembered in the browser.
+
 To rehearse a moment, start the backend part-way and slowed down:
 
 ```sh

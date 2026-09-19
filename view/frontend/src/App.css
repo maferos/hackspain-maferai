@@ -34,6 +34,10 @@ body {
 }
 
 .app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   padding: 0.75rem 1.25rem;
   border-bottom: 1px solid var(--panel-border);
 }
@@ -50,13 +54,13 @@ body {
   display: flex;
   min-height: 0;
   padding: 1rem;
-  gap: 1rem;
 }
 
 .viewport {
   position: relative;
   flex: 1;
   min-width: 0;
+  min-height: 0;
   background: #000;
   border-radius: 10px;
   overflow: hidden;
@@ -245,15 +249,14 @@ body {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 1rem;
 }
 
 .panels {
   flex-shrink: 0;
   height: 230px;
+  min-height: 0;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
 }
 
 /* Formula checklist heading the task panel */
@@ -571,3 +574,121 @@ body {
   transition: width 0.2s ease;
 }
 
+/* --- Views that open and close, and the handles that resize them ----------- */
+
+.view-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.view-toggle {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+}
+
+.view-toggle:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+.view-toggle--on {
+  background: rgba(88, 166, 255, 0.15);
+  border-color: rgba(88, 166, 255, 0.4);
+  color: var(--accent);
+}
+
+.view-toggle:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.side {
+  display: flex;
+  flex-shrink: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.side > .task-panel {
+  flex: 1;
+  width: auto;
+}
+
+.app__empty {
+  margin: auto;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.splitter {
+  position: relative;
+  flex-shrink: 0;
+  touch-action: none;
+}
+
+.splitter--col {
+  width: 1rem;
+  cursor: col-resize;
+}
+
+.splitter--row {
+  height: 1rem;
+  cursor: row-resize;
+}
+
+/* A short grip at rest; the full length of the edge on hover and while dragging. */
+.splitter::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 2px;
+  background: var(--panel-border);
+  transition: background 0.15s ease, width 0.15s ease, height 0.15s ease;
+}
+
+.splitter--col::after {
+  width: 3px;
+  height: 2.5rem;
+}
+
+.splitter--row::after {
+  width: 2.5rem;
+  height: 3px;
+}
+
+.splitter:hover::after,
+.splitter--dragging::after {
+  background: var(--accent);
+}
+
+.splitter--col:hover::after,
+.splitter--col.splitter--dragging::after {
+  height: 100%;
+}
+
+.splitter--row:hover::after,
+.splitter--row.splitter--dragging::after {
+  width: 100%;
+}
+
+body.resizing-col,
+body.resizing-col * {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+body.resizing-row,
+body.resizing-row * {
+  cursor: row-resize !important;
+  user-select: none;
+}

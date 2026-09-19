@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import LabPanels from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
+import Splitter from "./Splitter";
 import { useLabState } from "./labState";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8000";
@@ -21,6 +22,35 @@ const STILL_CAMERAS = [
   { id: "scene", label: "General camera · Isaac RTX render", src: "/renders/general.jpg" },
   { id: "aisle", label: "Aisle camera · Isaac RTX render", src: "/renders/room_aisle.jpg" },
 ];
+
+// Views that can be opened and closed from the header, and the sizes the drag
+// handles set. Both are remembered in this browser.
+const VIEWS = [
+  { id: "camera", label: "Camera" },
+  { id: "inset", label: "Inset", title: "The second camera in the corner of the viewport" },
+  { id: "robot", label: "Robot" },
+  { id: "balance", label: "Balance" },
+  { id: "tasks", label: "Tasks" },
+];
+const DEFAULT_SIZES = { tasksWidth: 320, panelsHeight: 230, robotShare: 0.5 };
+const DEFAULT_LAYOUT = {
+  ...DEFAULT_SIZES,
+  views: Object.fromEntries(VIEWS.map((v) => [v.id, true])),
+};
+const LAYOUT_KEY = "robot-viewer.layout";
+const SPLITTER_PX = 16;
+
+function loadLayout() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LAYOUT_KEY));
+    if (saved) return { ...DEFAULT_LAYOUT, ...saved, views: { ...DEFAULT_LAYOUT.views, ...saved.views } };
+  } catch {
+    /* no storage: start from the default layout */
+  }
+  return DEFAULT_LAYOUT;
+}
+
+const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), Math.max(lo, hi));
 
 function statusLabel(status) {
   return status === "active" ? "In progress" : "Done";
@@ -78,6 +108,18 @@ export default function App() {
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
   const lab = useLabState(STATE_URL);
+  const [layout, setLayout] = useState(loadLayout);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(LAYOUT_KEY, JSON.stringify(layout));
+    } catch {
+      /* the layout just isn't remembered */
+    }
+  }, [layout]);
+
+  const resize = (patch) => setLayout((l) => ({ ...l, ...patch }));
+  const toggleView = (id) => setLayout((l) => ({ ...l, views: { ...l.views, [id]: !l.views[id] } }));
 
   useEffect(() => {
     if (!LIVE) return;
@@ -136,26 +178,89 @@ export default function App() {
   // plan; without it, the backend's mocked task log as before.
   const labRunning = lab.state && lab.state.run.status !== "idle" ? lab.state : null;
 
+  const { views } = layout;
+  const showPanels = views.robot || views.balance;
+  const showMain = views.camera || showPanels;
+
+  // Each handle measures its parent when the drag starts and keeps every view
+  // at a usable minimum size.
+  const dragTasks = (bar) => {
+    const start = layout.tasksWidth;
+    const max = start + bar.previousElementSibling.getBoundingClientRect().width - 480;
+    return (d) => resize({ tasksWidth: clamp(start - d, 220, max) });
+  };
+  const dragPanels = (bar) => {
+    const start = layout.panelsHeight;
+    const max = bar.parentElement.clientHeight - SPLITTER_PX - 150;
+    return (d) => resize({ panelsHeight: clamp(start - d, 120, max) });
+  };
+  const dragShare = (bar) => {
+    const start = layout.robotShare;
+    const width = bar.parentElement.clientWidth - SPLITTER_PX;
+    return (d) => resize({ robotShare: clamp(start + d / width, 0.2, 0.8) });
+  };
+
   return (
     <div className="app">
       <header className="app__header">
         <h1>Robot monitor — mini-Hannover</h1>
+        <nav className="view-toggles" aria-label="Views">
+          {VIEWS.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              className={`view-toggle ${views[v.id] ? "view-toggle--on" : ""}`}
+              aria-pressed={views[v.id]}
+              title={v.title}
+              disabled={v.id === "inset" && !views.camera}
+              onClick={() => toggleView(v.id)}
+            >
+              {v.label}
+            </button>
+          ))}
+        </nav>
       </header>
       <main className="app__body">
-        <div className="main-column">
-          <section className="viewport">
-            <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big still={mainStill} />
-            <CameraStream
-              cameraId={pipCameraId}
-              label={pipLabel}
-              className="camera-frame--pip"
-              onClick={swapCameras}
-              still={pipStill}
-            />
-          </section>
-          <LabPanels state={lab.state} connected={lab.connected} />
-        </div>
-        {labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />}
+        {showMain && (
+          <div className="main-column">
+            {views.camera && (
+              <section className="viewport">
+                <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big still={mainStill} />
+                {views.inset && (
+                  <CameraStream
+                    cameraId={pipCameraId}
+                    label={pipLabel}
+                    className="camera-frame--pip"
+                    onClick={swapCameras}
+                    still={pipStill}
+                  />
+                )}
+              </section>
+            )}
+            {views.camera && showPanels && (
+              <Splitter direction="row" onStart={dragPanels} onReset={() => resize({ panelsHeight: DEFAULT_SIZES.panelsHeight })} />
+            )}
+            {showPanels && (
+              <LabPanels
+                state={lab.state}
+                connected={lab.connected}
+                show={views}
+                style={views.camera ? { height: layout.panelsHeight } : { height: "auto", flex: 1 }}
+                robotShare={layout.robotShare}
+                divider={<Splitter direction="col" onStart={dragShare} onReset={() => resize({ robotShare: DEFAULT_SIZES.robotShare })} />}
+              />
+            )}
+          </div>
+        )}
+        {showMain && views.tasks && (
+          <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
+        )}
+        {views.tasks && (
+          <div className="side" style={showMain ? { width: layout.tasksWidth } : { flex: 1 }}>
+            {labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />}
+          </div>
+        )}
+        {!showMain && !views.tasks && <p className="app__empty">All views are closed. Open one from the header.</p>}
       </main>
     </div>
   );

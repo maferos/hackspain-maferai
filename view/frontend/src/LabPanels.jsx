@@ -60,7 +60,9 @@ function BalancePanel({ state }) {
   );
 }
 
-export default function LabPanels({ state, connected }) {
+// `show` picks which of the two panels are open, `robotShare` is the Robot
+// panel's fraction of the width and `divider` the handle drawn between them.
+export default function LabPanels({ state, connected, show, style, robotShare, divider }) {
   if (!state || state.run.status === "idle") {
     return (
       <div className="panels panels--empty">
@@ -69,10 +71,13 @@ export default function LabPanels({ state, connected }) {
       </div>
     );
   }
+  const both = show.robot && show.balance;
+  const columns = both ? `${robotShare}fr 1rem ${1 - robotShare}fr` : "1fr";
   return (
-    <div className="panels">
-      <RobotPanel state={state} />
-      <BalancePanel state={state} />
+    <div className="panels" style={{ ...style, gridTemplateColumns: columns }}>
+      {show.robot && <RobotPanel state={state} />}
+      {both && divider}
+      {show.balance && <BalancePanel state={state} />}
     </div>
   );
 }
