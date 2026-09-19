@@ -1,0 +1,35 @@
+# Environment for `armlab` — the promptable arm console (scripts/../armlab).
+#
+# A third venv (.venv-act), separate from both existing ones on purpose:
+#   .venv          Python 3.13 — too new for lerobot/torch wheels.
+#   .venv-autobio  pinned to mujoco==3.3.0 for AutoBio's libmjlab plugin.
+#
+# We only borrow AutoBio's *XML* (autobio/model/robot/aloha_left.xml), which
+# references no plugin, so this env is free to track the current MuJoCo.
+# Created by ./setup_act.sh on Python 3.12 -- lerobot >= 0.5 requires >= 3.12,
+# and every lerobot <= 0.4.4 pins torch==2.2.x, which has no 3.12 wheels.
+
+mujoco>=3.13.0,<4
+numpy>=1.26
+
+# Policy runtime. lerobot pulls torch; setup_act.sh passes uv's
+# --torch-backend=cpu so this stays the ~200 MB CPU wheel rather than ~2.5 GB
+# of CUDA that this machine (no nvidia-smi) could not use anyway.
+lerobot>=0.5
+
+# Console: FastAPI serves the static UI, the MJPEG camera streams and the
+# command WebSocket. cv2 encodes the JPEGs.
+fastapi>=0.115
+uvicorn[standard]>=0.30
+opencv-python-headless>=4.9
+
+# Prompt -> plan. Optional at runtime: planner.py falls back to its regex
+# grammar whenever ANTHROPIC_API_KEY is unset.
+anthropic>=0.40
+
+# Vision-based lookup table (harness/build_lookup_table.py) runs labvision's
+# detector here, the one venv with mujoco and OpenCV. ultralytics wants the
+# GUI opencv-python, which shares the cv2 folder with the headless build above;
+# keep only the headless one (uv pip uninstall opencv-python afterwards).
+ultralytics>=8.4
+huggingface_hub>=0.24

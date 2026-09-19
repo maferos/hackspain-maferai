@@ -1,0 +1,27 @@
+# The model catalogue. Adding a Hugging Face checkpoint is adding a block here;
+# the console's dropdown is this file. A repo id typed into the console that is
+# not listed still loads -- it just falls back to these defaults and is checked
+# against the robot's actuator count at load time.
+#
+#   repo_id     Hugging Face repo, or a local directory of a checkpoint you trained.
+#   embodiment  Which actuator layout the action vector is in (armlab/embodiment.py).
+#   cameras     Policy feature key -> camera. Values may be a logical name from the
+#               embodiment ("top", "wrist_left", "overview") or a raw MuJoCo camera.
+#               Omit it and the trailing part of the feature key is used as the name.
+#   control_hz  How often to ask the policy for an action. gym-aloha ran at 50 Hz;
+#               a checkpoint trained at another rate needs its own value here or it
+#               will play back at the wrong speed.
+
+[act_transfer_cube]
+repo_id = "lerobot/act_aloha_sim_transfer_cube_human"
+embodiment = "aloha_bimanual"
+cameras = { "observation.images.top" = "top" }
+control_hz = 50
+label = "ACT · ALOHA transfer cube"
+
+[act_insertion]
+repo_id = "lerobot/act_aloha_sim_insertion_human"
+embodiment = "aloha_bimanual"
+cameras = { "observation.images.top" = "top" }
+control_hz = 50
+label = "ACT · ALOHA insertion"

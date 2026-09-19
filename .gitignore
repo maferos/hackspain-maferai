@@ -4,6 +4,7 @@ __pycache__/
 simulation/out/
 MUJOCO_LOG.TXT
 .venv-autobio/
+.venv-act/
 MJDATA.TXT
 MJMODEL.TXT
 
