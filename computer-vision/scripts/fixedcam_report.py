@@ -90,6 +90,7 @@ td.best { font-weight: 700; }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px;
   color: var(--text-secondary); margin: 4px 0 8px; }
 svg text { fill: var(--text-secondary); font-size: 12px; }
+.card svg { max-width: 760px; display: block; }
 svg .axis { stroke: var(--border); }
 svg .gridline { stroke: var(--grid); }
 .tip { position: fixed; pointer-events: none; background: var(--surface-1);
@@ -191,6 +192,7 @@ def size_chart(models: list[tuple[str, str, dict]], split: str) -> str:
                      f"text-anchor='middle'>{b}</text>")  # fmt: skip
     parts.append(f"<text x='{left + plot_w / 2:.1f}' y='{height - 1}' "
                  "text-anchor='middle'>bottle side in the frame</text>")  # fmt: skip
+    ends: list[tuple[float, float, int, str]] = []
     for k, (_, label, m) in enumerate(models):
         if split not in m:
             continue
@@ -214,10 +216,17 @@ def size_chart(models: list[tuple[str, str, dict]], split: str) -> str:
                 f"stroke='var(--surface-1)' stroke-width='2' "
                 f"data-tip='{html.escape(tip, quote=True)}'/>"
             )
-        x, yy = points[-1][0], points[-1][1]
-        parts.append(f"<text x='{x + 10:.1f}' y='{yy + 4 + 12 * (k - 1.5):.1f}' "
-                     f"style='fill:var(--text-primary)'>"
-                     f"{html.escape(label.split(' (')[0])}</text>")  # fmt: skip
+        ends.append((points[-1][1], points[-1][0], k, label))
+    # Direct labels at the line ends, pushed apart so they never overlap.
+    placed: list[float] = []
+    for yy, x, _k, label in sorted(ends):
+        y_text = max(yy + 4, (placed[-1] + 15) if placed else top)
+        placed.append(y_text)
+        short = label.split(" (")[0].split(",")[0]
+        parts.append(
+            f"<text x='{x + 10:.1f}' y='{y_text:.1f}' "
+            f"style='fill:var(--text-primary)'>{html.escape(short)}</text>"
+        )
     parts.append("</svg>")
     legend = "".join(
         f"<span><span class='swatch' style='background:var({SERIES[k]})'></span>"
