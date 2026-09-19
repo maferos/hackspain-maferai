@@ -109,6 +109,15 @@ judges. Have the `--video` recording of a good run ready as the fallback.
 
 ### The initial scan
 
+[`media/initial_scan_realtime.mp4`](media/initial_scan_realtime.mp4) is one
+run at real speed, 2 min 34 s. The fixed camera is on the left: boxes are amber
+until their ring is read, then green. The wrist camera is on the right, above
+the bench map as it fills. The run's log is along the bottom. Samples marked
+"wrist" are the ones only the wrist camera found. That run took 148 s and
+named 19 of 19. It was rendered afterwards from a 15 fps recording of the
+simulation state, with shadows and reflections off, because this laptop cannot
+render both cameras live at that rate.
+
 `--headless --manual --light`, rail-trained weights, the gripper scene, the
 integrated-graphics laptop, 2026-09-19:
 
