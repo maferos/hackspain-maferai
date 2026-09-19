@@ -1,0 +1,42 @@
+{
+ "strike": [
+  "Geometric impedance control",
+  "Fisher merging",
+  "Neural population geometry",
+  "Manifold capacity"
+ ],
+ "topics": {
+  "Lie-group kinematics and dynamics of robot arms": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the gap-research batch (04_huecos_y_ampliacion), confirmed at the gate"
+  },
+  "Camera-robot calibration and visual servoing": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the gap-research batch (04_huecos_y_ampliacion), confirmed at the gate"
+  },
+  "Probability, filtering and generative models on Lie groups": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the gap-research batch (04_huecos_y_ampliacion), confirmed at the gate"
+  },
+  "Neural manifolds in deep networks and motor neuroscience": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the gap-research batch (04_huecos_y_ampliacion), confirmed at the gate"
+  },
+  "Trajectory optimization and model predictive control for arms": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the gap-research batch (04_huecos_y_ampliacion), confirmed at the gate"
+  },
+  "6D object pose estimation": {
+   "parent": "root",
+   "reason": "concepts from the gap-research batch (04_huecos_y_ampliacion), confirmed at the gate"
+  },
+  "Information geometry and natural-gradient optimization": {
+   "parent": "root",
+   "reason": "concepts from the gap-research batch (04_huecos_y_ampliacion), confirmed at the gate"
+  },
+  "Visuomotor and vision-language-action robot policies": {
+   "parent": "root",
+   "reason": "concepts from the gap-research batch (04_huecos_y_ampliacion), confirmed at the gate"
+  }
+ }
+}

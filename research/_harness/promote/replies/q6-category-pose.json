@@ -1,0 +1,88 @@
+{
+ "agent": "concept-drafter",
+ "prompt_version": "e38f9e0effb9",
+ "packet": "q6-category-pose",
+ "topic": "6D object pose estimation",
+ "scope": "Also covers category-level pose and size estimation of unseen instances within known object categories, its canonical-coordinate representations such as NOCS, and training losses that make pose regression tolerant to object symmetry.",
+ "concepts": [
+  {
+   "title": "Category-level object pose estimation",
+   "status": "at-bar",
+   "element_type": "concept",
+   "definition": "Estimating the 6D pose, and usually the 3D size, of previously unseen object instances that belong to categories known at training time, without an exact CAD model of each instance.",
+   "aliases": ["Category-level 6D pose estimation", "Category-level pose estimation"],
+   "suggested_as": ["Category-level object pose estimation"],
+   "evidence": [
+    {"id": "^wang2019normalized-003", "phrase": "category-level 6D pose and size estimation"},
+    {"id": "^wang2019normalized-059", "phrase": "their category-level approach"},
+    {"id": "^zhang2023genpose-005", "phrase": "category-level object pose estimation"},
+    {"id": "^zhang2023genpose-038", "phrase": "category-level pose estimation"},
+    {"id": "^zhang2023transnet-006", "phrase": "the first category-level pose estimation approach"},
+    {"id": "^zhang2023transnet-008", "phrase": "category-level pose techniques for opaque objects"},
+    {"id": "^ikeda2024diffusionnocs-003", "phrase": "zero-shot category-level pose estimation"},
+    {"id": "^ikeda2024diffusionnocs-004", "phrase": "category-level object pose estimation methods"},
+    {"id": "^labbe2022megapose-003", "phrase": "Category-level pose estimation methods"},
+    {"id": "^chen2022clearpose-061", "phrase": "category-level pose estimation for transparent objects"},
+    {"id": "^yenchen2020inerf-007", "phrase": "RGB-only category-level pose estimation"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Novel-object 6D pose estimation", "why": "Both estimate poses of objects unseen in training; category-level needs the category at training time and no CAD model, novel-object needs a CAD model or reference images at test time (^labbe2022megapose-003 contrasts them)."}
+   ]
+  },
+  {
+   "title": "Normalized Object Coordinate Space",
+   "status": "at-bar",
+   "element_type": "concept",
+   "definition": "A canonical unit-cube coordinate frame in which all instances of a category are consistently oriented and scaled, so that a network can predict per-pixel canonical coordinates (a NOCS map) and recover pose and size by aligning them with observed depth.",
+   "aliases": ["NOCS"],
+   "suggested_as": ["Normalized Object Coordinate Space (NOCS)"],
+   "evidence": [
+    {"id": "^wang2019normalized-004", "phrase": "the Normalized Object Coordinate Space"},
+    {"id": "^wang2019normalized-006", "phrase": "The NOCS map"},
+    {"id": "^wang2019normalized-012", "phrase": "NOCS"},
+    {"id": "^wang2019normalized-013", "phrase": "NOCS maps"},
+    {"id": "^wang2019normalized-028", "phrase": "The NOCS representation"},
+    {"id": "^wang2019normalized-034", "phrase": "the NOCS point cloud"},
+    {"id": "^wang2019normalized-044", "phrase": "dense NOCS maps"},
+    {"id": "^ikeda2024diffusionnocs-007", "phrase": "dense canonical maps"},
+    {"id": "^ikeda2024diffusionnocs-010", "phrase": "NOCS maps"},
+    {"id": "^ikeda2024diffusionnocs-027", "phrase": "NOCS map points"},
+    {"id": "^wang2019pack-004", "phrase": "a shared coordinate frame"},
+    {"id": "^jiang2023robotic-067", "phrase": "NOCS prediction"}
+   ],
+   "relations": [
+    {"target": "Category-level object pose estimation", "type": "solves", "evidence_id": "^wang2019pack-004", "quote": "NOCS estimates category-level 6D pose from RGB-D images by transforming every object pixel to a shared coordinate frame"}
+   ],
+   "near_pairs": []
+  },
+  {
+   "title": "Symmetry-aware pose loss",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "A pose training loss that does not penalise predictions equivalent under an object's symmetry, either by taking the minimum over the symmetric ground-truth poses or by matching each predicted model point to the closest ground-truth point.",
+   "aliases": ["Symmetry-aware loss", "Symmetry loss"],
+   "suggested_as": ["Symmetry-aware pose loss"],
+   "evidence": [
+    {"id": "^wang2019normalized-029", "phrase": "The symmetric loss"},
+    {"id": "^wang2019normalized-051", "phrase": "the symmetry loss"},
+    {"id": "^wang2019normalized-052", "phrase": "the symmetry loss"},
+    {"id": "^xiang2017posecnn-025", "phrase": "ShapeMatch-Loss (SLOSS)"},
+    {"id": "^xiang2017posecnn-026", "phrase": "SLOSS"},
+    {"id": "^xiang2017posecnn-027", "phrase": "SLOSS"},
+    {"id": "^xiang2017posecnn-063", "phrase": "ShapeMatch-Loss"},
+    {"id": "^xiang2017posecnn-068", "phrase": "SLOSS"},
+    {"id": "^ikeda2024diffusionnocs-005", "phrase": "loss functions for specific symmetry types"},
+    {"id": "^hsiao2023confronting-002", "phrase": "symmetry-aware losses"},
+    {"id": "^labbe2022megapose-008", "phrase": "symmetry-specific losses"},
+    {"id": "^liu2019keypose-047", "phrase": "the permutation loss"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "ShapeMatch-Loss (SLOSS)", "why": "PoseCNN's closest-point loss is one instance of the general idea; kept inside this concept rather than as its own note."},
+    {"name": "ADD and ADD-S metrics", "why": "ADD-S applies the same closest-point matching as ShapeMatch-Loss, but as an evaluation metric rather than a training loss."}
+   ]
+  }
+ ],
+ "struck": []
+}

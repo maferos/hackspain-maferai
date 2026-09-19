@@ -158,9 +158,13 @@ def build_xml(mesh_dir: Path, sizes: dict, width: int, height: int, fovy: float)
 
 
 def random_layout(
-    rng, vessels: list[str], count: int
+    rng, vessels: list[str], count: int, per_size: int
 ) -> list[tuple[str, float, float]]:
-    """Place count bottles on the bench without overlaps; returns (vessel, x, y)"""
+    """Place count bottles on the bench without overlaps; returns (vessel, x, y)
+
+    No size is drawn more than ``per_size`` times, which is how many bodies of
+    each the scene holds, so every bottle drawn is one the scene can place.
+    """
     bx, by = TABLE_CENTRE
     hx, hy = TABLE_SIZE_M[0] / 2 - 0.08, TABLE_SIZE_M[1] / 2 - 0.08
     placed: list[tuple[str, float, float]] = []
@@ -168,6 +172,8 @@ def random_layout(
     while len(placed) < count and tries < 500:
         tries += 1
         vessel = vessels[rng.integers(len(vessels))]
+        if sum(v == vessel for v, _, _ in placed) >= per_size:
+            continue
         x, y = bx + rng.uniform(-hx, hx), by + rng.uniform(-hy, hy)
         r = VESSELS[vessel].radius_m
         if all(
@@ -239,7 +245,9 @@ def main() -> None:
     frames = []
     for k in range(args.frames):
         data.mocap_pos[:] = PARKED
-        layout = random_layout(rng, vessels, int(rng.integers(lo, hi + 1)))
+        layout = random_layout(
+            rng, vessels, int(rng.integers(lo, hi + 1)), INSTANCES_PER_SIZE
+        )
         used: dict[str, int] = {}
         placed_bodies: list[tuple[int, str, float, float]] = []
         for vessel, x, y in layout:

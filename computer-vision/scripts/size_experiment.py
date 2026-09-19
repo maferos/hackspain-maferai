@@ -188,7 +188,15 @@ def run(backend: str | None, folder: Path, gt: dict, args) -> dict:
             )
             if err is not None:
                 per[vessel]["pos_mm"].append(err)
-        false_positives += len(boxes) - len(taken)
+        # A box on a bottle too small to be required is not held against the
+        # detector: finding it was not asked for, but it is not wrong either.
+        small = [b for b in frame["bottles"] if b["pixels"] < args.min_pixels]
+        for j, box in enumerate(boxes):
+            if j in taken:
+                continue
+            if any(iou(box.bbox.as_tuple(), b["xyxy"]) > args.iou for b in small):
+                continue
+            false_positives += 1
         frames_done += 1
         if overlay_dir is not None:
             cv2.imwrite(str(overlay_dir / frame["file"]), draw(image, boxes))

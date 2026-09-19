@@ -1,0 +1,58 @@
+{"agent": "concept-drafter", "prompt_version": "e38f9e0effb9", "packet": "q7-policies-sim",
+ "topic": "Visuomotor and vision-language-action robot policies",
+ "scope": "Also covers how such policies and their perception modules are trained in simulation and carried to real robots (sim-to-real transfer, domain randomization) and the simulated grasp datasets they learn from; simulator engineering itself stays out.",
+ "concepts": [
+  {"title": "Sim-to-real transfer", "status": "at-bar", "element_type": "process",
+   "definition": "Deploying a policy or perception model trained in simulation on a physical robot, which works only insofar as the model survives the gap between simulated and real dynamics, sensing and appearance.",
+   "aliases": [], "suggested_as": ["Sim-to-real transfer"],
+   "evidence": [
+    {"id": "^mittal2023orbit-016", "phrase": "sim-to-real transfer"},
+    {"id": "^mittal2023orbit-045", "phrase": "sim-to-real transfer"},
+    {"id": "^tobin2017domain-005", "phrase": "sim-to-real transfer"},
+    {"id": "^zakka2025mujoco-001", "phrase": "sim-to-real reinforcement learning"},
+    {"id": "^zakka2025mujoco-057", "phrase": "sim-to-real performance"},
+    {"id": "^chen2025pi-065", "phrase": "sim-to-real deployment"},
+    {"id": "^ren2024diffusion-059", "phrase": "sim-to-real transfer"},
+    {"id": "^li2025simplevla-052", "phrase": "Sim-to-real experiments"},
+    {"id": "^lu2023markerless-013", "phrase": "sim-to-real transfer"},
+    {"id": "^fang2022anygrasp-058", "phrase": "sim-to-real technology"},
+    {"id": "^chanrungmaneekul2025arc-004", "phrase": "sim-to-real gap"},
+    {"id": "^li2025labutopia-067", "phrase": "sim-to-real gap"},
+    {"id": "^wyk2021geometric-047", "phrase": "sim-to-real gap"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Reality gap", "why": "Tobin2017domain suggests it separately; claims use 'sim-to-real gap' for the discrepancy that this transfer must bridge. Here it is folded in, but it could stand as its own phenomenon."},
+    {"name": "Domain randomization", "why": "A technique for achieving sim-to-real transfer, drafted as a separate extra concept; not the same thing."}
+   ]},
+  {"title": "ACRONYM dataset", "status": "at-bar", "element_type": "instrument",
+   "definition": "A large simulated grasp dataset of ShapeNet object meshes, each with many physics-checked parallel-jaw grasps, that is widely used to train and evaluate 6-DoF grasp generators.",
+   "aliases": ["ACRONYM", "Acronym"], "suggested_as": ["ACRONYM dataset"],
+   "evidence": [
+    {"id": "^sundermeyer2021contact-019", "phrase": "ACRONYM dataset"},
+    {"id": "^bukhari2026fast-025", "phrase": "ACRONYM"},
+    {"id": "^bukhari2026fast-061", "phrase": "ACRONYM"},
+    {"id": "^urain2022se-027", "phrase": "Acronym"}
+   ],
+   "relations": [], "near_pairs": []},
+  {"title": "Domain randomization", "status": "extra", "element_type": "method",
+   "definition": "Training on many simulated environments with randomized textures, lighting, camera, geometry or dynamics, so that the real world looks like just another variation and a model trained only in simulation transfers.",
+   "aliases": [], "suggested_as": [],
+   "evidence": [
+    {"id": "^tobin2017domain-003", "phrase": "Domain randomization"},
+    {"id": "^tobin2017domain-004", "phrase": "domain randomization"},
+    {"id": "^tobin2017domain-054", "phrase": "texture randomization"},
+    {"id": "^tobin2017domain-066", "phrase": "domain randomization"},
+    {"id": "^labbe2020cosypose-021", "phrase": "domain randomization"},
+    {"id": "^chanrungmaneekul2025arc-008", "phrase": "domain-randomized synthetic training data"},
+    {"id": "^li2025simplevla-020", "phrase": "domain-randomized settings"},
+    {"id": "^zakka2025mujoco-011", "phrase": "per-instance domain randomization"},
+    {"id": "^zakka2025mujoco-022", "phrase": "domain randomization"},
+    {"id": "^zakka2025mujoco-033", "phrase": "visual domain randomization"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Synthetic training data for 6D pose estimation", "why": "Existing concept; randomized synthetic images are one kind of synthetic training data, but domain randomization also covers dynamics and policy training."}
+   ]}
+ ],
+ "struck": []}

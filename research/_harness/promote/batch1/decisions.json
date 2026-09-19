@@ -1,0 +1,24 @@
+{
+ "topics": {
+  "Visuomotor and vision-language-action robot policies": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the research batch, confirmed at the gate"
+  },
+  "Information geometry and natural-gradient optimization": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the research batch, confirmed at the gate"
+  },
+  "Equivariant networks and rotation representations": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the research batch, confirmed at the gate"
+  },
+  "6D object pose estimation": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the research batch, confirmed at the gate"
+  },
+  "Riemannian and Lie-group methods for robot motion and optimization": {
+   "parent": "root",
+   "reason": "new area for concepts promoted from the research batch, confirmed at the gate"
+  }
+ }
+}

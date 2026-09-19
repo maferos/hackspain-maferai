@@ -1,0 +1,241 @@
+{
+ "agent": "concept-drafter",
+ "prompt_version": "e38f9e0effb9",
+ "packet": "p1-information-geometry",
+ "topic": "Information geometry and natural-gradient optimization",
+ "scope": "The geometry of parametric probability models and the optimizers built on it: the Fisher information metric and its variants (Fisher-Rao, Wasserstein), divergences such as the Bregman family and the dually flat structure they induce, steepest descent under a metric (natural gradient, mirror descent, Wasserstein natural gradient), practical approximations of the Fisher (K-FAC, damping, Fisher-vector products), KL-constrained policy updates seen as natural-gradient steps (natural policy gradient, TRPO), and spectral views of wide networks through the Fisher and the Neural Tangent Kernel. It deliberately leaves out the reinforcement-learning machinery that is not geometric (PPO clipping, advantage estimation, Atari and MuJoCo benchmarking), Lie groups and pose representations, equivariant vision networks, Riemannian motion policies for robot control, and robot-learning datasets and policies, which belong to other areas.",
+ "concepts": [
+  {
+   "title": "Natural gradient descent",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "An optimization method that preconditions the loss gradient by the inverse of a Riemannian metric on parameter space, usually the Fisher information, so that each step follows steepest descent in the space of model distributions rather than in raw parameter coordinates.",
+   "aliases": [],
+   "suggested_as": ["Natural gradient descent"],
+   "evidence": [
+    {"id": "^martens2014new-004", "phrase": "natural gradient descent"},
+    {"id": "^martens2014new-037", "phrase": "Natural gradient methods"},
+    {"id": "^martens2014new-042", "phrase": "natural gradient descent"},
+    {"id": "^martens2015optimizing-004", "phrase": "natural gradient descent"},
+    {"id": "^nielsen2018elementary-048", "phrase": "Natural gradient descent"},
+    {"id": "^nielsen2018elementary-049", "phrase": "natural gradient"},
+    {"id": "^raskutti2013information-005", "phrase": "Natural gradient descent"},
+    {"id": "^raskutti2013information-037", "phrase": "natural gradient descent"},
+    {"id": "^arbel2019kernelized-001", "phrase": "natural gradient methods"},
+    {"id": "^li2018natural-021", "phrase": "Fisher-Rao natural gradient"},
+    {"id": "^karakida2019pathological-026", "phrase": "natural gradient methods"},
+    {"id": "^wu2017scalable-004", "phrase": "natural gradient"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Natural policy gradient", "why": "The same Fisher-preconditioned step applied to policy parameters; a reader may want it as a specialisation note rather than a separate concept."},
+    {"name": "Wasserstein natural gradient", "why": "Same steepest-descent construction with the Wasserstein metric in place of the Fisher-Rao metric; distinct metric, shared form."},
+    {"name": "Riemannian optimization", "why": "Natural gradient descent is recovered from Riemannian gradient descent with a first-order retraction of the exponential map (nielsen2018elementary-048, raskutti2013information-053)."},
+    {"name": "Mirror descent", "why": "Mirror descent with a Bregman divergence is equivalent to natural gradient descent on the dual manifold (raskutti2013information-020)."}
+   ]
+  },
+  {
+   "title": "Natural policy gradient",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "A policy-gradient method for reinforcement learning that preconditions the policy gradient by the inverse Fisher information of the policy, taking natural-gradient steps with a chosen step size.",
+   "aliases": [],
+   "suggested_as": ["Natural policy gradient"],
+   "evidence": [
+    {"id": "^schulman2015trust-034", "phrase": "natural policy gradient"},
+    {"id": "^schulman2015trust-035", "phrase": "Natural policy gradient"},
+    {"id": "^wu2017scalable-009", "phrase": "natural policy gradient"},
+    {"id": "^wu2017scalable-010", "phrase": "natural policy gradient"},
+    {"id": "^wu2017scalable-017", "phrase": "natural policy gradient"}
+   ],
+   "relations": [
+    {"target": "Trust region policy optimization", "type": "specialises", "evidence_id": "^schulman2015trust-034", "quote": "The natural policy gradient is obtained as a special case of the TRPO update"}
+   ],
+   "near_pairs": [
+    {"name": "Trust region policy optimization", "why": "TRPO computes the same Fisher-preconditioned direction but enforces a KL constraint per update instead of a fixed step size (schulman2015trust-035)."},
+    {"name": "Natural gradient descent", "why": "Natural policy gradient is natural gradient descent applied to a policy's parameters."}
+   ]
+  },
+  {
+   "title": "Wasserstein natural gradient",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "A natural gradient in which the parameter-space metric is the pull-back of the Wasserstein-2 metric instead of the Fisher-Rao metric, so the update accounts for a ground metric on sample space and stays defined for models without a density.",
+   "aliases": ["WNG"],
+   "suggested_as": ["Wasserstein natural gradient"],
+   "evidence": [
+    {"id": "^arbel2019kernelized-010", "phrase": "Wasserstein natural gradient"},
+    {"id": "^arbel2019kernelized-012", "phrase": "Wasserstein natural gradient"},
+    {"id": "^arbel2019kernelized-035", "phrase": "Wasserstein natural gradient"},
+    {"id": "^arbel2019kernelized-043", "phrase": "exact WNG"},
+    {"id": "^arbel2019kernelized-046", "phrase": "exact WNG"},
+    {"id": "^li2018natural-001", "phrase": "Wasserstein natural gradient"},
+    {"id": "^li2018natural-020", "phrase": "Wasserstein natural gradient"},
+    {"id": "^li2018natural-043", "phrase": "Wasserstein natural gradient"},
+    {"id": "^li2018natural-059", "phrase": "Wasserstein gradient"},
+    {"id": "^li2018natural-061", "phrase": "Wasserstein gradient"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Kernelized Wasserstein natural gradient (KWNG)", "why": "KWNG is an RKHS/Nyström estimator of the Wasserstein natural gradient (arbel2019kernelized-015), not the same object; could be its own method note."},
+    {"name": "Natural gradient descent", "why": "Same steepest-descent form under a different metric; li2018natural-021 frames it as replacing the KL constraint of the Fisher-Rao natural gradient."}
+   ]
+  },
+  {
+   "title": "Trust region policy optimization",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "A policy-optimization algorithm that maximizes a surrogate advantage objective subject to a bound on the average KL divergence between old and new policies, solved with conjugate gradient on Fisher-vector products and a line search.",
+   "aliases": ["TRPO"],
+   "suggested_as": ["Trust region policy optimization"],
+   "evidence": [
+    {"id": "^schulman2015trust-002", "phrase": "trust region policy optimization"},
+    {"id": "^schulman2015trust-019", "phrase": "TRPO"},
+    {"id": "^schulman2015trust-021", "phrase": "TRPO"},
+    {"id": "^schulman2015trust-031", "phrase": "TRPO"},
+    {"id": "^schulman2015trust-032", "phrase": "TRPO"},
+    {"id": "^schulman2015trust-045", "phrase": "TRPO"},
+    {"id": "^schulman2017proximal-003", "phrase": "TRPO"},
+    {"id": "^schulman2017proximal-008", "phrase": "TRPO"},
+    {"id": "^schulman2017proximal-009", "phrase": "TRPO"},
+    {"id": "^wu2017scalable-005", "phrase": "TRPO"},
+    {"id": "^wu2017scalable-006", "phrase": "TRPO"},
+    {"id": "^wu2017scalable-033", "phrase": "TRPO"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Natural policy gradient", "why": "Natural policy gradient is the special case of the TRPO update with a fixed step size instead of a KL constraint."},
+    {"name": "Proximal policy optimization", "why": "PPO is a first-order method designed to emulate TRPO's trust region (schulman2017proximal-004); a different algorithm, not in this packet's names."}
+   ]
+  },
+  {
+   "title": "Bregman divergence",
+   "status": "at-bar",
+   "element_type": "concept",
+   "definition": "The divergence induced by a strictly convex, differentiable function as the gap between the function and its first-order Taylor approximation, which corresponds one-to-one with exponential families and induces a dually flat Hessian geometry.",
+   "aliases": [],
+   "suggested_as": ["Bregman divergence"],
+   "evidence": [
+    {"id": "^raskutti2013information-014", "phrase": "The Bregman divergence"},
+    {"id": "^raskutti2013information-015", "phrase": "The Bregman divergence"},
+    {"id": "^raskutti2013information-018", "phrase": "Bregman divergences"},
+    {"id": "^raskutti2013information-019", "phrase": "Bregman divergences"},
+    {"id": "^raskutti2013information-020", "phrase": "Bregman divergence"},
+    {"id": "^raskutti2013information-025", "phrase": "dual Bregman divergence"},
+    {"id": "^raskutti2013information-026", "phrase": "Bregman divergence"},
+    {"id": "^raskutti2013information-032", "phrase": "Bregman divergence"},
+    {"id": "^nielsen2018elementary-044", "phrase": "symmetric Bregman divergences"},
+    {"id": "^nielsen2018elementary-054", "phrase": "Bregman divergence"},
+    {"id": "^nielsen2018elementary-056", "phrase": "Bregman divergence"},
+    {"id": "^nielsen2018elementary-066", "phrase": "scalar Bregman divergence"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Kullback-Leibler divergence", "why": "For exponential families the Bregman divergence of the log-normalizer coincides with a KL divergence (raskutti2013information-014, nielsen2018elementary-045); related, not identical."}
+   ]
+  },
+  {
+   "title": "Neural Tangent Kernel",
+   "status": "at-bar",
+   "element_type": "concept",
+   "definition": "The kernel formed by inner products of a network's output gradients with respect to its parameters, which governs gradient-descent training dynamics in function space and becomes deterministic and constant during training in the infinite-width limit.",
+   "aliases": ["NTK"],
+   "suggested_as": ["Neural Tangent Kernel"],
+   "evidence": [
+    {"id": "^jacot2018neural-019", "phrase": "NTK"},
+    {"id": "^jacot2018neural-021", "phrase": "NTK"},
+    {"id": "^jacot2018neural-022", "phrase": "limiting NTK"},
+    {"id": "^jacot2018neural-023", "phrase": "NTK"},
+    {"id": "^jacot2018neural-028", "phrase": "limiting NTK"},
+    {"id": "^jacot2018neural-058", "phrase": "NTK"},
+    {"id": "^jacot2018neural-059", "phrase": "limiting NTK"},
+    {"id": "^karakida2019pathological-041", "phrase": "NTK"},
+    {"id": "^karakida2019pathological-042", "phrase": "NTK parameterization"},
+    {"id": "^karakida2019pathological-044", "phrase": "NTK parameterization"},
+    {"id": "^karakida2019pathological-046", "phrase": "NTK dynamics"},
+    {"id": "^karakida2019pathological-049", "phrase": "NTK eigenvalues"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Fisher information matrix", "why": "The empirical FIM and the NTK share the same non-zero eigenvalues (karakida2019pathological-041); dual views of one Jacobian Gram structure, not the same object."}
+   ]
+  },
+  {
+   "title": "Fisher information matrix",
+   "status": "extra",
+   "element_type": "concept",
+   "definition": "The expected outer product of log-likelihood gradients under a model's own distribution, which serves as the invariant Riemannian metric on a parametric family and as the curvature matrix that natural-gradient methods invert.",
+   "aliases": ["FIM", "Fisher information metric", "Fisher-Rao metric"],
+   "suggested_as": [],
+   "evidence": [
+    {"id": "^nielsen2018elementary-026", "phrase": "The Fisher information matrix"},
+    {"id": "^nielsen2018elementary-030", "phrase": "The Fisher information matrix"},
+    {"id": "^nielsen2018elementary-033", "phrase": "The Fisher information metric"},
+    {"id": "^li2018natural-002", "phrase": "Fisher-Rao metric"},
+    {"id": "^raskutti2013information-006", "phrase": "Fisher information matrices"},
+    {"id": "^raskutti2013information-007", "phrase": "Fisher information metric"},
+    {"id": "^martens2014new-005", "phrase": "the Fisher"},
+    {"id": "^martens2015optimizing-011", "phrase": "exact Fisher information matrix"},
+    {"id": "^karakida2019pathological-011", "phrase": "The FIM for cross-entropy loss"},
+    {"id": "^karakida2019pathological-026", "phrase": "FIM"},
+    {"id": "^schulman2015trust-032", "phrase": "Fisher information matrix"},
+    {"id": "^wu2017scalable-004", "phrase": "Fisher information matrix"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Empirical Fisher", "why": "Martens2014new uses 'empirical Fisher' for the training-target approximation, which is not the Fisher in general (martens2014new-025, -026); Karakida2019pathological uses 'empirical FIM' for the sample-averaged true FIM. Keep both out of this note's aliases."},
+    {"name": "Generalized Gauss-Newton matrix", "why": "Equals the Fisher when the output distribution is an exponential family in natural parameters (martens2014new-006), but is defined differently."},
+    {"name": "Neural Tangent Kernel", "why": "Shares the non-zero eigenvalues of the empirical FIM (karakida2019pathological-041)."}
+   ]
+  },
+  {
+   "title": "Mirror descent",
+   "status": "extra",
+   "element_type": "method",
+   "definition": "A first-order optimization method that replaces the squared Euclidean proximity term of a gradient step with another proximity function, typically a Bregman divergence, and is equivalent to natural gradient descent on the dual manifold.",
+   "aliases": [],
+   "suggested_as": [],
+   "evidence": [
+    {"id": "^raskutti2013information-001", "phrase": "mirror descent"},
+    {"id": "^raskutti2013information-012", "phrase": "Mirror descent"},
+    {"id": "^raskutti2013information-013", "phrase": "mirror descent"},
+    {"id": "^raskutti2013information-020", "phrase": "mirror descent"},
+    {"id": "^raskutti2013information-032", "phrase": "mirror descent"},
+    {"id": "^raskutti2013information-035", "phrase": "Mirror descent"},
+    {"id": "^raskutti2013information-046", "phrase": "mirror descent"},
+    {"id": "^raskutti2013information-047", "phrase": "mirror descent"},
+    {"id": "^raskutti2013information-054", "phrase": "mirror descent"},
+    {"id": "^nielsen2018elementary-050", "phrase": "Bregman mirror descent"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Natural gradient descent", "why": "Proven equivalent to natural gradient descent on the dual Riemannian manifold (raskutti2013information-020); different algorithm and coordinates, same trajectory."}
+   ]
+  },
+  {
+   "title": "Kronecker-factored approximate curvature",
+   "status": "extra",
+   "element_type": "method",
+   "definition": "An approximate natural-gradient optimizer for neural networks that models each layer's Fisher block as the Kronecker product of activation and back-propagated-derivative second-moment matrices, so the curvature can be inverted cheaply.",
+   "aliases": ["K-FAC", "KFAC"],
+   "suggested_as": [],
+   "evidence": [
+    {"id": "^martens2015optimizing-004", "phrase": "Kronecker-factored Approximate Curvature"},
+    {"id": "^martens2015optimizing-005", "phrase": "K-FAC"},
+    {"id": "^martens2015optimizing-044", "phrase": "K-FAC"},
+    {"id": "^martens2015optimizing-046", "phrase": "K-FAC"},
+    {"id": "^martens2015optimizing-047", "phrase": "block-diagonal K-FAC"},
+    {"id": "^martens2015optimizing-058", "phrase": "K-FAC"},
+    {"id": "^wu2017scalable-007", "phrase": "K-FAC"},
+    {"id": "^wu2017scalable-014", "phrase": "K-FAC"},
+    {"id": "^wu2017scalable-016", "phrase": "K-FAC"},
+    {"id": "^arbel2019kernelized-060", "phrase": "KFAC"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "Natural gradient descent", "why": "K-FAC is an efficient approximation of natural gradient descent (martens2015optimizing-004, wu2017scalable-007); a relation of type 'approximates' has no slot in the allowed relation types."}
+   ]
+  }
+ ],
+ "struck": []
+}

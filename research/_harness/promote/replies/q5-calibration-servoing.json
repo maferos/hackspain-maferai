@@ -1,0 +1,377 @@
+{
+ "agent": "concept-drafter",
+ "prompt_version": "e38f9e0effb9",
+ "packet": "q5-calibration-servoing",
+ "topic": "Camera-robot calibration and visual servoing",
+ "scope": "How a camera is tied geometrically to a robot and how image measurements then close the control loop: extrinsic hand-eye and robot-world calibration (AX = XB, AX = YB), its marker-based, markerless and certifiably optimal solvers, camera-to-robot pose estimation used as online calibration, and visual servoing controllers (image-based, position-based, direct and learned). It deliberately excludes object 6D pose estimation for its own sake, camera intrinsic calibration, and end-to-end visuomotor policies that do not servo to a goal image or pose; those belong to their own areas.",
+ "concepts": [
+  {
+   "title": "Markerless hand-eye calibration",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "Markerless hand-eye calibration estimates the camera-to-robot transform from images of the robot itself, using keypoints, rendered masks, tracked points or exploratory motions instead of fiducial boards or tags.",
+   "aliases": [
+    "Markerless camera-to-robot calibration"
+   ],
+   "suggested_as": [
+    "Markerless hand-eye calibration"
+   ],
+   "evidence": [
+    {
+     "id": "^chanrungmaneekul2025arc-001",
+     "phrase": "markerless camera-to-robot calibration"
+    },
+    {
+     "id": "^chanrungmaneekul2025arc-006",
+     "phrase": "Keypoint-based markerless approaches"
+    },
+    {
+     "id": "^chanrungmaneekul2025arc-008",
+     "phrase": "Rendering-based markerless calibration methods"
+    },
+    {
+     "id": "^chanrungmaneekul2025arc-009",
+     "phrase": "learned markerless calibration networks"
+    },
+    {
+     "id": "^chen2023easyhec-003",
+     "phrase": "learning-based markerless calibration approaches"
+    },
+    {
+     "id": "^chen2023easyhec-006",
+     "phrase": "markerless, white-box hand-eye calibration system"
+    },
+    {
+     "id": "^lu2023markerless-002",
+     "phrase": "online calibration"
+    },
+    {
+     "id": "^tang2024kalib-002",
+     "phrase": "prior markerless methods"
+    },
+    {
+     "id": "^tang2024kalib-005",
+     "phrase": "automatic hand-eye calibration method"
+    },
+    {
+     "id": "^tang2024kalib-009",
+     "phrase": "Pioneering markerless methods"
+    },
+    {
+     "id": "^tang2024kalib-054",
+     "phrase": "markerless methods"
+    },
+    {
+     "id": "^chen2023easyhec-014",
+     "phrase": "Marker-free Structure-from-Motion calibration methods"
+    }
+   ],
+   "relations": [],
+   "near_pairs": [
+    {
+     "name": "Hand-eye calibration (AX = XB)",
+     "why": "Same estimation target (camera-robot extrinsic); markerless methods replace the AX = XB objective and the fiducial target, so the reader may prefer one note with a markerless section."
+    }
+   ]
+  },
+  {
+   "title": "Hand-eye calibration (AX = XB)",
+   "status": "at-bar",
+   "element_type": "process",
+   "definition": "Hand-eye calibration estimates the fixed rigid transform between a camera and a robot, or between two rigidly linked egomotion sensors, classically by solving AX = XB from paired relative motions, usually observed through a fiducial target.",
+   "aliases": [
+    "Hand-eye calibration",
+    "AX = XB"
+   ],
+   "suggested_as": [
+    "Hand-eye calibration (AX = XB)"
+   ],
+   "evidence": [
+    {
+     "id": "^chanrungmaneekul2025arc-002",
+     "phrase": "classic AX = XB equation"
+    },
+    {
+     "id": "^chanrungmaneekul2025arc-046",
+     "phrase": "traditional AprilTag-based hand-eye calibration"
+    },
+    {
+     "id": "^chen2023easyhec-001",
+     "phrase": "Traditional hand-eye calibration methods"
+    },
+    {
+     "id": "^chen2023easyhec-007",
+     "phrase": "transformation-equivalence objective AX = XB"
+    },
+    {
+     "id": "^chen2026optimal-002",
+     "phrase": "AX = XB"
+    },
+    {
+     "id": "^chen2026optimal-009",
+     "phrase": "Linear hand-eye calibration methods"
+    },
+    {
+     "id": "^tang2024kalib-001",
+     "phrase": "Traditional hand-eye calibration"
+    },
+    {
+     "id": "^tang2024kalib-004",
+     "phrase": "hand-eye calibration"
+    },
+    {
+     "id": "^wise2020certifiably-001",
+     "phrase": "certifiably optimal hand-eye calibration method"
+    },
+    {
+     "id": "^wise2020certifiably-005",
+     "phrase": "AX = XB hand-eye formulation"
+    },
+    {
+     "id": "^wise2020certifiably-006",
+     "phrase": "hand-eye calibration QCQP"
+    },
+    {
+     "id": "^wise2020certifiably-009",
+     "phrase": "hand-eye solutions"
+    }
+   ],
+   "relations": [],
+   "near_pairs": [
+    {
+     "name": "Robot-world and hand-eye calibration (AX = YB)",
+     "why": "Chen2026optimal-002 states AX = YB can be transformed into AX = XB and is the more general formulation; the reader may fold one into the other."
+    },
+    {
+     "name": "Markerless hand-eye calibration",
+     "why": "Solves the same extrinsic problem without markers."
+    }
+   ]
+  },
+  {
+   "title": "Visual servoing",
+   "status": "top-down",
+   "element_type": "method",
+   "definition": "Visual servoing controls a robot or camera velocity in closed loop from visual feedback so that the current image, or the pose estimated from it, converges to a desired one.",
+   "aliases": [],
+   "suggested_as": [
+    "Visual servoing"
+   ],
+   "evidence": [
+    {
+     "id": "^bateux2017visual-001",
+     "phrase": "visual servoing"
+    },
+    {
+     "id": "^bateux2017visual-002",
+     "phrase": "Direct visual servoing"
+    },
+    {
+     "id": "^bateux2017visual-003",
+     "phrase": "direct visual servoing"
+    },
+    {
+     "id": "^bateux2017visual-045",
+     "phrase": "CNN-based visual servoing"
+    },
+    {
+     "id": "^harish2020dfvs-002",
+     "phrase": "Direct visual servoing"
+    },
+    {
+     "id": "^harish2020dfvs-003",
+     "phrase": "Classical visual servoing"
+    },
+    {
+     "id": "^harish2020dfvs-008",
+     "phrase": "deep reinforcement learning visual servoing approaches"
+    },
+    {
+     "id": "^harish2020dfvs-025",
+     "phrase": "Photometric visual servoing"
+    },
+    {
+     "id": "^lu2023markerless-052",
+     "phrase": "visual servoing"
+    },
+    {
+     "id": "^scherl2025vit-001",
+     "phrase": "Classical visual servoing methods"
+    },
+    {
+     "id": "^scherl2025vit-002",
+     "phrase": "Learning-based visual servoing methods"
+    },
+    {
+     "id": "^chen2023cns-003",
+     "phrase": "Implicit end-to-end servo methods"
+    }
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Robot-world and hand-eye calibration (AX = YB)",
+   "status": "extra",
+   "element_type": "process",
+   "definition": "Robot-world and hand-eye calibration jointly estimates two unknown rigid transforms, the sensor-to-hand transform X and the base-to-world or target transform Y, from paired measurements related by AX = YB, and generalizes the classical AX = XB problem to multiple sensors or targets.",
+   "aliases": [
+    "RWHEC",
+    "AX = YB"
+   ],
+   "suggested_as": [],
+   "evidence": [
+    {
+     "id": "^chen2026optimal-001",
+     "phrase": "AX = YB problem"
+    },
+    {
+     "id": "^chen2026optimal-002",
+     "phrase": "AX = YB formulation"
+    },
+    {
+     "id": "^chen2026optimal-053",
+     "phrase": "closed-form constructions of AX = YB"
+    },
+    {
+     "id": "^wise2025certifably-001",
+     "phrase": "robot-world and hand-eye calibration"
+    },
+    {
+     "id": "^wise2025certifably-003",
+     "phrase": "generalized robot-world and hand-eye calibration problem"
+    },
+    {
+     "id": "^wise2025certifably-004",
+     "phrase": "Two-stage closed-form RWHEC solvers"
+    },
+    {
+     "id": "^wise2025certifably-010",
+     "phrase": "maximum likelihood RWHEC problem"
+    },
+    {
+     "id": "^wise2025certifably-042",
+     "phrase": "monocular RWHEC solvers"
+    },
+    {
+     "id": "^wise2020certifiably-054",
+     "phrase": "Robot-world calibration"
+    },
+    {
+     "id": "^chi2024universal-010",
+     "phrase": "camera-robot-world calibration"
+    }
+   ],
+   "relations": [],
+   "near_pairs": [
+    {
+     "name": "Hand-eye calibration (AX = XB)",
+     "why": "AX = XB is the special case with one unknown; Chen2026optimal-002 calls AX = YB the more general formulation."
+    }
+   ]
+  },
+  {
+   "title": "Image-based visual servoing",
+   "status": "extra",
+   "element_type": "method",
+   "definition": "Image-based visual servoing computes the camera velocity directly from the error between current and desired image features through the pseudoinverse of an interaction matrix, without reconstructing the relative pose.",
+   "aliases": [
+    "IBVS",
+    "image based visual servoing"
+   ],
+   "suggested_as": [],
+   "evidence": [
+    {
+     "id": "^harish2020dfvs-001",
+     "phrase": "image based visual servoing"
+    },
+    {
+     "id": "^harish2020dfvs-013",
+     "phrase": "image based servoing"
+    },
+    {
+     "id": "^chen2023cns-001",
+     "phrase": "Classical IBVS methods"
+    },
+    {
+     "id": "^chen2023cns-007",
+     "phrase": "IBVS"
+    },
+    {
+     "id": "^chen2023cns-039",
+     "phrase": "IBVS controller"
+    },
+    {
+     "id": "^chen2023cns-048",
+     "phrase": "IBVS"
+    },
+    {
+     "id": "^scherl2025vit-004",
+     "phrase": "image-based visual servoing"
+    },
+    {
+     "id": "^scherl2025vit-018",
+     "phrase": "classical IBVS"
+    },
+    {
+     "id": "^scherl2025vit-031",
+     "phrase": "ORB IBVS"
+    },
+    {
+     "id": "^scherl2025vit-032",
+     "phrase": "classical IBVS method"
+    },
+    {
+     "id": "^scherl2025vit-035",
+     "phrase": "classical IBVS methods"
+    }
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Position-based visual servoing",
+   "status": "extra",
+   "element_type": "method",
+   "definition": "Position-based visual servoing first estimates the relative 3D pose between the current and desired camera configurations from images and then drives the robot with a Cartesian control law on that pose error.",
+   "aliases": [
+    "PBVS",
+    "pose-based visual servoing"
+   ],
+   "suggested_as": [],
+   "evidence": [
+    {
+     "id": "^bateux2017visual-007",
+     "phrase": "position-based visual servoing"
+    },
+    {
+     "id": "^bateux2017visual-014",
+     "phrase": "pose-based visual servoing"
+    },
+    {
+     "id": "^chen2023cns-002",
+     "phrase": "Position-based visual servoing"
+    },
+    {
+     "id": "^chen2023cns-007",
+     "phrase": "PBVS"
+    },
+    {
+     "id": "^chen2023cns-028",
+     "phrase": "PBVS"
+    },
+    {
+     "id": "^harish2020dfvs-004",
+     "phrase": "traditional PBVS controller"
+    },
+    {
+     "id": "^lu2023markerless-051",
+     "phrase": "PBVS"
+    }
+   ],
+   "relations": [],
+   "near_pairs": []
+  }
+ ],
+ "struck": []
+}

@@ -1,0 +1,4 @@
+Content/Papers/*.pdf
+_harness/cache/
+_harness/runs/
+_harness/promote/packets/
