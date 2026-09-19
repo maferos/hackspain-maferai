@@ -347,6 +347,11 @@ class Lab:
         self.wrist_mocap = int(m.body_mocapid[m.cam_bodyid[wrist]])
         self.wrist_local = (m.cam_pos[wrist].copy(), m.cam_quat[wrist].copy())
         self.renderers: dict[tuple[int, int], mujoco.Renderer] = {}
+        self.render_flags: dict[tuple[int, int], np.ndarray] = {}
+        """Each renderer's scene flags as created: shadows and reflections on.
+        The segmentation passes turn those two off on the same renderer, and
+        ``Renderer.render`` restores only what it changes itself, so every
+        colour frame puts these back first."""
 
     def reset(self) -> None:
         """Put every bottle back where the scene file has it, and park the extras"""
@@ -444,7 +449,11 @@ class Lab:
         )  # fmt: skip
         return dist < 0 or dist > length
 
-    def aim_wrist_at_random_bottle(self, rng: np.random.Generator) -> bool:
+    def aim_wrist_at_random_bottle(
+        self,
+        rng: np.random.Generator,
+        reach_range: tuple[float, float] = WRIST_RANGE,
+    ) -> bool:
         """Fly the wrist camera to a random bottle standing on the worktop
 
         Returns:
@@ -463,7 +472,7 @@ class Lab:
             outward = -1.0 if base[1] < 0 else 1.0
             azimuth = np.radians(rng.uniform(-WRIST_AZIMUTH_DEG, WRIST_AZIMUTH_DEG))
             elevation = np.radians(rng.uniform(*WRIST_ELEVATION_DEG))
-            reach = rng.uniform(*WRIST_RANGE)
+            reach = rng.uniform(*reach_range)
             position = aim + reach * np.array(
                 [
                     np.cos(elevation) * np.sin(azimuth),
@@ -575,6 +584,24 @@ class Lab:
         m.geom_group[geoms] = SAMPLE_GROUP
         return area, low, high
 
+    def renderer(self, width: int, height: int) -> mujoco.Renderer:
+        """The renderer for a frame size, created once and kept"""
+        key = (width, height)
+        if key not in self.renderers:
+            self.renderers[key] = mujoco.Renderer(
+                self.model, height=height, width=width
+            )
+            self.render_flags[key] = self.renderers[key].scene.flags.copy()
+        return self.renderers[key]
+
+    def rgb(self, camera: int, width: int, height: int) -> np.ndarray:
+        """The RGB frame a camera sees, lit as the scene lights it, without truth"""
+        r = self.renderer(width, height)
+        mujoco.mj_camlight(self.model, self.data)
+        r.update_scene(self.data, camera=camera, scene_option=self.opt_rgb)
+        np.copyto(r.scene.flags, self.render_flags[(width, height)])
+        return r.render()
+
     def render(
         self, camera: int, width: int, height: int
     ) -> tuple[np.ndarray, list, np.ndarray]:
@@ -584,17 +611,9 @@ class Lab:
             The RGB frame, one record per bottle that has any pixel in view, and
             the per-pixel category map.
         """
-        key = (width, height)
-        if key not in self.renderers:
-            self.renderers[key] = mujoco.Renderer(
-                self.model, height=height, width=width
-            )
-        r = self.renderers[key]
+        rgb = self.rgb(camera, width, height)
+        r = self.renderer(width, height)
         d = self.data
-        mujoco.mj_camlight(self.model, d)
-
-        r.update_scene(d, camera=camera, scene_option=self.opt_rgb)
-        rgb = r.render()
         r.enable_segmentation_rendering()
 
         def segment(option: mujoco.MjvOption) -> np.ndarray:
@@ -684,6 +703,14 @@ def main() -> None:
     parser.add_argument(
         "--wrist", type=int, default=40, help="frames from the wrist camera"
     )
+    parser.add_argument(
+        "--wrist-range",
+        type=float,
+        nargs=2,
+        default=WRIST_RANGE,
+        metavar=("NEAR", "FAR"),
+        help="wrist camera to target bottle, metres (default %(default)s)",
+    )
     parser.add_argument("--no-as-built", action="store_true", help="skip as_built")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
@@ -756,7 +783,7 @@ def main() -> None:
         x0 = rng.uniform(*BENCH_X)
         side = (int(rng.choice((-1, 1))),)
         lab.scatter(rng, int(rng.integers(4, 9)), (x0 - 0.4, x0 + 0.4), side)
-        if lab.aim_wrist_at_random_bottle(rng):
+        if lab.aim_wrist_at_random_bottle(rng, tuple(args.wrist_range)):
             save("wrist", wrist, *resolution(wrist))
             done += 1
 
