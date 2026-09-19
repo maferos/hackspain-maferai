@@ -292,6 +292,51 @@ weights need manual approval on Hugging Face and it is 848 M parameters, 10 to
 seconds per frame on CPU, resize the frame to 800 px, which halves the bottles);
 DINO-X and Grounding DINO 1.5/1.6 (cloud API only).
 
+### A model fine-tuned on real lab equipment, tried and rejected
+
+"Chemistry Lab Object Detection" (Roboflow Universe, `chemex/chemistry-lab-object-detection`,
+YOLOv12n, 26 real chemistry-apparatus classes including `Reagent_Bottle`,
+`Wash_Bottle`, `Weighing_Bottle` and `Nessler_Reagent_Bottle`, self-reported
+0.99 mAP50) looked promising: a detector trained on lab bottles specifically,
+not everyday vessels or COCO. It ships no downloadable weights, only a hosted
+inference API (`labvision`'s benchmark now has `fixedcam_models.RoboflowPredictor`
+for this, model key `chemex-bottles`, needs `ROBOFLOW_API_KEY`).
+
+Scored the same way as the other three, worktop filter, `+roi`:
+
+| split | model | frames | AP50 | recall | false/frame |
+| --- | --- | --- | --- | --- | --- |
+| `test` | chemex-bottles+roi | 30 | 0.000 | 0.000 | 0.00 |
+
+Zero boxes on all 55 `val` and `test` frames scored, at every confidence down
+to 0. That is not the whole story, though, and a first pass at explaining it
+here (only a real photo of a crowded shelf, misclassified everything) was
+wrong to call it pure overfitting: the model does generalise, unevenly, to
+real photos it never trained on:
+
+- Three unrelated Wikimedia photos of a plain Erlenmeyer flask (nothing to do
+  with Chemex's dataset) are all found as `Conical_Flask` at 0.80-0.90
+  confidence. A conical flask has one universal silhouette, and the model has
+  genuinely learned it, not memorised its own backgrounds.
+- Real photos of an actual reagent bottle are much shakier: one is named
+  `Reagent_Bottle` correctly but at only 0.30, another is called `Beaker` at
+  0.74. Bottles vary far more in real-world shape than a flask does, and it
+  shows: the class we need is the model's weak one even on real photographs.
+- Our own bottles, cropped tight and upscaled 2.5x (a fair, generous size, well
+  above the reliable floor for other models here), do carry a trace of the
+  right answer: `Reagent_Bottle` at 0.01-0.04. That is a further ten-fold drop
+  from the already-weak 0.30 on a real bottle photo, which is what a genuine
+  sim-to-real gap stacked on an already-weak class looks like — not nothing,
+  not the strong signal a flask gets, low enough to disappear under any
+  sane threshold.
+
+So: a real, if partial, sim-to-real gap on top of a class the model was never
+that confident about to begin with. **Lesson for reading any Universe model's
+self-reported mAP: it says nothing about how the model does on your class in
+particular, on images outside its own set** — test the exact class you need,
+not the model's best one. No further tuning attempted; `chemex-bottles+roi`
+stays in `fixedcam_bench.py` for anyone who wants to re-check a newer version.
+
 ### Fine-tuned
 
 - **YOLO26** (Ultralytics, January 2026). NMS-free head, no DFL, and STAL, a
@@ -348,6 +393,36 @@ python scripts/fixedcam_bench.py run \
 downgrades numpy and adds `opencv-python-headless` next to `opencv-python`.
 On Windows, `PYTHONUTF8=1` is needed or `rich` fails printing the COCO table.
 Drop `--freeze-encoder` on a GPU: the full model is the stronger one.
+
+To train YOLO26n properly on the same GPU, instead of the one-epoch checkpoint
+above: `runs/fixedcam/train_yolo26n_gpu.py` restarts from the COCO weights
+with mosaic, RAM caching and a full worker pool (no CPU-throttle chunking).
+[`../../propuesta_gpu.md`](../../propuesta_gpu.md) specs the hardware
+(Ampere/Ada, >= 24 GB VRAM, driver 570/580); provision it per
+[`../../simulation/runpod-render.md`](../../simulation/runpod-render.md) §1
+using one of that proposal's recommended cards (`NVIDIA A40`, `NVIDIA L40S`,
+`NVIDIA RTX A6000` or `NVIDIA GeForce RTX 4090`), then:
+
+The script keeps the same relative layout as this repo (`../yolo26n.pt`,
+`../simulation/out/...`), so mirror that under one remote directory:
+
+```bash
+ssh -i "$SSHK" -p "$PORT" -o StrictHostKeyChecking=accept-new root@"$IP" \
+    'mkdir -p /root/repo/computer-vision/runs/fixedcam /root/repo/simulation/out/fixedcam'
+scp -i "$SSHK" -P "$PORT" runs/fixedcam/train_yolo26n_gpu.py \
+    root@"$IP":/root/repo/computer-vision/runs/fixedcam/
+scp -i "$SSHK" -P "$PORT" ../yolo26n.pt root@"$IP":/root/repo/yolo26n.pt
+scp -i "$SSHK" -P "$PORT" -r ../simulation/out/fixedcam/crops384 \
+    root@"$IP":/root/repo/simulation/out/fixedcam/
+ssh -i "$SSHK" -p "$PORT" -o ServerAliveInterval=30 root@"$IP" \
+    'cd /root/repo/computer-vision && pip install -q ultralytics && python runs/fixedcam/train_yolo26n_gpu.py'
+scp -i "$SSHK" -P "$PORT" -r \
+    root@"$IP":/root/repo/computer-vision/runs/fixedcam/yolo26n_384_gpu ./runs/fixedcam/
+```
+
+Copy the resulting `weights/best.pt` to `runs/fixedcam/yolo26n_fixedcam.pt` and
+rerun `fixedcam_bench.py run "ft:runs/fixedcam/yolo26n_fixedcam.pt+roi"` to
+compare against the CPU checkpoint's 0.864 AP50 (`compare_test30.md`).
 
 
 ## Running it

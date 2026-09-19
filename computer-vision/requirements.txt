@@ -28,3 +28,9 @@ python-barcode>=0.16
 # numbers quoted in the module. YOLO-World also fetches a CLIP text encoder on
 # first use. Weights (~100 MB) download on first use into the working directory.
 ultralytics>=8.3
+
+# The fixed-camera benchmark's Roboflow-hosted backend (fixedcam_models.py)
+# calls the classic hosted inference API directly over HTTP, so this is the
+# only new dependency: the full `roboflow` package is avoided on purpose (see
+# docs/FIXED_CAMERA_BENCHMARK.md on why it is not installed whole for RF-DETR).
+requests>=2.31
