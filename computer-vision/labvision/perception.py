@@ -31,6 +31,7 @@ from pathlib import Path
 
 import numpy as np
 
+from labvision import bottles
 from labvision.camera import Camera, GeometryError
 from labvision.identify import MarkerReader, identify_frame
 from labvision.scene import BBox, locate, table_plane
@@ -161,6 +162,16 @@ def propose(
 
 
 @functools.lru_cache(maxsize=32)
+def _ring_mesh(vessel: str, kit: Path = KIT) -> np.ndarray:
+    """The vertices of a vessel's label mesh, as the scene's bottles carry it"""
+    return np.array([
+        line.split()[1:4]
+        for line in (kit / "meshes" / f"{vessel}_label.obj").read_text().splitlines()
+        if line.startswith("v ")
+    ], dtype=float)
+
+
+@functools.lru_cache(maxsize=32)
 def ring_geometry(vessel: str, kit: Path = KIT) -> tuple[float, float]:
     """Radius of a vessel's label ring and its centre's height above the base
 
@@ -170,14 +181,30 @@ def ring_geometry(vessel: str, kit: Path = KIT) -> tuple[float, float]:
     Returns:
         ``(radius, height)`` in metres.
     """
-    rows = [
-        line.split()[1:4]
-        for line in (kit / "meshes" / f"{vessel}_label.obj").read_text().splitlines()
-        if line.startswith("v ")
-    ]
-    vertices = np.array(rows, dtype=float)
+    vertices = _ring_mesh(vessel, kit)
     radius = float(np.median(np.hypot(vertices[:, 0], vertices[:, 1])))
     return radius, float((vertices[:, 2].min() + vertices[:, 2].max()) / 2)
+
+
+@functools.lru_cache(maxsize=32)
+def marker_side(vessel: str, kit: Path = KIT) -> float:
+    """Side of one printed marker on a vessel's ring, in metres
+
+    The ring holds ``bottles.RING_COPIES`` square cells side by side, so a cell
+    is the shorter of the band's height and the circumference over the copies,
+    and the marker is the part of the cell left once the quiet zone is taken
+    off (``bottles.ring_patch``). It is what a quad in a frame has to measure
+    to be this bottle's marker rather than some square of the room's own.
+
+    Returns:
+        The marker's side in metres.
+    """
+    vertices = _ring_mesh(vessel, kit)
+    radius = float(np.median(np.hypot(vertices[:, 0], vertices[:, 1])))
+    band = float(vertices[:, 2].max() - vertices[:, 2].min())
+    cell = min(band, 2 * math.pi * radius / bottles.RING_COPIES)
+    modules = bottles.ARUCO_MARKER_MODULES
+    return cell * modules / (modules + 2 * bottles.ARUCO_QUIET_MODULES)
 
 
 @functools.lru_cache(maxsize=32)

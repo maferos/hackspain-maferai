@@ -1,0 +1,366 @@
+{
+ "ifra": "IFRA Standards, 51st Amendment (2023), Category 4, max % in finished product",
+ "count": 40,
+ "compounds": [
+  {
+   "material": "Limonene",
+   "cas": "5989-27-5",
+   "family": "citrus",
+   "note": "top",
+   "odour": "sweet orange peel, bright, short-lived",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L"
+  },
+  {
+   "material": "Linalool",
+   "cas": "78-70-6",
+   "family": "floral",
+   "note": "top-heart",
+   "odour": "fresh floral-woody, lavender, bergamot",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L"
+  },
+  {
+   "material": "Geraniol",
+   "cas": "106-24-1",
+   "family": "rose",
+   "note": "heart",
+   "odour": "sweet rose, geranium, slightly citrus",
+   "ifra_cat4_max_pct": 4.7,
+   "ifra_note": null
+  },
+  {
+   "material": "Citral",
+   "cas": "5392-40-5",
+   "family": "citrus",
+   "note": "top",
+   "odour": "sharp lemon, lemongrass",
+   "ifra_cat4_max_pct": 0.6,
+   "ifra_note": null
+  },
+  {
+   "material": "Eugenol",
+   "cas": "97-53-0",
+   "family": "spicy",
+   "note": "heart-base",
+   "odour": "clove, warm, carnation",
+   "ifra_cat4_max_pct": 2.5,
+   "ifra_note": null
+  },
+  {
+   "material": "Benzaldehyde",
+   "cas": "100-52-7",
+   "family": "fruity",
+   "note": "top",
+   "odour": "bitter almond, cherry, marzipan",
+   "ifra_cat4_max_pct": 0.25,
+   "ifra_note": null
+  },
+  {
+   "material": "Citronellol",
+   "cas": "106-22-9",
+   "family": "rose",
+   "note": "heart",
+   "odour": "rose, waxy, geranium leaf",
+   "ifra_cat4_max_pct": 12.0,
+   "ifra_note": null
+  },
+  {
+   "material": "Nerol",
+   "cas": "106-25-2",
+   "family": "rose",
+   "note": "heart",
+   "odour": "fresh sweet rose, neroli, lemony",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Anethole",
+   "cas": "104-46-1",
+   "family": "spicy",
+   "note": "heart",
+   "odour": "anise, liquorice, sweet",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Cinnamaldehyde",
+   "cas": "104-55-2",
+   "family": "spicy",
+   "note": "heart",
+   "odour": "cinnamon bark, warm, hot",
+   "ifra_cat4_max_pct": 0.25,
+   "ifra_note": null
+  },
+  {
+   "material": "Carvone",
+   "cas": "99-49-0",
+   "family": "aromatic",
+   "note": "top",
+   "odour": "spearmint / caraway, herbal",
+   "ifra_cat4_max_pct": 0.59,
+   "ifra_note": null
+  },
+  {
+   "material": "alpha-Pinene",
+   "cas": "80-56-8",
+   "family": "coniferous",
+   "note": "top",
+   "odour": "pine, resinous, turpentine",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L"
+  },
+  {
+   "material": "alpha-Terpineol",
+   "cas": "98-55-5",
+   "family": "floral",
+   "note": "heart",
+   "odour": "lilac, pine, sweet floral",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Farnesol",
+   "cas": "4602-84-0",
+   "family": "floral",
+   "note": "base",
+   "odour": "linden blossom, muguet, green, soft; fixative",
+   "ifra_cat4_max_pct": 1.2,
+   "ifra_note": null
+  },
+  {
+   "material": "Nerolidol",
+   "cas": "7212-44-4",
+   "family": "woody",
+   "note": "base",
+   "odour": "fresh bark, green apple, floral-woody; fixative",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Benzyl acetate",
+   "cas": "140-11-4",
+   "family": "white floral",
+   "note": "heart",
+   "odour": "jasmine, pear, banana, ethereal",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Phenylethyl alcohol",
+   "cas": "60-12-8",
+   "family": "rose",
+   "note": "heart",
+   "odour": "rose petal, honey, soft",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Methyl salicylate",
+   "cas": "119-36-8",
+   "family": "aromatic",
+   "note": "heart",
+   "odour": "wintergreen, medicinal; ylang-tuberose facet in traces",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Linalyl acetate",
+   "cas": "115-95-7",
+   "family": "citrus",
+   "note": "top",
+   "odour": "bergamot, lavender, pear",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "cis-3-Hexen-1-ol",
+   "cas": "928-96-1",
+   "family": "green",
+   "note": "top",
+   "odour": "freshly cut grass, green leaf",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Dihydromyrcenol",
+   "cas": "18479-58-8",
+   "family": "citrus",
+   "note": "top-heart",
+   "odour": "lime, metallic fresh, lavender; clean",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Hedione",
+   "cas": "24851-98-7",
+   "family": "white floral",
+   "note": "heart",
+   "odour": "transparent jasmine, citrusy, diffusive; volume",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Ethyl butyrate",
+   "cas": "105-54-4",
+   "family": "fruity",
+   "note": "top",
+   "odour": "pineapple, tutti-frutti, ethereal",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Isoamyl acetate",
+   "cas": "123-92-2",
+   "family": "fruity",
+   "note": "top",
+   "odour": "banana, pear drop",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Benzyl benzoate",
+   "cas": "120-51-4",
+   "family": "balsamic",
+   "note": "base",
+   "odour": "faint balsamic, almost odourless; fixative, solvent",
+   "ifra_cat4_max_pct": 4.8,
+   "ifra_note": null
+  },
+  {
+   "material": "Terpinolene",
+   "cas": "586-62-9",
+   "family": "citrus",
+   "note": "top",
+   "odour": "fresh pine-lime, woody-sweet",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "beta-Pinene",
+   "cas": "127-91-3",
+   "family": "coniferous",
+   "note": "top",
+   "odour": "dry pine, woody, slightly spicy",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L"
+  },
+  {
+   "material": "gamma-Terpinene",
+   "cas": "99-85-4",
+   "family": "citrus",
+   "note": "top",
+   "odour": "herbal lime, oily citrus peel",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Myrcene",
+   "cas": "123-35-3",
+   "family": "herbal",
+   "note": "top",
+   "odour": "herbaceous, balsamic, hops, mango",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Citronellal",
+   "cas": "106-23-0",
+   "family": "citrus",
+   "note": "top",
+   "odour": "citronella, lemony-green, powerful",
+   "ifra_cat4_max_pct": 0.49,
+   "ifra_note": null
+  },
+  {
+   "material": "Hydroxycitronellal",
+   "cas": "107-75-5",
+   "family": "floral",
+   "note": "heart",
+   "odour": "lily of the valley (muguet), soft, sweet",
+   "ifra_cat4_max_pct": 2.1,
+   "ifra_note": null
+  },
+  {
+   "material": "Geranyl acetate",
+   "cas": "105-87-3",
+   "family": "rose",
+   "note": "heart",
+   "odour": "fruity rose, lavender, pear",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Citronellyl acetate",
+   "cas": "150-84-5",
+   "family": "rose",
+   "note": "heart",
+   "odour": "fresh rose, fruity, citrus",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Allyl hexanoate",
+   "cas": "123-68-2",
+   "family": "fruity",
+   "note": "top",
+   "odour": "ripe pineapple, strong",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: free allyl alcohol < 0.1 % in the ester"
+  },
+  {
+   "material": "Isobornyl acetate",
+   "cas": "125-12-2",
+   "family": "coniferous",
+   "note": "top-heart",
+   "odour": "fir needle, camphoraceous, balsamic",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "beta-Ionone",
+   "cas": "14901-07-6",
+   "family": "powdery",
+   "note": "heart-base",
+   "odour": "violet, orris, woody, raspberry",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "beta-Damascone",
+   "cas": "23726-92-3",
+   "family": "rose",
+   "note": "heart",
+   "odour": "rose, plum, blackcurrant, tobacco; very powerful",
+   "ifra_cat4_max_pct": 0.043,
+   "ifra_note": null
+  },
+  {
+   "material": "Phenylacetaldehyde dimethyl acetal",
+   "cas": "101-48-4",
+   "family": "green",
+   "note": "top-heart",
+   "odour": "hyacinth, green stem, earthy, honeyed",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Ethyl acetoacetate",
+   "cas": "141-97-9",
+   "family": "fruity",
+   "note": "top",
+   "odour": "fruity-ethereal, green apple, rum",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  },
+  {
+   "material": "Tetrahydrolinalool",
+   "cas": "78-69-3",
+   "family": "floral",
+   "note": "top-heart",
+   "odour": "clean floral, lavender-bergamot, stable",
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null
+  }
+ ]
+}

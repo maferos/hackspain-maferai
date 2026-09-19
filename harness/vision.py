@@ -1,6 +1,12 @@
-"""Locate sample labels the way the robot would: camera, detector, ring, depth
+"""Locate sample labels the way the robot would: propose from the room, confirm up close
 
-For every fixed camera in a scene the frame is rendered with its depth buffer.
+Two passes. The first proposes, from the cameras bolted to the room; the second
+confirms, from the camera the arm carries. Neither is enough on its own: a fixed
+camera sees the whole bench but resolves a flask at 12 to 24 pixels, which
+cannot carry a 4x4 marker, and the wrist camera reads any ring it is put in
+front of but has to be told where to go.
+
+**Propose.** For every fixed camera in a scene the frame is rendered with its depth buffer.
 Martí's YOLO26n trained on the rail scene's general-camera renders
 (``labvision.detector`` backend ``rail``) proposes bottle boxes. Every box counts, the shelves'
 included, since the lookup table wants every sample: no worktop filter
@@ -19,6 +25,25 @@ bottle. All of its quads, from all views, are fused by ``markers.fuse`` into
 one posterior, and ``markers.decide`` turns that into accept, rescan or reject.
 That posterior is the probability the lookup table reports for the reading.
 
+**Confirm.** A bottle the fixed cameras did not accept is looked at again from
+``STANDOFF_M`` by the scene's wrist camera (:mod:`wrist`), at each of its
+azimuths in turn until the ring reads. Those quads are decoded by the same
+decoder and fused into the same posterior, so a bottle named from the wrist is
+named on the same evidence and the same thresholds as one named from the room:
+the wrist buys pixels on the marker, not a second set of rules.
+
+Which quads in a wrist frame belong to the bottle looked at is decided by where
+they stand, never by what they decode to: the depth under a quad places it, the
+nearest one to the aim point anchors the ring, and everything within RING_M of
+that anchor joins it. A neighbour on a packed shelf projects close by in the
+image but stands further away, and keeping the copies by position rather than
+by agreement means a ring read badly still fuses its own disagreement, which is
+what eight copies are for. A quad also has to measure what the marker it
+decodes to would measure --- see :meth:`VisionScanner._right_size`.
+
+Where a bottle was confirmed, its position comes from the wrist's views alone:
+a reading from 0.30 m and one from across the room are not worth averaging.
+
 The point under a quad lies on the bottle's surface. The ground truth
 (``build_lookup_table.scan_scene``) is the centre of a label that wraps the
 whole bottle, which sits on its axis, so once the bottle is identified the
@@ -34,32 +59,39 @@ import cv2
 import mujoco
 import numpy as np
 
+import wrist
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "computer-vision"))
 from labvision import markers  # noqa: E402
 from labvision.camera import Camera, Intrinsics  # noqa: E402
 from labvision.detector import Box, Detector, attach_barcodes, draw  # noqa: E402
+from labvision.perception import PROPOSAL_RADIUS_M, marker_side  # noqa: E402
 
 DEFAULT_SIZE = (1920, 1080)   # for cameras whose MJCF gives no resolution
 INNER = 0.5                   # fraction of a box whose depth is trusted
 MERGE_M = 0.03                # boxes from any camera closer than this are one bottle
 SAME_ID_M = 0.10              # two bottles read as one id this close are one bottle seen twice
 MATCH_M = 0.05                # a point this close to a ground-truth label is that label
+CONFIRM_M = 0.08              # a ring further than this from the aim point is a neighbour's
+RING_M = 0.05                 # quads further apart than this are on different bottles
+SIDE_RANGE = (0.6, 1.6)       # a quad this far off its claimed marker's size is not that marker
 
 
 @dataclass
 class Sighting:
-    """One YOLO box in one camera, with the ring quads that fell inside it"""
+    """One look at a bottle: a YOLO box with the quads inside it, or a wrist view"""
 
     camera: str
     camera_position: np.ndarray
-    box: Box
+    box: Box | None                                # None for a wrist view: it was aimed, not detected
     point: np.ndarray                              # world point on the bottle surface
     readings: list[markers.MarkerReading] = field(default_factory=list)
+    confirmed: bool = False                        # read from the wrist camera up close
 
     def to_json(self, by_marker: dict[int, dict]) -> dict:
-        record = {"camera": self.camera, **self.box.to_json(),
-                  "surface_point": _round(self.point)}
+        record = {"camera": self.camera, **(self.box.to_json() if self.box else {}),
+                  "surface_point": _round(self.point), "confirmed": self.confirmed}
         if self.readings:
             record["quads"] = [{
                 "sample_id": by_marker.get(r.marker_id, {}).get("sample_id"),
@@ -78,6 +110,8 @@ class Bottle:
 
     sightings: list[Sighting]
     posterior: list[tuple[int, float]] = field(default_factory=list)
+    refused: bool = False          # its id was claimed by a likelier bottle
+    reached: bool = False          # something could be put in front of it to look
 
     @property
     def readings(self) -> list[markers.MarkerReading]:
@@ -92,12 +126,35 @@ class Bottle:
         return self.posterior[0][1] if self.posterior else 0.0
 
     @property
+    def confirmed(self) -> bool:
+        return any(s.confirmed for s in self.sightings)
+
+    @property
+    def views(self) -> list[Sighting]:
+        """The sightings worth placing the bottle by
+
+        The wrist's, if it got any, and of those only the ones that read the
+        ring the bottle was finally named from. A cluster on a packed shelf can
+        gather two bottles --- greedy clustering chains through sightings a
+        few centimetres apart --- and its wrist views then read whichever
+        neighbour each azimuth happened to face. Averaging all of them puts the
+        bottle between the two: it is how the one confident wrong identity in
+        200 came about, 76 mm from its own label and 7 mm from its
+        neighbour's.
+        """
+        named = [s for s in self.sightings if s.confirmed
+                 and any(r.marker_id == self.marker_id for r in s.readings)]
+        return named or [s for s in self.sightings if s.confirmed] or self.sightings
+
+    @property
     def marker_id(self) -> int | None:
         return self.posterior[0][0] if self.posterior else None
 
     @property
     def decision(self) -> str:
-        return markers.decide(self.probability) if self.posterior else "reject"
+        if self.refused or not self.posterior:
+            return "reject"
+        return markers.decide(self.probability)
 
     def fuse(self) -> None:
         self.posterior = markers.fuse(self.readings)
@@ -109,6 +166,7 @@ class SceneScan:
 
     bottles: list[Bottle]
     per_camera: dict[str, dict]
+    confirm: dict
 
 
 def _round(values, nd=4):
@@ -223,17 +281,43 @@ def merge_same_id(bottles: list[Bottle]) -> list[Bottle]:
     return merged
 
 
+def one_per_id(bottles: list[Bottle]) -> list[Bottle]:
+    """Refuse an id already claimed by a likelier bottle
+
+    A catalogue id names one physical sample, so it cannot stand in two
+    places. Two bottles that are really one have already been joined by
+    :func:`merge_same_id`; what is left reading the same id is a
+    misidentification, and writing both down would have the table assert
+    something it knows to be impossible. The loser keeps its position --- there
+    is something there --- and loses its name.
+
+    Returns:
+        The same bottles, with the losers marked refused.
+    """
+    claimed: set[int] = set()
+    for bottle in sorted(bottles, key=lambda b: -b.probability):
+        if bottle.decision == "reject":
+            continue
+        if bottle.marker_id in claimed:
+            bottle.refused = True
+        else:
+            claimed.add(bottle.marker_id)
+    return bottles
+
+
 class VisionScanner:
     """Detector and ring decoder, loaded once and used across scenes"""
 
     def __init__(self, table: dict, *, backend="rail", weights=None, score=None,
-                 device=None, read_ean=False, frames_dir: Path | None = None):
+                 device=None, read_ean=False, frames_dir: Path | None = None,
+                 confirm="auto"):
         self.detector = Detector(backend, score=score, weights=weights, device=device)
         self.marker_detector = markers.make_detector()
         self.by_marker = {int(row["marker_id"]): row for row in table.values()}
         self.candidates = np.array(sorted(self.by_marker), int)
         self.read_ean = read_ean
         self.frames_dir = frames_dir
+        self.confirm = confirm
 
     def scan(self, model, data, name: str, cameras: list[str]) -> SceneScan:
         sightings: list[Sighting] = []
@@ -269,7 +353,140 @@ class VisionScanner:
         bottles = cluster(sightings)
         for bottle in bottles:
             bottle.fuse()
-        return SceneScan(merge_same_id(bottles), per_camera)
+        # Merged before the wrist flies, so one bottle both halves of the room
+        # saw is not looked at twice, and again after, since two proposals the
+        # wrist reads as the same id are the same bottle.
+        bottles = merge_same_id(bottles)
+        confirmed = self._confirm(model, data, name, bottles)
+        return SceneScan(one_per_id(merge_same_id(bottles)), per_camera, confirmed)
+
+    def _confirm(self, model, data, name: str, bottles: list[Bottle]) -> dict:
+        """Look again, up close, at every bottle the fixed cameras could not name
+
+        A bottle they already accepted is left alone: the flight costs a render
+        per view and buys nothing where the identity is settled. The rest are
+        aimed at in turn, azimuth by azimuth, and the loop stops on the first
+        view that carries the posterior over the accept threshold --- which is
+        what makes this affordable, since most bottles read on the first look.
+
+        Returns:
+            What the pass did, for the scene's ``metrics``.
+        """
+        eye = (wrist.mover(model, data, self.confirm,
+                           lambda cam: camera_size(model, cam))
+               if self.confirm != "off" else None)
+        if eye is None:
+            return {"camera": None, "views": 0, "confirmed": 0,
+                    "skipped": "not asked for" if self.confirm == "off"
+                               else "this scene has no camera that can be taken "
+                                    "to a bottle"}
+        tried = 0
+        try:
+            for bottle in bottles:
+                if bottle.decision == "accept":
+                    bottle.reached = True
+                    continue
+                tried += 1
+                # The bottle is not identified yet, so there is no radius to
+                # push its surface point back by: the calibrated generic one
+                # gets the aim within a few millimetres of the axis, which at
+                # 0.30 m is well inside the frame.
+                aim = to_axis(bottle.sightings[0].camera_position, bottle.point,
+                              2 * PROPOSAL_RADIUS_M)
+                for k, (frame, depth, _pose) in enumerate(eye.look(data, aim)):
+                    bottle.reached = True
+                    # From where the camera really is, which the arm decides.
+                    # It lands within 1.5 mm and 15 mrad of what it was asked
+                    # for, and reading the request instead would put that error
+                    # into every position the frame produces.
+                    sighting = self._read(
+                        eye.name,
+                        camera_model(model, data, eye.cam, *camera_size(model, eye.cam)),
+                        frame, depth, aim)
+                    if self.frames_dir is not None:
+                        self._save_view(name, tried, k, frame, sighting)
+                    if sighting is None:
+                        continue
+                    bottle.sightings.append(sighting)
+                    bottle.fuse()
+                    if bottle.decision == "accept":
+                        break
+        finally:
+            eye.park(data)
+            eye.close()
+        return {**eye.report(), "bottles_looked_at": tried,
+                "confirmed": sum(b.confirmed for b in bottles)}
+
+    def _read(self, name, camera, frame, depth, aim) -> Sighting | None:
+        """The ring in one wrist frame, if it is the ring of the bottle aimed at
+
+        Every quad is soft-decoded by the same decoder the fixed pass uses and
+        placed by the depth under it. Which bottle a quad belongs to is settled
+        by where it stands, not by where it falls in the image: from the aisle
+        a neighbour behind or in front projects right beside the one looked at.
+        """
+        seen = []
+        for reading in markers.read_markers(frame, self.candidates,
+                                            self.marker_detector):
+            range_m = _quad_depth(depth, reading.corners)
+            point = back_project(camera, reading.corners.mean(axis=0), range_m)
+            offset = float(np.linalg.norm(point - aim))
+            if offset < CONFIRM_M and self._right_size(camera, reading, range_m):
+                seen.append((offset, point, reading))
+        if not seen:
+            return None
+        # One bottle's ring, not every ring in shot. On a shelf the bottles
+        # stand centimetres apart, so a neighbour's ring passes the CONFIRM_M
+        # test too, and fusing both into one posterior lets it outvote the
+        # bottle actually looked at --- 18 confident wrong identities on the
+        # open scene before this. The quads are kept by where they are and not
+        # by what they decode to, so that a ring read badly still fuses its own
+        # copies, which is what the ring is eight copies for: they sit on one
+        # circumference, at most a diameter apart.
+        seen.sort(key=lambda q: q[0])
+        anchor = seen[0][1]
+        quads = [q for q in seen if np.linalg.norm(q[1] - anchor) < RING_M]
+        return Sighting(name, camera.position, None,
+                        np.median([point for _, point, _ in quads], axis=0),
+                        [reading for _, _, reading in quads], confirmed=True)
+
+    def _right_size(self, camera, reading, range_m: float) -> bool:
+        """Whether a quad measures what the marker it decodes to would measure
+
+        The decoder answers with the likeliest id in the catalogue whatever it
+        is shown, and on a featureless square --- a tile, a window pane, the
+        corner of an instrument --- it answers confidently and always with the
+        same one. Those squares are not the size of a ring's marker: the ring
+        carries eight of them round the circumference, so one is 7 mm on a
+        10 ml flask and 11 mm on a 50 ml. Back-projected at the depth under
+        it, a quad's longest edge is its marker's side, foreshortening only
+        ever making an edge shorter, so the side is checked against the one
+        the claimed bottle prints.
+
+        Without this the wrist adds five confident bottles to the rail scene
+        that are not there, all of them the same sample, standing on the
+        bench, the wall and a shelf 1.6 m up.
+        """
+        vessel = self.by_marker.get(reading.marker_id, {}).get("vessel_class")
+        if not vessel:
+            return False
+        try:
+            expected = marker_side(vessel)
+        except OSError:
+            return True     # no mesh to measure against: leave it to the decoder
+        corners = back_project(camera, reading.corners, range_m)
+        side = float(np.max(np.linalg.norm(
+            corners - np.roll(corners, -1, axis=0), axis=1)))
+        return SIDE_RANGE[0] * expected <= side <= SIDE_RANGE[1] * expected
+
+    def _save_view(self, scene, bottle, view, frame, sighting: "Sighting | None"):
+        out = frame.copy()
+        for r in (sighting.readings if sighting else []):
+            cv2.polylines(out, [np.round(r.corners).astype(np.int32)], True,
+                          (0, 200, 0) if r.accepted else (0, 200, 255), 1)
+        path = self.frames_dir / scene / f"wrist_{bottle:03d}_{view}.png"
+        path.parent.mkdir(parents=True, exist_ok=True)
+        cv2.imwrite(str(path), out)
 
     def _scan_frame(self, cam_name, camera, bgr, depth):
         boxes = self.detector.detect(bgr)

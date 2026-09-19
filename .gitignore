@@ -7,6 +7,13 @@ MUJOCO_LOG.TXT
 .venv-act/
 MJDATA.TXT
 MJMODEL.TXT
+# Seeded worktop patterns: patterns/*.json is the definition and is committed;
+# the room and scene XML a seed expands into are rebuilt on demand with
+# scripts/generate_minihannover_open.py --pattern <name>.
+simulation/assets/minihannover_open/lab_room_[ps]*.xml
+simulation/models/minihannover_open_scene_[ps]*.xml
+# Only the ten catalogue patterns are committed; s<seed>.json is a scratch build.
+simulation/assets/minihannover_open/patterns/s*.json
 
 # Detector weights, datasets and outputs written by the computer-vision scripts
 /third_party/
@@ -25,6 +32,10 @@ data/
 *.torchscript
 *.onnx
 *.mp4
+!view/frontend/public/renders/rail_global.mp4
+!view/frontend/public/renders/rail_robot.mp4
+!view/frontend/public/renders/seeds/p*/rail_*.mp4
+!simulation/media/initial_scan_realtime.mp4
 *.log
 mobileclip*.ts
 

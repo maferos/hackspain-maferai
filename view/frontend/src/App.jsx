@@ -1,5 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import replayPatterns from "./replayPatterns.json";
+import { chooseScene } from "./sceneSession";
 import "./App.css";
+import useReplayDetections from "./useReplayDetections";
 import LabPanels from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
 import PipelinePanel from "./PipelinePanel";
@@ -19,14 +22,22 @@ const DEFAULT_CAMERAS = [
 
 // The viewport has two sources, switchable from the header:
 //   realtime — the backend's live MuJoCo streams of the scene.
-//   replay   — Eloi's Isaac Sim RTX renders (simulation/renders/isaac/open),
-//              static images that need no backend.
-// Start in Real time on the live MuJoCo streams; ?replay=1 opens in Replay
-// (the Isaac stills, which need no backend).
-const INITIAL_MODE = new URLSearchParams(window.location.search).get("replay") === "1" ? "replay" : "realtime";
-const STILL_CAMERAS = [
-  { id: "scene", label: "General camera", src: "/renders/general.jpg" },
-  { id: "aisle", label: "Aisle camera", src: "/renders/room_aisle.jpg" },
+//   replay   — synchronized Isaac Lab rail videos for the backend-selected seed.
+// Explicit links override the saved mode; new browsers start in Real time.
+const MODE_KEY = "robot-viewer.mode";
+function loadMode() {
+  const replay = new URLSearchParams(window.location.search).get("replay");
+  if (replay === "1") return "replay";
+  if (replay === "0") return "realtime";
+  try {
+    return localStorage.getItem(MODE_KEY) === "replay" ? "replay" : "realtime";
+  } catch {
+    return "realtime";
+  }
+}
+const REPLAY_CAMERAS = [
+  { id: "scene", label: "General camera" },
+  { id: "robot", label: "Robot camera" },
 ];
 
 // Views that can be opened and closed from the header, and the sizes the drag
@@ -34,8 +45,6 @@ const STILL_CAMERAS = [
 const VIEWS = [
   { id: "robot", label: "Robot" },
   { id: "balance", label: "Balance" },
-  { id: "tasks", label: "Tasks" },
-  { id: "pipeline", label: "Pipeline" },
 ];
 const DEFAULT_SIZES = { tasksWidth: 320, panelsHeight: 230, robotShare: 0.5, pipelineHeight: 300 };
 const DEFAULT_LAYOUT = {
@@ -106,10 +115,39 @@ function DetectionBoxes({ detections }) {
       aria-hidden="true"
     >
       {detections.boxes.map(([x0, y0, x1, y1], i) => (
-        <rect key={i} x={x0 - 3} y={y0 - 3} width={x1 - x0 + 6} height={y1 - y0 + 6} />
+        <g key={i} className={detections.labels?.[i]?.startsWith("SMP-") ? "scan-identified" : ""}>
+          <rect x={x0 - 3} y={y0 - 3} width={x1 - x0 + 6} height={y1 - y0 + 6} />
+          {detections.labels?.[i] && <text x={x0 - 3} y={y0 - 10}>{detections.labels[i]}</text>}
+        </g>
       ))}
     </svg>
   );
+}
+
+function ScanStatus() {
+  const [scan, setScan] = useState(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    let timer;
+    const update = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/scan`, { signal: controller.signal });
+        if (!response.ok) throw new Error("Scan unavailable");
+        setScan(await response.json());
+      } catch {
+        if (!controller.signal.aborted) setScan({ status: "error", error: "Scan connection lost" });
+      }
+      if (!controller.signal.aborted) timer = setTimeout(update, 1000);
+    };
+    update();
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, []);
+  if (scan?.status === "disabled") return null;
+  return <div className={`scan-status ${scan?.status === "error" ? "scan-status--error" : ""}`} role="status">
+    <strong>{scan?.status === "complete" ? "Scan complete" : "Live scan"}</strong>
+    <span>{scan?.error || scan?.caption || "Connecting to scan…"}</span>
+    {scan?.tracked > 0 && <span>{scan.named} / {scan.tracked} identified</span>}
+  </div>;
 }
 
 // Live boxes from the backend's detector, while `enabled`; the backend runs the
@@ -133,7 +171,10 @@ function useDetections(enabled) {
         }
       };
       ws.onclose = () => {
-        if (!cancelled) retryTimer = setTimeout(connect, 1500);
+        if (!cancelled) {
+          setDetections(null);
+          retryTimer = setTimeout(connect, 1500);
+        }
       };
       ws.onerror = () => ws.close();
     };
@@ -148,12 +189,68 @@ function useDetections(enabled) {
   return enabled ? detections : null;
 }
 
-function CameraStream({ cameraId, label, className, onClick, big, still, detections }) {
-  const src = still ?? `${BACKEND_URL}/stream/${cameraId}`;
+function LiveCameraImage({ cameraId, label, preview }) {
+  const imageRef = useRef(null);
+  const [connected, setConnected] = useState(false);
+  useEffect(() => {
+    const img = imageRef.current;
+    let cancelled = false;
+    let socket;
+    let retry;
+    let currentUrl;
+    let pendingUrl;
+    const connect = () => {
+      socket = new WebSocket(`${BACKEND_URL.replace(/^http/, "ws")}/ws/camera/${cameraId}?preview=${preview}`);
+      socket.binaryType = "blob";
+      socket.onmessage = ({ data }) => {
+        // Keep only one image decoding at a time; slow clients skip frames.
+        if (cancelled || pendingUrl || !(data instanceof Blob)) return;
+        if (!img) return;
+        pendingUrl = URL.createObjectURL(new Blob([data], { type: "image/jpeg" }));
+        img.onload = () => {
+          if (currentUrl) URL.revokeObjectURL(currentUrl);
+          currentUrl = pendingUrl;
+          pendingUrl = null;
+          if (!cancelled) setConnected(true);
+        };
+        img.onerror = () => {
+          if (pendingUrl) URL.revokeObjectURL(pendingUrl);
+          pendingUrl = null;
+          if (!cancelled) setConnected(false);
+        };
+        img.src = pendingUrl;
+      };
+      socket.onclose = () => {
+        if (cancelled) return;
+        setConnected(false);
+        retry = setTimeout(connect, 1500);
+      };
+      socket.onerror = () => socket.close();
+    };
+    connect();
+    return () => {
+      cancelled = true;
+      clearTimeout(retry);
+      socket?.close();
+      if (img) {
+        img.onload = null;
+        img.onerror = null;
+      }
+      if (pendingUrl) URL.revokeObjectURL(pendingUrl);
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
+    };
+  }, [cameraId, preview]);
+  return <>
+    <img ref={imageRef} alt={label} className="camera-frame__img" />
+    {!connected && <span className="camera-frame__connection" role="status">Connecting camera…</span>}
+  </>;
+}
+
+function CameraStream({ cameraId, label, className, onClick, big, detections }) {
   const boxes = detections && detections.camera === cameraId ? detections : null;
   return (
     <div className={`camera-frame ${className ?? ""}`} onClick={onClick}>
-      <img key={cameraId} src={src} alt={label} className="camera-frame__img" />
+      <LiveCameraImage key={`${cameraId}-${big}`} cameraId={cameraId} label={label} preview={!big} />
       {boxes && <DetectionBoxes detections={boxes} />}
       <span className="camera-frame__label">
         {label}
@@ -164,12 +261,86 @@ function CameraStream({ cameraId, label, className, onClick, big, still, detecti
   );
 }
 
+function ReplayViewport({ mainCameraId, onSwap, showBoxes, pattern }) {
+  const cameras = REPLAY_CAMERAS.map((camera) => ({
+    ...camera, src: `/renders/seeds/${camera.id === "scene" ? pattern.global_video : pattern.robot_video}${pattern.revision ? `?v=${pattern.revision}` : ""}`,
+  }));
+  const videos = useRef({});
+  const replay = useReplayDetections(videos, showBoxes, BACKEND_URL, pattern.pattern);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const [leader, follower] = REPLAY_CAMERAS.map(({ id }) => videos.current[id]);
+    let started = false;
+    const start = () => {
+      if (started || [leader, follower].some((video) => video.readyState < 3)) return;
+      started = true;
+      leader.currentTime = follower.currentTime = 0;
+      Promise.all([leader.play(), follower.play()]).catch(() => setError(true));
+    };
+    leader.addEventListener("canplay", start);
+    follower.addEventListener("canplay", start);
+    start();
+    // Keep the same video elements when swapping views, and correct playback
+    // drift (including at the loop boundary) against the global camera.
+    const timer = window.setInterval(() => {
+      if (started && Math.abs(leader.currentTime - follower.currentTime) > 0.1) {
+        follower.currentTime = leader.currentTime;
+      }
+    }, 250);
+    return () => {
+      clearInterval(timer);
+      for (const video of [leader, follower]) {
+        video.removeEventListener("canplay", start);
+        video.pause();
+      }
+    };
+  }, []);
+
+  return cameras.map(({ id, label, src }) => {
+    const big = id === mainCameraId;
+    return <div key={id} className={`camera-frame camera-frame--${big ? "main" : "pip"}`}
+      onClick={big ? undefined : onSwap}>
+      <video ref={(video) => { videos.current[id] = video; }} src={src}
+        className="camera-frame__img" aria-label={label} muted loop playsInline
+        preload="auto" onError={() => setError(true)} />
+      {id === "scene" && replay.boxes && <DetectionBoxes detections={replay.boxes} />}
+      <span className="camera-frame__label">{label}</span>
+      {error && <span className="camera-frame__connection" role="status">Replay unavailable. Reload to try again.</span>}
+      {!big && <span className="camera-frame__swap">⇄ swap</span>}
+    </div>;
+  });
+}
+
 export default function App() {
-  const [mode, setMode] = useState(INITIAL_MODE);
+  const [scenePattern, setScenePattern] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    let retry;
+    const select = () => chooseScene(BACKEND_URL).then((pattern) => {
+      if (!cancelled) setScenePattern(pattern);
+    }).catch(() => {
+      if (!cancelled) retry = setTimeout(select, 5000);
+    });
+    select();
+    return () => { cancelled = true; clearTimeout(retry); };
+  }, []);
+  const replayPattern = replayPatterns.find((entry) => entry.seed === scenePattern?.seed);
+  const [mode, setMode] = useState(loadMode);
+  useEffect(() => {
+    try {
+      localStorage.setItem(MODE_KEY, mode);
+    } catch {
+      /* The URL still preserves this tab's selection without storage. */
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("replay", mode === "replay" ? "1" : "0");
+    window.history.replaceState(window.history.state, "", url);
+  }, [mode]);
   const realtime = mode === "realtime";
   const [liveCameras, setLiveCameras] = useState(DEFAULT_CAMERAS);
-  const cameras = realtime ? liveCameras : STILL_CAMERAS;
-  const [mainCameraId, setMainCameraId] = useState(realtime ? "robot" : "scene");
+  const cameras = realtime ? liveCameras : REPLAY_CAMERAS;
+  const [mainCameraId, setMainCameraId] = useState("scene");
   const [tasks, setTasks] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
@@ -187,7 +358,11 @@ export default function App() {
     }
   });
   const [detector, setDetector] = useState(null);
-  const detections = useDetections(realtime && showBoxes && detector?.available === true);
+  // Pipeline metrics stay live independently of the viewport's source or boxes.
+  const liveDetections = useDetections(
+    detector?.available === true,
+  );
+  const detections = realtime && showBoxes ? liveDetections : null;
 
   useEffect(() => {
     try {
@@ -198,12 +373,32 @@ export default function App() {
   }, [showBoxes]);
 
   useEffect(() => {
-    if (!realtime) return;
-    fetch(`${BACKEND_URL}/api/detector`)
-      .then((res) => res.json())
-      .then(setDetector)
-      .catch(() => setDetector(null));
-  }, [realtime]);
+    let cancelled = false;
+    let timer;
+    const controller = new AbortController();
+    const poll = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/detector`, {
+          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(4000)]),
+        });
+        if (!res.ok) throw new Error("Detector unavailable");
+        const info = await res.json();
+        if (!cancelled) {
+          setDetector(info);
+          if (info.pattern) setScenePattern(info.pattern);
+        }
+      } catch {
+        if (!cancelled) setDetector(null);
+      }
+      if (!cancelled) timer = setTimeout(poll, 2000);
+    };
+    poll();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timer);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -216,9 +411,9 @@ export default function App() {
   const resize = (patch) => setLayout((l) => ({ ...l, ...patch }));
   const toggleView = (id) => setLayout((l) => ({ ...l, views: { ...l.views, [id]: !l.views[id] } }));
 
-  // Reset the main viewport to each source's primary camera when the mode flips.
+  // Start with the general camera when opening or switching viewport sources.
   useEffect(() => {
-    setMainCameraId(realtime ? "robot" : "scene");
+    setMainCameraId("scene");
   }, [realtime]);
 
   useEffect(() => {
@@ -272,10 +467,9 @@ export default function App() {
   }, [realtime]);
 
   const pipCameraId = cameras.find((c) => c.id !== mainCameraId)?.id ?? mainCameraId;
-  const mainLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
+  const cameraLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
+  const mainLabel = cameraLabel;
   const pipLabel = cameras.find((c) => c.id === pipCameraId)?.label ?? pipCameraId;
-  const mainStill = cameras.find((c) => c.id === mainCameraId)?.src;
-  const pipStill = cameras.find((c) => c.id === pipCameraId)?.src;
 
   const swapCameras = useCallback(() => setMainCameraId(pipCameraId), [pipCameraId]);
 
@@ -285,7 +479,6 @@ export default function App() {
 
   const { views } = layout;
   const showPanels = views.robot || views.balance;
-  const showSide = views.tasks || views.pipeline;
 
   // Each handle measures its parent when the drag starts and keeps every view
   // at a usable minimum size.
@@ -349,18 +542,21 @@ export default function App() {
                 {v.label}
               </button>
             ))}
-            {realtime && (
+            {(
               <button
                 type="button"
-                className={`view-toggle ${showBoxes && detector?.available ? "view-toggle--on" : ""}`}
+                className={`view-toggle ${showBoxes && (!realtime || detector?.available) ? "view-toggle--on" : ""}`}
                 aria-pressed={showBoxes}
-                disabled={!detector?.available}
+                disabled={realtime && !detector?.available}
                 title={
-                  detector?.available
+                  !realtime ? "Predictive YOLO boxes on the replay general camera" : detector?.available
                     ? `Bottle boxes on the general camera (${detector.weights})`
                     : detector?.error ?? "Bottle detector not reachable"
                 }
-                onClick={() => setShowBoxes((on) => !on)}
+                onClick={() => {
+                  if (!showBoxes) setMainCameraId("scene");
+                  setShowBoxes((on) => !on);
+                }}
               >
                 Boxes
               </button>
@@ -371,22 +567,26 @@ export default function App() {
       <main className="app__body">
         <div className="main-column">
           <section className="viewport">
-            <CameraStream
-              cameraId={mainCameraId}
-              label={mainLabel}
-              className="camera-frame--main"
-              big
-              still={mainStill}
-              detections={detections}
-            />
-            <CameraStream
-              cameraId={pipCameraId}
-              label={pipLabel}
-              className="camera-frame--pip"
-              onClick={swapCameras}
-              still={pipStill}
-              detections={detections}
-            />
+            {realtime ? <>
+              <ScanStatus />
+              <CameraStream
+                cameraId={mainCameraId}
+                label={mainLabel}
+                className="camera-frame--main"
+                big
+                detections={detections}
+              />
+              <CameraStream
+                cameraId={pipCameraId}
+                label={pipLabel}
+                className="camera-frame--pip"
+                onClick={swapCameras}
+                detections={detections}
+              />
+            </> : replayPattern ? <ReplayViewport key={`${replayPattern.pattern}:${replayPattern.revision ?? "original"}`} pattern={replayPattern} mainCameraId={mainCameraId} onSwap={swapCameras} showBoxes={showBoxes} />
+              : <div className="camera-frame camera-frame--main"><span className="camera-frame__connection" role="status">
+                {scenePattern ? `Replay unavailable for seed ${scenePattern.seed}` : "Waiting for the current seed… Connect the backend to select a layout."}
+              </span></div>}
           </section>
           {showPanels && (
             <Splitter direction="row" onStart={dragPanels} onReset={() => resize({ panelsHeight: DEFAULT_SIZES.panelsHeight })} />
@@ -402,25 +602,18 @@ export default function App() {
             />
           )}
         </div>
-        {showSide && (
-          <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
-        )}
-        {showSide && (
-          <div className="side" style={{ width: layout.tasksWidth }}>
-            {views.tasks &&
-              (labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />)}
-            {views.tasks && views.pipeline && (
-              <Splitter direction="row" onStart={dragPipeline} onReset={() => resize({ pipelineHeight: DEFAULT_SIZES.pipelineHeight })} />
-            )}
-            {views.pipeline && (
-              <PipelinePanel
-                state={lab.state}
-                connected={lab.connected}
-                style={views.tasks ? { height: layout.pipelineHeight } : { flex: 1 }}
-              />
-            )}
-          </div>
-        )}
+        <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
+        <div className="side" style={{ width: layout.tasksWidth }}>
+          {labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />}
+          <Splitter direction="row" onStart={dragPipeline} onReset={() => resize({ pipelineHeight: DEFAULT_SIZES.pipelineHeight })} />
+          <PipelinePanel
+            state={lab.state}
+            connected={lab.connected}
+            detections={liveDetections}
+            detector={detector}
+            style={{ height: layout.pipelineHeight }}
+          />
+        </div>
       </main>
     </div>
   );

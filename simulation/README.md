@@ -61,6 +61,18 @@ python scripts/generate_minihannover_open.py
 mjpython scripts/view_model.py models/minihannover_open_scene.xml  # macOS
 ```
 
+What stands on that desk is a **seeded pattern**: one integer fixes how many
+flasks there are (10 to 75), how tightly they are packed, whether they sit
+scattered, in clusters, in rows or crowded into one end, and which sizes the
+crowd is made of. Ten are catalogued, `p01` (16 flasks, spread out) to `p10`
+(71 in rows); any other seed works too.
+
+```bash
+python scripts/bottle_patterns.py --list              # the ten, at a glance
+python scripts/generate_minihannover_open.py --pattern p06   # build that bench
+mjpython scripts/view_model.py models/minihannover_open_scene_p06.xml
+```
+
 ## Robot arm on a rail
 
 The open-desk scene gets a UR10e riding a 6 m linear rail over the bench. The arm
@@ -316,8 +328,9 @@ Everything above picks bottles whose positions it read out of the scene.
 only what the cameras told it, and they keep telling it while it moves.
 
 ```bash
-python scripts/vision_pick.py                 # viewer + page at :8009, picks everything
-python scripts/vision_pick.py --manual        # looks at everything, picks what the page asks
+python scripts/vision_pick.py                 # viewer + page at :8009, scans, then picks everything
+python scripts/vision_pick.py --manual        # scans, then picks what the page asks
+python scripts/vision_pick.py --headless --manual   # the initial scan only: out/bench_map.json
 python scripts/vision_pick.py --headless --perturb-at 100 --video out/vision_pick.mp4
 ```
 
@@ -477,6 +490,14 @@ use `scripts/view_autobio.py` instead.
 | `setup_autobio.sh` | Fetches the AutoBio submodule + creates `.venv-autobio` |
 | `scripts/view_autobio.py` | Loads AutoBio's plugin and opens a lab scene in the viewer |
 | `scripts/view_model.py` | Opens a model in the interactive viewer and simulates it in real time |
+| `scripts/iris_pipette_rig.py` | The uncap-and-pipette hand: layout, body tree, joint couplings and forward kinematics, the one source for the viewer, MuJoCo, Isaac Lab and Blender |
+| `scripts/iris_pipette_plan.py` | Its 19-step sequence as timed states and joint targets, shared by the page, the .blend and both simulators |
+| `scripts/generate_iris_pipette_viewer.py` | Writes `../ur10e_iris_pipette.html`, the self-contained viewer of the hand, from the rig tree |
+| `scripts/generate_iris_pipette_scene.py` | Writes `assets/ur10e_iris_pipette/` (attachable MJCF, the 60 ml amber bottle and its PP25 cap, meshes, URDFs) and `models/iris_pipette_scene.xml` |
+| `scripts/generate_iris_pipette_blend.py` | Writes `assets/ur10e_iris_pipette/ur10e_iris_pipette.blend` and `.glb` with bpy (`uv run --python 3.11 --with bpy --with mujoco`) |
+| `scripts/iris_pipette_play.py` | Plays the sequence in MuJoCo and checks it (`--view` for the viewer) |
+| `scripts/iris_pipette_isaac.py` | The same in Isaac Lab, on the URDFs; not yet run |
+| `models/iris_pipette_scene.xml` | The hand on a lift carriage over the reference bottle and its cap, with the welds the play script switches |
 | `assets/sink/` | Lab sink for MuJoCo (converted OBJ meshes + MJCF + vendor .3ds) |
 | `assets/balance/` | Analytical balance for MuJoCo (converted OBJ meshes + MJCF) |
 | `assets/robotiq_2f85_sensed/` | Menagerie's 2F-85 with touch sites and the sensors that report a grasp (generated) |

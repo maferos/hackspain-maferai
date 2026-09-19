@@ -280,11 +280,12 @@ def lookup(table: Path, scene: str, out: Path) -> None:
     ax.axis('off')
     ax.set_title(f'The lookup table for {scene}', color=INK, fontsize=12,
                  loc='left', pad=22)
+    wrong = sum(b['wrong'] for b in metrics['by_decision'].values())
     ax.text(0, 1.0,
             f'{metrics["identified"]} of {metrics["gt_labels"]} identified, '
-            f'{metrics["named_wrongly"]} named wrongly, '
+            f'{wrong} named wrongly, '
             f'median error {metrics["median_error_m"] * 1000:.1f} mm, '
-            f'{metrics["refined"]} refined by the wrist',
+            f'{metrics["confirmed_by_wrist"]} confirmed by the wrist',
             transform=ax.transAxes, color=MUTED, fontsize=9.5)
 
     columns = ((0.00, 'sample'), (0.13, 'material'), (0.40, 'x'), (0.50, 'y'),

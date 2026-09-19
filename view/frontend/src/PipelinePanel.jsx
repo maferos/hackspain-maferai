@@ -25,7 +25,7 @@ function LastEvent({ events }) {
   );
 }
 
-export default function PipelinePanel({ state, connected, style }) {
+export default function PipelinePanel({ state, connected, style, detections, detector }) {
   if (!state || state.run.status === "idle") {
     return (
       <Panel title="Pipeline" style={style} className="panel--pipeline">
@@ -33,7 +33,20 @@ export default function PipelinePanel({ state, connected, style }) {
       </Panel>
     );
   }
-  const nodes = state.pipeline ?? [];
+  const nodes = (state.pipeline ?? []).map((node) => {
+    if (node.id !== "detection") return node;
+    const live = detector?.available && detections && Number.isFinite(detections.inference_ms);
+    return {
+      ...node,
+      model: detector?.weights ?? "YOLO",
+      status: live ? "ok" : detector?.error ? "error" : "idle",
+      lines: live
+        ? [`${detections.inference_ms} ms · ${Math.max(detections.width, detections.height)} px`,
+           `${detections.boxes.length} detections · general camera · live inference`]
+        : [detector?.available ? "Waiting for inference…" : "Detector offline",
+           detector?.error ?? "No live inference measurement"],
+    };
+  });
   const running = state.run.status === "running";
   return (
     <Panel

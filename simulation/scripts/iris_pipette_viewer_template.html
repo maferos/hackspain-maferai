@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<!-- Template of ur10e_iris_pipette.html (repository root), written by scripts/generate_iris_pipette_viewer.py.
+     The generator swaps both script tags for inline copies (three.js r128 and the meshes) so the page works offline. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UR10e uncap-and-pipette hand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f7f8fa; --line:#e4e7eb; --ink:#15181d; --ink-2:#6d7480;
+    --accent:#1f6feb;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:inherit}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:15px; line-height:1.45; display:flex; flex-direction:column; overflow:hidden;
+  }
+  header{
+    display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 16px; padding:12px 20px;
+    border-bottom:1px solid var(--line); flex:0 0 auto;
+  }
+  header h1{font-size:17px; font-weight:600; margin:0}
+  header p{margin:0; color:var(--ink-2); font-size:13px}
+  main{flex:1 1 auto; display:grid; grid-template-columns:1fr 360px; min-height:0}
+  #view{position:relative; min-height:0}
+  #view canvas{display:block; width:100%; height:100%; touch-action:none}
+  #hint{position:absolute; left:12px; bottom:10px; color:var(--ink-2); font-size:12px; pointer-events:none}
+  #phase{position:absolute; left:12px; top:10px; font-weight:600; font-size:14px; background:rgba(255,255,255,.85);
+    border:1px solid var(--line); border-radius:6px; padding:5px 10px}
+  aside{
+    border-left:1px solid var(--line); background:var(--panel); padding:16px 18px;
+    overflow-y:auto; display:flex; flex-direction:column; gap:16px;
+  }
+  .coord{display:flex; flex-direction:column; gap:2px}
+  .coord .head{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+  .coord label{color:var(--ink-2); font-size:13px}
+  .coord .val{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace; font-size:18px; font-weight:500; color:var(--accent)}
+  input[type=range]{width:100%; accent-color:var(--accent); height:26px; margin:0}
+  .row{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+  button{
+    background:transparent; color:var(--ink); border:1px solid var(--line); border-radius:6px;
+    padding:7px 12px; font:inherit; font-size:13px; cursor:pointer;
+  }
+  button:hover{border-color:var(--accent)}
+  button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  button.primary{background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600}
+  button[aria-pressed=false]{color:var(--ink-2)}
+  h2{font-size:13px; font-weight:600; margin:4px 0 0; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-2)}
+  ol{margin:0; padding-left:20px; font-size:13px}
+  ol li{margin:2px 0}
+  ol li.on{color:var(--accent); font-weight:600}
+  .note{color:var(--ink-2); font-size:12.5px; margin:0}
+  code{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:12px}
+  .legend{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12.5px; color:var(--ink-2)}
+  .legend span::before{content:""; display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:-1px; background:var(--c); border:1px solid rgba(0,0,0,.12)}
+  @media (max-width:820px){
+    main{grid-template-columns:1fr; grid-template-rows:55vh 1fr}
+    aside{border-left:0; border-top:1px solid var(--line)}
+  }
+  #tmpl{padding:24px; max-width:560px}
+  #tmpl h2{color:#b3261e; font-size:15px; text-transform:none; letter-spacing:0}
+  #tmpl a{color:var(--accent); font-weight:600}
+</style>
+</head>
+<body>
+<header>
+  <h1>UR10e uncap-and-pipette hand</h1>
+  <p>The 2F-85 holds the bottle; the iris clamp swings down on a 90° hinge and unscrews the cap, swings it clear, the micropipette goes down the neck and draws, then the clamp screws the cap back.</p>
+</header>
+<main>
+  <div id="view"><div id="phase">—</div><div id="hint">Drag to orbit · wheel to zoom · right-drag or shift-drag to pan</div></div>
+  <aside>
+    <div class="row">
+      <button id="play" class="primary">Play</button>
+      <button id="reset">Reset</button>
+      <button id="bottleBtn" aria-pressed="true">Bottle</button>
+      <button id="stubBtn" aria-pressed="true">Arm stub</button>
+    </div>
+    <ol id="steps"></ol>
+
+    <h2>Bottle and dive</h2>
+    <div class="coord">
+      <div class="head"><label for="bhIn">Bottle · height to the cap</label><span class="val" id="bhTxt"></span></div>
+      <input id="bhIn" type="range" step="1">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="brIn">Bottle · diameter</label><span class="val" id="brTxt"></span></div>
+      <input id="brIn" type="range" step="1">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="levelIn">Bottle · liquid level</label><span class="val" id="levelTxt"></span></div>
+      <input id="levelIn" type="range" step="1">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="diveIn">Pipette · dive, tip above the floor</label><span class="val" id="diveTxt"></span></div>
+      <input id="diveIn" type="range" step="0.5">
+      <p class="note" id="diveNote"></p>
+    </div>
+
+    <h2>Joints</h2>
+    <div class="coord">
+      <div class="head"><label for="zIn">Hand · bottle base above the table</label><span class="val" id="zTxt"></span></div>
+      <input id="zIn" type="range" min="0" max="120" step="0.5">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="gripIn">Gripper · aperture</label><span class="val" id="gripTxt"></span></div>
+      <input id="gripIn" type="range" step="0.1">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="hingeIn">Hinge · clamp swung up</label><span class="val" id="hingeTxt"></span></div>
+      <input id="hingeIn" type="range" min="0" max="90" step="0.1">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="irisIn">Iris · aperture</label><span class="val" id="irisTxt"></span></div>
+      <input id="irisIn" type="range" min="0" max="1000" step="1">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="turnIn">Unscrew · housing turns</label><span class="val" id="turnTxt"></span></div>
+      <input id="turnIn" type="range" min="0" max="2" step="0.01">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="tipIn">Pipette · tip above the floor</label><span class="val" id="tipTxt"></span></div>
+      <input id="tipIn" type="range" step="0.5">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="swingIn">Pipette · swung out</label><span class="val" id="swingTxt"></span></div>
+      <input id="swingIn" type="range" min="0" max="80" step="0.5">
+    </div>
+    <div class="coord">
+      <div class="head"><label for="plungerIn">Pipette · plunger pressed</label><span class="val" id="plungerTxt"></span></div>
+      <input id="plungerIn" type="range" min="0" max="14" step="0.1">
+    </div>
+
+    <div class="legend">
+      <span style="--c:#262626">2F-85 / clamp housing</span>
+      <span style="--c:#d4a63d">Iris blades, cam ring, sun</span>
+      <span style="--c:#6f7c8c">Hinge mount, arm, slide</span>
+      <span style="--c:#eeeeeb">Micropipette</span>
+      <span style="--c:#d1341f">Cap</span>
+      <span style="--c:#d17a1c">Bottle</span>
+      <span style="--c:#4f9bd9">Liquid</span>
+    </div>
+
+    <h2>Layout</h2>
+    <p class="note">The jaws grip the bottle body from the side, 34 mm below the cap, tool horizontal: the top of the bottle is free and the hand takes the unscrewing torque. The hinge is bolted on the gripper body itself, on the arm's side: two cheeks on the 2F-85 base carry the axle just ahead of it, over the fingers, 90 mm from the bottle axis and level with the iris plane. The cap therefore starts straight up, and while it unscrews (2 turns × 2.75 mm, the PP25 thread) the hinge only follows it by 3.5°. Swung up, the clamp lies back over the gripper with the cap, 75 mm clear of the pipette. The dive stops before the ejector arm reaches the neck.</p>
+    <p class="note">The pipette sits in a swing frame on a vertical pin in the carriage of a slide beside the bottle. It swings at one height, tip 15 mm over the neck: while the clamp works it stands swung 80° out to the arm's side, beside the gripper, 18 mm clear of the clamp at every hinge angle; once the clamp is up it swings in over the neck (16 mm clear of the folded clamp on the way), and only then does the slide take it down. It never has to park above the arc the clamp sweeps (232 mm), so the mast ends 125 mm lower and the rail only runs from the dive to the neck. Locked in, the pipette is held by two rings on the handle, 44 mm apart; the frame turns on one pin in two bearings 80 mm apart, a cone seats it in a receiver on the carriage and a self-locking gearmotor holds it there, so the plunger and the dive cannot move it.</p>
+    <p class="note">Every bottle shares the neck and the cap, so the hand is placed on the neck: a taller bottle only reaches further down, a wider one moves the flange back along the pad fit of the 2F-85, with the mount plate slotted on the gripper to stay on the axis.</p>
+
+    <h2>The .blend and the simulation files</h2>
+    <p class="note">This page, the Blender file and the MuJoCo / Isaac Lab models are built from one description, <code>simulation/scripts/iris_pipette_rig.py</code> (layout, body tree, joint couplings) with the sequence in <code>iris_pipette_plan.py</code>, so they cannot drift apart. From <code>simulation/</code>:</p>
+    <ol class="plan">
+      <li><code>python scripts/generate_iris_pipette_viewer.py</code> — this page, <code>ur10e_iris_pipette.html</code> at the repository root. Open a step with <code>#step=N</code>.</li>
+      <li><code>python scripts/generate_iris_pipette_scene.py</code> — <code>assets/ur10e_iris_pipette/ur10e_iris_pipette.xml</code> (attachable MJCF), <code>reference_bottle.xml</code>, the meshes, <code>models/iris_pipette_scene.xml</code> and the URDFs for Isaac (<code>models/iris_pipette_rig.urdf</code>, <code>reference_bottle.urdf</code>, <code>reference_cap.urdf</code>). Then <code>python scripts/iris_pipette_play.py --view</code> plays the sequence in MuJoCo and checks it; <code>iris_pipette_isaac.py</code> is the Isaac Lab twin.</li>
+      <li><code>uv run --no-project --python 3.11 --with bpy --with mujoco python scripts/generate_iris_pipette_blend.py</code> — <code>assets/ur10e_iris_pipette/ur10e_iris_pipette.blend</code> and <code>.glb</code>: the sliders on the left are custom properties on the <code>hand</code> object (<code>lift_z</code>, <code>grip_aperture</code>, <code>hinge_angle</code>, <code>iris_angle</code>, <code>housing_turns</code>, <code>pipette_tip</code>, <code>swing_angle</code>, <code>plunger</code>), every joint an empty driven from them, the bottle and the cap carried by Child Of constraints, and the 19 steps keyframed at 30 fps.</li>
+    </ol>
+    <p class="note">In the simulators the bottle and the cap change hands by the rule this page uses (welds in MuJoCo, pose writes in Isaac), not by contact; <code>assets/ur10e_iris_pipette/FULL_PHYSICS_ISAAC.md</code> says how to make the grip, the blades and the thread real in Isaac.</p>
+  </aside>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script><!--THREE_JS-->
+<script src="cell_data.js"></script><!--CELL_DATA-->
+<script>
+(function(){
+  const D=window.CELL_DATA;
+  if(!window.THREE||!D){
+    document.getElementById('view').innerHTML=window.THREE
+      ?'<div id="tmpl"><h2>This is the template, it has no meshes.</h2><p>Open the built page instead: <a href="../../ur10e_iris_pipette.html">ur10e_iris_pipette.html</a> at the repository root.</p><p class="note">To rebuild it, from <code>simulation/</code>: <code>python scripts/generate_iris_pipette_viewer.py</code></p></div>'
+      :'<div id="tmpl"><h2>three.js did not load.</h2></div>';
+    return;
+  }
+  const DEG=Math.PI/180, I=D.iris, P=D.pipette, PLAN=D.plan;
+  const ALPHA_CONTACT=I.contact, FOLLOW=D.follow;          // blades on the cap; hinge angle that follows it up
+  const H0=I.bottle_h, NT=H0+D.neck.h;                     // cap seat and neck top in the hand frame
+  const [C0,C1]=P.carriage, RAIL_TOP=P.rail_top;
+  // the bottle and the dive, as set on the page (metres); the hand is placed on the neck
+  const B={h:D.bottle.h[0], r:D.bottle.r[0], level:D.bottle.level, dive:P.dive};
+  const floorZ=()=>H0-B.h;                                 // bottle floor in the hand frame
+
+  // ---------- renderer ----------
+  const view=document.getElementById('view');
+  const renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.85;
+  renderer.sortObjects=true;
+  view.appendChild(renderer.domElement);
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0xfafbfc);
+  const camera=new THREE.PerspectiveCamera(35,1,0.005,20);
+  scene.add(new THREE.HemisphereLight(0xffffff,0xdfe4ea,0.6));
+  const key=new THREE.DirectionalLight(0xffffff,0.9); key.position.set(0.6,1.4,0.8); key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048); Object.assign(key.shadow.camera,{left:-0.5,right:0.5,top:0.5,bottom:-0.5,near:0.1,far:4});
+  key.shadow.bias=-0.0005; scene.add(key);
+  const fill=new THREE.DirectionalLight(0xdbe7ff,0.35); fill.position.set(-0.8,0.5,-0.6); scene.add(fill);
+  const pmrem=new THREE.PMREMGenerator(renderer);
+  const envScene=new THREE.Scene(); envScene.background=new THREE.Color(0xf2f4f7);
+  [[0,6,0,8,8,0],[6,3,0,0.4,8,6],[-6,3,0,0.4,8,6],[0,3,-6,8,6,0.4]].forEach((q,i)=>{
+    const m=new THREE.Mesh(new THREE.BoxGeometry(q[3],q[4],q[5]),new THREE.MeshBasicMaterial({color:i?0xdfe6ee:0xffffff})); m.position.set(q[0],q[1],q[2]); envScene.add(m); });
+  scene.environment=pmrem.fromScene(envScene,0.04).texture;
+
+  // ---------- orbit ----------
+  const orbit={yaw:0.75,pitch:0.2,dist:1.3,target:new THREE.Vector3(0.03,0.3,0)};
+  function updateCam(){
+    const p=orbit.pitch,y=orbit.yaw,d=orbit.dist,t=orbit.target;
+    camera.position.set(t.x+d*Math.cos(p)*Math.sin(y),t.y+d*Math.sin(p),t.z+d*Math.cos(p)*Math.cos(y));
+    camera.lookAt(t);
+  }
+  let drag=null; const el=renderer.domElement;
+  el.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,b:e.button}; el.setPointerCapture(e.pointerId);});
+  el.addEventListener('pointermove',e=>{
+    if(!drag)return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y; drag.x=e.clientX; drag.y=e.clientY;
+    if(drag.b===2||e.shiftKey){
+      const right=new THREE.Vector3().subVectors(camera.position,orbit.target).cross(camera.up).normalize();
+      const k=0.0012*orbit.dist; orbit.target.addScaledVector(right,-dx*k); orbit.target.y+=dy*k;
+    }else{ orbit.yaw-=dx*0.006; orbit.pitch=Math.max(-1.4,Math.min(1.5,orbit.pitch+dy*0.006)); }
+    updateCam();
+  });
+  el.addEventListener('pointerup',()=>drag=null);
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+  el.addEventListener('wheel',e=>{e.preventDefault(); orbit.dist=Math.max(0.2,Math.min(3,orbit.dist*(1+e.deltaY*0.001))); updateCam();},{passive:false});
+
+  // ---------- materials ----------
+  const std=(rgb,o={})=>new THREE.MeshStandardMaterial(Object.assign({
+    color:new THREE.Color().setRGB(rgb[0],rgb[1],rgb[2]).convertSRGBToLinear(),roughness:0.45,metalness:0.3,envMapIntensity:0.9},o));
+  const MAT={};
+  const metalness={linkgray:0.35,urblue:0.1,grip_black:0.3,grip_gray:0.6,grip_pad:0.2,housing:0.4,gold:0.7,bracket:0.6,cap:0.05,white:0.05,blue:0.05,dark:0.1};
+  const roughness={gold:0.35,bracket:0.4,display:0.15};
+  const flat=new Set(['linkgray','urblue','grip_black','grip_gray','grip_pad']);
+  for(const [name,rgb] of Object.entries(D.materials)) MAT[name]=std(rgb,{metalness:metalness[name]??0.3,roughness:roughness[name]??0.45,flatShading:flat.has(name)});
+  Object.assign(MAT,{
+    bottle:std(D.materials.bottle,{metalness:0.05,roughness:0.2,transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide}),
+    liquid:std(D.materials.liquid,{metalness:0,roughness:0.1,transparent:true,opacity:0.6,depthWrite:false}),
+  });
+  const smooth=name=>{const m=MAT[name].clone(); m.flatShading=false; return m;};
+
+  // ---------- meshes ----------
+  const bytes=s=>{const b=atob(s), u=new Uint8Array(b.length); for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i); return u.buffer;};
+  const GEOM={};
+  for(const [name,m] of Object.entries(D.meshes)){
+    const g=new THREE.BufferGeometry();
+    g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(bytes(m.p)),3));
+    g.setIndex(new THREE.BufferAttribute(m.wide?new Uint32Array(bytes(m.i)):new Uint16Array(bytes(m.i)),1));
+    g.computeVertexNormals(); g.computeBoundingBox(); GEOM[name]=g;
+  }
+  const mesh=(geom,mat)=>{const o=new THREE.Mesh(geom,mat); o.castShadow=o.receiveShadow=true; return o;};
+  const quat=q=>new THREE.Quaternion(q[1],q[2],q[3],q[0]).normalize();   // MuJoCo is w,x,y,z
+  const box=(x0,x1,y0,y1,z0,z1,mat)=>{const o=mesh(new THREE.BoxGeometry(Math.abs(x1-x0),Math.abs(y1-y0),Math.abs(z1-z0)),mat); o.position.set((x0+x1)/2,(y0+y1)/2,(z0+z1)/2); return o;};
+  const cyl=(r,len,axis,mat)=>{const o=mesh(new THREE.CylinderGeometry(r,r,len,48),mat);   // three's cylinder runs along Y
+    if(axis==='z') o.rotation.x=Math.PI/2; if(axis==='x') o.rotation.z=Math.PI/2; return o;};
+
+  // ---------- world: Z up, the table at z = 0 ----------
+  const world=new THREE.Group(); world.rotation.x=-Math.PI/2; scene.add(world);
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(0.6,64),new THREE.ShadowMaterial({opacity:0.12}));
+  floor.receiveShadow=true; world.add(floor);
+  const grid=new THREE.PolarGridHelper(0.6,12,6,64,0xe3e7ec,0xeef0f3); grid.rotation.x=Math.PI/2; grid.position.z=0.0005; world.add(grid);
+
+  // the bottle, its liquid and the cap, in the hand frame: cap seat at H0, floor at H0 - height
+  const bottle=new THREE.Group(); world.add(bottle);
+  const bottleMesh=mesh(new THREE.BufferGeometry(),MAT.bottle); bottleMesh.castShadow=false; bottleMesh.renderOrder=3;
+  bottleMesh.rotation.x=Math.PI/2; bottle.add(bottleMesh);                 // lathe around Y -> around Z
+  const liquid=cyl(1,1,'z',MAT.liquid); liquid.castShadow=false; liquid.renderOrder=2; bottle.add(liquid);
+  const cap=mesh(GEOM['amber/cap'],MAT.cap);
+  function shapeBottle(){
+    const z0=floorZ(), R=B.r, N=D.neck, pts=[[0,z0],[R-0.003,z0],[R,z0+0.003],[R,H0-0.004],[R-0.004,H0],
+      [N.r,H0],[N.r,NT],[N.bore,NT],[N.bore,H0-0.006],[0,H0-0.006]];
+    bottleMesh.geometry.dispose();
+    bottleMesh.geometry=new THREE.LatheGeometry(pts.map(([r,z])=>new THREE.Vector2(r,z)),64);
+    const top=Math.max(0.004,B.level)-0.003;
+    liquid.scale.set(R-0.003,top,R-0.003); liquid.position.z=z0+0.003+top/2;
+  }
+
+  // ---------- hand: everything the arm moves; the bottle's frame once it is gripped ----------
+  const hand=new THREE.Group(); world.add(hand);
+
+  // gripper: tool +Z along +X, jaws closing along Y, pads on the bottle axis
+  const tool=new THREE.Group(); hand.add(tool);
+  tool.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(
+    new THREE.Vector3(0,1,0),new THREE.Vector3(0,0,1),new THREE.Vector3(1,0,0)));
+  const S=D.stub, stub=new THREE.Group(); tool.add(stub);
+  const housingStub=mesh(new THREE.CylinderGeometry(S.radius,S.radius,S.length,64),smooth('linkgray'));
+  housingStub.rotation.x=Math.PI/2; housingStub.position.z=S.top-S.length/2; stub.add(housingStub);
+  const ring=mesh(new THREE.CylinderGeometry(S.radius+0.001,S.radius+0.001,S.ring,64),smooth('urblue'));
+  ring.rotation.x=Math.PI/2; ring.position.z=S.top-S.ring/2; stub.add(ring);
+  const wrist=new THREE.Group(); tool.add(wrist);
+  const flange=mesh(GEOM['grip/wrist3'],MAT.linkgray);
+  flange.position.fromArray(D.wrist3.pos); flange.quaternion.copy(quat(D.wrist3.quat)); wrist.add(flange);
+  const frames={0:wrist}, pivots={};
+  for(const b of D.bodies){
+    const mount=new THREE.Group(); mount.position.fromArray(b.pos); mount.quaternion.copy(quat(b.quat));
+    frames[b.parent].add(mount);
+    let frame=mount;
+    if(b.joint){
+      const pivot=new THREE.Group(); pivot.position.fromArray(b.jpos); mount.add(pivot);
+      frame=new THREE.Group(); frame.position.fromArray(b.jpos).negate(); pivot.add(frame);
+      pivots[b.joint]=pivot;
+    }
+    frames[b.id]=frame;
+    for(const [m,mat] of b.meshes) frame.add(mesh(GEOM['grip/'+m],MAT[mat]));
+  }
+  const poly=(c,a)=>{let v=0; for(let i=c.length-1;i>=0;i--) v=v*a+c[i]; return v;};
+
+  // ---------- the rig: iris_pipette_rig.tree(), one group per body, a pivot per joint ----------
+  // Primitives run along their local Z as in MuJoCo; three's cylinders and cones run along Y.
+  const Y_TO_Z=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1,0,0),Math.PI/2);
+  const geomOf=g=>{
+    const [a,b,c]=g.size;
+    switch(g.type){
+      case 'box': return new THREE.BoxGeometry(2*a,2*b,2*c);
+      case 'cylinder': return new THREE.CylinderGeometry(a,a,2*b,48);
+      case 'capsule': return new THREE.CylinderGeometry(a,a,2*b,48);
+      case 'cone': return new THREE.ConeGeometry(a,2*b,24);
+      case 'mesh': return GEOM[g.mesh];
+    }
+  };
+  const groups={wrist_3_link:wrist}, joints={}, geoms={};
+  for(const b of D.tree){
+    const g=new THREE.Group(); g.position.fromArray(b.pos); g.quaternion.copy(quat(b.quat)); groups[b.parent].add(g);
+    let frame=g;
+    if(b.joint){
+      frame=new THREE.Group(); g.add(frame);
+      joints[b.joint.name]={g:frame, axis:new THREE.Vector3().fromArray(b.joint.axis), slide:b.joint.type==='slide'};
+    }
+    groups[b.name]=frame;
+    for(const s of b.sites){ const o=new THREE.Object3D(); o.position.fromArray(s.pos); frame.add(o); groups[s.name]=o; }
+    for(const gm of b.geoms){
+      if(!gm.visible) continue;
+      const o=mesh(geomOf(gm),gm.type==='mesh'&&gm.mesh==='pipette/tip_cone'?MAT.dark.clone():MAT[gm.material]);
+      o.position.fromArray(gm.pos); o.quaternion.copy(quat(gm.quat));
+      if(gm.type!=='box'&&gm.type!=='mesh') o.quaternion.multiply(Y_TO_Z);
+      frame.add(o); geoms[gm.name]=o;
+    }
+  }
+  const handFrame=groups.hand_frame, carrier=groups.carrier, slideG=groups.pipette_slide;
+  const tipMat=geoms.pipette_tip_cone.material, DARK=MAT.dark.color.clone(), FULL=MAT.liquid.color.clone();
+  const mast=geoms.mast, rail=geoms.rail;
+  function cutRail(){                                    // the rail runs from the dive to the neck
+    const lo=diveZ()+C0;
+    rail.scale.z=(RAIL_TOP-lo)/rail.geometry.parameters.depth; rail.position.z=(RAIL_TOP+lo)/2;
+    mast.scale.z=(RAIL_TOP+0.005-P.mast_bottom)/mast.geometry.parameters.depth; mast.position.z=(RAIL_TOP+0.005+P.mast_bottom)/2;
+  }
+
+  // ---------- the bottle and the dive ----------
+  const diveZ=()=>floorZ()+B.dive;                     // tip at the dive, hand frame
+  const diveMin=()=>Math.max(0.003,P.tip_min-floorZ()); // floor, or the ejector arm at the neck
+  const wet=()=>diveZ()<floorZ()+B.level-0.002;        // the tip is in the liquid at the dive
+  function applyBottle(){
+    B.level=Math.min(B.level,B.h-0.01);
+    B.dive=Math.min(Math.max(B.dive,diveMin()),B.h+D.neck.h);
+    // the flange sits pad_fit(Ø) behind the bottle axis; the hand frame hangs off it back on that axis
+    const fx=-poly(D.pad_fit,2*B.r);
+    tool.position.set(fx,0,D.tool.z);
+    handFrame.position.set(0,-D.tool.z,-fx);
+    shapeBottle(); cutRail();
+  }
+
+  // ---------- state: iris_pipette_rig.STATE (+ fill), joints through JOINT_MAP ----------
+  const st={...PLAN.start};
+  const jointValue=name=>{const [off,coefs]=D.joint_map[name]; let q=off; for(const k in coefs) q+=coefs[k]*st[k]; return q;};
+  function solve(){
+    hand.position.z=st.lift_z+B.h-H0;
+    for(const [j,p] of Object.entries(pivots)) p.rotation.x=poly(D.fits[j],st.grip_aperture);
+    for(const [name,j] of Object.entries(joints)){
+      const q=jointValue(name);
+      if(j.slide) j.g.position.copy(j.axis).multiplyScalar(q); else j.g.quaternion.setFromAxisAngle(j.axis,q);
+    }
+    tipMat.color.copy(DARK).lerp(FULL,wet()?st.fill:0);
+    // the bottle rides in the hand once the jaws are closed on it
+    const held=st.grip_aperture<=2*B.r+0.0005;
+    const home=held?hand:world;
+    if(bottle.parent!==home) home.add(bottle);
+    bottle.position.set(0,0,held?0:B.h-H0);
+    // the cap: on the neck until the housing turns, then in the blades
+    if(st.housing_turns>1e-4){
+      if(cap.parent!==carrier) carrier.add(cap);
+      cap.position.set(0,0,I.cap_z);
+    }else{
+      if(cap.parent!==bottle) bottle.add(cap);
+      cap.position.set(0,0,I.bottle_h);
+    }
+  }
+
+  // ---------- the sequence ----------
+  const STEPS=PLAN.steps;   // [name, seconds, changes]; 'closed' and 'dive' follow the bottle set on the page
+  let keys=[], TOTAL=0;
+  function makeKeys(){
+    keys=[{t:0,s:{...PLAN.start}}];
+    for(const [,dur,delta] of STEPS){
+      const last=keys[keys.length-1], d={};
+      for(const k in delta) d[k]=delta[k]==='closed'?2*B.r:delta[k]==='dive'?diveZ():delta[k];
+      keys.push({t:last.t+dur,s:{...last.s,...d}});
+    }
+    TOTAL=keys[keys.length-1].t+0.8;
+  }
+  const ease=x=>0.5-0.5*Math.cos(Math.PI*Math.min(1,Math.max(0,x)));
+  function at(t){
+    for(let i=1;i<keys.length;i++) if(t<keys[i].t){
+      const a=keys[i-1], b=keys[i], f=ease((t-a.t)/(b.t-a.t)), s={};
+      for(const k in a.s) s[k]=a.s[k]+(b.s[k]-a.s[k])*f;
+      // the gripper opens before the hand lifts
+      if(i===keys.length-1){ const g=ease(2*(t-a.t)/(b.t-a.t)), m=ease(2*(t-a.t)/(b.t-a.t)-1);
+        s.grip_aperture=a.s.grip_aperture+(b.s.grip_aperture-a.s.grip_aperture)*g; s.lift_z=a.s.lift_z+(b.s.lift_z-a.s.lift_z)*m; }
+      return [s,i-1];
+    }
+    return [{...keys[keys.length-1].s},-1];
+  }
+  const stepsEl=document.getElementById('steps');
+  STEPS.forEach(([name])=>{const li=document.createElement('li'); li.textContent=name; stepsEl.appendChild(li);});
+
+  // ---------- UI ----------
+  const $=id=>document.getElementById(id);
+  const gripIn=$('gripIn'), tipIn=$('tipIn');
+  const range=(id,lo,hi)=>{$(id).min=(lo*1000).toFixed(1); $(id).max=(hi*1000).toFixed(1);};
+  range('bhIn',D.bottle.h[1],D.bottle.h[2]); range('brIn',2*D.bottle.r[1],2*D.bottle.r[2]);
+  function ranges(){
+    range('levelIn',0.005,B.h-0.01); range('diveIn',diveMin(),B.h+D.neck.h);
+    range('gripIn',2*B.r,D.open_aperture); range('tipIn',diveZ()-floorZ(),P.ready-floorZ());
+    $('bhIn').value=B.h*1000; $('brIn').value=2*B.r*1000; $('levelIn').value=B.level*1000; $('diveIn').value=B.dive*1000;
+    $('bhTxt').textContent=(B.h*1000).toFixed(0)+' mm'; $('brTxt').textContent='Ø'+(2*B.r*1000).toFixed(0)+' mm';
+    $('levelTxt').textContent=(B.level*1000).toFixed(0)+' mm';
+    $('diveTxt').textContent=(B.dive*1000).toFixed(0)+' mm';
+    const depth=(B.level-B.dive)*1000, reach=(NT-P.tip_min)*1000, limited=B.dive<=diveMin()+1e-6&&diveMin()>0.0031;
+    const note=$('diveNote');
+    note.textContent=(depth>2?`Tip ${depth.toFixed(0)} mm into the liquid.`:`Tip ${(-depth).toFixed(0)} mm above the liquid: it draws air.`)
+      +(limited?` Deepest dive: the ejector arm stops ${reach.toFixed(0)} mm below the neck top.`:'')
+      +` Rail ${((RAIL_TOP-diveZ()-C0)*1000).toFixed(0)} mm.`;
+    note.style.color=depth>2?'':'#b3261e';
+  }
+  const irisOf=v=>I.open+(ALPHA_CONTACT-I.open)*v/1000;
+  function refresh(step){
+    $('zTxt').textContent=(st.lift_z*1000).toFixed(0)+' mm';
+    $('gripTxt').textContent=(st.grip_aperture*1000).toFixed(1)+' mm';
+    $('hingeTxt').textContent=(st.hinge_angle/DEG).toFixed(1)+'°';
+    $('irisTxt').textContent='Ø'+(2*I.r_pivot*Math.cos(st.iris_angle)*1000).toFixed(0)+' mm · '+(st.iris_angle/DEG).toFixed(0)+'°';
+    $('turnTxt').textContent=st.housing_turns.toFixed(2);
+    $('tipTxt').textContent=((st.pipette_tip-floorZ())*1000).toFixed(0)+' mm';
+    $('plungerTxt').textContent=(st.plunger*1000).toFixed(1)+' mm';
+    $('swingTxt').textContent=Math.abs(st.swing_angle)<1e-3?'in, locked':(-st.swing_angle/DEG).toFixed(0)+'° out';
+    $('swingIn').value=-st.swing_angle/DEG;
+    $('zIn').value=st.lift_z*1000; gripIn.value=st.grip_aperture*1000;
+    $('hingeIn').value=st.hinge_angle/DEG; $('irisIn').value=Math.round((st.iris_angle-I.open)/(ALPHA_CONTACT-I.open)*1000);
+    $('turnIn').value=st.housing_turns; tipIn.value=(st.pipette_tip-floorZ())*1000; $('plungerIn').value=st.plunger*1000;
+    [...stepsEl.children].forEach((li,i)=>li.classList.toggle('on',i===step));
+    $('phase').textContent=step>=0?(step+1)+' · '+STEPS[step][0]:(playing?'—':'Manual');
+  }
+  function set(s,step=-1){ Object.assign(st,s); solve(); refresh(step); }
+  let playing=false, t0=0;
+  const stop=()=>{playing=false; $('play').textContent='Play';};
+  const bind=(id,fn)=>$(id).addEventListener('input',e=>{stop(); set(fn(+e.target.value));});
+  bind('zIn',v=>({lift_z:v/1000}));
+  bind('gripIn',v=>({grip_aperture:v/1000}));
+  bind('hingeIn',v=>({hinge_angle:v*DEG}));
+  bind('irisIn',v=>({iris_angle:irisOf(v)}));
+  bind('turnIn',v=>({housing_turns:v}));
+  bind('tipIn',v=>({pipette_tip:floorZ()+v/1000}));
+  // the bottle and the dive: reshape, re-key the sequence, keep the pose (the bottle stays held if it was)
+  const bindB=(id,fn)=>$(id).addEventListener('input',e=>{
+    const held=st.grip_aperture<=2*B.r+0.0005;
+    fn(+e.target.value/1000); applyBottle(); makeKeys(); ranges();
+    if(held) st.grip_aperture=2*B.r;
+    st.pipette_tip=Math.max(st.pipette_tip,diveZ());
+    if(playing){ const [s,step]=at((performance.now()/1000-t0)%TOTAL); set(s,step); } else set({});
+  });
+  bindB('bhIn',v=>{B.dive+=v-B.h; B.level+=v-B.h; B.h=v;});   // keep dive and level at the same depth under the neck
+  bindB('brIn',v=>{B.r=v/2;});
+  bindB('levelIn',v=>{B.level=v;});
+  bindB('diveIn',v=>{B.dive=v;});
+  bind('plungerIn',v=>({plunger:v/1000}));
+  bind('swingIn',v=>({swing_angle:-v*DEG}));
+  $('swingIn').max=(-P.stow/DEG).toFixed(0);
+  $('play').addEventListener('click',()=>{playing=!playing; $('play').textContent=playing?'Pause':'Play'; t0=performance.now()/1000;});
+  $('reset').addEventListener('click',()=>{stop(); set(keys[0].s);});
+  $('bottleBtn').addEventListener('click',e=>{bottleMesh.visible=!bottleMesh.visible; e.currentTarget.setAttribute('aria-pressed',bottleMesh.visible);});
+  $('stubBtn').addEventListener('click',e=>{stub.visible=!stub.visible; e.currentTarget.setAttribute('aria-pressed',stub.visible);});
+
+  function resize(){ const w=view.clientWidth,h=view.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+  new ResizeObserver(resize).observe(view); resize(); updateCam();
+  function loop(){
+    requestAnimationFrame(loop);
+    if(playing){ const [s,step]=at((performance.now()/1000-t0)%TOTAL); set(s,step); }
+    renderer.render(scene,camera);
+  }
+  applyBottle(); makeKeys(); ranges();
+  // #step=N opens the page part-way through step N
+  const deep=/step=(\d+)/.exec(location.hash), n=deep?Math.min(STEPS.length,Math.max(1,+deep[1])):0;
+  if(n){ const [s]=at(keys[n-1].t+0.6*(keys[n].t-keys[n-1].t)); set(s,n-1); } else set(keys[0].s);
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>

@@ -96,15 +96,11 @@ BENCH_VESSELS = 12
 # puts the Robotiq back for scripts/grasp_test.py.
 TOOL = 'pipette'
 
-# Which of the scene's five balances gets its roof cut off and takes the beaker.
-# balance_5 stands at x = -0.75 on the back strip, the closest one to the rail.
-OPEN_BALANCE = 'balance_5_'
+# The open balance replaces the middle covered balance in the front row.
+# The former balance_5 station is removed, leaving four balances in total.
+OPEN_BALANCE = 'balance_2_'
 BALANCE_PAN = (-0.005, 0.031, 0.077)    # pan centre in the balance's own frame
-# and it moves here. Left where it stood on the back strip, the beaker's rim
-# sits at 1.08 m, which puts the pipette's flange at 1.34 --- 20 mm under the
-# gantry beam, with the whole wrist in the way. Out in front of the rail there
-# is nothing overhead.
-BALANCE_POS = (0.60, -0.45, BENCH_TOP)
+BALANCE_POS = (-1.70, -1.16, BENCH_TOP)
 
 # Eye-in-hand camera, in the tool frame (+Z is the approach direction).
 EIH_OFFSET = 0.09   # to the side of the tool axis, clear of the fingers
@@ -295,6 +291,39 @@ def build_arm() -> Path:
     return out
 
 
+def relocate_wash_station(root: ET.Element) -> None:
+    """Swap the rack and carboy; turn the rack along the bench's end edge."""
+    if root.find(".//frame[@name='rail_drying_rack']") is not None:
+        return
+    groups = (
+        ('rail_drying_rack', ('drip_tray_', 'rack_wire_', 'rack_foot_', 'peg_', 'drying_'),
+         (2.52, 0.24), (2.8, -0.35), 90),
+        ('rail_carboy', ('carboy_',), (2.8, -0.35), (2.52, 0.24), 0),
+    )
+    for name, prefixes, origin, destination, angle in groups:
+        parents = {child: parent for parent in root.iter() for child in parent}
+        geoms = [g for g in root.iter('geom') if g.get('name', '').startswith(prefixes)]
+        if not geoms:
+            raise ValueError(f'Missing wash-station geometry: {name}')
+        parent = parents[geoms[0]]
+        assert all(parents[g] is parent for g in geoms)
+        frame = ET.Element('frame', name=name,
+                           pos=f'{destination[0]:g} {destination[1]:g} 0',
+                           euler=f'0 0 {angle}')
+        parent.insert(list(parent).index(geoms[0]), frame)
+        for geom in geoms:
+            for attr in ('pos', 'fromto'):
+                if attr not in geom.attrib:
+                    continue
+                values = [float(v) for v in geom.get(attr).split()]
+                for i in range(0, len(values), 3):
+                    values[i] -= origin[0]
+                    values[i + 1] -= origin[1]
+                geom.set(attr, ' '.join(f'{v:.6g}' for v in values))
+            parent.remove(geom)
+            frame.append(geom)
+
+
 def build_bench(keep: int) -> list[dict[str, str]]:
     """Clear the bench down to `keep` vessels, and hand them to the scene.
 
@@ -327,13 +356,19 @@ def build_bench(keep: int) -> list[dict[str, str]]:
         One dict per lifted vessel with its sample id, world position and yaw.
     """
     tree = ET.parse(ROOM)
+    relocate_wash_station(tree.getroot())
     # The population is nested inside the room's sub-bodies, so walk the whole
     # tree and keep a parent map: ElementTree has no parent pointers and the
     # geoms have to be removed from wherever they actually live.
     parent_of = {child: parent for parent in tree.getroot().iter()
                  for child in parent}
     vessels: dict[str, list[ET.Element]] = {}
-    for geom in tree.getroot().iter('geom'):
+    for geom in list(tree.getroot().iter('geom')):
+        # Remove the wash-zone funnel and the unused rear balance mat.
+        if geom.get('name') in {'funnel_0', 'mat_1', 'mat_frame_4',
+                                'mat_frame_5', 'mat_frame_6', 'mat_frame_7'}:
+            parent_of[geom].remove(geom)
+            continue
         match = re.match(r'stock_(.+?)_(?:glass|cap|label|label_back|collision)',
                          geom.get('name', ''))
         if match:
@@ -437,6 +472,9 @@ def build_scene() -> Path:
                       body=vessel['sample'], prefix=f'dyn_{vessel["sample"]}_')
     if TOOL == 'pipette':
         # One balance loses its roof and gains a pan; the beaker stands on it.
+        for old in list(world.findall('frame')):
+            if any(a.get('prefix') == 'balance_5_' for a in old.findall('attach')):
+                world.remove(old)
         frame = next(f for f in world.iter('frame')
                      if any(a.get('prefix') == OPEN_BALANCE
                             for a in f.findall('attach')))

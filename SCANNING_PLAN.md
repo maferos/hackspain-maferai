@@ -7,6 +7,28 @@ changing under it.
 Owners: Nacho, Martí (vision), with the rail scene from Eki, Eloi. See
 `AGENTS.md`.
 
+> **Status, 2026-09-19.** Gap 1 below, "there is no memory", is closed, but not
+> by the new file this plan proposed. The propose-then-confirm pass now lives
+> inside the harness's own generator, `harness/build_lookup_table.py`, which
+> writes `harness/lookup_table.json` --- the fixed cameras propose, the wrist
+> camera confirms from about 0.30 m, and both feed the same decoder.
+>
+> Gap 2, "the robot is not in the loop", is closed for the looking, not for the
+> moving. On the rail scene the confirming camera is now the UR10e's own
+> `arm_eih`, bolted to `arm_wrist_3_link`: `rail_kinematics.look_at_point()`
+> puts the carriage at a station and solves the six arm joints so that camera
+> looks at the proposal, bearing by bearing, and the camera's pose is read back
+> from the simulation rather than assumed. A proposal the arm cannot reach from
+> any bearing is never looked at and says so (`reached` on its entry,
+> `out_of_reach` in `metrics.confirm`): 9 of 49 on the rail bench. What is
+> still missing is the **path**: the IK is purely kinematic, so the arm is
+> posed, not driven, and nothing checks that it could get from one station to
+> the next without sweeping through the bench. `scripts/pipette_test.py` shows
+> what that costs, and it is not small.
+>
+> Gap 3 (no update policy: every pass rebuilds the table from scratch) is open,
+> and so is everything under "The memory format" and "The merge rules".
+
 ## The goal in one line
 
 ```
