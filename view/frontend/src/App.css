@@ -231,3 +231,343 @@ body {
     opacity: 0.35;
   }
 }
+
+/* --- Lab state panels ------------------------------------------------------ */
+
+:root {
+  --warn: #d29922;
+  --error: #f85149;
+}
+
+.main-column {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.panels {
+  flex-shrink: 0;
+  height: 230px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Formula checklist heading the task panel */
+
+.formula {
+  padding: 0.7rem 1rem 0.6rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.formula__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.formula__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.formula-row {
+  display: grid;
+  grid-template-columns: 1rem 1fr auto;
+  gap: 0.4rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+  line-height: 1.9;
+}
+
+.formula-row__check {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.formula-row__mass {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.formula-row__meta {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+.formula-row--completed .formula-row__name {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+.formula-row--completed .formula-row__mass {
+  color: var(--text-dim);
+}
+
+.formula-row__delta {
+  margin-left: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--active);
+}
+
+.formula-row--completed .formula-row__check {
+  color: var(--active);
+}
+
+.formula-row--active {
+  font-weight: 600;
+}
+
+.formula-row--active .formula-row__check {
+  color: var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* Thin progress bar under the ingredient being added, spanning name + mass. */
+.formula-row__bar {
+  grid-column: 2 / 4;
+  display: block;
+  height: 3px;
+  margin: -0.15rem 0 0.25rem;
+  border-radius: 2px;
+  background: var(--panel-border);
+  overflow: hidden;
+}
+
+.formula-row__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--active);
+  transition: width 0.2s ease;
+}
+
+.formula__total,
+.formula__summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--panel-border);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.formula__total .mono,
+.formula__summary .mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color: var(--text);
+}
+
+.formula__summary {
+  flex-direction: column;
+  gap: 0.15rem;
+  font-weight: 600;
+}
+
+.formula__summary--pass {
+  color: var(--active);
+}
+
+.formula__summary--fail {
+  color: var(--error);
+}
+
+/* Header of the lab task panel: run id, status, clock and the scripted badge */
+
+.task-panel__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.task-panel__run {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.task-panel__badges {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* Plan list around the current step */
+
+.plan-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem 0.1rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.plan-group::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--panel-border);
+}
+
+.plan-earlier {
+  padding: 0.3rem 1rem;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.task-item--queued .task-item__marker {
+  background: transparent;
+  border: 1px solid var(--done);
+}
+
+.task-item--queued .task-item__label {
+  color: var(--text-dim);
+}
+
+.task-item--retrying .task-item__marker {
+  background: var(--warn);
+  box-shadow: 0 0 6px var(--warn);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.task-item--retrying .task-item__label,
+.task-item--retrying .task-item__meta {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.task-item--active .task-item__meta {
+  color: var(--text);
+}
+
+.task-item--failed .task-item__marker {
+  background: var(--error);
+}
+
+.chip--warn {
+  background: rgba(210, 153, 34, 0.15);
+  color: var(--warn);
+}
+
+.panels--empty {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: auto;
+  padding: 0.6rem 0.9rem;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.panel__body {
+  flex: 1;
+  min-height: 0;
+  padding: 0.55rem 0.9rem;
+  overflow: hidden;
+}
+
+.panel__footer {
+  padding: 0.45rem 0.9rem;
+  border-top: 1px solid var(--panel-border);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip {
+  padding: 0.1rem 0.5rem;
+  border-radius: 5px;
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--accent);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.kv span:first-child {
+  color: var(--text-dim);
+}
+
+.kv span:last-child {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  white-space: nowrap;
+}
+
+.big {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.big small {
+  margin-left: 0.3rem;
+  font-size: 1rem;
+  color: var(--text-dim);
+}
+
+.bar {
+  height: 6px;
+  margin: 0.45rem 0 0.35rem;
+  border-radius: 3px;
+  background: var(--panel-border);
+  overflow: hidden;
+}
+
+.bar > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+

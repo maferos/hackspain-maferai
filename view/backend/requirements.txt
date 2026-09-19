@@ -6,3 +6,5 @@
 fastapi>=0.115
 uvicorn[standard]>=0.30
 opencv-python-headless>=4.9
+# The LabState publisher (dashboard/bridge/labbridge) serves its websocket with:
+websockets>=13

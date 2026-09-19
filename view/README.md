@@ -39,3 +39,47 @@ npm run dev
 
 Then open http://localhost:5173. Set `VITE_BACKEND_URL` if the backend runs
 somewhere other than `http://localhost:8000`.
+
+## Lab state panels
+
+The same backend also publishes the full `LabState` of the dashboard console
+(`dashboard/`, see its README for the schema) on `ws://localhost:8765/state`.
+It is driven by the scripted formulation in
+`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four containers,
+one recovery: the Eugenol flask is moved during the approach), which moves the
+free containers of the scene kinematically, so the camera streams show the
+bottles travelling to `balance_2`. It needs `websockets` in the venv (listed
+in `backend/requirements.txt`).
+
+When that state is connected, the frontend shows it (`src/LabTaskPanel.jsx`,
+`src/LabPanels.jsx`); without it, the task panel falls back to the mocked log
+above.
+
+- **Robot tasks**: run id, status and clock, a `SCRIPTED` badge while the
+  sequence is not the real planner, then the formula with each ingredient
+  crossed off once added (with its deviation from target, and a progress bar on
+  the one being dosed), then the plan around the current step, grouped by
+  ingredient: the last few steps done, the active one (amber while it is
+  recovering), and the next three.
+- **Robot** and **Balance** under the viewport.
+
+To rehearse a moment, start the backend part-way and slowed down:
+
+```sh
+LAB_STATE_START=100 LAB_STATE_SPEED=0.25 simulation/.venv/bin/python view/backend/server.py
+```
+
+The recovery starts at about 101 s and the recipe completes at about 172 s.
+
+To watch the same state with the dashboard console instead, run `npm run dev`
+in `dashboard/` and open:
+
+```
+http://localhost:5173/?mode=live&url=ws://localhost:8765/state
+    &sim=mjpeg:http://localhost:8000/stream/scene
+    &simRobot=mjpeg:http://localhost:8000/stream/scene
+    &simWrist=mjpeg:http://localhost:8000/stream/robot
+```
+
+Replace `ScriptedRun` with the real planner when it exists; the state contract
+stays the same.

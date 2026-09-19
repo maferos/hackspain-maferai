@@ -1,8 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
+import LabPanels from "./LabPanels";
+import LabTaskPanel from "./LabTaskPanel";
+import { useLabState } from "./labState";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8000";
 const WS_URL = BACKEND_URL.replace(/^http/, "ws") + "/ws/tasks";
+const STATE_URL = import.meta.env.VITE_STATE_URL ?? "ws://localhost:8765/state";
 
 const DEFAULT_CAMERAS = [
   { id: "robot", label: "Robot camera" },
@@ -64,6 +68,7 @@ export default function App() {
   const [tasks, setTasks] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
+  const lab = useLabState(STATE_URL);
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/cameras`)
@@ -115,22 +120,29 @@ export default function App() {
 
   const swapCameras = useCallback(() => setMainCameraId(pipCameraId), [pipCameraId]);
 
+  // With the lab state connected, the task panel shows the formula and the
+  // plan; without it, the backend's mocked task log as before.
+  const labRunning = lab.state && lab.state.run.status !== "idle" ? lab.state : null;
+
   return (
     <div className="app">
       <header className="app__header">
         <h1>Robot monitor — mini-Hannover</h1>
       </header>
       <main className="app__body">
-        <section className="viewport">
-          <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big />
-          <CameraStream
-            cameraId={pipCameraId}
-            label={pipLabel}
-            className="camera-frame--pip"
-            onClick={swapCameras}
-          />
-        </section>
-        <TaskPanel tasks={tasks} connected={wsConnected} />
+        <div className="main-column">
+          <section className="viewport">
+            <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big />
+            <CameraStream
+              cameraId={pipCameraId}
+              label={pipLabel}
+              className="camera-frame--pip"
+              onClick={swapCameras}
+            />
+          </section>
+          <LabPanels state={lab.state} connected={lab.connected} />
+        </div>
+        {labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />}
       </main>
     </div>
   );

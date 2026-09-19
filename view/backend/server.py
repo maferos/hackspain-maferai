@@ -5,6 +5,11 @@ MuJoCo model (the onboard robot camera and the fixed scene-overview camera),
 plus a websocket feed of a mock task log standing in for the robot's real
 task planner (none exists in the repo yet).
 
+It also publishes the full `LabState` that the dashboard console
+(`dashboard/`) renders, on `ws://localhost:8765/state`, driven by the scripted
+formulation of `labbridge.mock_run` over this same scene. The script moves the
+free containers kinematically, so the camera streams show it too.
+
 Usage:
     .venv/bin/python view/backend/server.py
 Then open view/frontend (see its README) against this server's port (8000).
@@ -13,6 +18,8 @@ from __future__ import annotations
 
 import asyncio
 import itertools
+import os
+import sys
 import threading
 import time
 from datetime import datetime, timezone
@@ -26,6 +33,19 @@ from fastapi.responses import StreamingResponse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 SCENE_PATH = REPO_ROOT / "simulation" / "models" / "minihannover_scene.xml"
+
+sys.path.insert(0, str(REPO_ROOT / "dashboard" / "bridge"))
+from labbridge.mock_run import ACTIVE_BALANCE, RAIL, ScriptedRun  # noqa: E402
+from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
+from labbridge.server import StateServer  # noqa: E402
+
+STATE_PORT = 8765
+STATE_RATE_HZ = 10
+STATE_LOOP_PAUSE_S = 15.0
+# Rehearsal knobs: where the scripted run starts (seconds) and how fast it plays.
+# LAB_STATE_START=100 LAB_STATE_SPEED=0.25 shows the recovery in slow motion.
+STATE_START_S = float(os.environ.get("LAB_STATE_START", "0"))
+STATE_SPEED = float(os.environ.get("LAB_STATE_SPEED", "1"))
 
 # Logical camera id -> MuJoCo camera name in the scene. These are the vision
 # system's own two cameras (see minihannover_scene.xml): `general`, the fixed
@@ -114,8 +134,16 @@ class SceneRenderer:
     def __init__(self, xml_path: Path) -> None:
         self.model = mujoco.MjModel.from_xml_path(str(xml_path))
         self.data = mujoco.MjData(self.model)
+        mujoco.mj_forward(self.model, self.data)
         self._latest_jpeg: dict[str, bytes] = {}
         self._condition = threading.Condition()
+        # Guards `data` between the physics/render thread and the state thread.
+        self._data_lock = threading.Lock()
+
+        # Scripted formulation that drives the dashboard's LabState and moves
+        # the free containers; the console reads it on ws://:STATE_PORT/state.
+        self.run = ScriptedRun(self.model, self.data, vessels(self.model))
+        self.state_server = StateServer(port=STATE_PORT)
 
         self._scene_options: dict[str, mujoco.MjvOption] = {}
         for info in CAMERAS.values():
@@ -126,7 +154,8 @@ class SceneRenderer:
             self._scene_options[info["mj_name"]] = opt
 
     def _encode(self, mj_camera_name: str, renderer: "mujoco.Renderer") -> bytes:
-        renderer.update_scene(self.data, camera=mj_camera_name, scene_option=self._scene_options[mj_camera_name])
+        with self._data_lock:
+            renderer.update_scene(self.data, camera=mj_camera_name, scene_option=self._scene_options[mj_camera_name])
         frame = renderer.render()  # RGB
         bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         ok, buf = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
@@ -140,7 +169,8 @@ class SceneRenderer:
         mj_camera_names = [info["mj_name"] for info in CAMERAS.values()]
         while True:
             start = time.time()
-            mujoco.mj_step(self.model, self.data)
+            with self._data_lock:
+                mujoco.mj_step(self.model, self.data)
             with self._condition:
                 for mj_name in mj_camera_names:
                     self._latest_jpeg[mj_name] = self._encode(mj_name, renderer)
@@ -158,9 +188,34 @@ class SceneRenderer:
                 last = self._latest_jpeg[mj_camera_name]
             yield last
 
+    def _snapshot_state(self) -> None:
+        with self._data_lock:
+            self.state_server.snapshot(self.run.initial_state(workcell(self.model, self.data, ACTIVE_BALANCE, RAIL)))
+
+    def publish_state_forever(self) -> None:
+        """Replays the scripted formulation and publishes LabState patches at STATE_RATE_HZ."""
+        self.state_server.start()
+        self._snapshot_state()
+        period = 1.0 / STATE_RATE_HZ
+        t0 = time.time() - STATE_START_S / STATE_SPEED
+        last: dict = {}
+        while True:
+            tick = time.time()
+            t = (tick - t0) * STATE_SPEED
+            if t >= self.run.duration + STATE_LOOP_PAUSE_S * STATE_SPEED:
+                t0, last = tick, {}
+                self._snapshot_state()
+                t = 0.0
+            with self._data_lock:
+                last = self.run.apply(t, self.state_server, last)
+            remaining = period - (time.time() - tick)
+            if remaining > 0:
+                time.sleep(remaining)
+
 
 scene = SceneRenderer(SCENE_PATH)
 threading.Thread(target=scene.run_forever, daemon=True).start()
+threading.Thread(target=scene.publish_state_forever, daemon=True).start()
 
 # --- FastAPI app -----------------------------------------------------------
 
