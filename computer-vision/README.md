@@ -647,7 +647,7 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/identify.py` | Reads the ArUco ring inside a detector box, or the whole frame, and names the sample |
 | `labvision/perception.py` | The fixed camera proposes, the wrist camera confirms and places the bottle |
 | `labvision/world.py` | The bottles the vision system found, in the console's vessel shape |
-| `tests/` | 408 tests, plus 30 doctests |
+| `tests/` | 386 tests, plus 33 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
