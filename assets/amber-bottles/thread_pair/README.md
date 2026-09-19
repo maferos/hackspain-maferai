@@ -23,6 +23,25 @@ the GLBs and a `.blend`, and exits non-zero if the check fails.
 | `cap_PP<N>_threaded.glb` | The cap with the internal helix |
 | `thread_pair_PP<N>.blend` | Both, the cap posed closed on the flask |
 
+## Seeing it without Blender
+
+`preview_thread_pair.py` renders the pair in cutaway with Cycles, from the same
+`bpy` wheel — no Blender app, no GUI:
+
+    uv run --python 3.11 --with bpy python preview_thread_pair.py --out thread_pair/preview
+
+| Image | What it shows |
+| --- | --- |
+| `preview/01_pair_closed.png` | Closed. The cap's ridges sit in the neck's valleys, and the gap over the lip is `SEAT_CLEARANCE` |
+| `preview/02..04_*.png` | Half a turn, one turn, two turns — the two helices separating |
+| `preview/05_cap_cutaway.png` | The cap alone, opened up: two turns of internal thread |
+| `preview/06_smooth_vs_threaded.png` | Threaded (left) against the catalogue's smooth bore (right) |
+
+Two gotchas if you adapt the script: the scene is centimetres across, so the
+camera's default 0.1 m near clip plane hides everything (`clip_start = 0.001`),
+and filtering objects by `hide_render` has to skip the lights or every frame
+comes out black.
+
 ## The numbers
 
 Thread parameters are the ones the kit already used for the neck
