@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 from wrist_identify_bench import (  # noqa: E402
     distance_bucket,
@@ -88,3 +90,20 @@ def test_only_visible_unclipped_bench_bottles_are_required():
 def test_distance_buckets_cover_every_range():
     labels = distance_labels()
     assert [distance_bucket(d) for d in (0.3, 0.5, 0.7, 0.95)] == labels
+
+
+def test_elevation_is_measured_over_the_ring_and_bucketed():
+    from wrist_identify_bench import elevation_bucket, elevation_deg, elevation_labels
+
+    assert elevation_deg((0.0, -0.3, 1.0), (0.0, 0.0, 1.0)) == pytest.approx(0.0)
+    assert elevation_deg((0.0, -0.3, 1.3), (0.0, 0.0, 1.0)) == pytest.approx(45.0)
+    assert elevation_bucket(-5.0) == "< 15 deg"
+    assert elevation_bucket(45.0) == "45-60 deg"
+    assert elevation_bucket(80.0) == ">= 60 deg"
+    assert elevation_labels() == [
+        "< 15 deg",
+        "15-30 deg",
+        "30-45 deg",
+        "45-60 deg",
+        ">= 60 deg",
+    ]

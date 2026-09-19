@@ -134,14 +134,32 @@ def rows_by_marker(table: dict[str, dict]) -> dict[int, dict]:
     return {int(row["marker_id"]): row for row in table.values() if "marker_id" in row}
 
 
+def _squareness(marker: Marker) -> float:
+    """A marker's shortest side over its longest, 1 for a square seen head-on"""
+    corners = np.asarray(marker.corners, dtype=float)
+    sides = np.linalg.norm(np.roll(corners, -1, axis=0) - corners, axis=1)
+    return float(sides.min() / sides.max()) if sides.max() > 0 else 0.0
+
+
 class MarkerReader:
     """ArUco reading tuned the way ``scripts/wrist_scan.py`` reads the rings
 
+    A marker seen nearly edge-on is dropped: squashed to a few pixels, its
+    4 x 4 cells merge and it can decode, bit for bit, as another id. In 100
+    wrist frames from 0.25 to 1 m this happened twice, both from 50 degrees
+    or more above the ring, and requiring the shortest side to be at least
+    half the longest removed both at the cost of 3 of 220 right reads, all
+    from as high up. A marker the wrist faces from the aisle is close to
+    square, and one at 45 degrees round the ring still keeps about 0.7.
+
     Args:
         dictionary: A ``cv2.aruco`` predefined dictionary id.
+        min_squareness: Shortest side over longest side a marker needs.
     """
 
-    def __init__(self, dictionary: int = DICTIONARY) -> None:
+    def __init__(
+        self, dictionary: int = DICTIONARY, *, min_squareness: float = 0.5
+    ) -> None:
         """Build the detector with the parameters the ring was measured with"""
         parameters = cv2.aruco.DetectorParameters()
         parameters.minMarkerPerimeterRate = 0.02
@@ -149,16 +167,18 @@ class MarkerReader:
         self._detector = cv2.aruco.ArucoDetector(
             cv2.aruco.getPredefinedDictionary(dictionary), parameters
         )
+        self.min_squareness = min_squareness
 
     def read(self, image: np.ndarray) -> list[Marker]:
         """Every marker in an image, in that image's pixels"""
         corners, ids, _ = self._detector.detectMarkers(image)
         if ids is None:
             return []
-        return [
+        markers = [
             Marker(int(i), c.reshape(4, 2).astype(np.float64))
             for i, c in zip(ids.flatten(), corners, strict=True)
         ]
+        return [m for m in markers if _squareness(m) >= self.min_squareness]
 
     def read_region(
         self,

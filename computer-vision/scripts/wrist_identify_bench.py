@@ -32,6 +32,7 @@ Writes ``wrist_identify.json`` and ``wrist_identify.md`` next to the frames.
 
 import argparse
 import json
+import math
 import sys
 import time
 from collections import defaultdict
@@ -51,6 +52,7 @@ from labvision.identify import (  # noqa: E402
     identify_frame,
     rows_by_marker,
 )
+from labvision.perception import ring_geometry  # noqa: E402
 from labvision.scene import BBox  # noqa: E402
 
 WORLD_THRESHOLD = 0.11
@@ -82,15 +84,59 @@ def distance_labels() -> list[str]:
     return [f"< {edges[0]:.1f} m", *middle, f">= {edges[-1]:.1f} m"]
 
 
+ELEVATION_EDGES_DEG = (15, 30, 45, 60)
+"""The ring is read from its side: how high above it the camera is matters more
+than how far, so reads are also tallied by the camera's elevation over it."""
+
+
+def elevation_deg(camera_position, ring_centre) -> float:
+    """Degrees the camera stands above the horizontal through the ring's centre"""
+    dx, dy, dz = (
+        float(c) - float(r) for c, r in zip(camera_position, ring_centre, strict=True)
+    )
+    return math.degrees(math.atan2(dz, math.hypot(dx, dy)))
+
+
+def elevation_bucket(degrees: float) -> str:
+    """Label an elevation by :data:`ELEVATION_EDGES_DEG`"""
+    lo = None
+    for edge in ELEVATION_EDGES_DEG:
+        if degrees < edge:
+            return f"< {edge} deg" if lo is None else f"{lo}-{edge} deg"
+        lo = edge
+    return f">= {lo} deg"
+
+
+def elevation_labels() -> list[str]:
+    """Every elevation bucket, lowest first"""
+    edges = ELEVATION_EDGES_DEG
+    middle = [f"{a}-{b} deg" for a, b in zip(edges, edges[1:], strict=False)]
+    return [f"< {edges[0]} deg", *middle, f">= {edges[-1]} deg"]
+
+
 def boxes_of(backend: str, folder: Path, frames: list[dict], device) -> dict:
     """Every frame's detector boxes for a backend, from cache or by running it"""
     how, name = BACKENDS[backend]
     if how == "world_prompts":
+        import perfumery_eval
         import world_prompts
 
+        # run_variant trusts any cache it finds; frames re-rendered into the
+        # same folder would be scored against the old boxes, so the frames a
+        # cache was made for are stamped beside it and checked here.
+        cache = folder / "world_prompts" / f"{world_prompts.slug(name)}.json"
+        stamp_file = cache.with_suffix(".frames.json")
+        stamp = perfumery_eval.frame_stamp(folder, frames)
+        if cache.exists() and (
+            not stamp_file.exists()
+            or json.loads(stamp_file.read_text(encoding="utf-8")) != stamp
+        ):
+            print(f"{cache.name} is from other frames, running {backend} again")
+            cache.unlink()
         found = world_prompts.run_variant(
             name, folder, frames, folder / "world_prompts", device
         )
+        stamp_file.write_text(json.dumps(stamp), encoding="utf-8")
         return {
             f: [b for b in v["boxes"] if b["score"] > WORLD_THRESHOLD]
             for f, v in found.items()
@@ -163,12 +209,13 @@ def score_frame(frame: dict, identities: list, marker_of: dict, whole: bool) -> 
 
 
 def run(folder: Path, backends: list[str], device) -> dict:
-    """Read every frame every way, then tally per method, distance and bottle"""
+    """Read every frame every way, then tally per method, distance, elevation, bottle"""
     gt = json.loads((folder / "gt.json").read_text(encoding="utf-8"))
     frames = gt["frames"]
     table = registry.load_table(DEFAULT_TABLE)
     rows = rows_by_marker(table)
     marker_of = {row["sample_id"]: int(row["marker_id"]) for row in table.values()}
+    vessel_of = {row["sample_id"]: row["vessel_class"] for row in table.values()}
     detections = {b: boxes_of(b, folder, frames, device) for b in backends}
     reader = MarkerReader()
 
@@ -181,6 +228,7 @@ def run(folder: Path, backends: list[str], device) -> dict:
             "phantom": 0,
             "seconds": 0.0,
             "by_distance": defaultdict(lambda: [0, 0]),
+            "by_elevation": defaultdict(lambda: [0, 0]),
             "by_kind": defaultdict(lambda: [0, 0]),
         }
         for m in methods
@@ -212,18 +260,24 @@ def run(folder: Path, backends: list[str], device) -> dict:
                 t["named"] += hit
                 t["by_distance"][distance_bucket(bottle["distance_m"])][0] += hit
                 t["by_distance"][distance_bucket(bottle["distance_m"])][1] += 1
+                _, ring_height = ring_geometry(vessel_of[bottle["sample_id"]])
+                x, y, z = bottle["position"]
+                up = elevation_deg(frame["cam_pos"], (x, y, z + ring_height))
+                t["by_elevation"][elevation_bucket(up)][0] += hit
+                t["by_elevation"][elevation_bucket(up)][1] += 1
                 t["by_kind"][kind(bottle)][0] += hit
                 t["by_kind"][kind(bottle)][1] += 1
         print(f"{k + 1}/{len(frames)} {frame['file']}", flush=True)
     for t in tally.values():
         t["seconds_per_frame"] = t.pop("seconds") / max(len(frames), 1)
         t["by_distance"] = dict(t["by_distance"])
+        t["by_elevation"] = dict(t["by_elevation"])
         t["by_kind"] = dict(t["by_kind"])
     return {"frames": len(frames), "methods": tally}
 
 
 def to_markdown(result: dict) -> str:
-    """Tables per method: overall, by distance, by bottle"""
+    """Tables per method: overall, by distance, by elevation, by bottle"""
 
     def pct(pair):
         named, required = pair
@@ -248,6 +302,13 @@ def to_markdown(result: dict) -> str:
     lines.append("| --- |" + " --- |" * len(names))
     for label in distance_labels():
         cells = [pct(methods[n]["by_distance"].get(label, (0, 0))) for n in names]
+        lines.append(f"| {label} | " + " | ".join(cells) + " |")
+    lines += ["", "| elevation over the ring | " + " | ".join(names) + " |"]
+    lines.append("| --- |" + " --- |" * len(names))
+    for label in elevation_labels():
+        cells = [
+            pct(methods[n].get("by_elevation", {}).get(label, (0, 0))) for n in names
+        ]
         lines.append(f"| {label} | " + " | ".join(cells) + " |")
     kinds = sorted({k for t in methods.values() for k in t["by_kind"]})
     lines += ["", "| bottle | " + " | ".join(names) + " |"]

@@ -175,3 +175,22 @@ def test_the_frontal_marker_is_the_one_seen_largest():
     identity = Identity(BBox(0, 0, 30, 30), 5, 2, 2, read=(small, large))
     assert identity.frontal is large
     assert Identity(BBox(0, 0, 1, 1), None, 0, 0).frontal is None
+
+
+def _squashed(marker_id: int, width: int, height: int) -> np.ndarray:
+    """A frame with one marker drawn ``width`` by ``height`` pixels"""
+    dictionary = cv2.aruco.getPredefinedDictionary(DICTIONARY)
+    image = cv2.aruco.generateImageMarker(dictionary, marker_id, 120)
+    image = cv2.resize(image, (width, height), interpolation=cv2.INTER_AREA)
+    image = cv2.copyMakeBorder(image, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255)
+    frame = np.full((400, 400, 3), 200, np.uint8)
+    frame[50 : 50 + image.shape[0], 50 : 50 + image.shape[1]] = image[..., None]
+    return frame
+
+
+def test_a_marker_seen_nearly_edge_on_is_dropped():
+    flat = _squashed(7, 120, 48)
+    assert MarkerReader().read(flat) == []
+    assert [m.marker_id for m in MarkerReader(min_squareness=0.0).read(flat)] == [7]
+    turned = _squashed(7, 120, 90)
+    assert [m.marker_id for m in MarkerReader().read(turned)] == [7]
