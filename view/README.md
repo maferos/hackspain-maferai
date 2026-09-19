@@ -53,20 +53,25 @@ run, regenerate it with `python -m labbridge.record_run` from `dashboard/bridge`
 
 ## Bottle boxes
 
-In Real time, the header's **Boxes** button draws the bottle detector's boxes
-over the general camera, wherever that camera is shown; the choice is
-remembered in this browser. The backend runs the detector only while a viewer
-has the boxes on, on the newest frame, at most `VIEW_DETECTOR_HZ` (4) times a
-second, with `VIEW_DETECTOR_THREADS` (2) torch threads so the streams keep
-their frame rate; the boxes lag the picture by one inference (about 0.4 s on a
-laptop CPU). It needs `ultralytics` in the backend's venv and the weights at
-`computer-vision/runs/rail/yolo26n_rail_general.pt` (YOLO26n trained on this
-camera in the rail scene; the team Drive has them, and the path is gitignored)
-or wherever `VIEW_DETECTOR_WEIGHTS` points. Without them the button is greyed
-out and says why. `VIEW_DETECTOR_CONF` sets the score threshold (0.45, near
-the model's best-F1 threshold on the rail scene's validation frames). On the
-rail scene's test frames it finds 99 % of the bottles on the bench at 99.5 %
-precision (`computer-vision/scripts/fixedcam_bench.py`, splits `rail_*`).
+In Real time the bottle detector's boxes are drawn over the general camera,
+wherever that camera is shown; the header's **Boxes** button turns them off and
+on, and the choice is remembered in this browser. The backend runs the
+detector only while a viewer has the boxes on, on the newest frame, at most
+`VIEW_DETECTOR_HZ` (4) times a second, with `VIEW_DETECTOR_THREADS` (2) torch
+threads so the streams keep their frame rate; the boxes lag the picture by one
+inference (about 0.4 s on a laptop CPU).
+
+It needs `ultralytics` in the backend's venv and the weights: `VIEW_DETECTOR`
+names a `labvision.detector` backend or a weights path, and the default,
+`rail`, is the YOLO26n trained on this camera in the rail scene, which the
+backend finds as `computer-vision/weights/yolo26n_rail_general.pt` (not in git;
+get it from the team Drive, `hackathon/yolo26n_rail_general`, and see
+`computer-vision/weights/README.md`). The boxes use its best-F1 threshold,
+0.47, rather than the backend's 0.10, which is set for `propose_confirm`'s
+proposals; `VIEW_DETECTOR_CONF` overrides it. Without the weights the button is
+greyed out and says why. On the rail scene's test frames the model finds 99 %
+of the bottles on the bench at 99.6 % precision
+(`computer-vision/scripts/fixedcam_bench.py`, splits `rail_*`).
 
 ## Lab state panels
 

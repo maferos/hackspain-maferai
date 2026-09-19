@@ -43,9 +43,11 @@ if not SCENE_PATH.is_absolute():
     SCENE_PATH = REPO_ROOT / "simulation" / "models" / SCENE_PATH
 
 sys.path.insert(0, str(REPO_ROOT / "dashboard" / "bridge"))
+sys.path.insert(0, str(REPO_ROOT / "computer-vision"))
 from labbridge.mock_run import ACTIVE_BALANCE, RAIL, ScriptedRun  # noqa: E402
 from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
+from labvision.detector import resolve as resolve_detector
 
 STATE_PORT = 8765
 STATE_RATE_HZ = 10
@@ -76,17 +78,15 @@ RENDER_FPS = 15
 JPEG_QUALITY = 80
 
 # Bottle detector on the general camera's live frames, run only while a client
-# has the boxes on (see Detector). The weights are the YOLO26n trained on this
-# camera in the rail scene (computer-vision/runs/rail/train_yolo26n_gpu.py).
-DETECTOR_WEIGHTS = Path(
-    os.environ.get(
-        "VIEW_DETECTOR_WEIGHTS",
-        REPO_ROOT / "computer-vision" / "runs" / "rail" / "yolo26n_rail_general.pt",
-    )
-)
+# has the boxes on (see Detector). VIEW_DETECTOR is a labvision backend name or
+# a weights path; the default `rail` is the YOLO26n trained on this camera in
+# the rail scene, found as computer-vision/weights/yolo26n_rail_general.pt. The
+# boxes are drawn raw, so they use that model's best-F1 threshold on the rail
+# scene's validation frames, 0.47, not the backend's 0.10, which is set for
+# propose_confirm's proposals. VIEW_DETECTOR_CONF overrides the threshold.
+DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "rail")
+DETECTOR_CONF = float(os.environ.get("VIEW_DETECTOR_CONF", "0.47"))
 DETECTOR_CAMERA = "scene"  # logical id; the model only knows the fixed camera
-# The best-F1 threshold on the rail scene's validation frames was 0.47.
-DETECTOR_CONF = float(os.environ.get("VIEW_DETECTOR_CONF", "0.45"))
 DETECTOR_MAX_HZ = float(os.environ.get("VIEW_DETECTOR_HZ", "4"))
 # Torch threads: few enough that the renderer keeps its frame rate.
 DETECTOR_THREADS = int(os.environ.get("VIEW_DETECTOR_THREADS", "2"))
@@ -335,11 +335,18 @@ class Detector:
     boxes.
     """
 
-    def __init__(self, renderer: SceneRenderer, weights: Path) -> None:
+    def __init__(self, renderer: SceneRenderer, spec: str) -> None:
         self.renderer = renderer
-        self.weights = weights
         self.mj_camera = renderer.cameras[DETECTOR_CAMERA]["mj_name"]
-        self.error = None if weights.exists() else f"no weights at {weights}"
+        self.error = None
+        try:
+            path, _ = resolve_detector(spec)
+        except FileNotFoundError as exc:
+            path, self.error = "", str(exc)
+        self.weights = Path(path)
+        if self.error is None and not self.weights.exists():
+            self.error = f"no weights at {path}"
+        self.conf = DETECTOR_CONF
         self.watchers = 0
         self.latest: dict | None = None
         self._lock = threading.Lock()
@@ -378,7 +385,7 @@ class Detector:
             result = model.predict(
                 np.ascontiguousarray(frame[:, :, ::-1]),  # ultralytics wants BGR
                 imgsz=max(frame.shape[:2]),
-                conf=DETECTOR_CONF,
+                conf=self.conf,
                 verbose=False,
             )[0]
             took = time.time() - start
@@ -402,7 +409,7 @@ class Detector:
                 time.sleep(remaining)
 
 
-detector = Detector(scene, DETECTOR_WEIGHTS)
+detector = Detector(scene, DETECTOR_SPEC)
 threading.Thread(target=detector.run_forever, daemon=True).start()
 
 # --- FastAPI app -----------------------------------------------------------
@@ -448,6 +455,7 @@ def detector_info():
         "available": detector.available,
         "camera": DETECTOR_CAMERA,
         "weights": detector.weights.name,
+        "conf": detector.conf,
         "error": detector.error,
     }
 

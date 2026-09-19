@@ -178,11 +178,12 @@ export default function App() {
   // recorded scripted run (see labState.js).
   const lab = useLabState(STATE_URL);
   const [layout, setLayout] = useState(loadLayout);
+  // Boxes are on unless this browser turned them off.
   const [showBoxes, setShowBoxes] = useState(() => {
     try {
-      return localStorage.getItem(BOXES_KEY) === "1";
+      return localStorage.getItem(BOXES_KEY) !== "0";
     } catch {
-      return false;
+      return true;
     }
   });
   const [detector, setDetector] = useState(null);
