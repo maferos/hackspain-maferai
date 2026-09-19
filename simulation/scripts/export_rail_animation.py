@@ -14,6 +14,7 @@ from pathlib import Path
 import mujoco
 from mujoco.usd import exporter
 from pxr import UsdGeom
+from rail_usd_table import prepare_table
 
 import rail_demo as demo
 import rail_kinematics as rk
@@ -68,6 +69,9 @@ def main():
         camera.GetVerticalApertureAttr().Set(aperture)
         camera.GetHorizontalApertureAttr().Set(aperture * 1920 / 1080)
     exp.save_scene(filetype='usdc')
+    # Finalize exporter-owned visibility samples before replacing its visuals.
+    prepare_table(exp.stage)
+    exp.stage.Export(str(args.out / f'rail_usd/frames/frame_{len(rows)}.usdc'))
     metadata = dict(**pattern_metadata, mode=args.mode, fps=args.fps, frames=len(rows),
                     duration_seconds=len(rows)/args.fps, cameras=cameras,
                     animation='Baked source rail trajectory; RTX rendering in Isaac Lab',

@@ -74,7 +74,8 @@ the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
 the selected seed; Replay waits for that selection instead of showing a
 different layout. The ten provisional camera pairs loop at 960×540, 10 fps
-(20.3 seconds), with normal lighting. Click the small view to swap cameras
+(20.3 seconds), with normal lighting and three render updates per frame.
+The worktop is one white satin mesh within the USD Table component. Click the small view to swap cameras
 without restarting playback. Files live in `frontend/public/renders/seeds/p01/`
 through `p10/`; `src/replayPatterns.json` maps seeds to the videos. Replay's
 YOLO WebSocket receives the pattern name and decodes that same recording.

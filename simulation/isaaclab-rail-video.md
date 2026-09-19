@@ -76,3 +76,17 @@ manifests and logs, and a batch `index.json`. Use `--patterns p01 p02` for a
 subset. The batch stops on a failed export or render; it only indexes completed
 pairs. For final production use `--quality final` to export at 30 fps and render
 at 1080p. Drafts are separate artifacts from the existing viewer replay videos.
+
+## Table object and material
+
+`rail_usd_table.prepare_table` authors `/World/Table` as one USD component,
+containing the beveled worktop and six legs. It deactivates the original visual
+parts and overlapping source slab, so the rendered worktop has only one mesh.
+The source MJCF collision geometry and its dimensions remain unchanged.
+
+MuJoCo's USD exporter maps shininess to metalness, turning the glossy white
+worktop into 90% metal. The table now uses an explicit `UsdPreviewSurface`
+material with white diffuse color, metallic 0, roughness 0.45 and IOR 1.5.
+This correction runs in both the exporter and renderer, including cached USD
+exports. The helper is idempotent. `--quality draft --subframes 2` renders
+three Kit updates per frame for the corrected seed replays.

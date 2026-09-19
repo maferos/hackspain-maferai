@@ -42,6 +42,7 @@ import omni.timeline
 import omni.usd
 from PIL import Image
 from pxr import UsdLux
+from rail_usd_table import prepare_table
 
 
 def main():
@@ -54,6 +55,7 @@ def main():
     while ctx.get_stage_loading_status()[2] > 0:
         app.update()
     stage = ctx.get_stage()
+    prepare_table(stage)
     for prim in stage.Traverse():
         if prim.IsA(UsdLux.BoundableLightBase) or prim.IsA(UsdLux.NonboundableLightBase):
             intensity = UsdLux.LightAPI(prim).GetIntensityAttr()
@@ -114,7 +116,8 @@ def main():
             renderer=f'Isaac Lab / Isaac Sim {version("isaacsim")} RTX Real-Time',
             isaaclab_package_version=version('isaaclab'),
             light_multiplier=args.light_multiplier, subframes=args.subframes,
-            antialiasing='DLSS', start_frame=args.start_frame), indent=2)+'\n')
+            antialiasing='DLSS', start_frame=args.start_frame,
+            table_object='/World/Table', table_material='white satin, metallic 0, roughness 0.45'), indent=2)+'\n')
         print('RENDER COMPLETE', flush=True)
     finally:
         for encoder in encoders:
