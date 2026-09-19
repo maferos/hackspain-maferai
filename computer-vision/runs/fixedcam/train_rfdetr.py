@@ -1,7 +1,7 @@
 """Fine-tune RF-DETR on the fixed-camera crops (COCO layout from fixedcam_crops.py)
 
-    python runs/fixedcam/train_rfdetr.py DATASET OUTPUT [--size nano] [--epochs 8]
-        [--threads 4] [--resolution 384] [--freeze-encoder]
+python runs/fixedcam/train_rfdetr.py DATASET OUTPUT [--size nano] [--epochs 8]
+[--threads 4] [--resolution 384] [--freeze-encoder]
 """
 import argparse
 
