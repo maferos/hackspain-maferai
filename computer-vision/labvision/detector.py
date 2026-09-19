@@ -71,6 +71,22 @@ PROMPTS: tuple[str, ...] = (
 benchmark showed "cup" and "glass" are what make empty glassware appear, while
 laboratory vocabulary on its own loses half of it."""
 
+BOTTLE_PROMPTS: tuple[str, ...] = (
+    "bottle",
+    "plastic bottle",
+    "amber glass bottle",
+    "brown glass bottle",
+    "small brown bottle",
+    "white plastic bottle",
+    "reagent bottle",
+    "medicine bottle",
+    "bottle with a white label",
+)
+"""Class names that describe the sample bottles themselves. On the fixed
+camera's renders they beat :data:`PROMPTS` by about 0.3 AP50 with YOLO-World L
+(``docs/FIXED_CAMERA_BENCHMARK.md``): naming what the samples are works,
+naming other vessels only adds false boxes."""
+
 COCO_KEEP: frozenset[str] = frozenset({"bottle", "cup", "wine glass", "vase", "bowl"})
 """COCO classes that stand for a vessel; everything else the model says is dropped."""
 
@@ -114,9 +130,24 @@ BACKENDS: dict[str, Backend] = {
     "world": Backend("yolov8l-worldv2.pt", 0.11, prompts=PROMPTS),
     "coco": Backend("yolo11s.pt", 0.08, keep=COCO_KEEP),
     "world-s": Backend("yolov8s-worldv2.pt", 0.17, prompts=PROMPTS),
+    "world-bottles": Backend("yolov8l-worldv2.pt", 0.12, prompts=BOTTLE_PROMPTS),
+    "coco26": Backend("yolo26s.pt", 0.10, keep=COCO_KEEP),
+    "fixedcam": Backend("runs/fixedcam/yolo26n_fixedcam.pt", 0.05),
 }
-"""The two chosen backends plus the small YOLO-World as a fast variant that
-loses distant vessels."""
+"""The two backends chosen on real photographs, the small YOLO-World as a fast
+variant that loses distant vessels, and three chosen on the fixed camera's
+renders (``docs/FIXED_CAMERA_BENCHMARK.md``): YOLO-World L with bottle prompts,
+YOLO26s on COCO, and ``fixedcam``, a YOLO26n fine-tuned on simulator-labelled
+crops whose classes are ``amber_bottle`` and ``hdpe_bottle``. Its weights are
+not in git; ``FIXEDCAM_HELP`` says how to make them."""
+
+FIXEDCAM_HELP = (
+    "the fine-tuned fixed-camera weights are made by training, not downloaded: "
+    "render with scripts/fixedcam_dataset.py, cut crops with "
+    "scripts/fixedcam_crops.py, train YOLO26n on them (see "
+    "docs/FIXED_CAMERA_BENCHMARK.md), and copy best.pt to "
+    "computer-vision/runs/fixedcam/yolo26n_fixedcam.pt, or pass weights=..."
+)
 
 IMAGE_SUFFIXES = frozenset({".png", ".jpg", ".jpeg", ".bmp"})
 VIDEO_SUFFIXES = frozenset({".mp4", ".avi", ".mov", ".mkv"})
@@ -169,7 +200,8 @@ def _find_weights(name: str) -> str:
     left its weights at the repository root, so that is checked before
     downloading 100 MB again.
     """
-    for folder in (Path.cwd(), Path(__file__).resolve().parents[2]):
+    here = Path(__file__).resolve()
+    for folder in (Path.cwd(), here.parents[1], here.parents[2]):
         candidate = folder / name
         if candidate.exists():
             return str(candidate)
@@ -212,6 +244,8 @@ class Detector:
         self.device = device
         self.keep = spec.keep
         path = _find_weights(weights or spec.weights)
+        if backend == "fixedcam" and not Path(path).exists():
+            raise FileNotFoundError(f"{path}: {FIXEDCAM_HELP}")
         if spec.prompts is not None:
             self.model = YOLOWorld(path)
             self.model.set_classes(list(spec.prompts))  # downloads CLIP the first time
