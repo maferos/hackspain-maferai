@@ -120,6 +120,18 @@ PREVIEW_FPS = 5
 DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "full")
 DETECTOR_CONF = os.environ.get("VIEW_DETECTOR_CONF")
 DEFAULT_CONF = 0.41
+# The live scan reads these from the environment (live_scan.py). Set them from
+# the same defaults, so the scan and the boxes drawn over it are one model --
+# but only when that model's weights are here, or a machine that has only the
+# older ones would get an error instead of the scan it used to run.
+if SCAN_ENABLED and not os.environ.get("VIEW_DETECTOR"):
+    try:
+        resolve_detector(DETECTOR_SPEC)
+        os.environ["VIEW_DETECTOR"] = DETECTOR_SPEC
+        os.environ.setdefault("VIEW_DETECTOR_CONF", str(DETECTOR_CONF or DEFAULT_CONF))
+    except FileNotFoundError as exc:
+        print(f"[view] {exc}; the scan keeps its own detector", file=sys.stderr)
+
 DETECTOR_CAMERA = "scene"  # logical id; the model only knows the fixed camera
 DETECTOR_FRAME_STRIDE = int(os.environ.get("VIEW_DETECTOR_FRAME_STRIDE", "5"))
 if DETECTOR_FRAME_STRIDE < 1:
