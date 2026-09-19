@@ -7,4 +7,6 @@ Hackathon project. Two components:
 - [`view/`](view/) — robot viewer for the live demo: Isaac Sim renders or live MuJoCo streams, plus task, robot and balance panels. See [`view/README.md`](view/README.md).
 - [`dashboard/bridge/`](dashboard/bridge/) — `labbridge`, which publishes the lab state the viewer reads over WebSocket. See [`dashboard/bridge/README.md`](dashboard/bridge/README.md).
 
+[`SCANNING_PLAN.md`](SCANNING_PLAN.md) is the plan for the first scanning pass: the general camera finds the vessels, the arm drives its wrist camera over each one, and the bench memory that comes out maps every sample to its compound and its 3D position.
+
 See [`AGENTS.md`](AGENTS.md) for the team and conventions.
