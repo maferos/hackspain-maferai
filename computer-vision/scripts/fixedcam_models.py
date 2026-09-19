@@ -185,7 +185,7 @@ class GroundingDinoPredictor:
         self,
         model_id: str = "IDEA-Research/grounding-dino-tiny",
         prompts: dict[str, int | None] | None = None,
-        threshold: float = 0.1,
+        threshold: float = 0.02,
     ) -> None:
         """Load the processor and the model on the CPU"""
         import torch
@@ -387,7 +387,7 @@ class TiledPredictor:
                     continue
                 box = (b[0] + u0, b[1] + v0, b[2] + u0, b[3] + v0)
                 found.append(ev.Detection(box, d.score, d.cls))
-        return nms(found)
+        return nms(found, 0.6)
 
 
 @dataclass

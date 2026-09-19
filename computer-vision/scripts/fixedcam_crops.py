@@ -137,6 +137,10 @@ def export(
     if degrade > 0:
         from fixedcam_dataset import degrade as degrade_fn
     counts = {}
+    for sub_dir in ("yolo", "coco"):
+        # Crops of an earlier export would stay in training otherwise.
+        if (out / sub_dir).exists():
+            shutil.rmtree(out / sub_dir)
     for source, target in splits.items():
         folder = DATA / source
         gt = json.loads((folder / "gt.json").read_text(encoding="utf-8"))

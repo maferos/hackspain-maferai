@@ -76,6 +76,30 @@ def test_a_box_mostly_inside_a_hidden_bottles_silhouette_is_ignored():
     assert result.false_boxes == []
 
 
+def test_the_silhouette_rule_does_not_forgive_boxes_on_a_required_bottle():
+    # A required amber bottle stands in front of a mostly hidden HDPE bottle.
+    front = truth((100, 100, 108, 115))
+    behind = truth((90, 60, 133, 70), required=False, full=(90, 60, 133, 131))
+    dets = [det((100, 100, 108, 115), 0.9), det((101, 99, 109, 116), 0.8),
+            det((98, 98, 112, 120), 0.7)]  # fmt: skip
+    result = ev.match_frame([front, behind], dets)
+    assert result.hits == [True, False, False]
+    # A box on the hidden bottle's own visible part is still ignored.
+    alone = ev.match_frame([front, behind], [det((110, 64, 130, 90), 0.9)])
+    assert alone.scores == []
+
+
+def test_kit_ap_scores_each_kit_and_skips_boxes_without_a_kit():
+    amber, hdpe = truth((0, 0, 10, 20), cls=0), truth((50, 0, 60, 20), cls=1)
+    right = [det((0, 0, 10, 20), 0.9, cls=0), det((50, 0, 60, 20), 0.8, cls=1)]
+    assert ev.kit_ap([([amber, hdpe], right)]) == pytest.approx(1.0)
+    swapped = [det((0, 0, 10, 20), 0.9, cls=1), det((50, 0, 60, 20), 0.8, cls=0)]
+    assert ev.kit_ap([([amber, hdpe], swapped)]) == pytest.approx(0.0)
+    agnostic = [det((0, 0, 10, 20), 0.9), det((50, 0, 60, 20), 0.8, cls=1)]
+    # Amber: nothing names it, AP 0; HDPE: found, AP 1.
+    assert ev.kit_ap([([amber, hdpe], agnostic)]) == pytest.approx(0.5)
+
+
 def test_class_aware_matching_needs_the_right_kit():
     truths = [truth((0, 0, 10, 20), cls=1)]
     wrong = [det((0, 0, 10, 20), 0.9, cls=0)]
