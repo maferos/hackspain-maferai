@@ -7,7 +7,8 @@ import FormulaChat from "./FormulaChat";
 import InfoPanel from "./InfoPanel";
 import BalancePanel from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
-import PipelinePanel from "./PipelinePanel";
+import FormulasPanel from "./FormulasPanel";
+import Toast from "./Toast";
 import Splitter from "./Splitter";
 import { useLabState } from "./labState";
 
@@ -48,8 +49,9 @@ const VIEWS = [
   { id: "info", label: "Info", title: "What the viewer is running: models, scene and build" },
 ];
 // The chat owns the right column; the dock under the viewport carries the
-// balance, the tasks and the pipeline. The balance only reads out a mass, so
-// its width is fixed in the stylesheet and the other two split what is left.
+// balance, the current formula and the formulas asked, plus Info when it is
+// open. The balance only reads out a mass, so its width is fixed in the
+// stylesheet and the others split what is left.
 const DEFAULT_SIZES = { chatWidth: 380, dockHeight: 240 };
 const DEFAULT_LAYOUT = {
   ...DEFAULT_SIZES,
@@ -351,6 +353,24 @@ export default function App() {
   // recorded scripted run (see labState.js).
   const lab = useLabState(STATE_URL);
   const [layout, setLayout] = useState(loadLayout);
+  // Every formula the operator has asked for, in order. The chat reports them;
+  // the panel under the viewport lists them. An entry that repeats the last one
+  // replaces it, so proposing then sending the same formula is one line.
+  const [asked, setAsked] = useState([]);
+  const [toast, setToast] = useState(null);
+  const askedId = useRef(0);
+  const recordAsked = useCallback((entry) => {
+    setAsked((list) => {
+      const signature = (e) => `${e.name}|${(e.lines ?? []).map((l) => `${l.compound}:${l.grams}`).join(",")}`;
+      const last = list[list.length - 1];
+      if (last && signature(last) === signature(entry) && last.status === "proposed") {
+        return [...list.slice(0, -1), { ...last, ...entry }];
+      }
+      askedId.current += 1;
+      return [...list, { ...entry, id: askedId.current }];
+    });
+  }, []);
+  const dismissToast = useCallback(() => setToast(null), []);
   // Boxes are on unless this browser turned them off.
   const [showBoxes, setShowBoxes] = useState(() => {
     try {
@@ -412,6 +432,23 @@ export default function App() {
 
   const resize = (patch) => setLayout((l) => ({ ...l, ...patch }));
   const toggleView = (id) => setLayout((l) => ({ ...l, views: { ...l.views, [id]: !l.views[id] } }));
+
+  // An order the chat sent finishes (or is stopped) long after the chat said
+  // anything about it, so the asked list takes its ending from the lab state.
+  const orderId = lab.state?.order?.id ?? null;
+  const orderStatus = lab.state?.order?.status ?? null;
+  useEffect(() => {
+    if (!orderId || !["completed", "aborted", "rejected"].includes(orderStatus)) return;
+    setAsked((list) => {
+      const i = list.findIndex((e) => e.order === orderId);
+      if (i === -1 || list[i].status === "rejected") return list;
+      const status = orderStatus === "completed" ? "done" : orderStatus;
+      if (list[i].status === status) return list;
+      const next = [...list];
+      next[i] = { ...next[i], status };
+      return next;
+    });
+  }, [orderId, orderStatus]);
 
   // Start with the general camera when opening or switching viewport sources.
   useEffect(() => {
@@ -540,23 +577,19 @@ export default function App() {
               : <div className="camera-frame camera-frame--main"><span className="camera-frame__connection" role="status">
                 {scenePattern ? `Replay unavailable for seed ${scenePattern.seed}` : "Waiting for the current seed… Connect the backend to select a layout."}
               </span></div>}
+            <Toast toast={toast} onDismiss={dismissToast} />
           </section>
           <Splitter direction="row" onStart={dragDock} onReset={() => resize({ dockHeight: DEFAULT_SIZES.dockHeight })} />
           <div className="dock" style={{ height: layout.dockHeight }}>
             {views.balance && <BalancePanel state={lab.state} connected={lab.connected} />}
             <LabTaskPanel state={lab.state} connected={lab.connected} />
-            <PipelinePanel
-              state={lab.state}
-              connected={lab.connected}
-              detections={liveDetections}
-              detector={detector}
-            />
+            <FormulasPanel entries={asked} />
             {views.info && <InfoPanel backendUrl={BACKEND_URL} detections={liveDetections} />}
           </div>
         </div>
         <Splitter direction="col" onStart={dragChatWidth} onReset={() => resize({ chatWidth: DEFAULT_SIZES.chatWidth })} />
         <div className="side" style={{ width: layout.chatWidth }}>
-          <FormulaChat backendUrl={BACKEND_URL} lab={live} />
+          <FormulaChat backendUrl={BACKEND_URL} lab={live} onAsked={recordAsked} onToast={setToast} />
         </div>
       </main>
     </div>

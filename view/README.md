@@ -23,8 +23,8 @@ controller are shown in the viewport; they do not fall back to a scripted sweep.
 The scan runs independently of the Boxes toggle and the selected viewport mode.
 Its speed depends on local physics, rendering and inference performance.
 
-The Balance, Robot tasks and Pipeline panels show this scan, in both modes
-(see Lab state panels below).
+The Balance, Current formula and Formulas asked panels show this scan, in both
+modes (see Lab state panels below).
 
 ## Run it
 
@@ -119,7 +119,7 @@ The header's **Boxes** button toggles the overlay; its setting is remembered.
 Unidentified tracks show a number; confirmed samples show their catalogue ID in
 green. Bottles found only by the wrist camera get a projected box as well.
 Perception continues with boxes hidden and while Replay is selected. The
-Pipeline retains live inference time, image size and track count from the scan.
+Live inference time, image size and track count stay on the viewport label.
 
 For explicitly selected non-scan scenes, the optional detector runs while a
 viewer subscribes, every `VIEW_DETECTOR_FRAME_STRIDE` rendered frames (default 5),
@@ -151,7 +151,8 @@ scan still replay the scripted formulation of
 `dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031). It needs
 `websockets` in the venv (listed in `backend/requirements.txt`).
 
-- **Robot tasks**: run id (`SCAN-P06` for seed pattern p06), status and
+- **Current formula**, the wide panel in the middle of the dock: run id
+  (`SCAN-P06` for seed pattern p06), status and
   simulated clock; the scan's tally (flasks named by their ring out of those on
   the bench, still to look at, not samples, out of reach); then the plan around
   the current step: park, survey, each track's ring (named, not a sample, out
@@ -159,10 +160,11 @@ scan still replay the scripted formulation of
   run, which plays when no backend is running.
 - **Balance**, the narrow panel at the left of the dock: `balance_2` and the
   mass on its pan, nothing else; 0.000 g when nothing is being dosed.
-- **Pipeline**, the third panel in the dock: camera cycle, live YOLO time,
-  tracks on the bench and how many a ring placed, rings named, the controller,
-  the rail, and the bench map, as a chain running left to right. The footer is
-  the scan's latest log line.
+- **Formulas asked**, the third panel in the dock: one line per formula the
+  operator has put to the chat, newest last — its name, its compounds and
+  grams, and what became of it: proposed and not sent, sent as `ORD-00n`, or
+  rejected at the check with the reason underneath. The chat scrolls away and
+  this does not, which is the point of it.
 
 ## Formula chat
 
@@ -193,14 +195,39 @@ off, with the order's clock.
 A formula sent to the robot becomes an order (`backend/workflow.py`), `ORD-001`
 onwards, one at a time:
 
-    order:        Scan → Formula → Check → Dose → QC → Done
+    order:        Scan → Formula → Check → Fetch → Done
     ingredient:   locate → pick → carry → dose → verify → return
 
-The panels follow it: the task panel's stage bar and one row per ingredient
-with its steps as dots, crossed off as they finish, and below it the plan with
-the done steps struck through; the header's status line (`ORD-001 · Dose 2/3 ·
-01:23`); the Balance panel with the ingredient being dosed against its target;
-the Pipeline's order, executor and QC rows; and the chat's narration.
+The panels follow it: the Current formula panel's stage bar and one row per
+ingredient with its steps as dots, crossed off as they finish, and below it the
+plan with the done steps struck through; the header's status line (`ORD-001 ·
+Fetch 2/3 · 01:23`); the Balance panel with the mass on the pan; and the chat's
+narration.
+
+**Every failure shows on the stage that failed**, never at the end: a rejected
+formula stops at Check with the rest of the bar skipped, a dose that failed
+marks Fetch, and Done never fails on someone else's behalf.
+
+### The check, and what a flask still holds
+
+The check is where a formula is accepted or refused, and it refuses whole. A
+formula the bench can only half make is not run with the half it has: the order
+goes to `rejected`, not a step of it is attempted, the Check stage is marked
+failed with the reasons, the chat says which line and why, and a toast over the
+viewport asks for the compound to be restocked. Two things fail it:
+
+- **A compound no flask on the bench carries** — the scan never named one.
+- **A flask without enough left in it.** Flasks are not full. The lookup table
+  carries a capacity and no level, so `catalogue.Levels` invents one per sample,
+  derived from the sample id, so every machine and every restart agrees; about
+  one flask in six starts nearly empty. `resolve` picks the *fullest* flask of a
+  compound, not the biggest, and a dose larger than what is in it fails the
+  check — `only 0.4 g left in SMP-0039 (50 ml flask)`. Dosing draws the level
+  down, so the next formula's check sees what the last one used. Millilitres are
+  read as grams (`G_PER_ML`); the catalogue carries no densities.
+
+`Levels.set_ml` puts a flask at a known level, for tests and for staging a demo
+where the check has to fail on cue.
 
 **For the executor.** The order is written to
 `simulation/out/formula_order.json` and served at `GET /api/formula`: the
@@ -235,9 +262,9 @@ controller's own pick, locate → pick → return, and says it was fetched, not
 dosed; `external` leaves the order to an executor that reports.
 
 The camera fills the top of the left column and the dock sits under it, the
-Balance first and then Robot tasks and Pipeline splitting the rest half each;
-the Formula chat is the right-hand column, full height. Camera, tasks, chat and
-Pipeline are always shown; Balance opens and closes from the button in the
+Balance first and then Current formula and Formulas asked splitting the rest
+half each; the Formula chat is the right-hand column, full height. Camera,
+formula, chat and the asked list are always shown; Balance opens and closes from the button in the
 header. The edges between views drag to resize them (double-click an edge to
 reset it), and the layout is remembered in the browser.
 

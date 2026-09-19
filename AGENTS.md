@@ -36,8 +36,8 @@ and each teammate ends up showing something different.
 
 - Change `view/` in place, in small commits, and pull before you start
   (`git pull origin main`).
-- The camera viewport is Eloi's; the panels (Balance, Robot tasks and Pipeline
-  in the dock under it, Formula down the right) are Martí's. The Real time /
+- The camera viewport is Eloi's; the panels (Balance, Current formula and
+  Formulas asked in the dock under it, Formula chat down the right) are Martí's. The Real time /
   Replay switch only picks the viewport's source; the panels always read the
   lab state.
 - The side panels read the lab state on `ws://localhost:8765/state`

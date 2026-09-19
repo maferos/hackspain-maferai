@@ -598,8 +598,20 @@ def dispatch(formula: dict | None) -> dict:
         raise HTTPException(409, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
+    if order.status == "rejected":
+        # The bench cannot make it. Say which line and why, and ask for the
+        # compound rather than quietly running the half of it that is there.
+        problems = order.check["problems"]
+        lines = "; ".join(f"{p['compound']}: {p['reason']}" for p in problems)
+        missing = [p["compound"] for p in problems if p["compound"] != "—"]
+        names = (" and ".join(missing) if len(missing) < 3
+                 else f"{', '.join(missing[:-1])} and {missing[-1]}")
+        ask = f" Restock {names} on the bench and I will run it." if missing else ""
+        return {"order": order.id, "json": order.doc, "rejected": True,
+                "problems": problems,
+                "reply": f"I cannot make {resolved['name']}: {lines}.{ask}"}
     waiting = " It starts once the scan has finished." if scene.scan.world.scan is None else ""
-    return {"order": order.id, "json": order.doc,
+    return {"order": order.id, "json": order.doc, "rejected": False,
             "reply": f"{order.id} sent to the robot: {resolved['name']}, "
                      f"{len(order.active_items())} ingredients.{waiting}"}
 
@@ -632,9 +644,16 @@ def chat_message(payload: dict = Body(...)):
     if answer["action"] == "start":
         try:
             sent = dispatch(answer["formula"])
-            # Claude's own words when it wrote some, with the order they started.
-            reply = f"{answer['reply']} ({sent['order']})" if chat.mode == "claude" else sent["reply"]
-            answer.update(reply=reply, order=sent["order"], formula=None)
+            if sent.get("rejected"):
+                # Claude's proposal was fine; the bench is what cannot do it, so
+                # the check's own words go through unchanged.
+                answer.update(reply=sent["reply"], order=sent["order"], action=None,
+                              rejected=True, problems=sent["problems"],
+                              formula=None, json=sent["json"])
+            else:
+                # Claude's own words when it wrote some, with the order they started.
+                reply = f"{answer['reply']} ({sent['order']})" if chat.mode == "claude" else sent["reply"]
+                answer.update(reply=reply, order=sent["order"], formula=None, json=sent["json"])
         except HTTPException as exc:
             answer.update(reply=exc.detail, action=None, formula=None)
     elif answer["action"] == "stop":

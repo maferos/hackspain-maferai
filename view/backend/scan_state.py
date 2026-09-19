@@ -159,8 +159,14 @@ class ScanState:
         return shelf_from_tracks(scan.world.snapshot(), self.catalogue) if scan and scan.world else []
 
     def dispatch(self, formula: dict, source: str):
-        """Make a resolved formula the current order and set the arm on it."""
+        """Make a resolved formula the current order and set the arm on it.
+
+        An order the check rejected is returned as it is: it stays on the panel
+        with its failed Check, and the arm is never told about it.
+        """
         order = self.workflow.submit(formula, source)
+        if order.status == "rejected":
+            return order
         if self.workflow.executor == "fetch" and self.scene.scan is not None:
             self.executor = FetchExecutor(self.workflow, self.scene.scan.world)
             self.executor.start()

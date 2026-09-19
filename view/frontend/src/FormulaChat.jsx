@@ -91,7 +91,7 @@ function Proposal({ formula, json, latest, busy, locked, onSend }) {
 
 // `lab` is the LabState: the robot's narration comes from its order log, and
 // the end of the scan from `scan.done`.
-export default function FormulaChat({ backendUrl, lab, style }) {
+export default function FormulaChat({ backendUrl, lab, style, onAsked, onToast }) {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
@@ -150,6 +150,38 @@ export default function FormulaChat({ backendUrl, lab, style }) {
 
   const say = (message) => setMessages((m) => [...m, message]);
 
+  // What an answer means for the Formulas asked panel, and whether it is worth
+  // interrupting the operator over. Only a rejection is: the reason is in the
+  // chat, but they are probably watching the bench.
+  const record = (answer, asked) => {
+    const formula = answer.formula ?? answer.json ?? null;
+    const lines = (formula?.ingredients ?? []).map((i) => ({
+      compound: i.compound ?? i.material,
+      grams: i.grams ?? i.batch_g,
+    }));
+    const name = formula?.name ?? (typeof asked === "string" ? asked : "Chat formula");
+    if (answer.rejected) {
+      onAsked?.({ name, lines, status: "rejected", order: answer.order, problems: answer.problems });
+      const missing = (answer.problems ?? []).filter((p) => p.compound !== "—").map((p) => p.compound);
+      onToast?.({
+        level: "warn",
+        title: `${answer.order ?? "The formula"} cannot run: the bench is short`,
+        lines: (answer.problems ?? []).map((p) =>
+          p.compound === "—" ? p.reason : `${p.compound} — ${p.reason}`),
+        ask: missing.length
+          ? `Restock ${missing.length < 3 ? missing.join(" and ")
+              : `${missing.slice(0, -1).join(", ")} and ${missing[missing.length - 1]}`} and send it again.`
+          : "Adjust the formula and send it again.",
+      });
+      return;
+    }
+    if (answer.order) {
+      onAsked?.({ name, lines, status: "sent", order: answer.order });
+    } else if (lines.length) {
+      onAsked?.({ name, lines, status: "proposed" });
+    }
+  };
+
   const send = async (text) => {
     const message = text.trim();
     if (!message || busy) return;
@@ -167,7 +199,9 @@ export default function FormulaChat({ backendUrl, lab, style }) {
     setBusy(true);
     try {
       const answer = await post(`${backendUrl}/api/chat`, { message, history });
-      say({ role: "assistant", text: answer.reply, formula: answer.action ? null : answer.formula, json: answer.json });
+      say({ role: "assistant", text: answer.reply, formula: answer.action ? null : answer.formula,
+            json: answer.json, error: answer.rejected });
+      record(answer, message);
     } catch (error) {
       say({ role: "assistant", text: `Backend unreachable (${error.message}). Start view/backend/server.py.`, error: true });
     } finally {
@@ -179,7 +213,8 @@ export default function FormulaChat({ backendUrl, lab, style }) {
     setBusy(true);
     try {
       const answer = await post(`${backendUrl}/api/formula`, { formula });
-      say({ role: "assistant", text: answer.reply });
+      say({ role: "assistant", text: answer.reply, error: answer.rejected });
+      record({ ...answer, formula }, formula.name);
     } catch (error) {
       say({ role: "assistant", text: error.message, error: true });
     } finally {

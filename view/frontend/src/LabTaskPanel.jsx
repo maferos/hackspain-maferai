@@ -1,5 +1,5 @@
-// Task panel driven by the LabState. At the top, where the lab is in its
-// workflow (scan → formula → check → dose → QC → done); then the order, one row
+// The formula the robot has in hand, driven by the LabState. At the top, where
+// it is in its workflow (scan → formula → check → fetch → done); then the order, one row
 // per ingredient with its steps as dots, or the bench scan's tally before the
 // first order; and below, the plan around the current step (a few done and
 // crossed off, the active one, the next ones), grouped by ingredient.
@@ -288,7 +288,7 @@ export default function LabTaskPanel({ state, connected }) {
     return (
       <aside className="task-panel">
         <header className="task-panel__header">
-          <h2>Robot tasks</h2>
+          <h2>Current formula</h2>
           <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
         </header>
         <ol className="task-list">
@@ -302,7 +302,7 @@ export default function LabTaskPanel({ state, connected }) {
     <aside className="task-panel">
       <header className="task-panel__header">
         <div className="task-panel__title">
-          <h2>Robot tasks</h2>
+          <h2>Current formula</h2>
           <span className="task-panel__run">
             {run.id} · {run.status.toUpperCase()} · {fmtClock(run.elapsedSeconds)}
             {run.status === "running" && run.progress > 0 ? ` · ${Math.round(run.progress * 100)} %` : ""}

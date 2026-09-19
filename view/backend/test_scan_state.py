@@ -164,15 +164,21 @@ class WorkflowTest(unittest.TestCase):
                        track(2, "named", "SMP-0039", (-0.8, -0.4), ring=38)]
         self.shelf = lambda: shelf_from_tracks(self.tracks, self.catalogue)
         self.chat = FormulaChat(self.catalogue, self.shelf)
+        # The invented levels are not this suite's subject: fill the bench so a
+        # test that fails, fails about what it is testing.
+        for sample in ("SMP-0014", "SMP-0039"):
+            self.catalogue.levels.set_ml(sample, self.catalogue.samples[sample]["containerMl"])
 
-    def order(self, executor, text="1.2 g geraniol, 0.5 g nerol, 0.3 g hedione"):
+    # The default formula is one the bench can make; the check rejects anything
+    # else outright, which the rejection tests below are about.
+    def order(self, executor, text="1.2 g geraniol, 0.5 g nerol"):
         masses = []
         wf = Workflow(self.catalogue, self.shelf, on_mass=masses.append, executor=executor, order_file=None)
         wf.submit(self.chat.reply(text)["formula"], "chat")
         return wf, masses
 
     def test_the_json_is_the_harness_format_plus_the_flask(self):
-        wf, _ = self.order("external")
+        wf, _ = self.order("external", "1.2 g geraniol, 0.5 g nerol, 0.3 g hedione")
         doc = wf.order.doc
         self.assertEqual(doc["batch"], {"concentrate_g": 2.0, "make_g": 1.7})
         line = doc["ingredients"][0]
@@ -192,11 +198,13 @@ class WorkflowTest(unittest.TestCase):
         steps = {i["compound"]: {s["id"]: s["status"] for s in i["steps"]} for i in state["ingredients"]}
         self.assertEqual(steps["Geraniol"]["verify"], "completed")
         self.assertEqual(steps["Nerol"]["verify"], "failed")
-        self.assertEqual(steps["Hedione"]["dose"], "skipped")
         self.assertEqual(state["status"], "completed")
         self.assertFalse(state["qc"]["passed"])
         self.assertEqual(masses, [1.204, 0.53])
-        self.assertEqual(state["stages"][-1]["status"], "failed")
+        stages = {s["id"]: s["status"] for s in state["stages"]}
+        self.assertEqual(stages["qc"], "failed")
+        self.assertEqual(stages["dose"], "failed")
+        self.assertNotEqual(stages["done"], "failed")
         with self.assertRaises(KeyError):
             wf.report("SMP-0014", "dose", "active")
 
@@ -211,13 +219,36 @@ class WorkflowTest(unittest.TestCase):
         wf.report("SMP-0014", "pick", "active")
         self.assertEqual(wf.order.items[0]["steps"]["pick"]["status"], "completed")
 
-    def test_a_flask_named_after_the_order_joins_it(self):
+    def test_a_compound_off_the_bench_is_rejected_at_the_check(self):
+        wf, _ = self.order("external", "1.2 g geraniol, 0.3 g hedione")
+        state = wf.state(True)
+        self.assertEqual(state["status"], "rejected")
+        self.assertFalse(state["check"]["passed"])
+        self.assertEqual([p["compound"] for p in state["check"]["problems"]], ["Hedione"])
+        self.assertEqual(state["check"]["problems"][0]["reason"], "not identified on the bench")
+        stages = {s["id"]: s["status"] for s in state["stages"]}
+        self.assertEqual(stages["check"], "failed")
+        # Nothing after the check was attempted, and Done did not fail: the
+        # failure belongs to the stage that found it.
+        self.assertEqual(stages["dose"], "skipped")
+        self.assertEqual(stages["done"], "skipped")
+        # Not a step of it was run, including the lines that were on the bench.
+        self.assertTrue(all(s["status"] == "skipped"
+                            for i in wf.order.items for s in i["steps"].values()))
+
+    def test_a_flask_without_enough_left_is_rejected_at_the_check(self):
+        self.catalogue.levels.set_ml("SMP-0039", 0.4)       # 0.4 g of nerol left
+        wf, _ = self.order("external", "1.2 g geraniol, 0.5 g nerol")
+        state = wf.state(True)
+        self.assertEqual(state["status"], "rejected")
+        self.assertEqual([p["compound"] for p in state["check"]["problems"]], ["Nerol"])
+        self.assertIn("only 0.4 g left in SMP-0039", state["check"]["problems"][0]["reason"])
+
+    def test_dosing_draws_the_flask_down(self):
         wf, _ = self.order("external")
-        self.assertEqual(wf.order.items[2]["problem"], "not identified on the bench")
-        self.tracks.append(track(3, "named", "SMP-0108", ring=107))
-        wf.observe(self.tracks, "", False)
-        self.assertIsNone(wf.order.items[2]["problem"])
-        self.assertEqual(wf.order.items[2]["steps"]["locate"]["status"], "completed")
+        before = self.catalogue.levels.left_ml("SMP-0014")
+        wf.report("SMP-0014", "dose", "completed", mass=1.204)
+        self.assertAlmostEqual(self.catalogue.levels.left_ml("SMP-0014"), before - 1.204, places=3)
 
     def test_one_order_at_a_time_and_stop(self):
         wf, _ = self.order("external")
@@ -236,7 +267,9 @@ class FetchExecutorTest(unittest.TestCase):
         w = world(tracks, scan={"scans": [{}]})
         shelf = lambda: shelf_from_tracks(tracks, catalogue)
         wf = Workflow(catalogue, shelf, executor="fetch", order_file=None)
-        wf.submit(FormulaChat(catalogue, shelf).reply("1 g geraniol, 0.5 g nerol, 0.2 g hedione")["formula"], "chat")
+        for sample in ("SMP-0014", "SMP-0039"):
+            catalogue.levels.set_ml(sample, catalogue.samples[sample]["containerMl"])
+        wf.submit(FormulaChat(catalogue, shelf).reply("1 g geraniol, 0.5 g nerol")["formula"], "chat")
         executor = FetchExecutor(wf, w)
 
         def controller():
@@ -261,7 +294,7 @@ class FetchExecutorTest(unittest.TestCase):
         self.assertEqual(state["status"], "completed")
         self.assertTrue(state["qc"]["passed"])
         self.assertEqual([[s["status"] for s in i["steps"]] for i in state["ingredients"]],
-                         [["completed"] * 3, ["completed"] * 3, ["skipped"] * 3])
+                         [["completed"] * 3, ["completed"] * 3])
 
 
 if __name__ == "__main__":

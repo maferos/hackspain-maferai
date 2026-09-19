@@ -6,8 +6,10 @@ the bench, and it names that flask. Nothing here reads the simulator's state.
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import re
+import threading
 from difflib import get_close_matches
 from pathlib import Path
 
@@ -18,6 +20,14 @@ FORMULAS = REPO / "harness" / "formulas"
 MIN_DOSE_G = 0.02
 MAX_BATCH_G = 10.0
 PICK_S = 35.0                   # rough seconds for the arm to fetch one flask, for estimates
+# A flask on the bench is not necessarily full, and the check has to say so: a
+# formula asking for more of a compound than its flask still holds cannot run.
+# The lookup table carries no level, so one is invented per sample — the same
+# on every machine and across restarts, because it is derived from the sample
+# id. About one flask in six is left nearly empty, so the check has something
+# to catch without failing every formula.
+LOW_FLASKS = 6
+G_PER_ML = 1.0                  # the catalogue carries no densities; near enough for these liquids
 
 
 def normalise(text: str) -> str:
@@ -52,6 +62,56 @@ ALIASES = {
 }
 
 
+class Levels:
+    """How much is left in each flask, in millilitres.
+
+    Invented, not measured: the lookup table gives a flask's capacity and
+    nothing else. A sample's starting level is derived from its id, so every
+    machine and every restart agrees, and dosing draws it down.
+    """
+
+    def __init__(self, samples: dict[str, dict]) -> None:
+        self.lock = threading.Lock()
+        self.start = {sid: self._initial(sid, info["containerMl"]) for sid, info in samples.items()}
+        self.left = dict(self.start)
+
+    @staticmethod
+    def _initial(sample_id: str, capacity_ml: float) -> float:
+        """A stable pseudo-random level for one flask, in millilitres."""
+        seed = int(hashlib.sha1(sample_id.encode()).hexdigest()[:8], 16)
+        if seed % LOW_FLASKS == 0:                      # nearly empty, for the check to catch
+            fraction = 0.01 + (seed >> 8) % 40 / 1000   # 1 % to 5 %
+        else:
+            fraction = 0.35 + (seed >> 8) % 650 / 1000  # 35 % to 100 %
+        return round(capacity_ml * fraction, 2)
+
+    def left_ml(self, sample_id: str) -> float:
+        with self.lock:
+            return self.left.get(sample_id, 0.0)
+
+    def left_g(self, sample_id: str) -> float:
+        return round(self.left_ml(sample_id) * G_PER_ML, 3)
+
+    def take(self, sample_id: str, grams: float) -> float:
+        """Draw a dose out of a flask. Returns what is left, in millilitres."""
+        with self.lock:
+            if sample_id not in self.left:
+                return 0.0
+            self.left[sample_id] = round(max(0.0, self.left[sample_id] - grams / G_PER_ML), 3)
+            return self.left[sample_id]
+
+    def set_ml(self, sample_id: str, ml: float) -> None:
+        """Put a flask at a known level. For tests and for staging a demo."""
+        with self.lock:
+            self.left[sample_id] = round(float(ml), 3)
+
+    def refill(self, sample_id: str) -> None:
+        """Put a flask back to the level it started at."""
+        with self.lock:
+            if sample_id in self.start:
+                self.left[sample_id] = self.start[sample_id]
+
+
 class Catalogue:
     """The sample catalogue (liquids only) and the five invented formulas."""
 
@@ -73,6 +133,7 @@ class Catalogue:
         by_name.update({normalise(cas): cas for cas in self.compounds})
         # Longest first, so "alpha terpineol" wins over "terpineol".
         self.names = dict(sorted(by_name.items(), key=lambda kv: -len(kv[0])))
+        self.levels = Levels(self.samples)
         self.formulas = {}
         for path in sorted(formulas.glob("FRG-*.json")):
             formula = json.loads(path.read_text())
@@ -117,9 +178,12 @@ def shelf_from_tracks(tracks, catalogue: Catalogue) -> list[dict]:
             continue
         x, y = track.xy
         out.append({"sampleId": sample, "compound": info["compound"], "cas": info["cas"],
-                    "containerMl": info["containerMl"], "track": track.id,
+                    "containerMl": info["containerMl"],
+                    "remainingMl": catalogue.levels.left_ml(sample),
+                    "remainingG": catalogue.levels.left_g(sample), "track": track.id,
                     "x": round(float(x), 3), "y": round(float(y), 3)})
-    return sorted(out, key=lambda v: (v["compound"], -v["containerMl"]))
+    # Fullest first: the flask with the most in it is the one worth pipetting from.
+    return sorted(out, key=lambda v: (v["compound"], -v["remainingMl"], -v["containerMl"]))
 
 
 def resolve(lines: list[dict], shelf: list[dict], catalogue: Catalogue,
@@ -147,15 +211,21 @@ def resolve(lines: list[dict], shelf: list[dict], catalogue: Catalogue,
     for cas, grams in merged.items():
         compound = catalogue.compounds[cas]
         flasks = [v for v in shelf if v["cas"] == cas]
-        best = max(flasks, key=lambda v: v["containerMl"], default=None)
+        # The fullest flask, not the biggest: a 100 ml bottle with 2 ml in it is
+        # no use for a 5 g dose and a half-full 50 ml one is.
+        best = max(flasks, key=lambda v: v["remainingMl"], default=None)
         problem = None
         if grams < MIN_DOSE_G:
             problem = f"below {MIN_DOSE_G:g} g"
         elif best is None:
             problem = "not identified on the bench"
+        elif best["remainingG"] < grams:
+            problem = (f"only {best['remainingG']:.3g} g left in {best['sampleId']}"
+                       f" ({best['containerMl']:g} ml flask)")
         ingredients.append({
             "id": f"ing-{normalise(compound).replace(' ', '-')}", "compound": compound, "cas": cas,
             "grams": round(grams, 3), "sampleId": best["sampleId"] if best else None,
+            "remainingG": best["remainingG"] if best else None,
             "problem": problem,
         })
     found = [i for i in ingredients if not i["problem"]]

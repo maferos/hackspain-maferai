@@ -130,6 +130,7 @@ class Order:
         self.started: float | None = None
         self.finished: float | None = None
         self.status = "queued"
+        self.check: dict | None = None
         self.qc: dict | None = None
         self.doc: dict = {}
         self.log: list[dict] = []
@@ -212,20 +213,40 @@ class Workflow:
             if self.order is not None and self.order.status in ("queued", "running"):
                 raise RuntimeError(f"{self.order.id} is still running; stop it first")
             doc = self.formula_json(formula, source)
-            if not any(not i["problem"] for i in doc["ingredients"]):
-                raise ValueError("nothing in this formula has been identified on the bench")
-            total = sum(i["batch_g"] for i in doc["ingredients"] if not i["problem"])
-            if total > MAX_BATCH_G:
-                raise ValueError(f"the batch is {total:.2f} g; the balance takes {MAX_BATCH_G:g} g at most")
             order = Order(f"ORD-{next(self._numbers):03d}", formula, source, self.executor)
             doc["order"] = {"id": order.id, "created": _now(), "executor": self.executor}
             order.doc = doc
             self.order = order
+            total = sum(i["batch_g"] for i in doc["ingredients"] if not i["problem"])
             self._log(f"{order.id} received from the {source}: {formula['name']}, "
-                      f"{len(order.active_items())} ingredients, {total:.3f} g", "info")
-            for item in order.items:
-                if item["problem"]:
-                    self._log(f"{item['compound']} left out: {item['problem']}", "warn")
+                      f"{len(order.items)} ingredients, {total:.3f} g", "info")
+
+            # The check. A formula the bench cannot make is rejected whole, not
+            # run with the lines it happens to have: half a fragrance is not a
+            # fragrance. Whatever fails, fails here, so the panel's Check stage
+            # carries the reason instead of it surfacing at the end as QC.
+            problems = [{"compound": i["compound"], "reason": i["problem"]}
+                        for i in order.items if i["problem"]]
+            if not order.items:
+                problems = [{"compound": "—", "reason": "no ingredients in this formula"}]
+            elif total > MAX_BATCH_G:
+                problems.append({"compound": "—", "reason":
+                                 f"the batch is {total:.2f} g; the balance takes {MAX_BATCH_G:g} g at most"})
+            if problems:
+                order.check = {"passed": False, "problems": problems, "seconds": 0.0}
+                order.status = "rejected"
+                order.finished = order.created
+                for item in order.items:
+                    for step in item["steps"].values():
+                        step["status"] = "skipped"
+                for problem in problems:
+                    self._log(f"{order.id} cannot run: {problem['compound']} — {problem['reason']}", "warn")
+                self._log(f"{order.id} rejected at the check", "warn")
+                self._write()
+                return order
+            order.check = {"passed": True, "problems": [], "seconds": 0.0}
+            self._log(f"{order.id} passed the check: {len(order.active_items())} ingredients on the bench",
+                      "info")
             self._write()
             return order
 
@@ -287,8 +308,14 @@ class Workflow:
                 if self.on_mass:
                     self.on_mass(float(mass))
             self._advance(item, step, status, note, source)
-            if step == "dose" and status == "completed" and "verify" in item["steps"]:
-                self._verify(item)
+            if step == "dose" and status == "completed":
+                # What came out of the flask is gone from it: the next formula's
+                # check sees the lower level.
+                if item["sampleId"]:
+                    left = self.catalogue.levels.take(item["sampleId"], item["mass"] or item["grams"])
+                    self._log(f"{item['sampleId']} has {left:.3g} ml left", "info")
+                if "verify" in item["steps"]:
+                    self._verify(item)
             self._maybe_close()
             self._write()
 
@@ -446,7 +473,7 @@ class Workflow:
                 "id": order.id, "status": order.status, "executor": order.executor,
                 "source": order.source, "formula": order.doc,
                 "elapsedSeconds": order.elapsed(), "estimateSeconds": order.formula["estimate"]["seconds"],
-                "stages": self._stages(order, scan_done), "qc": order.qc,
+                "stages": self._stages(order, scan_done), "qc": order.qc, "check": order.check,
                 "done": done, "total": len(items),
                 "ingredients": [{
                     "id": i["id"], "compound": i["compound"], "cas": i["cas"], "grams": i["grams"],
@@ -457,23 +484,41 @@ class Workflow:
             }
 
     def _stages(self, order: Order, scan_done: bool) -> list[dict]:
+        """The stage bar, with every failure shown on the stage that failed.
+
+        A rejected formula stops at Check and the rest is skipped; a dose that
+        failed marks the fetching stage, not Done. Done only ever fails on its
+        own account, which it cannot, so it is completed or waiting.
+        """
         items = order.active_items()
         worked = order.started is not None
         all_done = order.status == "completed"
+        checked = order.check is not None
         status = {
             "scan": "completed" if scan_done else "active",
             "formula": "completed",
-            "check": "completed" if all(i["steps"]["locate"]["status"] in DONE for i in items) else "active",
+            "check": "completed" if checked else "active",
             "fetch": "completed" if all_done else "active" if worked else "queued",
             "dose": "completed" if all(all(s["status"] in DONE for s in i["steps"].values()) for i in items)
             else "active" if worked else "queued",
             "qc": "completed" if all_done else "queued",
             "done": "completed" if all_done else "queued",
         }
+        if order.status == "rejected":
+            # Nothing was attempted: the check is the failure and the rest of
+            # the bar never happened.
+            return [{"id": sid, "label": label,
+                     "status": "failed" if sid == "check" else status[sid] if sid in ("scan", "formula")
+                     else "skipped"} for sid, label in STAGES[order.executor]]
         if order.status == "aborted":
             status = {k: ("failed" if v == "active" else v) for k, v in status.items()}
-        if all_done and order.qc and not order.qc["passed"]:
-            status["done"] = "failed"
+        # A step that failed belongs to the stage that runs it.
+        if any(s["status"] == "failed" for i in items for s in i["steps"].values()):
+            for sid in ("fetch", "dose"):
+                if status[sid] in ("completed", "active"):
+                    status[sid] = "failed"
+        if order.qc and not order.qc["passed"]:
+            status["qc"] = "failed"
         return [{"id": sid, "label": label, "status": status[sid]} for sid, label in STAGES[order.executor]]
 
     def plan_steps(self) -> list[dict]:
