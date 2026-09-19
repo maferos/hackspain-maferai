@@ -227,7 +227,7 @@ function CameraStream({ cameraId, label, className, onClick, big, detections }) 
 
 function ReplayViewport({ mainCameraId, onSwap, showBoxes, pattern }) {
   const cameras = REPLAY_CAMERAS.map((camera) => ({
-    ...camera, src: `/renders/seeds/${camera.id === "scene" ? pattern.global_video : pattern.robot_video}`,
+    ...camera, src: `/renders/seeds/${camera.id === "scene" ? pattern.global_video : pattern.robot_video}${pattern.revision ? `?v=${pattern.revision}` : ""}`,
   }));
   const videos = useRef({});
   const replay = useReplayDetections(videos, showBoxes, BACKEND_URL, pattern.pattern);
@@ -537,7 +537,7 @@ export default function App() {
                 onClick={swapCameras}
                 detections={detections}
               />
-            </> : replayPattern ? <ReplayViewport key={replayPattern.pattern} pattern={replayPattern} mainCameraId={mainCameraId} onSwap={swapCameras} showBoxes={showBoxes} />
+            </> : replayPattern ? <ReplayViewport key={`${replayPattern.pattern}:${replayPattern.revision ?? "original"}`} pattern={replayPattern} mainCameraId={mainCameraId} onSwap={swapCameras} showBoxes={showBoxes} />
               : <div className="camera-frame camera-frame--main"><span className="camera-frame__connection" role="status">
                 {scenePattern ? `Replay unavailable for seed ${scenePattern.seed}` : "Waiting for the current seed… Connect the backend to select a layout."}
               </span></div>}

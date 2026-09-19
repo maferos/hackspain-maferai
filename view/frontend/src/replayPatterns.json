@@ -127,6 +127,8 @@
       540
     ],
     "global_video": "p10/rail_global.mp4",
-    "robot_video": "p10/rail_robot.mp4"
+    "robot_video": "p10/rail_robot.mp4",
+    "render_updates_per_frame": 3,
+    "revision": "3passes"
   }
 ]
