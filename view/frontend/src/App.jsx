@@ -45,14 +45,15 @@ const REPLAY_CAMERAS = [
 // Views that can be opened and closed from the header, and the sizes the drag
 // handles set. Both are remembered in this browser.
 const VIEWS = [
+  { id: "formulas", label: "Formulas", title: "The formulas asked and the one the robot has in hand" },
   { id: "balance", label: "Balance" },
   { id: "info", label: "Info", title: "What the viewer is running: models, scene and build" },
 ];
-// The chat owns the right column; the dock under the viewport carries the
-// balance, the current formula and the formulas asked, plus Info when it is
-// open. The balance only reads out a mass, so its width is fixed in the
-// stylesheet and the others split what is left.
-const DEFAULT_SIZES = { chatWidth: 380, dockHeight: 240 };
+// Three columns. The formulas drawer down the left — what has been asked over
+// the one in hand — the camera in the middle with the dock under it, and the
+// chat down the right. The drawer and the dock take space from the camera
+// rather than covering it, and both close from the header.
+const DEFAULT_SIZES = { formulasWidth: 340, askedHeight: 210, chatWidth: 380, dockHeight: 215 };
 const DEFAULT_LAYOUT = {
   ...DEFAULT_SIZES,
   views: Object.fromEntries(VIEWS.map((v) => [v.id, true])),
@@ -489,8 +490,21 @@ export default function App() {
   const dragDock = (bar) => {
     const start = layout.dockHeight;
     const max = bar.parentElement.clientHeight - SPLITTER_PX - 150;
-    return (d) => resize({ dockHeight: clamp(start - d, 150, max) });
+    return (d) => resize({ dockHeight: clamp(start - d, 120, max) });
   };
+  // This handle sits after the drawer, so dragging right widens it.
+  const dragDrawer = (bar) => {
+    const start = layout.formulasWidth;
+    const max = start + bar.nextElementSibling.getBoundingClientRect().width - 480;
+    return (d) => resize({ formulasWidth: clamp(start + d, 260, max) });
+  };
+  const dragAsked = (bar) => {
+    const start = layout.askedHeight;
+    const max = bar.parentElement.clientHeight - SPLITTER_PX - 160;
+    return (d) => resize({ askedHeight: clamp(start + d, 90, max) });
+  };
+  // An empty bar under the camera is worse than no bar.
+  const showDock = views.balance || views.info;
 
   return (
     <div className="app">
@@ -555,6 +569,24 @@ export default function App() {
         </div>
       </header>
       <main className="app__body">
+        {views.formulas && (
+          <>
+            <div className="drawer" style={{ width: layout.formulasWidth }}>
+              <FormulasPanel entries={asked} style={{ height: layout.askedHeight }} />
+              <Splitter
+                direction="row"
+                onStart={dragAsked}
+                onReset={() => resize({ askedHeight: DEFAULT_SIZES.askedHeight })}
+              />
+              <LabTaskPanel state={lab.state} connected={lab.connected} />
+            </div>
+            <Splitter
+              direction="col"
+              onStart={dragDrawer}
+              onReset={() => resize({ formulasWidth: DEFAULT_SIZES.formulasWidth })}
+            />
+          </>
+        )}
         <div className="main-column">
           <section className="viewport">
             {realtime ? <>
@@ -579,13 +611,15 @@ export default function App() {
               </span></div>}
             <Toast toast={toast} onDismiss={dismissToast} />
           </section>
-          <Splitter direction="row" onStart={dragDock} onReset={() => resize({ dockHeight: DEFAULT_SIZES.dockHeight })} />
-          <div className="dock" style={{ height: layout.dockHeight }}>
-            {views.balance && <BalancePanel state={lab.state} connected={lab.connected} />}
-            <LabTaskPanel state={lab.state} connected={lab.connected} />
-            <FormulasPanel entries={asked} />
-            {views.info && <InfoPanel backendUrl={BACKEND_URL} detections={liveDetections} />}
-          </div>
+          {showDock && (
+            <Splitter direction="row" onStart={dragDock} onReset={() => resize({ dockHeight: DEFAULT_SIZES.dockHeight })} />
+          )}
+          {showDock && (
+            <div className="dock" style={{ height: layout.dockHeight }}>
+              {views.balance && <BalancePanel state={lab.state} connected={lab.connected} />}
+              {views.info && <InfoPanel backendUrl={BACKEND_URL} detections={liveDetections} />}
+            </div>
+          )}
         </div>
         <Splitter direction="col" onStart={dragChatWidth} onReset={() => resize({ chatWidth: DEFAULT_SIZES.chatWidth })} />
         <div className="side" style={{ width: layout.chatWidth }}>

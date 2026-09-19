@@ -261,12 +261,15 @@ the real executor exists) has the arm fetch each flask through the scan
 controller's own pick, locate → pick → return, and says it was fetched, not
 dosed; `external` leaves the order to an executor that reports.
 
-The camera fills the top of the left column and the dock sits under it, the
-Balance first and then Current formula and Formulas asked splitting the rest
-half each; the Formula chat is the right-hand column, full height. Camera,
-formula, chat and the asked list are always shown; Balance opens and closes from the button in the
-header. The edges between views drag to resize them (double-click an edge to
-reset it), and the layout is remembered in the browser.
+Three columns. The **formulas drawer** down the left stacks Formulas asked over
+Current formula; the camera is in the middle with the dock under it, carrying
+the Balance and Info; the Formula chat is the right-hand column, full height.
+The drawer and the dock take their space from the camera rather than covering
+it, and Formulas, Balance and Info each open and close from their button in the
+header — the dock disappears when both of its panels are closed. The edges
+between views drag to resize them, including the split between the two drawer
+panels (double-click an edge to reset it), and the layout is remembered in the
+browser.
 
 To rehearse a moment of the scripted run (scenes without the scan), start the
 backend part-way and slowed down:

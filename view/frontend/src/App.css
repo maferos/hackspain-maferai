@@ -374,13 +374,35 @@ body {
   flex-direction: column;
 }
 
-/* The dock under the viewport: the balance, the tasks and the pipeline in a
-   row. The balance reads out one mass, so it takes a fixed narrow column and
-   the other two share what is left, half each. */
+/* The formulas drawer down the left: what has been asked, over the one the
+   robot has in hand. It takes its width from the camera rather than covering
+   it, and closes from the header. */
+
+.drawer {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  min-width: 0;
+  min-height: 0;
+}
+
+.drawer > .panel--asked {
+  flex-shrink: 0;
+  min-height: 0;
+}
+
+/* The one in hand takes whatever the asked list leaves. */
+.drawer > .task-panel {
+  flex: 1;
+  min-height: 0;
+}
+
+/* The dock under the camera: the balance, and Info when it is open. Neither
+   stretches — a mass readout across the whole width reads as a mistake. */
 
 .dock {
   flex-shrink: 0;
-  height: 240px;
+  height: 215px;
   min-height: 0;
   display: flex;
   gap: 0.75rem;
@@ -388,12 +410,6 @@ body {
 
 .dock > .panel--balance {
   flex: 0 0 9.5rem;
-}
-
-.dock > .task-panel,
-.dock > .panel--asked {
-  flex: 1 1 0;
-  min-width: 0;
 }
 
 /* Formula checklist heading the task panel */
