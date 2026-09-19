@@ -17,6 +17,7 @@ from labvision.perception import (
     propose,
     refine,
     ring_geometry,
+    vessel_height,
 )
 from labvision.scene import BBox, gopro_intrinsics, predict_bbox
 
@@ -77,6 +78,15 @@ def test_ring_geometry_comes_from_the_label_mesh():
     radius, height = ring_geometry("flask_10ml")
     assert 0.009 < radius < 0.013
     assert 0.0 < height < 0.054
+
+
+def test_vessel_height_comes_from_the_meshes_and_grows_with_the_flask():
+    # Measured in the scene: the 10 ml flask's cap tops out 53.9 mm over the
+    # bench and the 100 ml's 114.2 mm; the ring sits below the top of either.
+    assert vessel_height("flask_10ml") == pytest.approx(0.0539, abs=5e-4)
+    assert vessel_height("flask_100ml") == pytest.approx(0.1142, abs=5e-4)
+    for vessel in ("flask_10ml", "flask_100ml"):
+        assert ring_geometry(vessel)[1] < vessel_height(vessel)
 
 
 def _wrist_frame(camera, markers):

@@ -242,6 +242,110 @@ Three things that cost time and are easy to hit again:
   to go and the gripper closed on air. `solve_any` seeds from the arm's current
   pose first now, which took the grasp score from 11 in 12 to 12 in 12.
 
+### The cameras direct the arm
+
+Everything above picks bottles whose positions it read out of the scene.
+`scripts/vision_pick.py` closes the loop instead: the arm knows about a bottle
+only what the cameras told it, and they keep telling it while it moves.
+
+```bash
+python scripts/vision_pick.py                 # viewer + page at :8009, picks everything
+python scripts/vision_pick.py --manual        # looks at everything, picks what the page asks
+python scripts/vision_pick.py --headless --perturb-at 100 --video out/vision_pick.mp4
+```
+
+It needs `computer-vision`'s requirements too (ultralytics, opencv) and the
+fixed camera's weights at `computer-vision/runs/fixedcam/yolo26n_fixedcam.pt`
+(gitignored; see `computer-vision/docs/FIXED_CAMERA_BENCHMARK.md`).
+
+```
+ general camera ──► YOLO boxes ──► propose(): box base ∩ bench plane ──► tracks (x, y), ~8 mm
+   (perception thread, every cycle, whatever the arm is doing)              │
+                                                                            ▼
+ arm_eih camera ◄── plan_look(): IK puts the wrist camera 0.36 m off, 25° up
+        │
+        ▼
+ confirm(): ArUco ring ──► sample id + vessel class ──► refined (x, y), < 1 mm
+                                                            │
+                                                            ▼
+        plan_grasp(): vessel's mesh height ──► top-down IK ──► close on force feedback ──► lift
+```
+
+**Two loops, neither waiting for the other.** Perception runs on its own thread
+with its own OpenGL context: it copies the state under a lock, renders `general`,
+runs the detector, puts the boxes on the bench and folds them into a world model
+of tracks. The physics loop never blocks on a render. The controller is a
+generator stepping `mj_step`, and what it does next is read off the world model:
+look at the nearest track nobody has looked at, pick one the ring has named.
+
+**The world model follows the bench.** A box has to come back three cycles
+running to be a track; a track unseen for three cycles is lost. Move a bottle
+--- `M` in the viewer, the button on the page, or a mouse drag --- and its track
+is lost, a new one appears where it now stands, the arm goes and reads it, and
+the ring says it is the same sample: `SMP-0013 moved 160 cm: was track 14, now
+track 19`. If the arm was on its way to the old place, it backs off to the carry
+pose first.
+
+**The arm has to be taken out of its own picture.** The first live run made
+forty tracks in twenty seconds, all of them the gripper: over a white bench it
+looks enough like a flask to be boxed. The arm knows where it is, so its links
+are projected into the fixed camera's frame from its joint angles, boxes on them
+are dropped, and a track behind them counts as hidden rather than missing.
+
+**IK that converges is not a pose the arm can get to.** Three separate lessons,
+each of which closed the gripper on air:
+
+* At the 15 degrees and 0.30 m `propose_confirm.py` flies a bare camera at, the
+  open gripper stands 37 mm inside the worktop. 25 degrees and 0.36 m clears it
+  for every bottle, and the ring still reads (10 of 10, within 0.5 mm).
+* Solved from the pose it had just looked from, a grasp came back wrist-folded.
+  The pose is clear; the way there is not --- the wrist camera meets the wrist
+  link and the servos stall 170 mm from the bottle. `plan()` checks the
+  joint-space path between poses as well as the poses.
+* `rail_kinematics`' seeds have wrist 2 at -90 degrees, and for a target as high
+  as the carry pose they all converge on that fold. `HAND_DOWN` seeds the branch
+  with wrist 2 at +90, and every job starts and ends in a carry pose that was
+  checked reachable from rest and clear along the whole rail.
+
+Motion alone, fed true positions (the planner judged apart from vision): 5 of 5
+looks aimed within 0.6 degrees, 5 of 5 picks lifted 100 mm or more with the tool
+within 5 mm of the axis, nothing else on the bench disturbed, planning under a
+second, about 24 s of simulated time per bottle.
+
+The whole loop, 330 s of simulated time on the shipped scene, one bottle moved
+1.6 m at t = 100 s (`--headless --max-time 330 --perturb-at 100`):
+
+| | |
+| --- | --- |
+| tracks the fixed camera held | 15 |
+| named by their ring | 11, none wrongly |
+| picks attempted / lifted / closed on air | 9 / 9 / 0 |
+| named but out of the gripper's reach | 1 (under the gantry beam) |
+| position error of the named, median | 1.5 mm |
+| moved bottle: new track seen / old track lost | 3.5 s / 5.3 s after the move |
+| perception cycles | 179, at 1 to 2.5 s each on integrated graphics |
+
+The time ran out with the arm still working along the bench, so the counts are
+what it got through, not what it can reach. The largest position error, 31 mm,
+is a bottle after it was put back down: a vessel let go of settles where it
+likes. So a pick spends the ring's position, the fixed camera's stands in, and
+the next pick of that bottle reads the ring again first.
+
+**What limits it is the detector's reach, not the loop.** On this scene the
+fixed camera's YOLO finds 12 of the 19 free bottles at threshold 0.03 (9 at the
+benchmark's 0.07). The seven it misses stand at the frame's edges, where the
+92-degree lens leans a bottle 30 degrees over; rendering at 4K, YOLO-World, a
+sweep of the `carriage` camera and a survey from the wrist did no better. That
+is training data --- the fixed-camera set had few bottles out there --- and the
+fix is there, not here. What it does find is placed to 8 mm (median) by the
+bench plane and to under 1 mm by the ring.
+
+**Speed.** The scene draws 1.1 million triangles (the GC-MS alone is a third).
+Integrated graphics render a frame in about 0.5 s and a perception cycle takes
+1 to 2.5 s; the loop is built so that only slows how soon a moved bottle is
+noticed, never the physics. On a discrete GPU both the render and the detector
+(CUDA or MPS, picked automatically) are tens of milliseconds.
+
 ## AutoBio lab scenes
 
 [AutoBio](https://github.com/autobio-bench/AutoBio) ([paper](https://arxiv.org/abs/2505.14030)) provides
@@ -282,6 +386,7 @@ use `scripts/view_autobio.py` instead.
 | `scripts/generate_wrist_camera.py` | Builds `assets/wrist_camera/`, the machine-vision camera modelled on the wrist |
 | `scripts/wrist_view.py` | Interactive scene plus a live browser stream of the wrist camera |
 | `scripts/grasp_test.py` | Drives approach, force-feedback close and lift on every dynamic vessel, and scores it |
+| `scripts/vision_pick.py` | The closed loop: the fixed camera's YOLO boxes become bench positions, the wrist camera reads the ArUco ring, and the arm picks what they found, live |
 | `scripts/rail_reach.py` | Reachability report: rail vs one fixed station, over every vessel on the bench |
 | `models/minihannover_rail_scene.xml` | The open-desk scene plus a 6 m gantry carrying a UR10e + Robotiq 2F-85 with an eye-in-hand camera |
 | `scripts/check_install.py` | Headless check that loads and steps the model |
