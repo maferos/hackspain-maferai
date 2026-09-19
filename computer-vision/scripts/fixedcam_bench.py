@@ -22,8 +22,9 @@ object's pose; it is what removes the gantry's shelf bottles.
 
 A model name is a key of :data:`MODELS`, optionally followed by
 ``+tile<T>x<S>`` to run it on T-pixel tiles of the worktop region upsampled S
-times, or ``+roi`` / ``+roix<S>`` to run it once on the worktop region,
-enlarged S times; ``ft:<weights>`` for fine-tuned Ultralytics weights; or
+times, ``+roi`` / ``+roix<S>`` to run it once on the worktop region,
+enlarged S times, or ``+scale<S>`` to resize the whole frame by S;
+``ft:<weights>`` for fine-tuned Ultralytics weights; or
 ``rfdetr:<checkpoint>:<size>:<resolution>`` for a fine-tuned RF-DETR, tiled at
 its resolution. Output: ``results/fixedcam/<model>/<split>/predictions.json``,
 ``results/fixedcam/<model>/metrics.json``, overlays next to them, and
@@ -104,11 +105,15 @@ MODELS: dict[str, Callable[[], object]] = {
         "yolo26l.pt", "yolo", fm.COCO_VESSELS
     ),
     "gdino-tiny": lambda: fm.GroundingDinoPredictor(prompts=fm.BOTTLE_PROMPTS),
+    "chemex-bottles": lambda: fm.RoboflowPredictor(
+        "chemistry-lab-object-detection", 1, fm.CHEMEX_BOTTLES
+    ),
 }
 """Pretrained models, built on demand. Fine-tuned ones come by path."""
 
 TILE_SUFFIX = re.compile(r"^(?P<base>.+)\+tile(?P<tile>\d+)x(?P<scale>[\d.]+)$")
 ROI_SUFFIX = re.compile(r"^(?P<base>.+)\+roi(?:x(?P<scale>[\d.]+))?$")
+SCALE_SUFFIX = re.compile(r"^(?P<base>.+)\+scale(?P<scale>[\d.]+)$")
 
 
 def slug(name: str) -> str:
@@ -124,6 +129,13 @@ def build(name: str, gt: dict | None = None) -> object:
         inner = build_inner(match["base"], imgsz=int(round(tile * scale / 32) * 32))
         return fm.TiledPredictor(
             inner, tile=tile, upscale=scale, roi=roi_for(gt) if gt else None
+        )
+    match = SCALE_SUFFIX.match(name)
+    if match:
+        # The whole frame resized: puts bottles back at the scale a model
+        # was trained on when a camera sees them larger or smaller.
+        return fm.RoiPredictor(
+            build_inner(match["base"]), upscale=float(match["scale"])
         )
     match = ROI_SUFFIX.match(name)
     if match:
@@ -571,6 +583,12 @@ def main() -> None:
     p_run.add_argument("--overlays", type=int, default=6, help="frames to draw")
     p_run.add_argument("--boot", type=int, default=1000, help="bootstrap resamples")
     p_run.add_argument(
+        "--max-det",
+        type=int,
+        default=fm.MAX_DET,
+        help="most boxes per image; run with --redo when changing it",
+    )
+    p_run.add_argument(
         "--threshold-here",
         action="store_true",
         help="pick the threshold on a test split when val is not scored",
@@ -587,6 +605,7 @@ def main() -> None:
     p_cmp.set_defaults(threshold_here=False)
     args = parser.parse_args()
     if args.command == "run":
+        fm.MAX_DET = args.max_det
         run(args)
     elif args.command == "compare":
         compare(args)
