@@ -48,6 +48,13 @@ CARRY = (0.35, 0.32)
 POUR_Z = 1.15
 ACTIVE_BALANCE = "balance_2"
 
+# The scripted perturbation: while the arm approaches the Eugenol flask, the
+# flask is moved (as a judge would with the mouse). The approach is cancelled,
+# the pose invalidated, the target re-detected and the approach retried.
+DISPLACED_SAMPLE = "SMP-0021"
+DISPLACED_TO = (0.58, -0.55)
+REACQUIRE_AFTER_S = 2.1
+
 # Recipe FRG-031, the same as the console's built-in demo: two liquids in
 # amber flasks and two solids in HDPE bottles, all on the aisle side.
 RECIPE = {
@@ -116,9 +123,26 @@ class ScriptedRun:
         self.balance = next(b for b in workcell(model, data, ACTIVE_BALANCE)["balances"] if b["active"])
         self.pour = np.array([self.balance["position"]["x"], self.balance["position"]["y"], POUR_Z])
         self.home = {v.index: v.position(data).copy() for v in vessel_list}
+        displaced = self.by_id[DISPLACED_SAMPLE]
+        self.displaced_index = displaced.index
+        self.displaced_to = np.array([DISPLACED_TO[0], DISPLACED_TO[1], self.home[displaced.index][2]])
         self.segments = self._compile()
         self.duration = self.segments[-1]["end"]
         self.steps = self._steps()
+        recover = next(s for s in self.segments if s["kind"] == "RECOVER")
+        self.displace_t = recover["start"]
+        self.reacquire_t = recover["start"] + REACQUIRE_AFTER_S
+
+    def rest_position(self, index: int, t: float) -> np.ndarray:
+        """Where a container stands on the bench at time ``t`` (the truth)."""
+        if index == self.displaced_index and t >= self.displace_t:
+            return self.displaced_to
+        return self.home[index]
+
+    def reset_scene(self) -> None:
+        """Put every container back where the scene file has it."""
+        for v in self.vessel_list:
+            set_free_body_pose(self.model, self.data, v, self.home[v.index], np.array([1.0, 0, 0, 0]))
 
     # -- compile --------------------------------------------------------------
 
@@ -126,9 +150,15 @@ class ScriptedRun:
         segs: list[dict] = []
         t = 0.0
         base = self.pour[0]
+        target_pos = None
 
         def add(kind, dur, **kw):
             nonlocal t
+            kw.setdefault("target", target_pos)
+            kw.setdefault("attempt", 1)
+            # Every segment knows where the rail carriage is, so the run can start anywhere.
+            kw.setdefault("base_from", base)
+            kw.setdefault("base_to", base)
             seg = {"kind": kind, "start": t, "end": t + dur, **kw}
             segs.append(seg)
             t += dur
@@ -140,7 +170,16 @@ class ScriptedRun:
             ing_id, compound, cas, phase, target, sample, barcode, ml, err = row
             v = self.by_id[sample]
             home = self.home[v.index]
+            target_pos = home
             for fsm, camera, dur, macro in PHASES:
+                if fsm == "APPROACH" and sample == DISPLACED_SAMPLE:
+                    # Half an approach, the flask is moved, recover, approach again.
+                    step = f"{fsm}-{ing_id}"
+                    add(fsm, 1.4, camera=camera, macro=macro, ingredient=i, step=step)
+                    home = target_pos = self.displaced_to
+                    add("RECOVER", 2.6, camera=camera, macro="plan", ingredient=i, step=step)
+                    add(fsm, 3.0, camera=camera, macro=macro, ingredient=i, step=step, attempt=2)
+                    continue
                 if fsm == "TRAVERSE":
                     dist = abs(home[0] - base)
                     if dist < 0.05:
@@ -168,7 +207,9 @@ class ScriptedRun:
                     base = home[0]
                     continue
                 add(fsm, dur, camera=camera, macro=macro, ingredient=i, step=f"{fsm}-{ing_id}")
+        target_pos = None
         add("VALIDATE", 2.2 + abs(self.pour[0] - base) / RAIL_SPEED, camera="overview", macro="verify", ingredient=None, step="validate", base_from=base, base_to=self.pour[0])
+        base = self.pour[0]
         add("COMPLETE", 0.8, camera="overview", macro="verify", ingredient=None, step="complete")
         return segs
 
@@ -213,17 +254,28 @@ class ScriptedRun:
         i = seg["ingredient"]
         row = RECIPE["ingredients"][i] if i is not None else None
         v = self.by_id[row[5]] if row else None
-        home = self.home[v.index] if v is not None else None
+        home = seg["target"] if v is not None else None
         base_x = lerp(seg["base_from"], seg["base_to"], smoothstep(u)) if "base_from" in seg else last.get("base_x", self.pour[0])
         completed = t >= self.duration
+        recovering = kind == "RECOVER"
+        pose_invalid = recovering and local < REACQUIRE_AFTER_S
+        recoveries = sum(1 for s in self.segments if s["kind"] == "RECOVER" and s["start"] <= t)
 
         # --- container animation (kinematic; physics would do this for real)
         tilt = 0.0
         ee = np.array([base_x, BASE_Y + CARRY[0], BASE_Z + CARRY[1]])
         gripper = "open"
         if v is not None:
-            if kind == "APPROACH":
+            if kind == "APPROACH" and seg["attempt"] == 1 and v.index == self.displaced_index:
+                # The approach that gets interrupted: half way down, towards the old pose.
+                orig = self.home[v.index]
+                ee = np.array([orig[0], orig[1], lerp(1.22, 1.16, smoothstep(u))])
+            elif kind == "APPROACH":
                 ee = np.array([home[0], home[1], lerp(1.22, 1.10, smoothstep(u))])
+            elif recovering:
+                orig = self.home[v.index]
+                f = smoothstep((local - REACQUIRE_AFTER_S) / 0.5)
+                ee = np.array([lerp(orig[0], home[0], f), lerp(orig[1], home[1], f), 1.16])
             elif kind in ("READ_BARCODE", "VERIFY_ID"):
                 ee = np.array([home[0], home[1], 1.06])
             elif kind == "PICK":
@@ -285,34 +337,49 @@ class ScriptedRun:
         handling = row is not None
         is_verified = i in verified
         target_name = (row[5] if is_verified else f"vessel #{v.index}") if handling else None
-        barcode_known = handling and (kind not in ("LOCATE", "TRAVERSE", "APPROACH") and not (kind == "READ_BARCODE" and local < 1.1))
+        barcode_known = handling and (kind not in ("LOCATE", "TRAVERSE", "APPROACH", "RECOVER") and not (kind == "READ_BARCODE" and local < 1.1))
         barcode_status = "idle" if not handling else "reading" if kind == "READ_BARCODE" or (kind == "VERIFY_ID" and local < 0.4) else ("verified" if is_verified or kind == "VERIFY_ID" else "idle")
         detections = self.vessel_list if t > 3.0 else self.vessel_list[: int(len(self.vessel_list) * max(0.0, (t - 1.2)) / 1.8)]
-        perceived = [
-            {
-                "index": pv.index,
-                "id": next((r[5] for k, r in enumerate(RECIPE["ingredients"]) if r[5] == pv.sample_id and k in verified), None),
-                "cls": pv.cls,
-                "confidence": 0.86 + 0.01 * pv.index,
-                "position": S.vec3(*(self.home[pv.index] + np.array([0.006, -0.004, 0]))),
-                "stale": False,
-            }
-            for pv in detections
-        ]
+        offset = np.array([0.006, -0.004, 0])
+
+        def estimate(index: int) -> tuple[np.ndarray, bool]:
+            """Perceived position of a container and whether it is out of date."""
+            if index == self.displaced_index and self.displace_t <= t < self.reacquire_t:
+                return self.home[index] + offset, True
+            return self.rest_position(index, t) + offset, False
+
+        perceived = []
+        for pv in detections:
+            pos, stale = estimate(pv.index)
+            perceived.append(
+                {
+                    "index": pv.index,
+                    "id": next((r[5] for k, r in enumerate(RECIPE["ingredients"]) if r[5] == pv.sample_id and k in verified), None),
+                    "cls": pv.cls,
+                    "confidence": 0.86 + 0.01 * pv.index,
+                    "position": S.vec3(*pos),
+                    "stale": stale,
+                }
+            )
 
         # --- steps and ingredients
         steps = []
         for st in self.steps:
             own = [s for s in self.segments if s["step"] == st["id"]]
             done = completed or (own and own[-1]["end"] <= t)
-            active = any(s["start"] <= t < s["end"] for s in own)
-            status = "completed" if done else "active" if active else "queued"
+            containing = next((s for s in own if s["start"] <= t < s["end"]), None)
+            status = "completed" if done else ("retrying" if containing["kind"] == "RECOVER" else "active") if containing else "queued"
+            attempt = containing["attempt"] if containing else (own[-1]["attempt"] if own else 1)
             detail = []
-            if active and kind == "DOSING":
+            if status == "retrying":
+                detail = [("recovery", "target displaced → replanning" if pose_invalid else "target reacquired"), ("attempt", "2 of 3")]
+            elif status == "active" and kind == "DOSING":
                 detail = [("target", f"{row[4]:.3f} g"), ("current", f"{net:.3f} g"), ("mode", mode.upper())]
-            elif active and kind in ("TRAVERSE", "MOVE_TO_POUR"):
+            elif status == "active" and kind in ("TRAVERSE", "MOVE_TO_POUR"):
                 detail = [("rail x", f"{base_x:.2f} m")]
-            steps.append(S.step(st["id"], st["label"], st["ingredientId"], status, started_at=own[0]["start"] if own and own[0]["start"] <= t else None, completed_at=own[-1]["end"] if done and own else None, detail=detail))
+            elif status == "active" and attempt > 1:
+                detail = [("attempt", f"{attempt} of 3")]
+            steps.append(S.step(st["id"], st["label"], st["ingredientId"], status, attempt=attempt, started_at=own[0]["start"] if own and own[0]["start"] <= t else None, completed_at=own[-1]["end"] if done and own else None, detail=detail))
         ingredients = []
         for k, r in enumerate(RECIPE["ingredients"]):
             own = [s for s in self.segments if s["ingredient"] == k]
@@ -340,10 +407,14 @@ class ScriptedRun:
                 target_object=target_name,
                 compound=row[1] if row else None,
                 gripper=gripper,
-                current_action=f"{kind.replace('_', ' ').title()}" + (f" · tilt {tilt:.1f}°" if tilt else ""),
+                current_action=("Target displaced · pose invalidated, replanning" if pose_invalid else "Target reacquired · retry approach")
+                if recovering
+                else f"{kind.replace('_', ' ').title()}" + (f" · tilt {tilt:.1f}°" if tilt else ""),
                 tilt_deg=tilt,
                 ik_error_mm=0.3,
                 distance_to_target=float(np.linalg.norm(ee - home)) if v is not None and kind in ("APPROACH", "READ_BARCODE", "VERIFY_ID", "PICK") else None,
+                recoveries=recoveries,
+                replans=recoveries,
             ),
             "perception": S.perception_state(
                 seg["camera"],
@@ -356,17 +427,22 @@ class ScriptedRun:
                 barcode_status,
                 row[1] if handling and is_verified else None,
                 row[7] if handling and is_verified else None,
-                S.vec3(*(home + np.array([0.006, -0.004, 0]))) if handling else None,
-                11 if handling else None,
+                None if not handling or pose_invalid else S.vec3(*estimate(v.index)[0]),
+                None if not handling or pose_invalid else 11,
                 None,
-                {"detector": "active" if kind in ("SCAN_SCENE", "LOCATE") else "ok", "localizer": "active" if kind == "LOCATE" else "ok", "barcode": "active" if kind == "READ_BARCODE" else ("ok" if barcode_status == "verified" else "idle"), "wristCam": "active" if seg["camera"] == "wrist" else "idle"},
+                {
+                    "detector": "active" if kind in ("SCAN_SCENE", "LOCATE") or (recovering and not pose_invalid) else "ok",
+                    "localizer": "warn" if pose_invalid else "active" if kind == "LOCATE" else "ok",
+                    "barcode": "active" if kind == "READ_BARCODE" else ("ok" if barcode_status == "verified" else "idle"),
+                    "wristCam": "active" if seg["camera"] == "wrist" else "idle",
+                },
             ),
             "pipeline": [
-                S.pipeline_node("camera", "GoPro RGB" if seg["camera"] != "wrist" else "Wrist RGB", ["1920×1080 · 30 fps", f"scene cam {seg['camera']}"], "active" if kind in ("SCAN_SCENE", "APPROACH", "READ_BARCODE") else "ok"),
-                S.pipeline_node("detection", "YOLO11s", ["14 ms · 640 px", f"{len(perceived)} detections"], "active" if kind in ("SCAN_SCENE", "LOCATE") else "ok"),
-                S.pipeline_node("localization", "Bench-plane ray", ["±11 mm", f"{len(perceived)} candidates"], "active" if kind == "LOCATE" else "ok"),
+                S.pipeline_node("camera", "GoPro RGB" if seg["camera"] != "wrist" else "Wrist RGB", ["1920×1080 · 30 fps", f"scene cam {seg['camera']}"], "active" if kind in ("SCAN_SCENE", "APPROACH", "READ_BARCODE", "RECOVER") else "ok"),
+                S.pipeline_node("detection", "YOLO11s", ["14 ms · 640 px", f"{len(perceived)} detections"], "active" if kind in ("SCAN_SCENE", "LOCATE") or (recovering and not pose_invalid) else "ok"),
+                S.pipeline_node("localization", "Bench-plane ray", ["pose invalidated" if pose_invalid else "±11 mm", f"{len(perceived)} candidates"], "warn" if pose_invalid else "active" if kind == "LOCATE" else "ok"),
                 S.pipeline_node("barcode", "EAN-13", [row[6] if barcode_known else "—", barcode_status.upper()], "active" if kind == "READ_BARCODE" else ("ok" if barcode_status == "verified" else "idle")),
-                S.pipeline_node("planner", "FSM", [f"STATE {kind}", "replans 0"], "active" if kind in ("LOAD_RECIPE", "LOCATE") else "ok"),
+                S.pipeline_node("planner", "FSM", [f"STATE {kind}", f"replans {recoveries}"], "active" if kind in ("LOAD_RECIPE", "LOCATE", "RECOVER") else "ok"),
                 S.pipeline_node("motion", "IK · mink", ["TRACKING" if kind in ("TRAVERSE", "APPROACH", "PICK", "MOVE_TO_POUR", "RETURN_BOTTLE") else "HOLD", f"rail {base_x:.2f}"], "active" if kind in ("TRAVERSE", "APPROACH", "PICK", "MOVE_TO_POUR", "RETURN_BOTTLE") else "ok"),
                 S.pipeline_node("dosing", "Closed loop", [mode.upper(), f"{flow:.3f} g/s"], "active" if kind == "DOSING" else "ok"),
                 S.pipeline_node("verification", "Mass check", [f"{passed}/{len(ingredients)} PASS", "tol ±0.010 g"], "active" if kind in ("VERIFY_MASS", "VALIDATE", "COMPLETE") else "ok"),
@@ -378,7 +454,7 @@ class ScriptedRun:
                 "absoluteError": abs(total - RECIPE["targetMass"]),
                 "ingredientsDone": passed,
                 "ingredientsTotal": len(ingredients),
-                "recoveries": 0,
+                "recoveries": recoveries,
                 "executionSeconds": self.duration,
                 "passed": abs(total - RECIPE["targetMass"]) <= 0.05,
             }
@@ -388,13 +464,21 @@ class ScriptedRun:
         server.patch(patch, timestamp=time.time())
         if kind == "DOSING" or last.get("kind") == "DOSING":
             server.mass_sample(t, net)
-        if kind != last.get("kind"):
+        if recovering and last.get("kind") != "RECOVER":
+            moved = float(np.linalg.norm(self.displaced_to[:2] - self.home[v.index][:2])) * 100
+            server.event(t, f"target displaced: {row[5]} moved {moved:.1f} cm, pose invalidated", "warn")
+            server.event(t, "planner: APPROACH cancelled → RECOVER, re-detect from wrist camera", "warn")
+        elif recovering and not pose_invalid and last.get("pose_invalid"):
+            server.event(t, f"target reacquired at ({self.displaced_to[0]:.2f}, {self.displaced_to[1]:.2f}) ±12 mm", "ok")
+        elif kind != last.get("kind"):
             server.event(t, f"planner: {last.get('kind', 'START')} → {kind}" + (f" ({row[1]})" if row else ""), "ok" if kind in ("VERIFY_ID", "VERIFY_MASS", "COMPLETE") else "info")
-        return {"kind": kind, "net": net, "base_x": base_x}
+        return {"kind": kind, "net": net, "base_x": base_x, "pose_invalid": pose_invalid}
 
     def initial_state(self, workcell_doc: dict) -> dict:
+        self.reset_scene()
         state = S.empty_state("RUN-042", workcell_doc)
         state["run"]["status"] = "running"
+        state["run"]["scripted"] = True
         state["recipe"] = {"id": RECIPE["id"], "name": RECIPE["name"], "targetMass": RECIPE["targetMass"], "ingredients": [S.ingredient(r[0], r[1], r[4], r[3], r[2]) for r in RECIPE["ingredients"]]}
         state["execution"] = {"currentStepId": "parse", "steps": self.steps}
         state["balance"]["id"] = ACTIVE_BALANCE
