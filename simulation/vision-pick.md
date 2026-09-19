@@ -44,7 +44,20 @@ cd simulation
 bash scripts/fetch_menagerie.sh      # UR10e + 2F-85 models, gitignored, once
 pip install -r ../computer-vision/requirements.txt   # ultralytics, opencv
 python scripts/vision_pick.py        # mjpython on macOS
+python scripts/vision_pick.py --light   # integrated graphics: see below
 ```
+
+Run it from a checkout of `main`. (If `scripts/vision_pick.py` is not there, the
+folder is on another branch: `git branch --show-current`.)
+
+**On a laptop without a real GPU, pass `--light`.** The MuJoCo window and the
+perception thread both draw the room's 1.1 million triangles, and together on
+integrated graphics a perception cycle took 7 to 68 s: the page stays empty for
+a minute and a half and it looks dead. `--light` stops drawing the meshes that
+stand off the bench (the GC-MS by the door is a third of the total). No decision
+changes --- nothing off the worktop is ever a proposal, and the detector finds
+the same bottles --- and the cycle drops to 2 to 3 s with the first boxes on
+the page 18 s after start.
 
 The detector's weights are gitignored and have to be copied by hand (ask Martí,
 20 MB each). It uses the first of these it finds:
@@ -116,14 +129,17 @@ of them real bottles, 6 picks, 6 lifted, none on air.
 
 ## What it does not do yet
 
-* **The detector sees 12 of the 19 bottles.** The seven it misses stand at the
-  edges of the frame, where the wide lens leans them 30 degrees. 4K, YOLO-World
-  and sweeping a camera along the rail did no better: it is training data. A
-  bottle it cannot see, the arm never visits. For the demo, keep the bottles in
-  the middle 4 m of the bench, or retrain with bottles at the edges.
-* **Not tested in the interactive viewer or on a GPU.** Only headless runs were
-  made. The `M` key, the page's buttons and mouse dragging go through the same
-  code as `--perturb-at` and the scripted run, but nobody has pressed them yet.
+* **The detector sees 15 of the 19 bottles.** The four it misses stand on the
+  aisle edge and the far left corner, where the wide lens leans them 30 degrees.
+  A bottle it cannot see, the arm never visits, so for the demo keep them off
+  the very edge. *Correction:* this file first said 12 of 19 and blamed the
+  detector for all seven. Three of those were this script's own fault: it kept
+  only detections within +-3 by +-1 m of the origin, and the bench runs from
+  x = -4.5 to 1.5 and y = -1.4 to 0.6. The bounds now come from the generator.
+* **Not tested on a GPU, and nobody has pressed `M` or the page's buttons.** The
+  interactive viewer was started three times running on the integrated-graphics
+  laptop and tracked 15 bottles within 18 s each time; the keys and buttons go
+  through the same code as `--perturb-at`, but no hand has tried them.
 * **It picks and puts back; it does not yet carry a bottle to a balance.** The
   pieces are there (`plan()` checks any pose and path); the task is not written.
 * **The React viewer in `view/` still shows its scripted mock.** Feeding it this

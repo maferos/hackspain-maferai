@@ -399,13 +399,21 @@ likes. So a pick spends the ring's position, the fixed camera's stands in, and
 the next pick of that bottle reads the ring again first.
 
 **What limits it is the detector's reach, not the loop.** On this scene the
-fixed camera's YOLO finds 12 of the 19 free bottles at threshold 0.03 (9 at the
-benchmark's 0.07). The seven it misses stand at the frame's edges, where the
-92-degree lens leans a bottle 30 degrees over; rendering at 4K, YOLO-World, a
-sweep of the `carriage` camera and a survey from the wrist did no better. That
-is training data --- the fixed-camera set had few bottles out there --- and the
-fix is there, not here. What it does find is placed to 8 mm (median) by the
-bench plane and to under 1 mm by the ring.
+rail-trained YOLO finds 15 of the 19 free bottles with one false box. The four
+it misses stand on the aisle edge and in the far left corner, where the
+92-degree lens leans a bottle 30 degrees over. What it does find is placed to
+8 mm (median) by the bench plane and to under 1 mm by the ring.
+
+This section first said 12 of 19, and the runs above were made that way. Three
+of the seven "misses" were this script's own: it kept detections within +-3 by
++-1 m of the origin, and the worktop runs from x = -4.5 to 1.5 and y = -1.4 to
+0.6. The bounds are read from `generate_rail_scene.py` now.
+
+**Two OpenGL users must not start at once.** Headless, the perception thread is
+the only one; with the viewer, both initialise GLFW, and on Windows the loser
+dies with `Failed to register helper window class`. It passed once by luck and
+failed the next time. Perception now makes its contexts first and `main()` opens
+the window only when it says so: three starts out of three since.
 
 **Speed.** The scene draws 1.1 million triangles (the GC-MS alone is a third).
 Integrated graphics render a frame in about 0.5 s and a perception cycle takes

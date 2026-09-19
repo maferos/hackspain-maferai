@@ -66,6 +66,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(REPO / 'computer-vision'))
 import grasp_test as gt
 import rail_kinematics as rk
+from generate_rail_scene import BENCH_X, BENCH_Y
 from labvision import registry
 from labvision.camera import Camera
 from labvision.identify import DEFAULT_TABLE, MarkerReader, rows_by_marker
@@ -77,13 +78,11 @@ from labvision.perception import (
     vessel_height,
 )
 from labvision.scene import BBox, gopro_intrinsics
-from wrist_view import Feed
 
 # The fixed camera's detectors, best first, each with its threshold; the first
 # whose weights are on disk is used. ``rail`` was trained on this scene's own
 # general-camera renders and runs at labvision's operating point: on this bench
-# it finds the same 12 of 19 bottles as ``fixedcam`` with no false box against
-# ten. ``fixedcam`` runs lower than the 0.07 its benchmark settled on: there a
+# it finds the same bottles as ``fixedcam`` with no false box against ten. ``fixedcam`` runs lower than the 0.07 its benchmark settled on: there a
 # false box was an error, here it costs the arm a look that reads no ring, while
 # a missed bottle is never picked, and 0.03 finds 12 where 0.07 finds 9.
 DETECTORS = (
@@ -92,8 +91,11 @@ DETECTORS = (
     (REPO / 'computer-vision/runs/fixedcam/yolo26n_fixedcam.pt', 0.03),
 )
 FPS = 30
-# The worktop, in the scene frame whose origin is under the bench centre.
-WORKTOP_HALF = (3.0, 1.0)
+# The worktop, taken from the generator so it cannot drift from the scene. It
+# is not centred on the origin: x runs -4.5 to 1.5 and y -1.4 to 0.6. This was
+# once written as +-3 by +-1, which silently threw away every detection on the
+# left metre and a half and the aisle edge --- three real bottles on this bench.
+WORKTOP = (BENCH_X, BENCH_Y)
 # Where the wrist camera stands to read a ring. propose_confirm.py flies a bare
 # camera at 0.30 m and 15 degrees; this one has a gripper on it, which reaches
 # 0.2 m past the lens and at that pose stands 37 mm inside the worktop. Of the
@@ -325,6 +327,31 @@ class Eyes:
             renderer.close()
 
 
+def lighten(model: mujoco.MjModel, data: mujoco.MjData) -> int:
+    """Stop drawing the meshes that stand off the bench, for a slow GPU.
+
+    The room draws a million triangles and the GC-MS by the door is a third of
+    them. Nothing off the worktop is ever a proposal, so hiding those meshes
+    changes no decision; it moves them to a geom group neither the viewer nor
+    the offscreen renderer shows. They still collide.
+
+    Returns:
+        How many triangles are no longer drawn.
+    """
+    hidden = 0
+    for geom in range(model.ngeom):
+        x, y, _ = data.geom_xpos[geom]
+        on_bench = (WORKTOP[0][0] - 0.3 <= x <= WORKTOP[0][1] + 0.3
+                    and WORKTOP[1][0] - 0.3 <= y <= WORKTOP[1][1] + 0.3)
+        body = model.body(model.geom_bodyid[geom]).name
+        if model.geom_type[geom] != mujoco.mjtGeom.mjGEOM_MESH or on_bench \
+                or body.startswith(('arm_', 'rail')):
+            continue
+        model.geom_group[geom] = 4
+        hidden += int(model.mesh_facenum[model.geom_dataid[geom]])
+    return hidden
+
+
 def flask_sized(proposal: Proposal, camera: Camera) -> bool:
     """Whether a box is no bigger than a sample flask would look where it stands."""
     foot = np.array([*proposal.xy, rk.BENCH_TOP])
@@ -381,6 +408,30 @@ def truth(model: mujoco.MjModel, data: mujoco.MjData) -> dict[str, np.ndarray]:
     return out
 
 
+class Feed:
+    """The latest JPEG of one camera, handed from the perception thread to the page.
+
+    wrist_view.py has one of these too and this script used to borrow it, until
+    that one grew a second view and the page's streams died with it. Twelve
+    lines are cheaper than the coupling.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._jpeg: bytes | None = None
+        self._tick = 0
+
+    def publish(self, picture: bytes) -> None:
+        """Replace the current frame."""
+        with self._lock:
+            self._jpeg, self._tick = picture, self._tick + 1
+
+    def latest(self) -> tuple[bytes | None, int]:
+        """The current frame and a counter that changes when it does."""
+        with self._lock:
+            return self._jpeg, self._tick
+
+
 class Read:
     """A request for the wrist camera to read the ring at a target."""
 
@@ -421,6 +472,7 @@ class Perception(threading.Thread):
                       if model.body(b).name.startswith('arm_')]
         self.stop = threading.Event()
         self.finished = threading.Event()
+        self.ready = threading.Event()
 
     def read(self, target: np.ndarray) -> Read:
         """Ask for the ring at a target to be read from where the wrist is now."""
@@ -432,6 +484,16 @@ class Perception(threading.Thread):
         eyes = Eyes(self.model, self.data)
         writer = None
         try:
+            # Both OpenGL contexts are made here, before anyone else touches
+            # GLFW. The viewer initialises it too, on its own thread, and two
+            # initialisations at once fail on Windows with "Failed to register
+            # helper window class": main() waits for `ready` before it opens
+            # the window.
+            with self.physics:
+                mujoco.mj_copyData(self.data, self.model, self.live)
+            eyes.frame('general')
+            eyes.frame('arm_eih', (960, 540))
+            self.ready.set()
             while not self.stop.is_set():
                 started = time.time()
                 with self.physics:
@@ -453,8 +515,8 @@ class Perception(threading.Thread):
                 boxes = [b for b in self.detector.detect(general)
                          if not on_arm(np.array(b[0].centre))]
                 proposals = [p for p in propose(boxes, camera)
-                             if abs(p.xy[0]) <= WORKTOP_HALF[0]
-                             and abs(p.xy[1]) <= WORKTOP_HALF[1]
+                             if WORKTOP[0][0] <= p.xy[0] <= WORKTOP[0][1]
+                             and WORKTOP[1][0] <= p.xy[1] <= WORKTOP[1][1]
                              and flask_sized(p, camera)]
                 self.world.update(
                     proposals, float(self.data.time),
@@ -462,9 +524,9 @@ class Perception(threading.Thread):
                         np.array([xy[0], xy[1], rk.BENCH_TOP + 0.03]))))
                 self.score()
                 drawn = annotate(general, self.world.snapshot())
-                self.show.general.publish(jpeg(drawn), {})
+                self.show.general.publish(jpeg(drawn))
                 small = eyes.frame('arm_eih', (960, 540))
-                self.show.wrist.publish(jpeg(small), {})
+                self.show.wrist.publish(jpeg(small))
                 self.world.cycle_seconds = time.time() - started
                 if self.video:
                     if writer is None:
@@ -481,6 +543,7 @@ class Perception(threading.Thread):
             if writer:
                 writer.release()
             eyes.close()
+            self.ready.set()            # never leave main() waiting on a thread that died
             self.finished.set()
 
     def arm_pixels(self, camera: Camera) -> np.ndarray:
@@ -978,7 +1041,10 @@ def serve(world: World, show: Show, port: int) -> http.server.ThreadingHTTPServe
             self.send_header('Content-Length', str(len(body)))
             self.send_header('Cache-Control', 'no-store')
             self.end_headers()
-            self.wfile.write(body)
+            try:
+                self.wfile.write(body)
+            except (BrokenPipeError, ConnectionResetError, ConnectionAbortedError):
+                pass          # the tab went away mid-answer
 
         def _stream(self, feed: Feed) -> None:
             self.send_response(200)
@@ -1077,9 +1143,14 @@ def main() -> None:
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--port', type=int, default=8009)
     parser.add_argument('--no-browser', action='store_true')
+    parser.add_argument('--light', action='store_true',
+                        help='do not draw the meshes off the bench: for integrated '
+                             'graphics, where the full room is a frame a second')
     args = parser.parse_args()
 
     model, data = rk.load(gripper_scene())
+    if args.light:
+        print(f'light: {lighten(model, data):,} triangles off the bench not drawn')
     rng = np.random.default_rng(args.seed)
     weights, threshold = next((d for d in DETECTORS if d[0].exists()), DETECTORS[0])
     if args.weights:
@@ -1122,6 +1193,9 @@ def main() -> None:
                 world.commands.append({'cmd': 'perturb'})
 
     perception.start()
+    perception.ready.wait(timeout=180)
+    if perception.finished.is_set():
+        raise SystemExit('the perception thread could not start; see the error above')
     try:
         if args.headless:
             while data.time < args.max_time:
