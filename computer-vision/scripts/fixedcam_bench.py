@@ -222,9 +222,19 @@ def predict_split(
                 f"{len(dets)} boxes, {ms:.0f} ms",
                 flush=True,
             )
-        cache["_frames"] = {**cache.get("_frames", {}), **stamp}
-        cache_path.write_text(json.dumps(cache), encoding="utf-8")
+            if (k + 1) % 10 == 0:  # so an interrupted run resumes here
+                save_cache(cache_path, cache, stamp)
+        save_cache(cache_path, cache, stamp)
     return cache, frames
+
+
+def save_cache(path: Path, cache: dict, stamp: dict) -> None:
+    """Write the cached boxes with the stamps of the frames they cover"""
+    done = {f: v for f, v in stamp.items() if f in cache}
+    cache["_frames"] = {**cache.get("_frames", {}), **done}
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(cache), encoding="utf-8")
+    tmp.replace(path)
 
 
 def detections(entry: dict) -> list[ev.Detection]:
