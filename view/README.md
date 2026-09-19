@@ -40,6 +40,18 @@ using the same crop as Replay. It retains the live input's pixel scale and
 translates detections back to full-frame coordinates. The camera stream stays
 uncropped. Recheck `view/backend/table_crop.py` when camera framing changes.
 
+With `VIEW_SCENE=minihannover_rail_scene.xml`, each frontend page load requests
+a random bench layout from the ten shared `minihannover_open/patterns` seeds.
+The next choice excludes the current pattern. The backend replaces the rail
+scene's loose and dynamic bench samples with that catalogue population in
+memory; it never rewrites generated scene files. All connected tabs share the
+new layout, and the viewport label shows its seed and sample count. Requests
+are deduplicated per page load, including React StrictMode and network retries.
+The render thread installs the new MuJoCo model and graphics context; YOLO
+discards in-flight detections from the previous model. Replay remains a fixed
+recording. The panel demo retains its original model, samples and `RECIPE`, so
+the shared scripted-run recording continues to match the panel state.
+
 ```sh
 # 1. Backend deps, into the same venv simulation/ already uses:
 uv pip install --python simulation/.venv/bin/python \

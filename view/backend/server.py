@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import itertools
 import json
+import random
 import subprocess
 import os
 import sys
@@ -30,7 +31,8 @@ from pathlib import Path
 import mujoco
 import numpy as np
 from jpeg_encoder import JpegEncoder, PREVIEW_SIZE
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from scene_patterns import CATALOGUE, build_pattern
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
@@ -175,6 +177,10 @@ class SceneRenderer:
     def __init__(self, xml_path: Path) -> None:
         self.model = mujoco.MjModel.from_xml_path(str(xml_path))
         self.data = mujoco.MjData(self.model)
+        self.panel_model = self.model
+        self.pending_pattern = None
+        self.pattern = None
+        self.generation = 0
         mujoco.mj_forward(self.model, self.data)
         self.encoder = JpegEncoder(JPEG_QUALITY)
         threading.Thread(target=self.encoder.run_forever, daemon=True).start()
@@ -273,6 +279,29 @@ class SceneRenderer:
         was_main = dict.fromkeys(names, False)
         while True:
             start = time.monotonic()
+            if self.pending_pattern is not None:
+                model, info, finished = self.pending_pattern
+                self.pending_pattern = None
+                try:
+                    new_context = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_150.value)
+                    mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, new_context)
+                    new_scene = mujoco.MjvScene(model, maxgeom=10000)
+                    with self._data_lock:
+                        self.model = model
+                        self.data = mujoco.MjData(model)
+                        mujoco.mj_forward(model, self.data)
+                        self._motion = self._build_rail_sweep()
+                        self.pattern = info
+                    context.free()
+                    context, render_scene = new_context, new_scene
+                    with self._condition:
+                        self._latest_rgb.clear()
+                        self.generation += 1
+                    due = dict.fromkeys(names, 0.0)
+                except Exception as exc:
+                    info['error'] = str(exc)
+                finally:
+                    finished.set()
             with self._data_lock:
                 if self._motion is not None:
                     self._advance_motion()
@@ -302,10 +331,11 @@ class SceneRenderer:
             if remaining > 0:
                 time.sleep(remaining)
 
-    def latest_rgb(self, mj_camera_name: str) -> tuple[np.ndarray | None, int]:
+    def latest_rgb(self, mj_camera_name: str) -> tuple[np.ndarray | None, int, int]:
         """RGB and sequence number of this camera, independent of JPEG encoding."""
         with self._condition:
-            return self._latest_rgb.get(mj_camera_name), self._frame_seq.get(mj_camera_name, 0)
+            return (self._latest_rgb.get(mj_camera_name),
+                    self._frame_seq.get(mj_camera_name, 0), self.generation)
 
     def watch_main(self, name: str, delta: int) -> None:
         with self._condition:
@@ -326,7 +356,7 @@ class SceneRenderer:
             self.watch_main(mj_camera_name, -1)
 
     def _snapshot_state(self) -> None:
-        self.state_server.snapshot(self.run.initial_state(workcell(self.model, self.panel_data, ACTIVE_BALANCE, RAIL)))
+        self.state_server.snapshot(self.run.initial_state(workcell(self.panel_model, self.panel_data, ACTIVE_BALANCE, RAIL)))
 
     def publish_state_forever(self) -> None:
         """Replays the scripted formulation and publishes LabState patches at STATE_RATE_HZ."""
@@ -406,7 +436,7 @@ class Detector:
                 if self.watchers == 0:
                     time.sleep(0.2)
                     continue
-                frame, seq = self.renderer.latest_rgb(self.mj_camera)
+                frame, seq, generation = self.renderer.latest_rgb(self.mj_camera)
                 if frame is None or (last_seq is not None and seq - last_seq < DETECTOR_FRAME_STRIDE):
                     time.sleep(0.01)
                     continue
@@ -419,9 +449,13 @@ class Detector:
                 if not line:
                     raise RuntimeError("YOLO worker closed its output")
                 result = json.loads(line)
+                if generation != self.renderer.generation:
+                    self.latest = None
+                    continue
                 if "error" in result:
                     raise RuntimeError(result["error"])
                 self.latest = {
+                    "generation": generation,
                     "camera": DETECTOR_CAMERA, "frame": seq,
                     "width": int(frame.shape[1]), "height": int(frame.shape[0]),
                     **result,
@@ -459,6 +493,34 @@ def list_cameras():
     return [{"id": cam_id, "label": info["label"]} for cam_id, info in scene.cameras.items()]
 
 
+pattern_lock = asyncio.Lock()
+pattern_requests = {}
+
+
+@app.post("/api/scene/randomize")
+async def randomize_scene(session: str = Query(min_length=1, max_length=100)):
+    """Choose once per page load, including React StrictMode and HTTP retries."""
+    if SCENE_PATH.name != "minihannover_rail_scene.xml":
+        raise HTTPException(409, "Seeded layouts require the rail scene")
+    async with pattern_lock:
+        if session in pattern_requests:
+            return pattern_requests[session]
+        current = (scene.pattern or {}).get('pattern')
+        choice = random.choice([p for p in CATALOGUE if p['pattern'] != current])
+        model, info = await asyncio.to_thread(build_pattern, SCENE_PATH, choice['pattern'])
+        finished = threading.Event()
+        scene.pending_pattern = (model, info, finished)
+        if not await asyncio.to_thread(finished.wait, 60):
+            raise HTTPException(504, "Timed out loading the layout")
+        if 'error' in info:
+            raise HTTPException(500, info['error'])
+        detector.latest = None
+        pattern_requests[session] = info
+        if len(pattern_requests) > 100:
+            del pattern_requests[next(iter(pattern_requests))]
+        return info
+
+
 def mjpeg_generator(mj_camera_name: str):
     boundary = b"frame"
     for jpeg in scene.frames(mj_camera_name):
@@ -487,6 +549,7 @@ def detector_info():
         "camera": DETECTOR_CAMERA,
         "weights": detector.weights.name,
         "conf": detector.conf,
+        "pattern": scene.pattern,
         "error": detector.error,
     }
 
@@ -580,7 +643,8 @@ async def ws_detections(websocket: WebSocket):
     try:
         while True:
             latest = detector.latest
-            if latest is not None and latest["frame"] != last_frame:
+            if (latest is not None and latest["generation"] == scene.generation
+                    and latest["frame"] != last_frame):
                 await websocket.send_json(latest)
                 last_frame = latest["frame"]
             await asyncio.sleep(0.05)

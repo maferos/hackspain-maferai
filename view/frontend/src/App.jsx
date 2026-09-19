@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { chooseScene } from "./sceneSession";
 import "./App.css";
 import useReplayDetections from "./useReplayDetections";
 import LabPanels from "./LabPanels";
@@ -272,6 +273,18 @@ function ReplayViewport({ mainCameraId, onSwap, showBoxes }) {
 }
 
 export default function App() {
+  const [scenePattern, setScenePattern] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    let retry;
+    const select = () => chooseScene(BACKEND_URL).then((pattern) => {
+      if (!cancelled) setScenePattern(pattern);
+    }).catch(() => {
+      if (!cancelled) retry = setTimeout(select, 5000);
+    });
+    select();
+    return () => { cancelled = true; clearTimeout(retry); };
+  }, []);
   const [mode, setMode] = useState(INITIAL_MODE);
   const realtime = mode === "realtime";
   const [liveCameras, setLiveCameras] = useState(DEFAULT_CAMERAS);
@@ -319,7 +332,10 @@ export default function App() {
         });
         if (!res.ok) throw new Error("Detector unavailable");
         const info = await res.json();
-        if (!cancelled) setDetector(info);
+        if (!cancelled) {
+          setDetector(info);
+          if (info.pattern) setScenePattern(info.pattern);
+        }
       } catch {
         if (!cancelled) setDetector(null);
       }
@@ -400,7 +416,10 @@ export default function App() {
   }, [realtime]);
 
   const pipCameraId = cameras.find((c) => c.id !== mainCameraId)?.id ?? mainCameraId;
-  const mainLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
+  const cameraLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
+  const mainLabel = realtime && scenePattern
+    ? `${cameraLabel} · Seed ${scenePattern.seed} · ${scenePattern.count} samples`
+    : cameraLabel;
   const pipLabel = cameras.find((c) => c.id === pipCameraId)?.label ?? pipCameraId;
 
   const swapCameras = useCallback(() => setMainCameraId(pipCameraId), [pipCameraId]);
