@@ -718,9 +718,18 @@ turns the GLBs into MJCF bodies with the sticker as an OBJ plus a PNG texture, a
 six powders and seven liquids. The first decode from a rendered frame works: at
 0.3 m and 1280 x 720, the 100 ml amber bottle reads as `SMP-0005`. At 0.45 m the
 same labels are about one pixel per module and do not read, which is the
-resolution floor above and not something new. The ~690 amber bottles of the
-shelving library are still the room generator's decorative ones, a different
-shape with blank labels.
+resolution floor above and not something new.
+
+The shelving library is the catalogue too. `simulation/scripts/generate_lab_room.py`
+stands every sample the scene does not place by hand on the gantry, once: 94
+powders on the two lower shelves, 93 liquids on the third, so **all 200 samples
+are in the room, each exactly once**. Shelved bottles are light stand-in meshes
+with the real sticker at half texture resolution (4 px/module). A 1280 x 720
+render from 0.42 m shows four shelved powder bottles, turned by hand-like
+amounts and seen in perspective, and all four decode to the right sample; from
+0.9 m none do, the resolution floor again. Geoms are named
+`lib_<sample id>_<part>`, so a segmentation render is ground truth for which
+sample is where.
 
 Carrying the label corners as pose-model keypoints, so the quad comes from the
 network rather than the localiser, is the next step and is not part of this work.

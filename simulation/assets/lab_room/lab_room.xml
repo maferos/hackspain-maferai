@@ -17,8 +17,8 @@
     <material name="shelf" rgba="0.95 0.95 0.95 1" specular="0.4" shininess="0.5"/>
     <material name="seam" rgba="0.80 0.81 0.81 1"/>
     <material name="amber" rgba="0.55 0.24 0.04 0.82" specular="0.9" shininess="0.95"/>
-    <material name="cap_dark" rgba="0.28 0.06 0.08 1" specular="0.4"/>
-    <material name="label" rgba="0.97 0.97 0.95 1"/>
+    <material name="sample_hdpe" rgba="0.92 0.92 0.91 1" specular="0.25" shininess="0.4"/>
+    <material name="sample_cap" rgba="0.93 0.93 0.91 1" specular="0.3" shininess="0.5"/>
     <material name="glass" rgba="0.80 0.90 0.95 0.15" specular="0.9" shininess="0.95" reflectance="0.1"/>
     <material name="glass_clear" rgba="0.88 0.94 0.97 0.30" specular="0.9" shininess="0.95"/>
     <material name="frosted" rgba="0.96 0.97 0.98 0.75"/>
@@ -48,15 +48,6 @@
     <material name="cap_blue" rgba="0.55 0.72 0.90 1"/>
     <material name="trousers" rgba="0.20 0.22 0.28 1"/>
     <material name="desk" rgba="0.86 0.84 0.80 1"/>
-    <mesh name="library_a_glass" file="meshes/library_a_glass.obj" inertia="shell"/>
-    <mesh name="library_a_caps" file="meshes/library_a_caps.obj" inertia="shell"/>
-    <mesh name="library_a_labels" file="meshes/library_a_labels.obj" inertia="shell"/>
-    <mesh name="library_b_glass" file="meshes/library_b_glass.obj" inertia="shell"/>
-    <mesh name="library_b_caps" file="meshes/library_b_caps.obj" inertia="shell"/>
-    <mesh name="library_b_labels" file="meshes/library_b_labels.obj" inertia="shell"/>
-    <mesh name="library_c_glass" file="meshes/library_c_glass.obj" inertia="shell"/>
-    <mesh name="library_c_caps" file="meshes/library_c_caps.obj" inertia="shell"/>
-    <mesh name="library_c_labels" file="meshes/library_c_labels.obj" inertia="shell"/>
     <mesh name="pot" file="meshes/pot.obj" inertia="shell"/>
     <mesh name="pot_small" file="meshes/pot_small.obj" inertia="shell"/>
     <mesh name="lid" file="meshes/lid.obj" inertia="shell"/>
@@ -70,6 +61,410 @@
     <mesh name="drum" file="meshes/drum.obj" inertia="shell"/>
     <mesh name="bin" file="meshes/bin.obj" inertia="shell"/>
     <mesh name="bin_lid" file="meshes/bin_lid.obj" inertia="shell"/>
+    <texture name="lbl_PWD-0005" type="2d" file="../labelled_bottles/textures/shelf/PWD-0005.png"/>
+    <material name="lbl_PWD-0005" texture="lbl_PWD-0005" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0009" type="2d" file="../labelled_bottles/textures/shelf/PWD-0009.png"/>
+    <material name="lbl_PWD-0009" texture="lbl_PWD-0009" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0010" type="2d" file="../labelled_bottles/textures/shelf/PWD-0010.png"/>
+    <material name="lbl_PWD-0010" texture="lbl_PWD-0010" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0014" type="2d" file="../labelled_bottles/textures/shelf/PWD-0014.png"/>
+    <material name="lbl_PWD-0014" texture="lbl_PWD-0014" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0015" type="2d" file="../labelled_bottles/textures/shelf/PWD-0015.png"/>
+    <material name="lbl_PWD-0015" texture="lbl_PWD-0015" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0019" type="2d" file="../labelled_bottles/textures/shelf/PWD-0019.png"/>
+    <material name="lbl_PWD-0019" texture="lbl_PWD-0019" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0025" type="2d" file="../labelled_bottles/textures/shelf/PWD-0025.png"/>
+    <material name="lbl_PWD-0025" texture="lbl_PWD-0025" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0029" type="2d" file="../labelled_bottles/textures/shelf/PWD-0029.png"/>
+    <material name="lbl_PWD-0029" texture="lbl_PWD-0029" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0030" type="2d" file="../labelled_bottles/textures/shelf/PWD-0030.png"/>
+    <material name="lbl_PWD-0030" texture="lbl_PWD-0030" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0034" type="2d" file="../labelled_bottles/textures/shelf/PWD-0034.png"/>
+    <material name="lbl_PWD-0034" texture="lbl_PWD-0034" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0035" type="2d" file="../labelled_bottles/textures/shelf/PWD-0035.png"/>
+    <material name="lbl_PWD-0035" texture="lbl_PWD-0035" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0039" type="2d" file="../labelled_bottles/textures/shelf/PWD-0039.png"/>
+    <material name="lbl_PWD-0039" texture="lbl_PWD-0039" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0040" type="2d" file="../labelled_bottles/textures/shelf/PWD-0040.png"/>
+    <material name="lbl_PWD-0040" texture="lbl_PWD-0040" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0044" type="2d" file="../labelled_bottles/textures/shelf/PWD-0044.png"/>
+    <material name="lbl_PWD-0044" texture="lbl_PWD-0044" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0045" type="2d" file="../labelled_bottles/textures/shelf/PWD-0045.png"/>
+    <material name="lbl_PWD-0045" texture="lbl_PWD-0045" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0049" type="2d" file="../labelled_bottles/textures/shelf/PWD-0049.png"/>
+    <material name="lbl_PWD-0049" texture="lbl_PWD-0049" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0050" type="2d" file="../labelled_bottles/textures/shelf/PWD-0050.png"/>
+    <material name="lbl_PWD-0050" texture="lbl_PWD-0050" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0054" type="2d" file="../labelled_bottles/textures/shelf/PWD-0054.png"/>
+    <material name="lbl_PWD-0054" texture="lbl_PWD-0054" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0055" type="2d" file="../labelled_bottles/textures/shelf/PWD-0055.png"/>
+    <material name="lbl_PWD-0055" texture="lbl_PWD-0055" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0059" type="2d" file="../labelled_bottles/textures/shelf/PWD-0059.png"/>
+    <material name="lbl_PWD-0059" texture="lbl_PWD-0059" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0060" type="2d" file="../labelled_bottles/textures/shelf/PWD-0060.png"/>
+    <material name="lbl_PWD-0060" texture="lbl_PWD-0060" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0064" type="2d" file="../labelled_bottles/textures/shelf/PWD-0064.png"/>
+    <material name="lbl_PWD-0064" texture="lbl_PWD-0064" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0065" type="2d" file="../labelled_bottles/textures/shelf/PWD-0065.png"/>
+    <material name="lbl_PWD-0065" texture="lbl_PWD-0065" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0069" type="2d" file="../labelled_bottles/textures/shelf/PWD-0069.png"/>
+    <material name="lbl_PWD-0069" texture="lbl_PWD-0069" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0070" type="2d" file="../labelled_bottles/textures/shelf/PWD-0070.png"/>
+    <material name="lbl_PWD-0070" texture="lbl_PWD-0070" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0074" type="2d" file="../labelled_bottles/textures/shelf/PWD-0074.png"/>
+    <material name="lbl_PWD-0074" texture="lbl_PWD-0074" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0075" type="2d" file="../labelled_bottles/textures/shelf/PWD-0075.png"/>
+    <material name="lbl_PWD-0075" texture="lbl_PWD-0075" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0079" type="2d" file="../labelled_bottles/textures/shelf/PWD-0079.png"/>
+    <material name="lbl_PWD-0079" texture="lbl_PWD-0079" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0080" type="2d" file="../labelled_bottles/textures/shelf/PWD-0080.png"/>
+    <material name="lbl_PWD-0080" texture="lbl_PWD-0080" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0084" type="2d" file="../labelled_bottles/textures/shelf/PWD-0084.png"/>
+    <material name="lbl_PWD-0084" texture="lbl_PWD-0084" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0085" type="2d" file="../labelled_bottles/textures/shelf/PWD-0085.png"/>
+    <material name="lbl_PWD-0085" texture="lbl_PWD-0085" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0089" type="2d" file="../labelled_bottles/textures/shelf/PWD-0089.png"/>
+    <material name="lbl_PWD-0089" texture="lbl_PWD-0089" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0090" type="2d" file="../labelled_bottles/textures/shelf/PWD-0090.png"/>
+    <material name="lbl_PWD-0090" texture="lbl_PWD-0090" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0094" type="2d" file="../labelled_bottles/textures/shelf/PWD-0094.png"/>
+    <material name="lbl_PWD-0094" texture="lbl_PWD-0094" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0095" type="2d" file="../labelled_bottles/textures/shelf/PWD-0095.png"/>
+    <material name="lbl_PWD-0095" texture="lbl_PWD-0095" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0099" type="2d" file="../labelled_bottles/textures/shelf/PWD-0099.png"/>
+    <material name="lbl_PWD-0099" texture="lbl_PWD-0099" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0100" type="2d" file="../labelled_bottles/textures/shelf/PWD-0100.png"/>
+    <material name="lbl_PWD-0100" texture="lbl_PWD-0100" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0001" type="2d" file="../labelled_bottles/textures/shelf/PWD-0001.png"/>
+    <material name="lbl_PWD-0001" texture="lbl_PWD-0001" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0002" type="2d" file="../labelled_bottles/textures/shelf/PWD-0002.png"/>
+    <material name="lbl_PWD-0002" texture="lbl_PWD-0002" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0003" type="2d" file="../labelled_bottles/textures/shelf/PWD-0003.png"/>
+    <material name="lbl_PWD-0003" texture="lbl_PWD-0003" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0006" type="2d" file="../labelled_bottles/textures/shelf/PWD-0006.png"/>
+    <material name="lbl_PWD-0006" texture="lbl_PWD-0006" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0007" type="2d" file="../labelled_bottles/textures/shelf/PWD-0007.png"/>
+    <material name="lbl_PWD-0007" texture="lbl_PWD-0007" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0011" type="2d" file="../labelled_bottles/textures/shelf/PWD-0011.png"/>
+    <material name="lbl_PWD-0011" texture="lbl_PWD-0011" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0013" type="2d" file="../labelled_bottles/textures/shelf/PWD-0013.png"/>
+    <material name="lbl_PWD-0013" texture="lbl_PWD-0013" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0016" type="2d" file="../labelled_bottles/textures/shelf/PWD-0016.png"/>
+    <material name="lbl_PWD-0016" texture="lbl_PWD-0016" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0017" type="2d" file="../labelled_bottles/textures/shelf/PWD-0017.png"/>
+    <material name="lbl_PWD-0017" texture="lbl_PWD-0017" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0018" type="2d" file="../labelled_bottles/textures/shelf/PWD-0018.png"/>
+    <material name="lbl_PWD-0018" texture="lbl_PWD-0018" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0021" type="2d" file="../labelled_bottles/textures/shelf/PWD-0021.png"/>
+    <material name="lbl_PWD-0021" texture="lbl_PWD-0021" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0022" type="2d" file="../labelled_bottles/textures/shelf/PWD-0022.png"/>
+    <material name="lbl_PWD-0022" texture="lbl_PWD-0022" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0023" type="2d" file="../labelled_bottles/textures/shelf/PWD-0023.png"/>
+    <material name="lbl_PWD-0023" texture="lbl_PWD-0023" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0027" type="2d" file="../labelled_bottles/textures/shelf/PWD-0027.png"/>
+    <material name="lbl_PWD-0027" texture="lbl_PWD-0027" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0028" type="2d" file="../labelled_bottles/textures/shelf/PWD-0028.png"/>
+    <material name="lbl_PWD-0028" texture="lbl_PWD-0028" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0031" type="2d" file="../labelled_bottles/textures/shelf/PWD-0031.png"/>
+    <material name="lbl_PWD-0031" texture="lbl_PWD-0031" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0032" type="2d" file="../labelled_bottles/textures/shelf/PWD-0032.png"/>
+    <material name="lbl_PWD-0032" texture="lbl_PWD-0032" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0033" type="2d" file="../labelled_bottles/textures/shelf/PWD-0033.png"/>
+    <material name="lbl_PWD-0033" texture="lbl_PWD-0033" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0036" type="2d" file="../labelled_bottles/textures/shelf/PWD-0036.png"/>
+    <material name="lbl_PWD-0036" texture="lbl_PWD-0036" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0037" type="2d" file="../labelled_bottles/textures/shelf/PWD-0037.png"/>
+    <material name="lbl_PWD-0037" texture="lbl_PWD-0037" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0038" type="2d" file="../labelled_bottles/textures/shelf/PWD-0038.png"/>
+    <material name="lbl_PWD-0038" texture="lbl_PWD-0038" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0041" type="2d" file="../labelled_bottles/textures/shelf/PWD-0041.png"/>
+    <material name="lbl_PWD-0041" texture="lbl_PWD-0041" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0042" type="2d" file="../labelled_bottles/textures/shelf/PWD-0042.png"/>
+    <material name="lbl_PWD-0042" texture="lbl_PWD-0042" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0043" type="2d" file="../labelled_bottles/textures/shelf/PWD-0043.png"/>
+    <material name="lbl_PWD-0043" texture="lbl_PWD-0043" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0046" type="2d" file="../labelled_bottles/textures/shelf/PWD-0046.png"/>
+    <material name="lbl_PWD-0046" texture="lbl_PWD-0046" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0047" type="2d" file="../labelled_bottles/textures/shelf/PWD-0047.png"/>
+    <material name="lbl_PWD-0047" texture="lbl_PWD-0047" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0048" type="2d" file="../labelled_bottles/textures/shelf/PWD-0048.png"/>
+    <material name="lbl_PWD-0048" texture="lbl_PWD-0048" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0051" type="2d" file="../labelled_bottles/textures/shelf/PWD-0051.png"/>
+    <material name="lbl_PWD-0051" texture="lbl_PWD-0051" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0052" type="2d" file="../labelled_bottles/textures/shelf/PWD-0052.png"/>
+    <material name="lbl_PWD-0052" texture="lbl_PWD-0052" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0053" type="2d" file="../labelled_bottles/textures/shelf/PWD-0053.png"/>
+    <material name="lbl_PWD-0053" texture="lbl_PWD-0053" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0056" type="2d" file="../labelled_bottles/textures/shelf/PWD-0056.png"/>
+    <material name="lbl_PWD-0056" texture="lbl_PWD-0056" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0057" type="2d" file="../labelled_bottles/textures/shelf/PWD-0057.png"/>
+    <material name="lbl_PWD-0057" texture="lbl_PWD-0057" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0058" type="2d" file="../labelled_bottles/textures/shelf/PWD-0058.png"/>
+    <material name="lbl_PWD-0058" texture="lbl_PWD-0058" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0061" type="2d" file="../labelled_bottles/textures/shelf/PWD-0061.png"/>
+    <material name="lbl_PWD-0061" texture="lbl_PWD-0061" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0062" type="2d" file="../labelled_bottles/textures/shelf/PWD-0062.png"/>
+    <material name="lbl_PWD-0062" texture="lbl_PWD-0062" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0063" type="2d" file="../labelled_bottles/textures/shelf/PWD-0063.png"/>
+    <material name="lbl_PWD-0063" texture="lbl_PWD-0063" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0066" type="2d" file="../labelled_bottles/textures/shelf/PWD-0066.png"/>
+    <material name="lbl_PWD-0066" texture="lbl_PWD-0066" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0067" type="2d" file="../labelled_bottles/textures/shelf/PWD-0067.png"/>
+    <material name="lbl_PWD-0067" texture="lbl_PWD-0067" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0068" type="2d" file="../labelled_bottles/textures/shelf/PWD-0068.png"/>
+    <material name="lbl_PWD-0068" texture="lbl_PWD-0068" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0071" type="2d" file="../labelled_bottles/textures/shelf/PWD-0071.png"/>
+    <material name="lbl_PWD-0071" texture="lbl_PWD-0071" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0072" type="2d" file="../labelled_bottles/textures/shelf/PWD-0072.png"/>
+    <material name="lbl_PWD-0072" texture="lbl_PWD-0072" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0073" type="2d" file="../labelled_bottles/textures/shelf/PWD-0073.png"/>
+    <material name="lbl_PWD-0073" texture="lbl_PWD-0073" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0076" type="2d" file="../labelled_bottles/textures/shelf/PWD-0076.png"/>
+    <material name="lbl_PWD-0076" texture="lbl_PWD-0076" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0077" type="2d" file="../labelled_bottles/textures/shelf/PWD-0077.png"/>
+    <material name="lbl_PWD-0077" texture="lbl_PWD-0077" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0078" type="2d" file="../labelled_bottles/textures/shelf/PWD-0078.png"/>
+    <material name="lbl_PWD-0078" texture="lbl_PWD-0078" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0081" type="2d" file="../labelled_bottles/textures/shelf/PWD-0081.png"/>
+    <material name="lbl_PWD-0081" texture="lbl_PWD-0081" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0082" type="2d" file="../labelled_bottles/textures/shelf/PWD-0082.png"/>
+    <material name="lbl_PWD-0082" texture="lbl_PWD-0082" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0083" type="2d" file="../labelled_bottles/textures/shelf/PWD-0083.png"/>
+    <material name="lbl_PWD-0083" texture="lbl_PWD-0083" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0086" type="2d" file="../labelled_bottles/textures/shelf/PWD-0086.png"/>
+    <material name="lbl_PWD-0086" texture="lbl_PWD-0086" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0087" type="2d" file="../labelled_bottles/textures/shelf/PWD-0087.png"/>
+    <material name="lbl_PWD-0087" texture="lbl_PWD-0087" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0088" type="2d" file="../labelled_bottles/textures/shelf/PWD-0088.png"/>
+    <material name="lbl_PWD-0088" texture="lbl_PWD-0088" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0091" type="2d" file="../labelled_bottles/textures/shelf/PWD-0091.png"/>
+    <material name="lbl_PWD-0091" texture="lbl_PWD-0091" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0092" type="2d" file="../labelled_bottles/textures/shelf/PWD-0092.png"/>
+    <material name="lbl_PWD-0092" texture="lbl_PWD-0092" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0093" type="2d" file="../labelled_bottles/textures/shelf/PWD-0093.png"/>
+    <material name="lbl_PWD-0093" texture="lbl_PWD-0093" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0096" type="2d" file="../labelled_bottles/textures/shelf/PWD-0096.png"/>
+    <material name="lbl_PWD-0096" texture="lbl_PWD-0096" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0097" type="2d" file="../labelled_bottles/textures/shelf/PWD-0097.png"/>
+    <material name="lbl_PWD-0097" texture="lbl_PWD-0097" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_PWD-0098" type="2d" file="../labelled_bottles/textures/shelf/PWD-0098.png"/>
+    <material name="lbl_PWD-0098" texture="lbl_PWD-0098" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0001" type="2d" file="../labelled_bottles/textures/shelf/SMP-0001.png"/>
+    <material name="lbl_SMP-0001" texture="lbl_SMP-0001" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0002" type="2d" file="../labelled_bottles/textures/shelf/SMP-0002.png"/>
+    <material name="lbl_SMP-0002" texture="lbl_SMP-0002" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0003" type="2d" file="../labelled_bottles/textures/shelf/SMP-0003.png"/>
+    <material name="lbl_SMP-0003" texture="lbl_SMP-0003" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0004" type="2d" file="../labelled_bottles/textures/shelf/SMP-0004.png"/>
+    <material name="lbl_SMP-0004" texture="lbl_SMP-0004" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0006" type="2d" file="../labelled_bottles/textures/shelf/SMP-0006.png"/>
+    <material name="lbl_SMP-0006" texture="lbl_SMP-0006" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0007" type="2d" file="../labelled_bottles/textures/shelf/SMP-0007.png"/>
+    <material name="lbl_SMP-0007" texture="lbl_SMP-0007" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0008" type="2d" file="../labelled_bottles/textures/shelf/SMP-0008.png"/>
+    <material name="lbl_SMP-0008" texture="lbl_SMP-0008" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0010" type="2d" file="../labelled_bottles/textures/shelf/SMP-0010.png"/>
+    <material name="lbl_SMP-0010" texture="lbl_SMP-0010" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0011" type="2d" file="../labelled_bottles/textures/shelf/SMP-0011.png"/>
+    <material name="lbl_SMP-0011" texture="lbl_SMP-0011" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0012" type="2d" file="../labelled_bottles/textures/shelf/SMP-0012.png"/>
+    <material name="lbl_SMP-0012" texture="lbl_SMP-0012" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0014" type="2d" file="../labelled_bottles/textures/shelf/SMP-0014.png"/>
+    <material name="lbl_SMP-0014" texture="lbl_SMP-0014" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0015" type="2d" file="../labelled_bottles/textures/shelf/SMP-0015.png"/>
+    <material name="lbl_SMP-0015" texture="lbl_SMP-0015" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0016" type="2d" file="../labelled_bottles/textures/shelf/SMP-0016.png"/>
+    <material name="lbl_SMP-0016" texture="lbl_SMP-0016" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0018" type="2d" file="../labelled_bottles/textures/shelf/SMP-0018.png"/>
+    <material name="lbl_SMP-0018" texture="lbl_SMP-0018" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0019" type="2d" file="../labelled_bottles/textures/shelf/SMP-0019.png"/>
+    <material name="lbl_SMP-0019" texture="lbl_SMP-0019" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0020" type="2d" file="../labelled_bottles/textures/shelf/SMP-0020.png"/>
+    <material name="lbl_SMP-0020" texture="lbl_SMP-0020" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0022" type="2d" file="../labelled_bottles/textures/shelf/SMP-0022.png"/>
+    <material name="lbl_SMP-0022" texture="lbl_SMP-0022" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0023" type="2d" file="../labelled_bottles/textures/shelf/SMP-0023.png"/>
+    <material name="lbl_SMP-0023" texture="lbl_SMP-0023" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0024" type="2d" file="../labelled_bottles/textures/shelf/SMP-0024.png"/>
+    <material name="lbl_SMP-0024" texture="lbl_SMP-0024" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0025" type="2d" file="../labelled_bottles/textures/shelf/SMP-0025.png"/>
+    <material name="lbl_SMP-0025" texture="lbl_SMP-0025" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0026" type="2d" file="../labelled_bottles/textures/shelf/SMP-0026.png"/>
+    <material name="lbl_SMP-0026" texture="lbl_SMP-0026" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0027" type="2d" file="../labelled_bottles/textures/shelf/SMP-0027.png"/>
+    <material name="lbl_SMP-0027" texture="lbl_SMP-0027" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0028" type="2d" file="../labelled_bottles/textures/shelf/SMP-0028.png"/>
+    <material name="lbl_SMP-0028" texture="lbl_SMP-0028" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0029" type="2d" file="../labelled_bottles/textures/shelf/SMP-0029.png"/>
+    <material name="lbl_SMP-0029" texture="lbl_SMP-0029" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0031" type="2d" file="../labelled_bottles/textures/shelf/SMP-0031.png"/>
+    <material name="lbl_SMP-0031" texture="lbl_SMP-0031" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0032" type="2d" file="../labelled_bottles/textures/shelf/SMP-0032.png"/>
+    <material name="lbl_SMP-0032" texture="lbl_SMP-0032" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0033" type="2d" file="../labelled_bottles/textures/shelf/SMP-0033.png"/>
+    <material name="lbl_SMP-0033" texture="lbl_SMP-0033" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0035" type="2d" file="../labelled_bottles/textures/shelf/SMP-0035.png"/>
+    <material name="lbl_SMP-0035" texture="lbl_SMP-0035" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0036" type="2d" file="../labelled_bottles/textures/shelf/SMP-0036.png"/>
+    <material name="lbl_SMP-0036" texture="lbl_SMP-0036" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0037" type="2d" file="../labelled_bottles/textures/shelf/SMP-0037.png"/>
+    <material name="lbl_SMP-0037" texture="lbl_SMP-0037" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0038" type="2d" file="../labelled_bottles/textures/shelf/SMP-0038.png"/>
+    <material name="lbl_SMP-0038" texture="lbl_SMP-0038" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0039" type="2d" file="../labelled_bottles/textures/shelf/SMP-0039.png"/>
+    <material name="lbl_SMP-0039" texture="lbl_SMP-0039" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0040" type="2d" file="../labelled_bottles/textures/shelf/SMP-0040.png"/>
+    <material name="lbl_SMP-0040" texture="lbl_SMP-0040" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0041" type="2d" file="../labelled_bottles/textures/shelf/SMP-0041.png"/>
+    <material name="lbl_SMP-0041" texture="lbl_SMP-0041" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0042" type="2d" file="../labelled_bottles/textures/shelf/SMP-0042.png"/>
+    <material name="lbl_SMP-0042" texture="lbl_SMP-0042" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0043" type="2d" file="../labelled_bottles/textures/shelf/SMP-0043.png"/>
+    <material name="lbl_SMP-0043" texture="lbl_SMP-0043" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0044" type="2d" file="../labelled_bottles/textures/shelf/SMP-0044.png"/>
+    <material name="lbl_SMP-0044" texture="lbl_SMP-0044" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0045" type="2d" file="../labelled_bottles/textures/shelf/SMP-0045.png"/>
+    <material name="lbl_SMP-0045" texture="lbl_SMP-0045" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0046" type="2d" file="../labelled_bottles/textures/shelf/SMP-0046.png"/>
+    <material name="lbl_SMP-0046" texture="lbl_SMP-0046" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0047" type="2d" file="../labelled_bottles/textures/shelf/SMP-0047.png"/>
+    <material name="lbl_SMP-0047" texture="lbl_SMP-0047" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0048" type="2d" file="../labelled_bottles/textures/shelf/SMP-0048.png"/>
+    <material name="lbl_SMP-0048" texture="lbl_SMP-0048" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0049" type="2d" file="../labelled_bottles/textures/shelf/SMP-0049.png"/>
+    <material name="lbl_SMP-0049" texture="lbl_SMP-0049" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0050" type="2d" file="../labelled_bottles/textures/shelf/SMP-0050.png"/>
+    <material name="lbl_SMP-0050" texture="lbl_SMP-0050" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0051" type="2d" file="../labelled_bottles/textures/shelf/SMP-0051.png"/>
+    <material name="lbl_SMP-0051" texture="lbl_SMP-0051" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0052" type="2d" file="../labelled_bottles/textures/shelf/SMP-0052.png"/>
+    <material name="lbl_SMP-0052" texture="lbl_SMP-0052" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0053" type="2d" file="../labelled_bottles/textures/shelf/SMP-0053.png"/>
+    <material name="lbl_SMP-0053" texture="lbl_SMP-0053" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0054" type="2d" file="../labelled_bottles/textures/shelf/SMP-0054.png"/>
+    <material name="lbl_SMP-0054" texture="lbl_SMP-0054" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0055" type="2d" file="../labelled_bottles/textures/shelf/SMP-0055.png"/>
+    <material name="lbl_SMP-0055" texture="lbl_SMP-0055" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0056" type="2d" file="../labelled_bottles/textures/shelf/SMP-0056.png"/>
+    <material name="lbl_SMP-0056" texture="lbl_SMP-0056" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0057" type="2d" file="../labelled_bottles/textures/shelf/SMP-0057.png"/>
+    <material name="lbl_SMP-0057" texture="lbl_SMP-0057" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0058" type="2d" file="../labelled_bottles/textures/shelf/SMP-0058.png"/>
+    <material name="lbl_SMP-0058" texture="lbl_SMP-0058" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0059" type="2d" file="../labelled_bottles/textures/shelf/SMP-0059.png"/>
+    <material name="lbl_SMP-0059" texture="lbl_SMP-0059" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0060" type="2d" file="../labelled_bottles/textures/shelf/SMP-0060.png"/>
+    <material name="lbl_SMP-0060" texture="lbl_SMP-0060" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0061" type="2d" file="../labelled_bottles/textures/shelf/SMP-0061.png"/>
+    <material name="lbl_SMP-0061" texture="lbl_SMP-0061" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0062" type="2d" file="../labelled_bottles/textures/shelf/SMP-0062.png"/>
+    <material name="lbl_SMP-0062" texture="lbl_SMP-0062" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0063" type="2d" file="../labelled_bottles/textures/shelf/SMP-0063.png"/>
+    <material name="lbl_SMP-0063" texture="lbl_SMP-0063" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0064" type="2d" file="../labelled_bottles/textures/shelf/SMP-0064.png"/>
+    <material name="lbl_SMP-0064" texture="lbl_SMP-0064" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0065" type="2d" file="../labelled_bottles/textures/shelf/SMP-0065.png"/>
+    <material name="lbl_SMP-0065" texture="lbl_SMP-0065" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0066" type="2d" file="../labelled_bottles/textures/shelf/SMP-0066.png"/>
+    <material name="lbl_SMP-0066" texture="lbl_SMP-0066" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0067" type="2d" file="../labelled_bottles/textures/shelf/SMP-0067.png"/>
+    <material name="lbl_SMP-0067" texture="lbl_SMP-0067" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0068" type="2d" file="../labelled_bottles/textures/shelf/SMP-0068.png"/>
+    <material name="lbl_SMP-0068" texture="lbl_SMP-0068" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0069" type="2d" file="../labelled_bottles/textures/shelf/SMP-0069.png"/>
+    <material name="lbl_SMP-0069" texture="lbl_SMP-0069" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0070" type="2d" file="../labelled_bottles/textures/shelf/SMP-0070.png"/>
+    <material name="lbl_SMP-0070" texture="lbl_SMP-0070" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0071" type="2d" file="../labelled_bottles/textures/shelf/SMP-0071.png"/>
+    <material name="lbl_SMP-0071" texture="lbl_SMP-0071" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0072" type="2d" file="../labelled_bottles/textures/shelf/SMP-0072.png"/>
+    <material name="lbl_SMP-0072" texture="lbl_SMP-0072" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0073" type="2d" file="../labelled_bottles/textures/shelf/SMP-0073.png"/>
+    <material name="lbl_SMP-0073" texture="lbl_SMP-0073" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0074" type="2d" file="../labelled_bottles/textures/shelf/SMP-0074.png"/>
+    <material name="lbl_SMP-0074" texture="lbl_SMP-0074" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0075" type="2d" file="../labelled_bottles/textures/shelf/SMP-0075.png"/>
+    <material name="lbl_SMP-0075" texture="lbl_SMP-0075" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0076" type="2d" file="../labelled_bottles/textures/shelf/SMP-0076.png"/>
+    <material name="lbl_SMP-0076" texture="lbl_SMP-0076" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0077" type="2d" file="../labelled_bottles/textures/shelf/SMP-0077.png"/>
+    <material name="lbl_SMP-0077" texture="lbl_SMP-0077" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0078" type="2d" file="../labelled_bottles/textures/shelf/SMP-0078.png"/>
+    <material name="lbl_SMP-0078" texture="lbl_SMP-0078" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0079" type="2d" file="../labelled_bottles/textures/shelf/SMP-0079.png"/>
+    <material name="lbl_SMP-0079" texture="lbl_SMP-0079" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0080" type="2d" file="../labelled_bottles/textures/shelf/SMP-0080.png"/>
+    <material name="lbl_SMP-0080" texture="lbl_SMP-0080" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0081" type="2d" file="../labelled_bottles/textures/shelf/SMP-0081.png"/>
+    <material name="lbl_SMP-0081" texture="lbl_SMP-0081" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0082" type="2d" file="../labelled_bottles/textures/shelf/SMP-0082.png"/>
+    <material name="lbl_SMP-0082" texture="lbl_SMP-0082" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0083" type="2d" file="../labelled_bottles/textures/shelf/SMP-0083.png"/>
+    <material name="lbl_SMP-0083" texture="lbl_SMP-0083" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0084" type="2d" file="../labelled_bottles/textures/shelf/SMP-0084.png"/>
+    <material name="lbl_SMP-0084" texture="lbl_SMP-0084" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0085" type="2d" file="../labelled_bottles/textures/shelf/SMP-0085.png"/>
+    <material name="lbl_SMP-0085" texture="lbl_SMP-0085" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0086" type="2d" file="../labelled_bottles/textures/shelf/SMP-0086.png"/>
+    <material name="lbl_SMP-0086" texture="lbl_SMP-0086" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0087" type="2d" file="../labelled_bottles/textures/shelf/SMP-0087.png"/>
+    <material name="lbl_SMP-0087" texture="lbl_SMP-0087" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0088" type="2d" file="../labelled_bottles/textures/shelf/SMP-0088.png"/>
+    <material name="lbl_SMP-0088" texture="lbl_SMP-0088" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0089" type="2d" file="../labelled_bottles/textures/shelf/SMP-0089.png"/>
+    <material name="lbl_SMP-0089" texture="lbl_SMP-0089" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0090" type="2d" file="../labelled_bottles/textures/shelf/SMP-0090.png"/>
+    <material name="lbl_SMP-0090" texture="lbl_SMP-0090" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0091" type="2d" file="../labelled_bottles/textures/shelf/SMP-0091.png"/>
+    <material name="lbl_SMP-0091" texture="lbl_SMP-0091" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0092" type="2d" file="../labelled_bottles/textures/shelf/SMP-0092.png"/>
+    <material name="lbl_SMP-0092" texture="lbl_SMP-0092" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0093" type="2d" file="../labelled_bottles/textures/shelf/SMP-0093.png"/>
+    <material name="lbl_SMP-0093" texture="lbl_SMP-0093" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0094" type="2d" file="../labelled_bottles/textures/shelf/SMP-0094.png"/>
+    <material name="lbl_SMP-0094" texture="lbl_SMP-0094" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0095" type="2d" file="../labelled_bottles/textures/shelf/SMP-0095.png"/>
+    <material name="lbl_SMP-0095" texture="lbl_SMP-0095" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0096" type="2d" file="../labelled_bottles/textures/shelf/SMP-0096.png"/>
+    <material name="lbl_SMP-0096" texture="lbl_SMP-0096" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0097" type="2d" file="../labelled_bottles/textures/shelf/SMP-0097.png"/>
+    <material name="lbl_SMP-0097" texture="lbl_SMP-0097" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0098" type="2d" file="../labelled_bottles/textures/shelf/SMP-0098.png"/>
+    <material name="lbl_SMP-0098" texture="lbl_SMP-0098" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0099" type="2d" file="../labelled_bottles/textures/shelf/SMP-0099.png"/>
+    <material name="lbl_SMP-0099" texture="lbl_SMP-0099" specular="0.05" shininess="0.1"/>
+    <texture name="lbl_SMP-0100" type="2d" file="../labelled_bottles/textures/shelf/SMP-0100.png"/>
+    <material name="lbl_SMP-0100" texture="lbl_SMP-0100" specular="0.05" shininess="0.1"/>
+    <mesh name="bottle_1000ml_label" file="../labelled_bottles/meshes/bottle_1000ml_label.obj" inertia="shell"/>
+    <mesh name="bottle_1000ml_shelf_body" file="../labelled_bottles/meshes/bottle_1000ml_shelf_body.obj" inertia="shell"/>
+    <mesh name="bottle_1000ml_shelf_cap" file="../labelled_bottles/meshes/bottle_1000ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="bottle_100ml_label" file="../labelled_bottles/meshes/bottle_100ml_label.obj" inertia="shell"/>
+    <mesh name="bottle_100ml_shelf_body" file="../labelled_bottles/meshes/bottle_100ml_shelf_body.obj" inertia="shell"/>
+    <mesh name="bottle_100ml_shelf_cap" file="../labelled_bottles/meshes/bottle_100ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="bottle_2000ml_label" file="../labelled_bottles/meshes/bottle_2000ml_label.obj" inertia="shell"/>
+    <mesh name="bottle_2000ml_shelf_body" file="../labelled_bottles/meshes/bottle_2000ml_shelf_body.obj" inertia="shell"/>
+    <mesh name="bottle_2000ml_shelf_cap" file="../labelled_bottles/meshes/bottle_2000ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="bottle_250ml_label" file="../labelled_bottles/meshes/bottle_250ml_label.obj" inertia="shell"/>
+    <mesh name="bottle_250ml_shelf_body" file="../labelled_bottles/meshes/bottle_250ml_shelf_body.obj" inertia="shell"/>
+    <mesh name="bottle_250ml_shelf_cap" file="../labelled_bottles/meshes/bottle_250ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="bottle_500ml_label" file="../labelled_bottles/meshes/bottle_500ml_label.obj" inertia="shell"/>
+    <mesh name="bottle_500ml_shelf_body" file="../labelled_bottles/meshes/bottle_500ml_shelf_body.obj" inertia="shell"/>
+    <mesh name="bottle_500ml_shelf_cap" file="../labelled_bottles/meshes/bottle_500ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="flask_100ml_label" file="../labelled_bottles/meshes/flask_100ml_label.obj" inertia="shell"/>
+    <mesh name="flask_100ml_shelf_cap" file="../labelled_bottles/meshes/flask_100ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="flask_100ml_shelf_glass" file="../labelled_bottles/meshes/flask_100ml_shelf_glass.obj" inertia="shell"/>
+    <mesh name="flask_10ml_label" file="../labelled_bottles/meshes/flask_10ml_label.obj" inertia="shell"/>
+    <mesh name="flask_10ml_shelf_cap" file="../labelled_bottles/meshes/flask_10ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="flask_10ml_shelf_glass" file="../labelled_bottles/meshes/flask_10ml_shelf_glass.obj" inertia="shell"/>
+    <mesh name="flask_20ml_label" file="../labelled_bottles/meshes/flask_20ml_label.obj" inertia="shell"/>
+    <mesh name="flask_20ml_shelf_cap" file="../labelled_bottles/meshes/flask_20ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="flask_20ml_shelf_glass" file="../labelled_bottles/meshes/flask_20ml_shelf_glass.obj" inertia="shell"/>
+    <mesh name="flask_30ml_label" file="../labelled_bottles/meshes/flask_30ml_label.obj" inertia="shell"/>
+    <mesh name="flask_30ml_shelf_cap" file="../labelled_bottles/meshes/flask_30ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="flask_30ml_shelf_glass" file="../labelled_bottles/meshes/flask_30ml_shelf_glass.obj" inertia="shell"/>
+    <mesh name="flask_50ml_label" file="../labelled_bottles/meshes/flask_50ml_label.obj" inertia="shell"/>
+    <mesh name="flask_50ml_shelf_cap" file="../labelled_bottles/meshes/flask_50ml_shelf_cap.obj" inertia="shell"/>
+    <mesh name="flask_50ml_shelf_glass" file="../labelled_bottles/meshes/flask_50ml_shelf_glass.obj" inertia="shell"/>
   </asset>
   <worldbody>
     <body name="lab_room">
@@ -330,103 +725,568 @@
       <geom name="divider_0" type="box" pos="-0.2 0 1.86" size="2.2 0.004 0.56" material="white_matte" contype="0" conaffinity="0" group="1"/>
       <geom name="splash_glass_0" type="box" pos="-0.2 0 1.094" size="2.2 0.005 0.194" material="glass_clear" group="1"/>
 
-      <!-- Raw-material library: row meshes of ~400 ml amber bottles, reused on every shelf face (the +Y faces turned 180 degrees). Three patterns; 'c' mixes in smaller flasks. -->
-      <geom name="lib_glass_0" type="mesh" mesh="library_a_glass" pos="-1.85 0 1.3" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_0" type="mesh" mesh="library_a_caps" pos="-1.85 0 1.3" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_0" type="mesh" mesh="library_a_labels" pos="-1.85 0 1.3" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_1" type="mesh" mesh="library_b_glass" pos="-1.85 0 1.3" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_1" type="mesh" mesh="library_b_caps" pos="-1.85 0 1.3" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_1" type="mesh" mesh="library_b_labels" pos="-1.85 0 1.3" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_2" type="mesh" mesh="library_c_glass" pos="-1.85 0 1.58" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_2" type="mesh" mesh="library_c_caps" pos="-1.85 0 1.58" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_2" type="mesh" mesh="library_c_labels" pos="-1.85 0 1.58" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_3" type="mesh" mesh="library_a_glass" pos="-1.85 0 1.58" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_3" type="mesh" mesh="library_a_caps" pos="-1.85 0 1.58" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_3" type="mesh" mesh="library_a_labels" pos="-1.85 0 1.58" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_4" type="mesh" mesh="library_b_glass" pos="-1.85 0 1.86" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_4" type="mesh" mesh="library_b_caps" pos="-1.85 0 1.86" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_4" type="mesh" mesh="library_b_labels" pos="-1.85 0 1.86" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_5" type="mesh" mesh="library_c_glass" pos="-1.85 0 1.86" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_5" type="mesh" mesh="library_c_caps" pos="-1.85 0 1.86" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_5" type="mesh" mesh="library_c_labels" pos="-1.85 0 1.86" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_6" type="mesh" mesh="library_a_glass" pos="-1.85 0 2.14" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_6" type="mesh" mesh="library_a_caps" pos="-1.85 0 2.14" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_6" type="mesh" mesh="library_a_labels" pos="-1.85 0 2.14" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_7" type="mesh" mesh="library_b_glass" pos="-1.85 0 2.14" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_7" type="mesh" mesh="library_b_caps" pos="-1.85 0 2.14" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_7" type="mesh" mesh="library_b_labels" pos="-1.85 0 2.14" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_8" type="mesh" mesh="library_a_glass" pos="-0.75 0 1.3" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_8" type="mesh" mesh="library_a_caps" pos="-0.75 0 1.3" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_8" type="mesh" mesh="library_a_labels" pos="-0.75 0 1.3" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_9" type="mesh" mesh="library_b_glass" pos="-0.75 0 1.3" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_9" type="mesh" mesh="library_b_caps" pos="-0.75 0 1.3" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_9" type="mesh" mesh="library_b_labels" pos="-0.75 0 1.3" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_10" type="mesh" mesh="library_c_glass" pos="-0.75 0 1.58" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_10" type="mesh" mesh="library_c_caps" pos="-0.75 0 1.58" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_10" type="mesh" mesh="library_c_labels" pos="-0.75 0 1.58" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_11" type="mesh" mesh="library_a_glass" pos="-0.75 0 1.58" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_11" type="mesh" mesh="library_a_caps" pos="-0.75 0 1.58" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_11" type="mesh" mesh="library_a_labels" pos="-0.75 0 1.58" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_12" type="mesh" mesh="library_b_glass" pos="-0.75 0 1.86" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_12" type="mesh" mesh="library_b_caps" pos="-0.75 0 1.86" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_12" type="mesh" mesh="library_b_labels" pos="-0.75 0 1.86" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_13" type="mesh" mesh="library_c_glass" pos="-0.75 0 1.86" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_13" type="mesh" mesh="library_c_caps" pos="-0.75 0 1.86" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_13" type="mesh" mesh="library_c_labels" pos="-0.75 0 1.86" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_14" type="mesh" mesh="library_a_glass" pos="-0.75 0 2.14" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_14" type="mesh" mesh="library_a_caps" pos="-0.75 0 2.14" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_14" type="mesh" mesh="library_a_labels" pos="-0.75 0 2.14" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_15" type="mesh" mesh="library_b_glass" pos="-0.75 0 2.14" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_15" type="mesh" mesh="library_b_caps" pos="-0.75 0 2.14" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_15" type="mesh" mesh="library_b_labels" pos="-0.75 0 2.14" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_16" type="mesh" mesh="library_a_glass" pos="0.35 0 1.3" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_16" type="mesh" mesh="library_a_caps" pos="0.35 0 1.3" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_16" type="mesh" mesh="library_a_labels" pos="0.35 0 1.3" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_17" type="mesh" mesh="library_b_glass" pos="0.35 0 1.3" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_17" type="mesh" mesh="library_b_caps" pos="0.35 0 1.3" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_17" type="mesh" mesh="library_b_labels" pos="0.35 0 1.3" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_18" type="mesh" mesh="library_c_glass" pos="0.35 0 1.58" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_18" type="mesh" mesh="library_c_caps" pos="0.35 0 1.58" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_18" type="mesh" mesh="library_c_labels" pos="0.35 0 1.58" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_19" type="mesh" mesh="library_a_glass" pos="0.35 0 1.58" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_19" type="mesh" mesh="library_a_caps" pos="0.35 0 1.58" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_19" type="mesh" mesh="library_a_labels" pos="0.35 0 1.58" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_20" type="mesh" mesh="library_b_glass" pos="0.35 0 1.86" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_20" type="mesh" mesh="library_b_caps" pos="0.35 0 1.86" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_20" type="mesh" mesh="library_b_labels" pos="0.35 0 1.86" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_21" type="mesh" mesh="library_c_glass" pos="0.35 0 1.86" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_21" type="mesh" mesh="library_c_caps" pos="0.35 0 1.86" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_21" type="mesh" mesh="library_c_labels" pos="0.35 0 1.86" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_22" type="mesh" mesh="library_a_glass" pos="0.35 0 2.14" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_22" type="mesh" mesh="library_a_caps" pos="0.35 0 2.14" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_22" type="mesh" mesh="library_a_labels" pos="0.35 0 2.14" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_23" type="mesh" mesh="library_b_glass" pos="0.35 0 2.14" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_23" type="mesh" mesh="library_b_caps" pos="0.35 0 2.14" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_23" type="mesh" mesh="library_b_labels" pos="0.35 0 2.14" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_24" type="mesh" mesh="library_a_glass" pos="1.45 0 1.3" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_24" type="mesh" mesh="library_a_caps" pos="1.45 0 1.3" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_24" type="mesh" mesh="library_a_labels" pos="1.45 0 1.3" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_25" type="mesh" mesh="library_b_glass" pos="1.45 0 1.3" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_25" type="mesh" mesh="library_b_caps" pos="1.45 0 1.3" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_25" type="mesh" mesh="library_b_labels" pos="1.45 0 1.3" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_26" type="mesh" mesh="library_c_glass" pos="1.45 0 1.58" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_26" type="mesh" mesh="library_c_caps" pos="1.45 0 1.58" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_26" type="mesh" mesh="library_c_labels" pos="1.45 0 1.58" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_27" type="mesh" mesh="library_a_glass" pos="1.45 0 1.58" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_27" type="mesh" mesh="library_a_caps" pos="1.45 0 1.58" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_27" type="mesh" mesh="library_a_labels" pos="1.45 0 1.58" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_28" type="mesh" mesh="library_b_glass" pos="1.45 0 1.86" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_28" type="mesh" mesh="library_b_caps" pos="1.45 0 1.86" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_28" type="mesh" mesh="library_b_labels" pos="1.45 0 1.86" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_29" type="mesh" mesh="library_c_glass" pos="1.45 0 1.86" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_29" type="mesh" mesh="library_c_caps" pos="1.45 0 1.86" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_29" type="mesh" mesh="library_c_labels" pos="1.45 0 1.86" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_30" type="mesh" mesh="library_a_glass" pos="1.45 0 2.14" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_30" type="mesh" mesh="library_a_caps" pos="1.45 0 2.14" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_30" type="mesh" mesh="library_a_labels" pos="1.45 0 2.14" material="label" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_glass_31" type="mesh" mesh="library_b_glass" pos="1.45 0 2.14" euler="0 0 180" material="amber" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_caps_31" type="mesh" mesh="library_b_caps" pos="1.45 0 2.14" euler="0 0 180" material="cap_dark" contype="0" conaffinity="0" group="1"/>
-      <geom name="lib_labels_31" type="mesh" mesh="library_b_labels" pos="1.45 0 2.14" euler="0 0 180" material="label" contype="0" conaffinity="0" group="1"/>
+      <!-- Sample library: 187 barcoded bottles, one per catalogue sample that the scene does not place itself. Powders (white HDPE) on the two lower shelves, liquids (amber glass) on the third; the top shelf is empty. -->
+      <geom name="lib_PWD-0005_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-2.2281 -0.2019 1.3" euler="0 0 2.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0005_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-2.2281 -0.2019 1.3" euler="0 0 2.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0005_label" type="mesh" mesh="bottle_2000ml_label" pos="-2.2281 -0.2019 1.3" euler="0 0 2.8" material="lbl_PWD-0005" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0009_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-2.0483 -0.2229 1.3" euler="0 0 12.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0009_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-2.0483 -0.2229 1.3" euler="0 0 12.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0009_label" type="mesh" mesh="bottle_1000ml_label" pos="-2.0483 -0.2229 1.3" euler="0 0 12.0" material="lbl_PWD-0009" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0010_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-1.8639 -0.2093 1.3" euler="0 0 12.6" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0010_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-1.8639 -0.2093 1.3" euler="0 0 12.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0010_label" type="mesh" mesh="bottle_2000ml_label" pos="-1.8639 -0.2093 1.3" euler="0 0 12.6" material="lbl_PWD-0010" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0014_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-1.663 -0.2185 1.3" euler="0 0 0.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0014_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-1.663 -0.2185 1.3" euler="0 0 0.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0014_label" type="mesh" mesh="bottle_1000ml_label" pos="-1.663 -0.2185 1.3" euler="0 0 0.3" material="lbl_PWD-0014" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0015_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-1.4787 -0.2064 1.3" euler="0 0 -10.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0015_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-1.4787 -0.2064 1.3" euler="0 0 -10.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0015_label" type="mesh" mesh="bottle_2000ml_label" pos="-1.4787 -0.2064 1.3" euler="0 0 -10.1" material="lbl_PWD-0015" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0019_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-1.1155 -0.2125 1.3" euler="0 0 0.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0019_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-1.1155 -0.2125 1.3" euler="0 0 0.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0019_label" type="mesh" mesh="bottle_1000ml_label" pos="-1.1155 -0.2125 1.3" euler="0 0 0.3" material="lbl_PWD-0019" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0025_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-0.9269 -0.2009 1.3" euler="0 0 13.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0025_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-0.9269 -0.2009 1.3" euler="0 0 13.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0025_label" type="mesh" mesh="bottle_2000ml_label" pos="-0.9269 -0.2009 1.3" euler="0 0 13.5" material="lbl_PWD-0025" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0029_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-0.7601 -0.2148 1.3" euler="0 0 -0.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0029_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-0.7601 -0.2148 1.3" euler="0 0 -0.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0029_label" type="mesh" mesh="bottle_1000ml_label" pos="-0.7601 -0.2148 1.3" euler="0 0 -0.5" material="lbl_PWD-0029" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0030_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-0.5673 -0.2001 1.3" euler="0 0 -7.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0030_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-0.5673 -0.2001 1.3" euler="0 0 -7.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0030_label" type="mesh" mesh="bottle_2000ml_label" pos="-0.5673 -0.2001 1.3" euler="0 0 -7.4" material="lbl_PWD-0030" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0034_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-0.3643 -0.2086 1.3" euler="0 0 -10.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0034_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-0.3643 -0.2086 1.3" euler="0 0 -10.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0034_label" type="mesh" mesh="bottle_1000ml_label" pos="-0.3643 -0.2086 1.3" euler="0 0 -10.4" material="lbl_PWD-0034" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0035_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-0.0171 -0.2064 1.3" euler="0 0 -11.7" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0035_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-0.0171 -0.2064 1.3" euler="0 0 -11.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0035_label" type="mesh" mesh="bottle_2000ml_label" pos="-0.0171 -0.2064 1.3" euler="0 0 -11.7" material="lbl_PWD-0035" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0039_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="0.1798 -0.2173 1.3" euler="0 0 -9.9" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0039_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="0.1798 -0.2173 1.3" euler="0 0 -9.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0039_label" type="mesh" mesh="bottle_1000ml_label" pos="0.1798 -0.2173 1.3" euler="0 0 -9.9" material="lbl_PWD-0039" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0040_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="0.3556 -0.2079 1.3" euler="0 0 11.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0040_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="0.3556 -0.2079 1.3" euler="0 0 11.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0040_label" type="mesh" mesh="bottle_2000ml_label" pos="0.3556 -0.2079 1.3" euler="0 0 11.2" material="lbl_PWD-0040" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0044_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="0.5239 -0.2252 1.3" euler="0 0 -8.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0044_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="0.5239 -0.2252 1.3" euler="0 0 -8.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0044_label" type="mesh" mesh="bottle_1000ml_label" pos="0.5239 -0.2252 1.3" euler="0 0 -8.4" material="lbl_PWD-0044" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0045_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="0.7111 -0.2025 1.3" euler="0 0 11.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0045_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="0.7111 -0.2025 1.3" euler="0 0 11.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0045_label" type="mesh" mesh="bottle_2000ml_label" pos="0.7111 -0.2025 1.3" euler="0 0 11.4" material="lbl_PWD-0045" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0049_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="1.0813 -0.2191 1.3" euler="0 0 -13.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0049_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="1.0813 -0.2191 1.3" euler="0 0 -13.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0049_label" type="mesh" mesh="bottle_1000ml_label" pos="1.0813 -0.2191 1.3" euler="0 0 -13.5" material="lbl_PWD-0049" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0050_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="1.2507 -0.192 1.3" euler="0 0 -1.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0050_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="1.2507 -0.192 1.3" euler="0 0 -1.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0050_label" type="mesh" mesh="bottle_2000ml_label" pos="1.2507 -0.192 1.3" euler="0 0 -1.1" material="lbl_PWD-0050" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0054_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="1.4565 -0.2248 1.3" euler="0 0 -13.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0054_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="1.4565 -0.2248 1.3" euler="0 0 -13.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0054_label" type="mesh" mesh="bottle_1000ml_label" pos="1.4565 -0.2248 1.3" euler="0 0 -13.0" material="lbl_PWD-0054" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0055_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="1.6495 -0.2001 1.3" euler="0 0 -5.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0055_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="1.6495 -0.2001 1.3" euler="0 0 -5.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0055_label" type="mesh" mesh="bottle_2000ml_label" pos="1.6495 -0.2001 1.3" euler="0 0 -5.4" material="lbl_PWD-0055" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0059_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="1.8192 -0.2241 1.3" euler="0 0 -9.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0059_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="1.8192 -0.2241 1.3" euler="0 0 -9.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0059_label" type="mesh" mesh="bottle_1000ml_label" pos="1.8192 -0.2241 1.3" euler="0 0 -9.2" material="lbl_PWD-0059" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0060_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-1.4686 0.1951 1.3" euler="0 0 179.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0060_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-1.4686 0.1951 1.3" euler="0 0 179.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0060_label" type="mesh" mesh="bottle_2000ml_label" pos="-1.4686 0.1951 1.3" euler="0 0 179.1" material="lbl_PWD-0060" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0064_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-1.6549 0.2111 1.3" euler="0 0 171.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0064_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-1.6549 0.2111 1.3" euler="0 0 171.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0064_label" type="mesh" mesh="bottle_1000ml_label" pos="-1.6549 0.2111 1.3" euler="0 0 171.5" material="lbl_PWD-0064" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0065_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-1.8358 0.1999 1.3" euler="0 0 191.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0065_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-1.8358 0.1999 1.3" euler="0 0 191.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0065_label" type="mesh" mesh="bottle_2000ml_label" pos="-1.8358 0.1999 1.3" euler="0 0 191.1" material="lbl_PWD-0065" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0069_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-2.0177 0.2098 1.3" euler="0 0 171.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0069_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-2.0177 0.2098 1.3" euler="0 0 171.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0069_label" type="mesh" mesh="bottle_1000ml_label" pos="-2.0177 0.2098 1.3" euler="0 0 171.3" material="lbl_PWD-0069" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0070_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-2.2029 0.2115 1.3" euler="0 0 174.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0070_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-2.2029 0.2115 1.3" euler="0 0 174.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0070_label" type="mesh" mesh="bottle_2000ml_label" pos="-2.2029 0.2115 1.3" euler="0 0 174.2" material="lbl_PWD-0070" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0074_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-0.4203 0.216 1.3" euler="0 0 189.9" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0074_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-0.4203 0.216 1.3" euler="0 0 189.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0074_label" type="mesh" mesh="bottle_1000ml_label" pos="-0.4203 0.216 1.3" euler="0 0 189.9" material="lbl_PWD-0074" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0075_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-0.6182 0.2056 1.3" euler="0 0 173.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0075_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-0.6182 0.2056 1.3" euler="0 0 173.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0075_label" type="mesh" mesh="bottle_2000ml_label" pos="-0.6182 0.2056 1.3" euler="0 0 173.2" material="lbl_PWD-0075" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0079_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="-0.8772 0.2071 1.3" euler="0 0 175.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0079_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="-0.8772 0.2071 1.3" euler="0 0 175.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0079_label" type="mesh" mesh="bottle_1000ml_label" pos="-0.8772 0.2071 1.3" euler="0 0 175.5" material="lbl_PWD-0079" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0080_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="-1.0736 0.2056 1.3" euler="0 0 186.9" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0080_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="-1.0736 0.2056 1.3" euler="0 0 186.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0080_label" type="mesh" mesh="bottle_2000ml_label" pos="-1.0736 0.2056 1.3" euler="0 0 186.9" material="lbl_PWD-0080" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0084_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="0.7128 0.2246 1.3" euler="0 0 177.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0084_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="0.7128 0.2246 1.3" euler="0 0 177.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0084_label" type="mesh" mesh="bottle_1000ml_label" pos="0.7128 0.2246 1.3" euler="0 0 177.3" material="lbl_PWD-0084" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0085_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="0.4805 0.195 1.3" euler="0 0 186.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0085_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="0.4805 0.195 1.3" euler="0 0 186.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0085_label" type="mesh" mesh="bottle_2000ml_label" pos="0.4805 0.195 1.3" euler="0 0 186.8" material="lbl_PWD-0085" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0089_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="0.2436 0.2127 1.3" euler="0 0 185.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0089_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="0.2436 0.2127 1.3" euler="0 0 185.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0089_label" type="mesh" mesh="bottle_1000ml_label" pos="0.2436 0.2127 1.3" euler="0 0 185.4" material="lbl_PWD-0089" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0090_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="0.0098 0.1933 1.3" euler="0 0 170.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0090_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="0.0098 0.1933 1.3" euler="0 0 170.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0090_label" type="mesh" mesh="bottle_2000ml_label" pos="0.0098 0.1933 1.3" euler="0 0 170.2" material="lbl_PWD-0090" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0094_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="1.7846 0.223 1.3" euler="0 0 178.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0094_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="1.7846 0.223 1.3" euler="0 0 178.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0094_label" type="mesh" mesh="bottle_1000ml_label" pos="1.7846 0.223 1.3" euler="0 0 178.4" material="lbl_PWD-0094" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0095_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="1.5545 0.194 1.3" euler="0 0 187.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0095_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="1.5545 0.194 1.3" euler="0 0 187.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0095_label" type="mesh" mesh="bottle_2000ml_label" pos="1.5545 0.194 1.3" euler="0 0 187.3" material="lbl_PWD-0095" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0099_body" type="mesh" mesh="bottle_1000ml_shelf_body" pos="1.3681 0.2187 1.3" euler="0 0 170.6" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0099_cap" type="mesh" mesh="bottle_1000ml_shelf_cap" pos="1.3681 0.2187 1.3" euler="0 0 170.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0099_label" type="mesh" mesh="bottle_1000ml_label" pos="1.3681 0.2187 1.3" euler="0 0 170.6" material="lbl_PWD-0099" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0100_body" type="mesh" mesh="bottle_2000ml_shelf_body" pos="1.0993 0.209 1.3" euler="0 0 172.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0100_cap" type="mesh" mesh="bottle_2000ml_shelf_cap" pos="1.0993 0.209 1.3" euler="0 0 172.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0100_label" type="mesh" mesh="bottle_2000ml_label" pos="1.0993 0.209 1.3" euler="0 0 172.8" material="lbl_PWD-0100" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0001_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-2.2736 -0.2457 1.58" euler="0 0 10.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0001_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-2.2736 -0.2457 1.58" euler="0 0 10.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0001_label" type="mesh" mesh="bottle_100ml_label" pos="-2.2736 -0.2457 1.58" euler="0 0 10.4" material="lbl_PWD-0001" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0002_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-2.1517 -0.2367 1.58" euler="0 0 -0.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0002_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-2.1517 -0.2367 1.58" euler="0 0 -0.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0002_label" type="mesh" mesh="bottle_250ml_label" pos="-2.1517 -0.2367 1.58" euler="0 0 -0.0" material="lbl_PWD-0002" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0003_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-2.0365 -0.2207 1.58" euler="0 0 -7.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0003_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-2.0365 -0.2207 1.58" euler="0 0 -7.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0003_label" type="mesh" mesh="bottle_500ml_label" pos="-2.0365 -0.2207 1.58" euler="0 0 -7.5" material="lbl_PWD-0003" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0006_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-1.9154 -0.2446 1.58" euler="0 0 1.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0006_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-1.9154 -0.2446 1.58" euler="0 0 1.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0006_label" type="mesh" mesh="bottle_100ml_label" pos="-1.9154 -0.2446 1.58" euler="0 0 1.5" material="lbl_PWD-0006" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0007_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-1.7856 -0.2334 1.58" euler="0 0 4.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0007_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-1.7856 -0.2334 1.58" euler="0 0 4.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0007_label" type="mesh" mesh="bottle_250ml_label" pos="-1.7856 -0.2334 1.58" euler="0 0 4.0" material="lbl_PWD-0007" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0011_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-1.6776 -0.2443 1.58" euler="0 0 -5.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0011_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-1.6776 -0.2443 1.58" euler="0 0 -5.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0011_label" type="mesh" mesh="bottle_100ml_label" pos="-1.6776 -0.2443 1.58" euler="0 0 -5.2" material="lbl_PWD-0011" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0013_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-1.5545 -0.2146 1.58" euler="0 0 -10.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0013_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-1.5545 -0.2146 1.58" euler="0 0 -10.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0013_label" type="mesh" mesh="bottle_500ml_label" pos="-1.5545 -0.2146 1.58" euler="0 0 -10.8" material="lbl_PWD-0013" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0016_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-1.4402 -0.2357 1.58" euler="0 0 13.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0016_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-1.4402 -0.2357 1.58" euler="0 0 13.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0016_label" type="mesh" mesh="bottle_100ml_label" pos="-1.4402 -0.2357 1.58" euler="0 0 13.0" material="lbl_PWD-0016" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0017_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-1.1434 -0.2259 1.58" euler="0 0 -12.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0017_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-1.1434 -0.2259 1.58" euler="0 0 -12.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0017_label" type="mesh" mesh="bottle_250ml_label" pos="-1.1434 -0.2259 1.58" euler="0 0 -12.1" material="lbl_PWD-0017" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0018_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-1.009 -0.2192 1.58" euler="0 0 -10.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0018_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-1.009 -0.2192 1.58" euler="0 0 -10.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0018_label" type="mesh" mesh="bottle_500ml_label" pos="-1.009 -0.2192 1.58" euler="0 0 -10.0" material="lbl_PWD-0018" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0021_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-0.8883 -0.2459 1.58" euler="0 0 8.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0021_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-0.8883 -0.2459 1.58" euler="0 0 8.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0021_label" type="mesh" mesh="bottle_100ml_label" pos="-0.8883 -0.2459 1.58" euler="0 0 8.5" material="lbl_PWD-0021" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0022_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-0.7579 -0.2238 1.58" euler="0 0 7.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0022_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-0.7579 -0.2238 1.58" euler="0 0 7.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0022_label" type="mesh" mesh="bottle_250ml_label" pos="-0.7579 -0.2238 1.58" euler="0 0 7.3" material="lbl_PWD-0022" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0023_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-0.6332 -0.2171 1.58" euler="0 0 -7.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0023_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-0.6332 -0.2171 1.58" euler="0 0 -7.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0023_label" type="mesh" mesh="bottle_500ml_label" pos="-0.6332 -0.2171 1.58" euler="0 0 -7.0" material="lbl_PWD-0023" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0027_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-0.4996 -0.2321 1.58" euler="0 0 -0.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0027_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-0.4996 -0.2321 1.58" euler="0 0 -0.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0027_label" type="mesh" mesh="bottle_250ml_label" pos="-0.4996 -0.2321 1.58" euler="0 0 -0.1" material="lbl_PWD-0027" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0028_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-0.3582 -0.2208 1.58" euler="0 0 2.9" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0028_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-0.3582 -0.2208 1.58" euler="0 0 2.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0028_label" type="mesh" mesh="bottle_500ml_label" pos="-0.3582 -0.2208 1.58" euler="0 0 2.9" material="lbl_PWD-0028" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0031_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-0.0644 -0.2344 1.58" euler="0 0 -4.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0031_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-0.0644 -0.2344 1.58" euler="0 0 -4.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0031_label" type="mesh" mesh="bottle_100ml_label" pos="-0.0644 -0.2344 1.58" euler="0 0 -4.0" material="lbl_PWD-0031" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0032_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="0.079 -0.2341 1.58" euler="0 0 8.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0032_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="0.079 -0.2341 1.58" euler="0 0 8.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0032_label" type="mesh" mesh="bottle_250ml_label" pos="0.079 -0.2341 1.58" euler="0 0 8.4" material="lbl_PWD-0032" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0033_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="0.2119 -0.2218 1.58" euler="0 0 4.9" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0033_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="0.2119 -0.2218 1.58" euler="0 0 4.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0033_label" type="mesh" mesh="bottle_500ml_label" pos="0.2119 -0.2218 1.58" euler="0 0 4.9" material="lbl_PWD-0033" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0036_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="0.3506 -0.2417 1.58" euler="0 0 13.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0036_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="0.3506 -0.2417 1.58" euler="0 0 13.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0036_label" type="mesh" mesh="bottle_100ml_label" pos="0.3506 -0.2417 1.58" euler="0 0 13.4" material="lbl_PWD-0036" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0037_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="0.4664 -0.2334 1.58" euler="0 0 1.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0037_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="0.4664 -0.2334 1.58" euler="0 0 1.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0037_label" type="mesh" mesh="bottle_250ml_label" pos="0.4664 -0.2334 1.58" euler="0 0 1.4" material="lbl_PWD-0037" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0038_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="0.6068 -0.2298 1.58" euler="0 0 8.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0038_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="0.6068 -0.2298 1.58" euler="0 0 8.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0038_label" type="mesh" mesh="bottle_500ml_label" pos="0.6068 -0.2298 1.58" euler="0 0 8.4" material="lbl_PWD-0038" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0041_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="0.7651 -0.2342 1.58" euler="0 0 11.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0041_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="0.7651 -0.2342 1.58" euler="0 0 11.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0041_label" type="mesh" mesh="bottle_100ml_label" pos="0.7651 -0.2342 1.58" euler="0 0 11.3" material="lbl_PWD-0041" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0042_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="1.0562 -0.2339 1.58" euler="0 0 4.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0042_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="1.0562 -0.2339 1.58" euler="0 0 4.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0042_label" type="mesh" mesh="bottle_250ml_label" pos="1.0562 -0.2339 1.58" euler="0 0 4.1" material="lbl_PWD-0042" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0043_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="1.1847 -0.2179 1.58" euler="0 0 -3.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0043_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="1.1847 -0.2179 1.58" euler="0 0 -3.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0043_label" type="mesh" mesh="bottle_500ml_label" pos="1.1847 -0.2179 1.58" euler="0 0 -3.2" material="lbl_PWD-0043" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0046_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="1.313 -0.2294 1.58" euler="0 0 5.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0046_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="1.313 -0.2294 1.58" euler="0 0 5.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0046_label" type="mesh" mesh="bottle_100ml_label" pos="1.313 -0.2294 1.58" euler="0 0 5.3" material="lbl_PWD-0046" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0047_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="1.4572 -0.2287 1.58" euler="0 0 7.9" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0047_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="1.4572 -0.2287 1.58" euler="0 0 7.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0047_label" type="mesh" mesh="bottle_250ml_label" pos="1.4572 -0.2287 1.58" euler="0 0 7.9" material="lbl_PWD-0047" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0048_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="1.5892 -0.2216 1.58" euler="0 0 -12.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0048_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="1.5892 -0.2216 1.58" euler="0 0 -12.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0048_label" type="mesh" mesh="bottle_500ml_label" pos="1.5892 -0.2216 1.58" euler="0 0 -12.2" material="lbl_PWD-0048" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0051_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="1.7262 -0.2306 1.58" euler="0 0 5.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0051_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="1.7262 -0.2306 1.58" euler="0 0 5.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0051_label" type="mesh" mesh="bottle_100ml_label" pos="1.7262 -0.2306 1.58" euler="0 0 5.8" material="lbl_PWD-0051" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0052_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="1.8602 -0.23 1.58" euler="0 0 10.7" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0052_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="1.8602 -0.23 1.58" euler="0 0 10.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0052_label" type="mesh" mesh="bottle_250ml_label" pos="1.8602 -0.23 1.58" euler="0 0 10.7" material="lbl_PWD-0052" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0053_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-1.4427 0.2154 1.58" euler="0 0 176.4" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0053_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-1.4427 0.2154 1.58" euler="0 0 176.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0053_label" type="mesh" mesh="bottle_500ml_label" pos="-1.4427 0.2154 1.58" euler="0 0 176.4" material="lbl_PWD-0053" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0056_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-1.5742 0.2345 1.58" euler="0 0 178.7" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0056_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-1.5742 0.2345 1.58" euler="0 0 178.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0056_label" type="mesh" mesh="bottle_100ml_label" pos="-1.5742 0.2345 1.58" euler="0 0 178.7" material="lbl_PWD-0056" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0057_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-1.7089 0.2229 1.58" euler="0 0 169.9" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0057_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-1.7089 0.2229 1.58" euler="0 0 169.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0057_label" type="mesh" mesh="bottle_250ml_label" pos="-1.7089 0.2229 1.58" euler="0 0 169.9" material="lbl_PWD-0057" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0058_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-1.8534 0.2246 1.58" euler="0 0 180.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0058_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-1.8534 0.2246 1.58" euler="0 0 180.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0058_label" type="mesh" mesh="bottle_500ml_label" pos="-1.8534 0.2246 1.58" euler="0 0 180.8" material="lbl_PWD-0058" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0061_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-1.982 0.2442 1.58" euler="0 0 180.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0061_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-1.982 0.2442 1.58" euler="0 0 180.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0061_label" type="mesh" mesh="bottle_100ml_label" pos="-1.982 0.2442 1.58" euler="0 0 180.3" material="lbl_PWD-0061" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0062_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-2.1175 0.2365 1.58" euler="0 0 166.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0062_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-2.1175 0.2365 1.58" euler="0 0 166.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0062_label" type="mesh" mesh="bottle_250ml_label" pos="-2.1175 0.2365 1.58" euler="0 0 166.3" material="lbl_PWD-0062" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0063_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-2.2337 0.2237 1.58" euler="0 0 193.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0063_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-2.2337 0.2237 1.58" euler="0 0 193.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0063_label" type="mesh" mesh="bottle_500ml_label" pos="-2.2337 0.2237 1.58" euler="0 0 193.3" material="lbl_PWD-0063" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0066_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-0.3297 0.2271 1.58" euler="0 0 181.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0066_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-0.3297 0.2271 1.58" euler="0 0 181.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0066_label" type="mesh" mesh="bottle_100ml_label" pos="-0.3297 0.2271 1.58" euler="0 0 181.0" material="lbl_PWD-0066" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0067_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-0.4605 0.2315 1.58" euler="0 0 171.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0067_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-0.4605 0.2315 1.58" euler="0 0 171.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0067_label" type="mesh" mesh="bottle_250ml_label" pos="-0.4605 0.2315 1.58" euler="0 0 171.8" material="lbl_PWD-0067" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0068_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-0.6209 0.2221 1.58" euler="0 0 174.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0068_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-0.6209 0.2221 1.58" euler="0 0 174.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0068_label" type="mesh" mesh="bottle_500ml_label" pos="-0.6209 0.2221 1.58" euler="0 0 174.1" material="lbl_PWD-0068" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0071_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-0.7426 0.2296 1.58" euler="0 0 187.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0071_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-0.7426 0.2296 1.58" euler="0 0 187.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0071_label" type="mesh" mesh="bottle_100ml_label" pos="-0.7426 0.2296 1.58" euler="0 0 187.5" material="lbl_PWD-0071" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0072_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-0.8766 0.2318 1.58" euler="0 0 186.6" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0072_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-0.8766 0.2318 1.58" euler="0 0 186.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0072_label" type="mesh" mesh="bottle_250ml_label" pos="-0.8766 0.2318 1.58" euler="0 0 186.6" material="lbl_PWD-0072" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0073_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="-1.0352 0.2313 1.58" euler="0 0 170.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0073_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="-1.0352 0.2313 1.58" euler="0 0 170.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0073_label" type="mesh" mesh="bottle_500ml_label" pos="-1.0352 0.2313 1.58" euler="0 0 170.5" material="lbl_PWD-0073" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0076_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="-1.1524 0.2367 1.58" euler="0 0 168.0" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0076_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="-1.1524 0.2367 1.58" euler="0 0 168.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0076_label" type="mesh" mesh="bottle_100ml_label" pos="-1.1524 0.2367 1.58" euler="0 0 168.0" material="lbl_PWD-0076" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0077_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="0.7645 0.2355 1.58" euler="0 0 176.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0077_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="0.7645 0.2355 1.58" euler="0 0 176.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0077_label" type="mesh" mesh="bottle_250ml_label" pos="0.7645 0.2355 1.58" euler="0 0 176.8" material="lbl_PWD-0077" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0078_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="0.6035 0.2207 1.58" euler="0 0 166.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0078_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="0.6035 0.2207 1.58" euler="0 0 166.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0078_label" type="mesh" mesh="bottle_500ml_label" pos="0.6035 0.2207 1.58" euler="0 0 166.8" material="lbl_PWD-0078" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0081_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="0.4902 0.2379 1.58" euler="0 0 190.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0081_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="0.4902 0.2379 1.58" euler="0 0 190.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0081_label" type="mesh" mesh="bottle_100ml_label" pos="0.4902 0.2379 1.58" euler="0 0 190.5" material="lbl_PWD-0081" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0082_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="0.3378 0.2326 1.58" euler="0 0 190.8" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0082_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="0.3378 0.2326 1.58" euler="0 0 190.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0082_label" type="mesh" mesh="bottle_250ml_label" pos="0.3378 0.2326 1.58" euler="0 0 190.8" material="lbl_PWD-0082" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0083_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="0.1966 0.2248 1.58" euler="0 0 186.9" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0083_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="0.1966 0.2248 1.58" euler="0 0 186.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0083_label" type="mesh" mesh="bottle_500ml_label" pos="0.1966 0.2248 1.58" euler="0 0 186.9" material="lbl_PWD-0083" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0086_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="0.0794 0.2438 1.58" euler="0 0 182.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0086_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="0.0794 0.2438 1.58" euler="0 0 182.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0086_label" type="mesh" mesh="bottle_100ml_label" pos="0.0794 0.2438 1.58" euler="0 0 182.1" material="lbl_PWD-0086" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0087_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="-0.0392 0.2266 1.58" euler="0 0 188.7" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0087_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="-0.0392 0.2266 1.58" euler="0 0 188.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0087_label" type="mesh" mesh="bottle_250ml_label" pos="-0.0392 0.2266 1.58" euler="0 0 188.7" material="lbl_PWD-0087" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0088_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="1.8341 0.2239 1.58" euler="0 0 169.3" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0088_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="1.8341 0.2239 1.58" euler="0 0 169.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0088_label" type="mesh" mesh="bottle_500ml_label" pos="1.8341 0.2239 1.58" euler="0 0 169.3" material="lbl_PWD-0088" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0091_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="1.7025 0.2295 1.58" euler="0 0 193.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0091_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="1.7025 0.2295 1.58" euler="0 0 193.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0091_label" type="mesh" mesh="bottle_100ml_label" pos="1.7025 0.2295 1.58" euler="0 0 193.1" material="lbl_PWD-0091" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0092_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="1.5863 0.2264 1.58" euler="0 0 176.5" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0092_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="1.5863 0.2264 1.58" euler="0 0 176.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0092_label" type="mesh" mesh="bottle_250ml_label" pos="1.5863 0.2264 1.58" euler="0 0 176.5" material="lbl_PWD-0092" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0093_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="1.4591 0.2271 1.58" euler="0 0 186.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0093_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="1.4591 0.2271 1.58" euler="0 0 186.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0093_label" type="mesh" mesh="bottle_500ml_label" pos="1.4591 0.2271 1.58" euler="0 0 186.2" material="lbl_PWD-0093" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0096_body" type="mesh" mesh="bottle_100ml_shelf_body" pos="1.323 0.2331 1.58" euler="0 0 180.1" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0096_cap" type="mesh" mesh="bottle_100ml_shelf_cap" pos="1.323 0.2331 1.58" euler="0 0 180.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0096_label" type="mesh" mesh="bottle_100ml_label" pos="1.323 0.2331 1.58" euler="0 0 180.1" material="lbl_PWD-0096" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0097_body" type="mesh" mesh="bottle_250ml_shelf_body" pos="1.1944 0.2205 1.58" euler="0 0 170.7" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0097_cap" type="mesh" mesh="bottle_250ml_shelf_cap" pos="1.1944 0.2205 1.58" euler="0 0 170.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0097_label" type="mesh" mesh="bottle_250ml_label" pos="1.1944 0.2205 1.58" euler="0 0 170.7" material="lbl_PWD-0097" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0098_body" type="mesh" mesh="bottle_500ml_shelf_body" pos="1.0543 0.2297 1.58" euler="0 0 192.2" material="sample_hdpe" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0098_cap" type="mesh" mesh="bottle_500ml_shelf_cap" pos="1.0543 0.2297 1.58" euler="0 0 192.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_PWD-0098_label" type="mesh" mesh="bottle_500ml_label" pos="1.0543 0.2297 1.58" euler="0 0 192.2" material="lbl_PWD-0098" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0001_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-2.2961 -0.2523 1.86" euler="0 0 -9.3" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0001_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-2.2961 -0.2523 1.86" euler="0 0 -9.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0001_label" type="mesh" mesh="flask_10ml_label" pos="-2.2961 -0.2523 1.86" euler="0 0 -9.3" material="lbl_SMP-0001" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0002_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-2.2209 -0.2481 1.86" euler="0 0 -10.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0002_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-2.2209 -0.2481 1.86" euler="0 0 -10.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0002_label" type="mesh" mesh="flask_20ml_label" pos="-2.2209 -0.2481 1.86" euler="0 0 -10.4" material="lbl_SMP-0002" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0003_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-2.1537 -0.2462 1.86" euler="0 0 2.3" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0003_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-2.1537 -0.2462 1.86" euler="0 0 2.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0003_label" type="mesh" mesh="flask_30ml_label" pos="-2.1537 -0.2462 1.86" euler="0 0 2.3" material="lbl_SMP-0003" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0004_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-2.0614 -0.2331 1.86" euler="0 0 11.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0004_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-2.0614 -0.2331 1.86" euler="0 0 11.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0004_label" type="mesh" mesh="flask_50ml_label" pos="-2.0614 -0.2331 1.86" euler="0 0 11.5" material="lbl_SMP-0004" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0006_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-1.9753 -0.2429 1.86" euler="0 0 -0.6" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0006_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-1.9753 -0.2429 1.86" euler="0 0 -0.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0006_label" type="mesh" mesh="flask_10ml_label" pos="-1.9753 -0.2429 1.86" euler="0 0 -0.6" material="lbl_SMP-0006" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0007_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-1.9101 -0.2481 1.86" euler="0 0 -2.8" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0007_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-1.9101 -0.2481 1.86" euler="0 0 -2.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0007_label" type="mesh" mesh="flask_20ml_label" pos="-1.9101 -0.2481 1.86" euler="0 0 -2.8" material="lbl_SMP-0007" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0008_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-1.8414 -0.238 1.86" euler="0 0 -7.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0008_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-1.8414 -0.238 1.86" euler="0 0 -7.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0008_label" type="mesh" mesh="flask_30ml_label" pos="-1.8414 -0.238 1.86" euler="0 0 -7.1" material="lbl_SMP-0008" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0010_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="-1.7538 -0.2369 1.86" euler="0 0 6.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0010_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="-1.7538 -0.2369 1.86" euler="0 0 6.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0010_label" type="mesh" mesh="flask_100ml_label" pos="-1.7538 -0.2369 1.86" euler="0 0 6.1" material="lbl_SMP-0010" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0011_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-1.663 -0.2516 1.86" euler="0 0 4.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0011_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-1.663 -0.2516 1.86" euler="0 0 4.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0011_label" type="mesh" mesh="flask_10ml_label" pos="-1.663 -0.2516 1.86" euler="0 0 4.4" material="lbl_SMP-0011" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0012_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-1.5951 -0.2558 1.86" euler="0 0 2.6" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0012_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-1.5951 -0.2558 1.86" euler="0 0 2.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0012_label" type="mesh" mesh="flask_20ml_label" pos="-1.5951 -0.2558 1.86" euler="0 0 2.6" material="lbl_SMP-0012" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0014_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-1.5071 -0.2338 1.86" euler="0 0 -2.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0014_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-1.5071 -0.2338 1.86" euler="0 0 -2.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0014_label" type="mesh" mesh="flask_50ml_label" pos="-1.5071 -0.2338 1.86" euler="0 0 -2.4" material="lbl_SMP-0014" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0015_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="-1.4114 -0.2458 1.86" euler="0 0 -13.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0015_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="-1.4114 -0.2458 1.86" euler="0 0 -13.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0015_label" type="mesh" mesh="flask_100ml_label" pos="-1.4114 -0.2458 1.86" euler="0 0 -13.2" material="lbl_SMP-0015" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0016_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-1.1955 -0.2544 1.86" euler="0 0 -12.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0016_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-1.1955 -0.2544 1.86" euler="0 0 -12.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0016_label" type="mesh" mesh="flask_10ml_label" pos="-1.1955 -0.2544 1.86" euler="0 0 -12.1" material="lbl_SMP-0016" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0018_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-1.1307 -0.2465 1.86" euler="0 0 -4.6" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0018_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-1.1307 -0.2465 1.86" euler="0 0 -4.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0018_label" type="mesh" mesh="flask_30ml_label" pos="-1.1307 -0.2465 1.86" euler="0 0 -4.6" material="lbl_SMP-0018" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0019_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-1.0411 -0.2333 1.86" euler="0 0 -3.8" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0019_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-1.0411 -0.2333 1.86" euler="0 0 -3.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0019_label" type="mesh" mesh="flask_50ml_label" pos="-1.0411 -0.2333 1.86" euler="0 0 -3.8" material="lbl_SMP-0019" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0020_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="-0.9589 -0.2346 1.86" euler="0 0 -13.9" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0020_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="-0.9589 -0.2346 1.86" euler="0 0 -13.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0020_label" type="mesh" mesh="flask_100ml_label" pos="-0.9589 -0.2346 1.86" euler="0 0 -13.9" material="lbl_SMP-0020" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0022_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-0.8708 -0.2497 1.86" euler="0 0 -3.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0022_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-0.8708 -0.2497 1.86" euler="0 0 -3.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0022_label" type="mesh" mesh="flask_20ml_label" pos="-0.8708 -0.2497 1.86" euler="0 0 -3.2" material="lbl_SMP-0022" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0023_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-0.8006 -0.2429 1.86" euler="0 0 3.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0023_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-0.8006 -0.2429 1.86" euler="0 0 3.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0023_label" type="mesh" mesh="flask_30ml_label" pos="-0.8006 -0.2429 1.86" euler="0 0 3.5" material="lbl_SMP-0023" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0024_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-0.7061 -0.2319 1.86" euler="0 0 -4.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0024_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-0.7061 -0.2319 1.86" euler="0 0 -4.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0024_label" type="mesh" mesh="flask_50ml_label" pos="-0.7061 -0.2319 1.86" euler="0 0 -4.1" material="lbl_SMP-0024" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0025_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="-0.6186 -0.2373 1.86" euler="0 0 -8.0" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0025_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="-0.6186 -0.2373 1.86" euler="0 0 -8.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0025_label" type="mesh" mesh="flask_100ml_label" pos="-0.6186 -0.2373 1.86" euler="0 0 -8.0" material="lbl_SMP-0025" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0026_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-0.5328 -0.244 1.86" euler="0 0 12.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0026_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-0.5328 -0.244 1.86" euler="0 0 12.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0026_label" type="mesh" mesh="flask_10ml_label" pos="-0.5328 -0.244 1.86" euler="0 0 12.4" material="lbl_SMP-0026" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0027_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-0.4624 -0.2377 1.86" euler="0 0 -10.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0027_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-0.4624 -0.2377 1.86" euler="0 0 -10.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0027_label" type="mesh" mesh="flask_20ml_label" pos="-0.4624 -0.2377 1.86" euler="0 0 -10.4" material="lbl_SMP-0027" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0028_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-0.4009 -0.2501 1.86" euler="0 0 -2.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0028_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-0.4009 -0.2501 1.86" euler="0 0 -2.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0028_label" type="mesh" mesh="flask_30ml_label" pos="-0.4009 -0.2501 1.86" euler="0 0 -2.5" material="lbl_SMP-0028" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0029_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-0.307 -0.2423 1.86" euler="0 0 0.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0029_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-0.307 -0.2423 1.86" euler="0 0 0.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0029_label" type="mesh" mesh="flask_50ml_label" pos="-0.307 -0.2423 1.86" euler="0 0 0.4" material="lbl_SMP-0029" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0031_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-0.0903 -0.2575 1.86" euler="0 0 5.0" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0031_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-0.0903 -0.2575 1.86" euler="0 0 5.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0031_label" type="mesh" mesh="flask_10ml_label" pos="-0.0903 -0.2575 1.86" euler="0 0 5.0" material="lbl_SMP-0031" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0032_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-0.0306 -0.2511 1.86" euler="0 0 6.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0032_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-0.0306 -0.2511 1.86" euler="0 0 6.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0032_label" type="mesh" mesh="flask_20ml_label" pos="-0.0306 -0.2511 1.86" euler="0 0 6.2" material="lbl_SMP-0032" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0033_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="0.0602 -0.2459 1.86" euler="0 0 -5.8" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0033_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="0.0602 -0.2459 1.86" euler="0 0 -5.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0033_label" type="mesh" mesh="flask_30ml_label" pos="0.0602 -0.2459 1.86" euler="0 0 -5.8" material="lbl_SMP-0033" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0035_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="0.1513 -0.2407 1.86" euler="0 0 -13.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0035_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="0.1513 -0.2407 1.86" euler="0 0 -13.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0035_label" type="mesh" mesh="flask_100ml_label" pos="0.1513 -0.2407 1.86" euler="0 0 -13.1" material="lbl_SMP-0035" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0036_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="0.2235 -0.2585 1.86" euler="0 0 8.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0036_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="0.2235 -0.2585 1.86" euler="0 0 8.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0036_label" type="mesh" mesh="flask_10ml_label" pos="0.2235 -0.2585 1.86" euler="0 0 8.7" material="lbl_SMP-0036" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0037_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="0.2946 -0.2366 1.86" euler="0 0 -8.0" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0037_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="0.2946 -0.2366 1.86" euler="0 0 -8.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0037_label" type="mesh" mesh="flask_20ml_label" pos="0.2946 -0.2366 1.86" euler="0 0 -8.0" material="lbl_SMP-0037" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0038_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="0.3766 -0.2423 1.86" euler="0 0 -5.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0038_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="0.3766 -0.2423 1.86" euler="0 0 -5.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0038_label" type="mesh" mesh="flask_30ml_label" pos="0.3766 -0.2423 1.86" euler="0 0 -5.4" material="lbl_SMP-0038" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0039_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="0.4615 -0.249 1.86" euler="0 0 -3.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0039_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="0.4615 -0.249 1.86" euler="0 0 -3.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0039_label" type="mesh" mesh="flask_50ml_label" pos="0.4615 -0.249 1.86" euler="0 0 -3.1" material="lbl_SMP-0039" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0040_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="0.5458 -0.2417 1.86" euler="0 0 11.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0040_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="0.5458 -0.2417 1.86" euler="0 0 11.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0040_label" type="mesh" mesh="flask_100ml_label" pos="0.5458 -0.2417 1.86" euler="0 0 11.5" material="lbl_SMP-0040" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0041_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="0.6342 -0.2535 1.86" euler="0 0 5.0" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0041_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="0.6342 -0.2535 1.86" euler="0 0 5.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0041_label" type="mesh" mesh="flask_10ml_label" pos="0.6342 -0.2535 1.86" euler="0 0 5.0" material="lbl_SMP-0041" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0042_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="0.7195 -0.2501 1.86" euler="0 0 -3.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0042_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="0.7195 -0.2501 1.86" euler="0 0 -3.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0042_label" type="mesh" mesh="flask_20ml_label" pos="0.7195 -0.2501 1.86" euler="0 0 -3.5" material="lbl_SMP-0042" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0043_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="0.7947 -0.2382 1.86" euler="0 0 3.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0043_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="0.7947 -0.2382 1.86" euler="0 0 3.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0043_label" type="mesh" mesh="flask_30ml_label" pos="0.7947 -0.2382 1.86" euler="0 0 3.2" material="lbl_SMP-0043" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0044_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="1.0034 -0.2475 1.86" euler="0 0 7.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0044_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="1.0034 -0.2475 1.86" euler="0 0 7.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0044_label" type="mesh" mesh="flask_50ml_label" pos="1.0034 -0.2475 1.86" euler="0 0 7.2" material="lbl_SMP-0044" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0045_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="1.1011 -0.2283 1.86" euler="0 0 7.8" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0045_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="1.1011 -0.2283 1.86" euler="0 0 7.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0045_label" type="mesh" mesh="flask_100ml_label" pos="1.1011 -0.2283 1.86" euler="0 0 7.8" material="lbl_SMP-0045" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0046_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="1.1762 -0.2562 1.86" euler="0 0 10.9" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0046_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="1.1762 -0.2562 1.86" euler="0 0 10.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0046_label" type="mesh" mesh="flask_10ml_label" pos="1.1762 -0.2562 1.86" euler="0 0 10.9" material="lbl_SMP-0046" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0047_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="1.2515 -0.2445 1.86" euler="0 0 5.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0047_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="1.2515 -0.2445 1.86" euler="0 0 5.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0047_label" type="mesh" mesh="flask_20ml_label" pos="1.2515 -0.2445 1.86" euler="0 0 5.1" material="lbl_SMP-0047" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0048_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="1.3212 -0.2472 1.86" euler="0 0 2.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0048_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="1.3212 -0.2472 1.86" euler="0 0 2.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0048_label" type="mesh" mesh="flask_30ml_label" pos="1.3212 -0.2472 1.86" euler="0 0 2.1" material="lbl_SMP-0048" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0049_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="1.4032 -0.2369 1.86" euler="0 0 12.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0049_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="1.4032 -0.2369 1.86" euler="0 0 12.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0049_label" type="mesh" mesh="flask_50ml_label" pos="1.4032 -0.2369 1.86" euler="0 0 12.2" material="lbl_SMP-0049" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0050_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="1.4979 -0.2384 1.86" euler="0 0 -3.6" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0050_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="1.4979 -0.2384 1.86" euler="0 0 -3.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0050_label" type="mesh" mesh="flask_100ml_label" pos="1.4979 -0.2384 1.86" euler="0 0 -3.6" material="lbl_SMP-0050" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0051_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="1.5796 -0.251 1.86" euler="0 0 8.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0051_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="1.5796 -0.251 1.86" euler="0 0 8.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0051_label" type="mesh" mesh="flask_10ml_label" pos="1.5796 -0.251 1.86" euler="0 0 8.4" material="lbl_SMP-0051" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0052_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="1.6349 -0.247 1.86" euler="0 0 0.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0052_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="1.6349 -0.247 1.86" euler="0 0 0.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0052_label" type="mesh" mesh="flask_20ml_label" pos="1.6349 -0.247 1.86" euler="0 0 0.5" material="lbl_SMP-0052" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0053_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="1.7231 -0.2365 1.86" euler="0 0 -9.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0053_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="1.7231 -0.2365 1.86" euler="0 0 -9.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0053_label" type="mesh" mesh="flask_30ml_label" pos="1.7231 -0.2365 1.86" euler="0 0 -9.7" material="lbl_SMP-0053" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0054_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="1.7999 -0.2385 1.86" euler="0 0 -9.8" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0054_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="1.7999 -0.2385 1.86" euler="0 0 -9.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0054_label" type="mesh" mesh="flask_50ml_label" pos="1.7999 -0.2385 1.86" euler="0 0 -9.8" material="lbl_SMP-0054" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0055_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="1.8919 -0.2351 1.86" euler="0 0 12.9" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0055_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="1.8919 -0.2351 1.86" euler="0 0 12.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0055_label" type="mesh" mesh="flask_100ml_label" pos="1.8919 -0.2351 1.86" euler="0 0 12.9" material="lbl_SMP-0055" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0056_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-1.3981 0.2484 1.86" euler="0 0 175.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0056_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-1.3981 0.2484 1.86" euler="0 0 175.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0056_label" type="mesh" mesh="flask_10ml_label" pos="-1.3981 0.2484 1.86" euler="0 0 175.1" material="lbl_SMP-0056" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0057_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-1.48 0.2439 1.86" euler="0 0 180.3" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0057_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-1.48 0.2439 1.86" euler="0 0 180.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0057_label" type="mesh" mesh="flask_20ml_label" pos="-1.48 0.2439 1.86" euler="0 0 180.3" material="lbl_SMP-0057" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0058_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-1.5519 0.2439 1.86" euler="0 0 176.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0058_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-1.5519 0.2439 1.86" euler="0 0 176.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0058_label" type="mesh" mesh="flask_30ml_label" pos="-1.5519 0.2439 1.86" euler="0 0 176.4" material="lbl_SMP-0058" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0059_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-1.6457 0.2418 1.86" euler="0 0 179.3" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0059_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-1.6457 0.2418 1.86" euler="0 0 179.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0059_label" type="mesh" mesh="flask_50ml_label" pos="-1.6457 0.2418 1.86" euler="0 0 179.3" material="lbl_SMP-0059" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0060_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="-1.7244 0.2411 1.86" euler="0 0 192.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0060_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="-1.7244 0.2411 1.86" euler="0 0 192.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0060_label" type="mesh" mesh="flask_100ml_label" pos="-1.7244 0.2411 1.86" euler="0 0 192.7" material="lbl_SMP-0060" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0061_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-1.8084 0.2415 1.86" euler="0 0 182.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0061_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-1.8084 0.2415 1.86" euler="0 0 182.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0061_label" type="mesh" mesh="flask_10ml_label" pos="-1.8084 0.2415 1.86" euler="0 0 182.7" material="lbl_SMP-0061" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0062_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-1.8944 0.2528 1.86" euler="0 0 192.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0062_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-1.8944 0.2528 1.86" euler="0 0 192.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0062_label" type="mesh" mesh="flask_20ml_label" pos="-1.8944 0.2528 1.86" euler="0 0 192.4" material="lbl_SMP-0062" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0063_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-1.9684 0.2427 1.86" euler="0 0 185.8" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0063_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-1.9684 0.2427 1.86" euler="0 0 185.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0063_label" type="mesh" mesh="flask_30ml_label" pos="-1.9684 0.2427 1.86" euler="0 0 185.8" material="lbl_SMP-0063" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0064_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-2.0504 0.2421 1.86" euler="0 0 183.8" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0064_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-2.0504 0.2421 1.86" euler="0 0 183.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0064_label" type="mesh" mesh="flask_50ml_label" pos="-2.0504 0.2421 1.86" euler="0 0 183.8" material="lbl_SMP-0064" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0065_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="-2.1317 0.2458 1.86" euler="0 0 184.9" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0065_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="-2.1317 0.2458 1.86" euler="0 0 184.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0065_label" type="mesh" mesh="flask_100ml_label" pos="-2.1317 0.2458 1.86" euler="0 0 184.9" material="lbl_SMP-0065" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0066_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-2.2194 0.2408 1.86" euler="0 0 173.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0066_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-2.2194 0.2408 1.86" euler="0 0 173.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0066_label" type="mesh" mesh="flask_10ml_label" pos="-2.2194 0.2408 1.86" euler="0 0 173.4" material="lbl_SMP-0066" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0067_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-2.2991 0.2363 1.86" euler="0 0 191.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0067_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-2.2991 0.2363 1.86" euler="0 0 191.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0067_label" type="mesh" mesh="flask_20ml_label" pos="-2.2991 0.2363 1.86" euler="0 0 191.1" material="lbl_SMP-0067" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0068_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-0.3245 0.2508 1.86" euler="0 0 170.6" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0068_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-0.3245 0.2508 1.86" euler="0 0 170.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0068_label" type="mesh" mesh="flask_30ml_label" pos="-0.3245 0.2508 1.86" euler="0 0 170.6" material="lbl_SMP-0068" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0069_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-0.3972 0.2439 1.86" euler="0 0 169.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0069_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-0.3972 0.2439 1.86" euler="0 0 169.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0069_label" type="mesh" mesh="flask_50ml_label" pos="-0.3972 0.2439 1.86" euler="0 0 169.2" material="lbl_SMP-0069" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0070_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="-0.4919 0.2458 1.86" euler="0 0 192.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0070_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="-0.4919 0.2458 1.86" euler="0 0 192.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0070_label" type="mesh" mesh="flask_100ml_label" pos="-0.4919 0.2458 1.86" euler="0 0 192.1" material="lbl_SMP-0070" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0071_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-0.5849 0.2464 1.86" euler="0 0 178.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0071_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-0.5849 0.2464 1.86" euler="0 0 178.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0071_label" type="mesh" mesh="flask_10ml_label" pos="-0.5849 0.2464 1.86" euler="0 0 178.7" material="lbl_SMP-0071" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0072_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-0.6717 0.2399 1.86" euler="0 0 176.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0072_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-0.6717 0.2399 1.86" euler="0 0 176.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0072_label" type="mesh" mesh="flask_20ml_label" pos="-0.6717 0.2399 1.86" euler="0 0 176.7" material="lbl_SMP-0072" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0073_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-0.7508 0.2521 1.86" euler="0 0 174.0" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0073_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-0.7508 0.2521 1.86" euler="0 0 174.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0073_label" type="mesh" mesh="flask_30ml_label" pos="-0.7508 0.2521 1.86" euler="0 0 174.0" material="lbl_SMP-0073" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0074_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-0.8325 0.2449 1.86" euler="0 0 175.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0074_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-0.8325 0.2449 1.86" euler="0 0 175.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0074_label" type="mesh" mesh="flask_50ml_label" pos="-0.8325 0.2449 1.86" euler="0 0 175.1" material="lbl_SMP-0074" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0075_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="-0.9364 0.2395 1.86" euler="0 0 175.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0075_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="-0.9364 0.2395 1.86" euler="0 0 175.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0075_label" type="mesh" mesh="flask_100ml_label" pos="-0.9364 0.2395 1.86" euler="0 0 175.2" material="lbl_SMP-0075" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0076_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="-1.0304 0.2587 1.86" euler="0 0 166.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0076_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="-1.0304 0.2587 1.86" euler="0 0 166.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0076_label" type="mesh" mesh="flask_10ml_label" pos="-1.0304 0.2587 1.86" euler="0 0 166.1" material="lbl_SMP-0076" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0077_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="-1.0924 0.2387 1.86" euler="0 0 183.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0077_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="-1.0924 0.2387 1.86" euler="0 0 183.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0077_label" type="mesh" mesh="flask_20ml_label" pos="-1.0924 0.2387 1.86" euler="0 0 183.7" material="lbl_SMP-0077" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0078_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="-1.1903 0.2349 1.86" euler="0 0 172.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0078_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="-1.1903 0.2349 1.86" euler="0 0 172.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0078_label" type="mesh" mesh="flask_30ml_label" pos="-1.1903 0.2349 1.86" euler="0 0 172.1" material="lbl_SMP-0078" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0079_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="0.7741 0.2462 1.86" euler="0 0 180.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0079_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="0.7741 0.2462 1.86" euler="0 0 180.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0079_label" type="mesh" mesh="flask_50ml_label" pos="0.7741 0.2462 1.86" euler="0 0 180.5" material="lbl_SMP-0079" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0080_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="0.6833 0.2302 1.86" euler="0 0 172.9" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0080_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="0.6833 0.2302 1.86" euler="0 0 172.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0080_label" type="mesh" mesh="flask_100ml_label" pos="0.6833 0.2302 1.86" euler="0 0 172.9" material="lbl_SMP-0080" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0081_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="0.5997 0.258 1.86" euler="0 0 174.1" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0081_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="0.5997 0.258 1.86" euler="0 0 174.1" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0081_label" type="mesh" mesh="flask_10ml_label" pos="0.5997 0.258 1.86" euler="0 0 174.1" material="lbl_SMP-0081" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0082_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="0.5108 0.2379 1.86" euler="0 0 182.3" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0082_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="0.5108 0.2379 1.86" euler="0 0 182.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0082_label" type="mesh" mesh="flask_20ml_label" pos="0.5108 0.2379 1.86" euler="0 0 182.3" material="lbl_SMP-0082" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0083_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="0.4319 0.236 1.86" euler="0 0 175.3" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0083_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="0.4319 0.236 1.86" euler="0 0 175.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0083_label" type="mesh" mesh="flask_30ml_label" pos="0.4319 0.236 1.86" euler="0 0 175.3" material="lbl_SMP-0083" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0084_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="0.3398 0.2421 1.86" euler="0 0 170.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0084_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="0.3398 0.2421 1.86" euler="0 0 170.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0084_label" type="mesh" mesh="flask_50ml_label" pos="0.3398 0.2421 1.86" euler="0 0 170.4" material="lbl_SMP-0084" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0085_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="0.2535 0.2343 1.86" euler="0 0 185.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0085_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="0.2535 0.2343 1.86" euler="0 0 185.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0085_label" type="mesh" mesh="flask_100ml_label" pos="0.2535 0.2343 1.86" euler="0 0 185.4" material="lbl_SMP-0085" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0086_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="0.1625 0.2581 1.86" euler="0 0 183.9" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0086_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="0.1625 0.2581 1.86" euler="0 0 183.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0086_label" type="mesh" mesh="flask_10ml_label" pos="0.1625 0.2581 1.86" euler="0 0 183.9" material="lbl_SMP-0086" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0087_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="0.0791 0.2426 1.86" euler="0 0 193.3" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0087_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="0.0791 0.2426 1.86" euler="0 0 193.3" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0087_label" type="mesh" mesh="flask_20ml_label" pos="0.0791 0.2426 1.86" euler="0 0 193.3" material="lbl_SMP-0087" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0088_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="0.0047 0.2378 1.86" euler="0 0 169.9" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0088_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="0.0047 0.2378 1.86" euler="0 0 169.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0088_label" type="mesh" mesh="flask_30ml_label" pos="0.0047 0.2378 1.86" euler="0 0 169.9" material="lbl_SMP-0088" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0089_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="-0.0914 0.2424 1.86" euler="0 0 190.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0089_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="-0.0914 0.2424 1.86" euler="0 0 190.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0089_label" type="mesh" mesh="flask_50ml_label" pos="-0.0914 0.2424 1.86" euler="0 0 190.5" material="lbl_SMP-0089" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0090_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="1.8827 0.2337 1.86" euler="0 0 189.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0090_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="1.8827 0.2337 1.86" euler="0 0 189.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0090_label" type="mesh" mesh="flask_100ml_label" pos="1.8827 0.2337 1.86" euler="0 0 189.7" material="lbl_SMP-0090" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0091_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="1.7873 0.2465 1.86" euler="0 0 193.2" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0091_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="1.7873 0.2465 1.86" euler="0 0 193.2" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0091_label" type="mesh" mesh="flask_10ml_label" pos="1.7873 0.2465 1.86" euler="0 0 193.2" material="lbl_SMP-0091" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0092_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="1.723 0.254 1.86" euler="0 0 181.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0092_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="1.723 0.254 1.86" euler="0 0 181.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0092_label" type="mesh" mesh="flask_20ml_label" pos="1.723 0.254 1.86" euler="0 0 181.4" material="lbl_SMP-0092" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0093_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="1.6227 0.2403 1.86" euler="0 0 174.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0093_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="1.6227 0.2403 1.86" euler="0 0 174.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0093_label" type="mesh" mesh="flask_30ml_label" pos="1.6227 0.2403 1.86" euler="0 0 174.7" material="lbl_SMP-0093" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0094_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="1.5532 0.2421 1.86" euler="0 0 179.4" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0094_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="1.5532 0.2421 1.86" euler="0 0 179.4" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0094_label" type="mesh" mesh="flask_50ml_label" pos="1.5532 0.2421 1.86" euler="0 0 179.4" material="lbl_SMP-0094" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0095_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="1.4507 0.2338 1.86" euler="0 0 173.6" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0095_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="1.4507 0.2338 1.86" euler="0 0 173.6" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0095_label" type="mesh" mesh="flask_100ml_label" pos="1.4507 0.2338 1.86" euler="0 0 173.6" material="lbl_SMP-0095" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0096_glass" type="mesh" mesh="flask_10ml_shelf_glass" pos="1.3549 0.2531 1.86" euler="0 0 169.0" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0096_cap" type="mesh" mesh="flask_10ml_shelf_cap" pos="1.3549 0.2531 1.86" euler="0 0 169.0" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0096_label" type="mesh" mesh="flask_10ml_label" pos="1.3549 0.2531 1.86" euler="0 0 169.0" material="lbl_SMP-0096" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0097_glass" type="mesh" mesh="flask_20ml_shelf_glass" pos="1.2886 0.2373 1.86" euler="0 0 170.5" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0097_cap" type="mesh" mesh="flask_20ml_shelf_cap" pos="1.2886 0.2373 1.86" euler="0 0 170.5" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0097_label" type="mesh" mesh="flask_20ml_label" pos="1.2886 0.2373 1.86" euler="0 0 170.5" material="lbl_SMP-0097" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0098_glass" type="mesh" mesh="flask_30ml_shelf_glass" pos="1.2079 0.2355 1.86" euler="0 0 175.7" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0098_cap" type="mesh" mesh="flask_30ml_shelf_cap" pos="1.2079 0.2355 1.86" euler="0 0 175.7" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0098_label" type="mesh" mesh="flask_30ml_label" pos="1.2079 0.2355 1.86" euler="0 0 175.7" material="lbl_SMP-0098" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0099_glass" type="mesh" mesh="flask_50ml_shelf_glass" pos="1.1089 0.2502 1.86" euler="0 0 190.9" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0099_cap" type="mesh" mesh="flask_50ml_shelf_cap" pos="1.1089 0.2502 1.86" euler="0 0 190.9" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0099_label" type="mesh" mesh="flask_50ml_label" pos="1.1089 0.2502 1.86" euler="0 0 190.9" material="lbl_SMP-0099" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0100_glass" type="mesh" mesh="flask_100ml_shelf_glass" pos="1.0266 0.2426 1.86" euler="0 0 186.8" material="amber" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0100_cap" type="mesh" mesh="flask_100ml_shelf_cap" pos="1.0266 0.2426 1.86" euler="0 0 186.8" material="sample_cap" contype="0" conaffinity="0" group="1"/>
+      <geom name="lib_SMP-0100_label" type="mesh" mesh="flask_100ml_label" pos="1.0266 0.2426 1.86" euler="0 0 186.8" material="lbl_SMP-0100" contype="0" conaffinity="0" group="1"/>
 
       <!-- Balance mats with red/orange frames (the balances themselves are attached by the scene). -->
       <geom name="mat_0" type="box" pos="-1.85 -0.51 0.902" size="0.17 0.19 0.002" material="dark" contype="0" conaffinity="0" group="1"/>

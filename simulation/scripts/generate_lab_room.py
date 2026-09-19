@@ -3,13 +3,18 @@
 
 Single source of truth for everything procedural in models/minihannover_scene.xml:
 the room shell (sandwich-panel walls, resin floor, modular ceiling with LED panels,
-glass partitions, doors), the shelving gantry on the bench with its library of amber
-bottles, the wall bench and its equipment, the entrance storage corner, the wash
+glass partitions, doors), the shelving gantry on the bench with its library of
+barcoded sample bottles, the wall bench and its equipment, the entrance storage corner, the wash
 zone, the drying rack, the extraction arms and the office seen through the glass.
 The bench itself (assets/minihannover/), the sink, the balances and the instruments
 are separate assets; the scene composes them.
 
+    python tools/build_labelled_bottles.py   # once, and after any barcode change
     python scripts/generate_lab_room.py
+
+The library is stocked from assets/labelled_bottles/manifest.json, which the first
+command writes: every sample of the barcode catalogue that the scene does not place
+by hand stands on the gantry, once, in the bottle of its own phase and size.
 
 Writes assets/lab_room/lab_room.xml plus the lathe / row meshes in assets/lab_room/meshes/.
 Frame: the bench's frame (origin on the floor at the bench centre, +X along the bench,
@@ -21,6 +26,7 @@ furniture that a robot could touch (benches, counters, gantry, walls) keeps a bo
 
 from __future__ import annotations
 
+import json
 import math
 import pathlib
 
@@ -50,7 +56,20 @@ GANTRY_TOP = 2.42
 # --- Wall bench along the right wall -------------------------------------------
 WB_X0, WB_X1, WB_DEPTH = -5.0, 2.2, 0.70
 
-rng = np.random.default_rng(7)
+# --- Sample library on the gantry ------------------------------------------------
+BOTTLES = OUT.parent / "labelled_bottles"
+# Samples models/minihannover_scene.xml places itself, in the entrance corner and
+# loose on the worktop. A sample is one physical bottle, so they are not shelved too.
+PLACED_BY_SCENE = ("PWD-0004", "PWD-0008", "PWD-0012", "PWD-0020", "PWD-0024", "PWD-0026",
+                   "SMP-0005", "SMP-0009", "SMP-0013", "SMP-0017", "SMP-0021", "SMP-0030",
+                   "SMP-0034")
+# Which bottle sizes stand on which shelf, bottom shelf first: heavy powder bottles
+# low, the small liquid flasks above them. The top shelf, at 2.14 m, stays empty.
+SHELF_STOCK = (("bottle_2000ml", "bottle_1000ml"),
+               ("bottle_500ml", "bottle_250ml", "bottle_100ml"),
+               ("flask_100ml", "flask_50ml", "flask_30ml", "flask_20ml", "flask_10ml"))
+SHELF_FACE_HALF_WIDTH = MODULE / 2 - 0.045   # clear of the uprights
+SHELF_SETBACK = 0.03                         # bottle front, behind the shelf lip
 
 
 # =============================================================================
@@ -88,23 +107,6 @@ def lathe(profile, segments=24):
     return np.array(verts, float), np.array(faces, int)
 
 
-def box_mesh(half, center=(0, 0, 0)):
-    hx, hy, hz = half
-    v = np.array([(sx * hx, sy * hy, sz * hz) for sz in (-1, 1) for sy in (-1, 1) for sx in (-1, 1)], float)
-    f = np.array([(0, 2, 1), (1, 2, 3), (4, 5, 6), (5, 7, 6), (0, 1, 4), (1, 5, 4),
-                  (2, 6, 3), (3, 6, 7), (0, 4, 2), (2, 4, 6), (1, 3, 5), (3, 7, 5)])
-    return v + np.asarray(center, float), f
-
-
-def merge(pieces):
-    vs, fs, off = [], [], 0
-    for v, f in pieces:
-        vs.append(v)
-        fs.append(f + off)
-        off += len(v)
-    return np.vstack(vs), np.vstack(fs)
-
-
 def write_obj(name, mesh):
     v, f = mesh
     MESHES.mkdir(parents=True, exist_ok=True)
@@ -112,40 +114,6 @@ def write_obj(name, mesh):
         out.writelines(f"v {x:.5f} {y:.5f} {z:.5f}\n" for x, y, z in v)
         out.writelines(f"f {a + 1} {b + 1} {c + 1}\n" for a, b, c in f)
 
-
-# Library bottle, ~400 ml amber glass (dia 75 x 150 mm body + neck), and its cap.
-LIB_BOTTLE = [(0, 0), (0.034, 0), (0.0375, 0.004), (0.0375, 0.118), (0.034, 0.132),
-              (0.022, 0.146), (0.0145, 0.150), (0.0145, 0.160), (0, 0.160)]
-LIB_CAP = [(0, 0.157), (0.0175, 0.157), (0.0175, 0.182), (0, 0.182)]
-
-
-def library_row(pattern):
-    """One shelf face of the library: two staggered rows of bottles along X, facing
-    -Y, centred on the origin. Returns meshes for glass, caps and labels."""
-    glass, caps, labels = [], [], []
-    pitch, n = 0.086, 12
-    for row, y, shift in ((0, -0.215, 0.0), (1, -0.125, pitch / 2)):
-        for i in range(n):
-            if rng.random() < pattern["gap"]:
-                continue
-            s = pattern["small"] if rng.random() < pattern["small_share"] else 1.0
-            x = -pitch * (n - 1) / 2 + i * pitch + shift
-            if abs(x) > MODULE / 2 - 0.045:
-                continue
-            for src, dst, prof in ((LIB_BOTTLE, glass, 14), (LIB_CAP, caps, 10)):
-                v, f = lathe(src, prof)
-                dst.append((v * s + (x, y, 0), f))
-            if row == 0:  # only the front row's labels show
-                v, f = box_mesh((0.024 * s, 0.0006, 0.032 * s), (x, y - 0.0375 * s - 0.0006, 0.062 * s))
-                labels.append((v, f))
-    return merge(glass), merge(caps), merge(labels)
-
-
-LIB_PATTERNS = {
-    "a": {"gap": 0.04, "small": 1.0, "small_share": 0.0},
-    "b": {"gap": 0.10, "small": 1.0, "small_share": 0.0},
-    "c": {"gap": 0.06, "small": 0.62, "small_share": 0.7},  # shelves with smaller flasks
-}
 
 LATHES = {
     # name: (profile, segments). Everything a lab has that is round.
@@ -173,10 +141,6 @@ LATHES = {
 
 def build_meshes():
     names = []
-    for key, pattern in LIB_PATTERNS.items():
-        for part, mesh in zip(("glass", "caps", "labels"), library_row(pattern)):
-            write_obj(f"library_{key}_{part}", mesh)
-            names.append(f"library_{key}_{part}")
     for name, (profile, seg) in LATHES.items():
         write_obj(name, lathe(profile, seg))
         names.append(name)
@@ -201,8 +165,8 @@ MATERIALS = {
     "shelf": 'rgba="0.95 0.95 0.95 1" specular="0.4" shininess="0.5"',
     "seam": 'rgba="0.80 0.81 0.81 1"',
     "amber": 'rgba="0.55 0.24 0.04 0.82" specular="0.9" shininess="0.95"',
-    "cap_dark": 'rgba="0.28 0.06 0.08 1" specular="0.4"',
-    "label": 'rgba="0.97 0.97 0.95 1"',
+    "sample_hdpe": 'rgba="0.92 0.92 0.91 1" specular="0.25" shininess="0.4"',
+    "sample_cap": 'rgba="0.93 0.93 0.91 1" specular="0.3" shininess="0.5"',
     "glass": 'rgba="0.80 0.90 0.95 0.15" specular="0.9" shininess="0.95" reflectance="0.1"',
     "glass_clear": 'rgba="0.88 0.94 0.97 0.30" specular="0.9" shininess="0.95"',
     "frosted": 'rgba="0.96 0.97 0.98 0.75"',
@@ -238,6 +202,7 @@ MATERIALS = {
 class Mjcf:
     def __init__(self):
         self.lines = []
+        self.assets = []   # extra <asset> lines: meshes and textures from other folders
         self.n = {}
 
     def uid(self, stem):
@@ -442,19 +407,64 @@ def gantry(m):
     m.span("divider", (x0, -0.004, SHELF_Z[0]), (x1, 0.004, GANTRY_TOP), "white_matte")
     m.span("splash_glass", (x0, -0.005, BENCH_TOP), (x1, 0.005, SHELF_Z[0] - 0.012), "glass_clear", solid=True)
 
-    m.comment("Raw-material library: row meshes of ~400 ml amber bottles, reused on every shelf face "
-              "(the +Y faces turned 180 degrees). Three patterns; 'c' mixes in smaller flasks.")
-    for i in range(MODULES):
-        xc = x0 + (i + 0.5) * MODULE
-        for j, z in enumerate(SHELF_Z):
-            for side, yaw in ((-1, 0), (1, 180)):
-                key = "abc"[(i * 3 + j * 2 + (side > 0)) % 3]
-                if key == "c" and j == len(SHELF_Z) - 1:
-                    key = "a"
-                eul = (0, 0, yaw) if yaw else None
-                m.mesh("lib_glass", f"library_{key}_glass", (xc, 0, z), "amber", euler=eul)
-                m.mesh("lib_caps", f"library_{key}_caps", (xc, 0, z), "cap_dark", euler=eul)
-                m.mesh("lib_labels", f"library_{key}_labels", (xc, 0, z), "label", euler=eul)
+    library(m)
+
+
+def library(m):
+    """Stock the gantry with the barcode catalogue: one bottle per sample.
+
+    Every sample the scene does not place by hand stands here once. Powders are in
+    their white HDPE bottles on the two lower shelves, liquids in amber flasks on the
+    third, a compound's sizes side by side, labels facing the aisle. The bottles are
+    the light stand-ins from assets/labelled_bottles (a kit bottle is 14 000 to 50 000
+    triangles, a stand-in about 1 500), but the sticker is the real one, at half the
+    texture resolution. Geoms are named lib_<sample id>_<part>, so a render's
+    segmentation says which sample it is looking at.
+    """
+    manifest = json.loads((BOTTLES / "manifest.json").read_text())
+    vessels = manifest["vessels"]
+    samples = {k: v for k, v in manifest["samples"].items() if k not in PLACED_BY_SCENE}
+    part_material = {"body": "sample_hdpe", "cap": "sample_cap", "glass": "amber"}
+    spread = np.random.default_rng(11)
+
+    m.comment(f"Sample library: {len(samples)} barcoded bottles, one per catalogue sample that "
+              "the scene does not place itself. Powders (white HDPE) on the two lower shelves, "
+              "liquids (amber glass) on the third; the top shelf is empty.")
+    used_meshes = set()
+    for z, stock in zip(SHELF_Z, SHELF_STOCK):
+        # Sample ids run compound by compound, so sorting keeps a compound together.
+        row = sorted(k for k, v in samples.items() if v["vessel_class"] in stock)
+        faces = [(i, side) for side in (-1, 1) for i in range(MODULES)]
+        for (i, side), chunk in zip(faces, np.array_split(row, len(faces))):
+            xc = GANTRY_X0 + (i + 0.5) * MODULE
+            widths = [vessels[samples[k]["vessel_class"]]["diameter_m"] for k in chunk]
+            gap = (2 * SHELF_FACE_HALF_WIDTH - sum(widths)) / (len(chunk) + 1)
+            x = -SHELF_FACE_HALF_WIDTH
+            for sample_id, width in zip(chunk, widths):
+                vessel = samples[sample_id]["vessel_class"]
+                x += gap + width / 2
+                # Walking along the +Y face the shelf reads the other way round.
+                px = xc - side * (x + spread.uniform(-0.2, 0.2) * gap)
+                py = side * (GANTRY_HY - SHELF_SETBACK - width / 2 - spread.uniform(0, 0.02))
+                yaw = (0 if side < 0 else 180) + spread.uniform(-14, 14)
+                x += width / 2
+                for part in vessels[vessel]["parts"]:
+                    if part == "label_back":
+                        continue   # nobody sees a shelved bottle from behind: the divider
+                    sticker = part == "label"
+                    mesh = f"{vessel}_label" if sticker else f"{vessel}_shelf_{part}"
+                    used_meshes.add(mesh)
+                    material = f"lbl_{sample_id}" if sticker else part_material[part]
+                    m.add(f'<geom name="lib_{sample_id}_{part}" type="mesh" mesh="{mesh}" '
+                          f'pos="{fmt((px, py, z))}" euler="0 0 {yaw:.1f}" material="{material}" '
+                          f'contype="0" conaffinity="0" group="1"/>')
+                m.assets.append(f'<texture name="lbl_{sample_id}" type="2d" '
+                                f'file="../labelled_bottles/textures/shelf/{sample_id}.png"/>')
+                m.assets.append(f'<material name="lbl_{sample_id}" texture="lbl_{sample_id}" '
+                                f'specular="0.05" shininess="0.1"/>')
+    for mesh in sorted(used_meshes):
+        m.assets.append(f'<mesh name="{mesh}" file="../labelled_bottles/meshes/{mesh}.obj" '
+                        f'inertia="shell"/>')
 
 
 def bench_props(m):
@@ -779,7 +789,8 @@ def main() -> None:
     cameras(m)
 
     materials = "\n".join(f'    <material name="{k}" {v}/>' for k, v in MATERIALS.items())
-    meshes = "\n".join(f'    <mesh name="{n}" file="meshes/{n}.obj" inertia="shell"/>' for n in mesh_names)
+    meshes = "\n".join([f'    <mesh name="{n}" file="meshes/{n}.obj" inertia="shell"/>' for n in mesh_names]
+                       + [f"    {line}" for line in m.assets])
     xml = f"""<?xml version="1.0" encoding="utf-8"?>
 <!-- Generated by scripts/generate_lab_room.py - do not edit by hand.
      Perfumery lab around the minihannover bench: interior {X1 - X0:g} x {Y1 - Y0:g} x {H:g} m,

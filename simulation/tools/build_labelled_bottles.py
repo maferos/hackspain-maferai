@@ -13,6 +13,9 @@ only the picture on the sticker differs. So the output is split the same way:
         meshes/<vessel_class>_<part>.obj    one set per bottle size, shared
         textures/<sample id>.png            the label of one sample
         <sample id>.xml                     an MJCF body: shared meshes + its texture
+        meshes/<vessel_class>_shelf_<part>.obj   light stand-ins, for bottles by the hundred
+        textures/shelf/<sample id>.png           the same label at half resolution
+        manifest.json                            sizes, parts and samples, for generators
 
 Each ``<sample id>.xml`` holds one body, origin at the bottom centre, +Z up, label
 facing -Y, closed with its cap. Attach it like any other asset:
@@ -24,17 +27,27 @@ Bottle and cap collide (convex hull) and carry the mass, with ``inertia="exact"`
 because they are thin shells. The sticker is visual only: no collision, no mass, and
 its own geom, so a segmentation render tells label from bottle for free.
 
+The shelf stand-ins exist because the kit meshes are modelled for close-ups: a 1 L
+bottle with its ribbed cap is 48 000 triangles, and the room's shelving holds
+hundreds. A stand-in is the same silhouette revolved in 24 segments, 1 100 to 1 750
+triangles, solid and outer wall only. It takes the same sticker mesh, so the label
+sits where it does on the real bottle. ``scripts/generate_lab_room.py`` reads
+``manifest.json`` to stock the shelves.
+
 Which sample is which comes from ``computer-vision/barcodes/lookup_table.json``.
 
     python tools/build_labelled_bottles.py
 """
 
 import argparse
+import io
 import json
+import math
 from collections import defaultdict
 from pathlib import Path
 
 import numpy as np
+from PIL import Image
 
 from convert_glb import Y_UP_TO_Z_UP, Glb
 
@@ -58,6 +71,14 @@ MATERIALS = {
     "Label_back": ("label_back", 0),
 }
 STICKER_PARTS = ("label", "label_back")
+
+SHELF_SEGMENTS = 24
+"""Sides of a shelf stand-in. The sticker floats 0.2 mm off the true wall, and a
+24-gon of the 2 L bottle dips 0.5 mm inside it between corners, so nothing pokes
+through the label."""
+
+SHELF_PROFILE_TOLERANCE = 0.0003
+"""How far, in metres, the simplified silhouette may stray from the real one."""
 
 
 def parts_of(glb: Glb, lift: float = 0.0) -> dict[str, dict]:
@@ -117,6 +138,74 @@ def write_obj(path: Path, part: dict) -> None:
             f"f {a + 1}/{a + 1} {b + 1}/{b + 1} {c + 1}/{c + 1}\n" for a, b, c in part["f"])
 
 
+def silhouette(vertices: np.ndarray, faces: np.ndarray) -> list[tuple[float, float]]:
+    """Trace the outer (radius, height) profile of a part that is round about +Z.
+
+    At each of 160 heights the profile is the widest any mesh edge gets there,
+    whatever is going on inside the part: inner walls, threads, the ribs of a cap.
+    Edges are used rather than vertices because a lathed wall that runs straight
+    for 10 cm has no vertex along it, only one long edge. The trace is then thinned
+    with Ramer-Douglas-Peucker, which keeps the corners.
+
+    Args:
+        vertices: The part's vertices, +Z up, axis through the origin.
+        faces: Its triangles, as vertex indices.
+
+    Returns:
+        Profile points from the bottom pole to the top pole, ready to revolve.
+    """
+    radius = np.hypot(vertices[:, 0], vertices[:, 1])
+    height = vertices[:, 2]
+    low, high = height.min(), height.max()
+    edges = np.vstack([faces[:, [0, 1]], faces[:, [1, 2]], faces[:, [2, 0]]])
+    za, zb = height[edges[:, 0]], height[edges[:, 1]]
+    ra, rb = radius[edges[:, 0]], radius[edges[:, 1]]
+    span = np.where(zb == za, 1.0, zb - za)
+    points = []
+    for z in np.linspace(low, high, 162)[1:-1]:
+        crossing = (np.minimum(za, zb) <= z) & (z <= np.maximum(za, zb))
+        t = np.clip((z - za[crossing]) / span[crossing], 0.0, 1.0)
+        points.append((float((ra[crossing] + t * (rb[crossing] - ra[crossing])).max()), z))
+    points = [(points[0][0], low)] + points + [(points[-1][0], high)]
+
+    def thin(chain: list) -> list:
+        if len(chain) < 3:
+            return chain
+        (r0, z0), (r1, z1) = chain[0], chain[-1]
+        length = math.hypot(r1 - r0, z1 - z0) or 1e-12
+        off = [abs((r1 - r0) * (z0 - z) - (r0 - r) * (z1 - z0)) / length for r, z in chain]
+        worst = int(np.argmax(off))
+        if off[worst] <= SHELF_PROFILE_TOLERANCE:
+            return [chain[0], chain[-1]]
+        return thin(chain[:worst + 1])[:-1] + thin(chain[worst:])
+
+    return [(0.0, low)] + thin(points) + [(0.0, high)]
+
+
+def revolve(profile: list[tuple[float, float]]) -> tuple[np.ndarray, np.ndarray]:
+    """Revolve a pole-to-pole profile about +Z into a closed, outward-facing mesh."""
+    angles = 2 * math.pi * np.arange(SHELF_SEGMENTS) / SHELF_SEGMENTS
+    vertices, rings = [], []
+    for r, z in profile:
+        if r == 0:
+            rings.append([len(vertices)])
+            vertices.append((0.0, 0.0, z))
+        else:
+            rings.append(list(range(len(vertices), len(vertices) + SHELF_SEGMENTS)))
+            vertices.extend((r * math.cos(a), r * math.sin(a), z) for a in angles)
+    faces = []
+    for lo, hi in zip(rings, rings[1:]):
+        for k in range(SHELF_SEGMENTS):
+            k1 = (k + 1) % SHELF_SEGMENTS
+            if len(lo) == 1:
+                faces.append((lo[0], hi[k1], hi[k]))
+            elif len(hi) == 1:
+                faces.append((lo[k], lo[k1], hi[0]))
+            else:
+                faces += [(lo[k], lo[k1], hi[k1]), (lo[k], hi[k1], hi[k])]
+    return np.array(vertices, float), np.array(faces, int)
+
+
 def label_png(glb: Glb) -> bytes:
     """Pull the embedded label image out of a labelled GLB."""
     image = glb.json["images"][-1]
@@ -167,9 +256,10 @@ def main() -> None:
 
     table = json.loads(TABLE.read_text())["entries"]
     (args.out / "meshes").mkdir(parents=True, exist_ok=True)
-    (args.out / "textures").mkdir(parents=True, exist_ok=True)
+    (args.out / "textures" / "shelf").mkdir(parents=True, exist_ok=True)
 
     shared: dict[str, dict[str, dict]] = {}
+    manifest = {"vessels": {}, "samples": {}}
     for code, record in table.items():
         record = {**record, "code": code}
         sample_id, vessel = record["sample_id"], record["vessel_class"]
@@ -187,14 +277,42 @@ def main() -> None:
                 parts["cap"] = parts_of(cap, lift=seat)["cap"]
             order = sorted(parts, key=lambda name: name in STICKER_PARTS)
             shared[vessel] = {name: parts[name] for name in order}
+            triangles = {"full": 0, "shelf": 0}
             for name, part in shared[vessel].items():
                 write_obj(args.out / "meshes" / f"{vessel}_{name}.obj", part)
-            size = np.ptp(np.vstack([p["v"] for p in shared[vessel].values()]), axis=0)
+                triangles["full"] += len(part["f"])
+                light = part
+                if name not in STICKER_PARTS:
+                    v, f = revolve(silhouette(part["v"], part["f"]))
+                    light = {"v": v, "f": f, "uv": None}
+                    write_obj(args.out / "meshes" / f"{vessel}_shelf_{name}.obj", light)
+                triangles["shelf"] += len(light["f"])
+            everything = np.vstack([p["v"] for p in shared[vessel].values()])
+            size = np.ptp(everything, axis=0)
+            manifest["vessels"][vessel] = {
+                "phase": record["phase"],
+                "container_ml": record["container_ml"],
+                "diameter_m": round(float(max(size[0], size[1])), 5),
+                "height_m": round(float(size[2]), 5),
+                "parts": {name: [round(float(c), 3) for c in part["rgba"]]
+                          for name, part in shared[vessel].items()},
+            }
             print(f"{vessel}: {', '.join(shared[vessel])}; "
-                  f"{size[0] * 1e3:.0f} x {size[1] * 1e3:.0f} x {size[2] * 1e3:.0f} mm")
+                  f"{size[0] * 1e3:.0f} x {size[1] * 1e3:.0f} x {size[2] * 1e3:.0f} mm; "
+                  f"{triangles['full']} triangles, {triangles['shelf']} as a shelf stand-in")
 
-        (args.out / "textures" / f"{sample_id}.png").write_bytes(label_png(glb))
+        png = label_png(glb)
+        (args.out / "textures" / f"{sample_id}.png").write_bytes(png)
+        # Half size by box filter: every texel is the mean of four, so a module stays
+        # four whole pixels wide and the bars stay sharp.
+        label = Image.open(io.BytesIO(png))
+        small = label.resize((label.width // 2, label.height // 2), Image.BOX)
+        small.save(args.out / "textures" / "shelf" / f"{sample_id}.png", optimize=True)
         (args.out / f"{sample_id}.xml").write_text(sample_xml(sample_id, record, shared[vessel]))
+        manifest["samples"][sample_id] = {
+            "vessel_class": vessel, "code": code, "material": record["material"]}
+
+    (args.out / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n")
     print(f"{len(table)} samples -> {args.out}")
 
 
