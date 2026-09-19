@@ -41,6 +41,7 @@
 
   <asset>
     <model name="robotiq_2f85" file="../../third_party/mujoco_menagerie/robotiq_2f85/2f85.xml"/>
+    <model name="wrist_camera" file="../wrist_camera/wrist_camera.xml"/>
     <material class="ur10e" name="black" rgba="0.033 0.033 0.033 1"/>
     <material class="ur10e" name="jointgray" rgba="0.278 0.278 0.278 1"/>
     <material class="ur10e" name="linkgray" rgba="0.82 0.82 0.82 1"/>
@@ -130,6 +131,11 @@
                             fovy="60.44" resolution="1920 1080"/>
                     <site name="eih_site" pos="0.09 0 0.03"
                           xyaxes="0 1 0 -1.0000 0.0000 -0.0000" size="0.004" group="4"/>
+                    <frame pos="0.09 0 0.03"
+                           xyaxes="0 1 0 -1.0000 0.0000 -0.0000">
+                      <attach model="wrist_camera" body="wrist_camera"
+                              prefix="cam_"/>
+                    </frame>
                   </frame>
                 </body>
               </body>

@@ -23,5 +23,7 @@ weights/
 *.log
 mobileclip*.ts
 
-# Menagerie models fetched by simulation/scripts/fetch_menagerie.sh
-simulation/third_party/mujoco_menagerie/
+# Menagerie models fetched by simulation/scripts/fetch_menagerie.sh.
+# No trailing slash: a worktree may link this to another checkout's copy rather
+# than clone it again, and a trailing slash would not match the symlink.
+simulation/third_party/mujoco_menagerie

@@ -7,9 +7,12 @@ Needs the Menagerie models first: bash scripts/fetch_menagerie.sh.
 Writes two generated files:
 
 * ``assets/ur10e_2f85/ur10e_2f85.xml`` --- Menagerie's UR10e with a Robotiq
-  2F-85 attached at its wrist flange. MJCF cannot attach a child model to a
-  *site* of an already-attached model, so the gripper has to be spliced into a
-  copy of the arm rather than added from the scene file.
+  2F-85 attached at its wrist flange, plus the eye-in-hand camera: the MJCF
+  camera, a site the IK aims, and the modelled camera body from
+  ``assets/wrist_camera/`` at exactly the same pose, so the scene shows the
+  hardware the pictures come from. MJCF cannot attach a child model to a *site*
+  of an already-attached model, so all of it has to be spliced into a copy of
+  the arm rather than added from the scene file.
 * ``models/minihannover_rail_scene.xml`` --- the open scene plus the gantry:
   two end posts, a beam along the bench, and a carriage on a slide joint that
   carries the arm.
@@ -105,7 +108,8 @@ def build_arm() -> Path:
                       f'meshdir="{rel}/universal_robots_ur10e/assets"')
     xml = xml.replace(
         '<asset>',
-        f'<asset>\n    <model name="robotiq_2f85" file="{rel}/robotiq_2f85/2f85.xml"/>',
+        f'<asset>\n    <model name="robotiq_2f85" file="{rel}/robotiq_2f85/2f85.xml"/>\n'
+        '    <model name="wrist_camera" file="../wrist_camera/wrist_camera.xml"/>',
         1)
     # The flange site is where UR documents the tool frame; put the gripper on it,
     # and the eye-in-hand camera beside it. Both live in a frame whose +Z is the
@@ -128,6 +132,11 @@ def build_arm() -> Path:
         '                            fovy="60.44" resolution="1920 1080"/>\n'
         f'                    <site name="eih_site" pos="{EIH_OFFSET} 0 {EIH_DROP}"\n'
         f'                          xyaxes="0 1 0 {_fmt(-up)}" size="0.004" group="4"/>\n'
+        f'                    <frame pos="{EIH_OFFSET} 0 {EIH_DROP}"\n'
+        f'                           xyaxes="0 1 0 {_fmt(-up)}">\n'
+        '                      <attach model="wrist_camera" body="wrist_camera"\n'
+        '                              prefix="cam_"/>\n'
+        '                    </frame>\n'
         '                  </frame>')
     # The arm's own keyframe no longer matches nq once the gripper is on, and the
     # scene sets poses from Python anyway.
@@ -210,6 +219,47 @@ def build_scene() -> Path:
     return OUT_SCENE
 
 
+def check_camera_clearance() -> float:
+    """Confirm no part of the modelled camera can appear in its own picture.
+
+    The camera body is placed relative to the lens front, so a change to either
+    the mount offsets or the model can quietly push hardware in front of the
+    lens, where it shows up as a black crescent on every frame. Cheap to assert
+    here instead.
+
+    Returns:
+        The clearance in metres: how far the frontmost camera part sits behind
+        the viewpoint.
+
+    Raises:
+        AssertionError: If anything sits in front of it.
+    """
+    import mujoco
+
+    model = mujoco.MjModel.from_xml_path(str(OUT_SCENE))
+    data = mujoco.MjData(model)
+    mujoco.mj_forward(model, data)
+    camera = model.camera('arm_eih').id
+    view = -data.cam_xmat[camera].reshape(3, 3)[:, 2]
+    worst, worst_name = -np.inf, ''
+    for i in range(model.ngeom):
+        name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, i) or ''
+        if not name.startswith('arm_cam_'):
+            continue
+        # Frontmost corner of the geom's own bounding box, which is tight for
+        # the boxes and cylinders this camera is made of.
+        centre, half = model.geom_aabb[i][:3], model.geom_aabb[i][3:]
+        signs = np.array([[sx, sy, sz] for sx in (-1, 1) for sy in (-1, 1)
+                          for sz in (-1, 1)])
+        corners = ((signs * half + centre)
+                   @ data.geom_xmat[i].reshape(3, 3).T + data.geom_xpos[i])
+        front = float(np.dot(corners - data.cam_xpos[camera], view).max())
+        if front > worst:
+            worst, worst_name = front, name
+    assert worst < 0, f'{worst_name} sticks {worst * 1000:.1f} mm into the view'
+    return -worst
+
+
 def main() -> None:
     arm = build_arm()
     scene = build_scene()
@@ -219,6 +269,8 @@ def main() -> None:
           f'arm base {ARM_BASE_Z:.3f} m ({ARM_BASE_Z - BENCH_TOP:.2f} m over the worktop)')
     print(f'travel: x = {BEAM_X - TRAVEL:.2f} .. {BEAM_X + TRAVEL:.2f} m '
           f'({2 * TRAVEL:.2f} m), bench spans {BENCH_X[0]} .. {BENCH_X[1]} m')
+    print(f'camera: modelled body clears its own lens by '
+          f'{check_camera_clearance() * 1000:.1f} mm')
 
 
 if __name__ == '__main__':
