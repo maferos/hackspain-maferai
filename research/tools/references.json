@@ -1,0 +1,3199 @@
+[
+ {
+  "title": "A micro Lie theory for state estimation in robotics",
+  "authors": "J. Solà, J. Deray, D. Atchuthan",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1812.01537",
+  "arxiv": "1812.01537",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Referencia práctica de $\\oplus/\\ominus$, Jacobianos y adjuntas para SO(3), SE(3), etc. Base de la librería `manif`.",
+   "02_optimizacion_y_algoritmos.md": "Convención $\\oplus/\\ominus$ y jacobianos en el tangente usados en A.3–A.4 y C.1.",
+   "03_aplicaciones_vision_por_computador.md": "Referencia práctica de $\\mathrm{Exp}/\\mathrm{Log}$, Jacobianos y perturbaciones usada en §1 y §3 (desarrollada en la parte 1)"
+  },
+  "citekey": "Sola2018micro",
+  "pdf": "Content/Papers/Sola2018micro.pdf",
+  "sha256": "93190a60ad5f390006970f684ba8590bf55ce21adc3c1cb675adc55ead17f869"
+ },
+ {
+  "title": "Associating Uncertainty With Three-Dimensional Poses for Use in Estimation Problems",
+  "authors": "T. D. Barfoot, P. T. Furgale",
+  "year": 2014,
+  "url": "https://doi.org/10.1109/TRO.2014.2298059",
+  "arxiv": null,
+  "doi": "10.1109/TRO.2014.2298059",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Composición, fusión y propagación de incertidumbre en SE(3) (hasta 4º orden)."
+  },
+  "citekey": "Barfoot2014associating"
+ },
+ {
+  "title": "State Estimation for Robotics",
+  "authors": "T. D. Barfoot",
+  "year": 2017,
+  "url": "https://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Libro de referencia: grupos de Lie matriciales, Jacobianos cerrados de SE(3), estimación."
+  },
+  "citekey": "Barfoot2017state"
+ },
+ {
+  "title": "Stochastic Models, Information Theory, and Lie Groups, Vol. 1",
+  "authors": "G. S. Chirikjian",
+  "year": 2009,
+  "url": "https://link.springer.com/book/10.1007/978-0-8176-4803-9",
+  "arxiv": null,
+  "doi": "10.1007/978-0-8176-4803-9",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Fundamentos: procesos estocásticos, geometría diferencial, información."
+  },
+  "citekey": "Chirikjian2009stochastic"
+ },
+ {
+  "title": "Stochastic Models, Information Theory, and Lie Groups, Vol. 2",
+  "authors": "G. S. Chirikjian",
+  "year": 2011,
+  "url": "https://link.springer.com/book/10.1007/978-0-8176-4944-9",
+  "arxiv": null,
+  "doi": "10.1007/978-0-8176-4944-9",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Análisis armónico y probabilidad en grupos de Lie, aplicaciones a robótica."
+  },
+  "citekey": "Chirikjian2011stochastic"
+ },
+ {
+  "title": "Nonparametric Second-order Theory of Error Propagation on Motion Groups",
+  "authors": "Y. Wang, G. S. Chirikjian",
+  "year": 2008,
+  "url": "https://doi.org/10.1177/0278364908097583",
+  "arxiv": null,
+  "doi": "10.1177/0278364908097583",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Propagación de error de segundo orden en cadenas seriales (SE(3))."
+  },
+  "citekey": "Wang2008nonparametric"
+ },
+ {
+  "title": "Robotic manipulators and the product of exponentials formula",
+  "authors": "R. W. Brockett",
+  "year": 1984,
+  "url": "https://link.springer.com/chapter/10.1007/BFb0031048",
+  "arxiv": null,
+  "doi": "10.1007/BFb0031048",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Origen de la fórmula PoE para cinemática directa."
+  },
+  "citekey": "Brockett1984robotic"
+ },
+ {
+  "title": "Modern Robotics: Mechanics, Planning, and Control",
+  "authors": "K. M. Lynch, F. C. Park",
+  "year": 2017,
+  "url": "http://hades.mech.northwestern.edu/images/2/2e/MR-largefont-v2.pdf",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Texto moderno con giros, PoE, Jacobianos y dinámica en SE(3); convención de este documento.",
+   "02_optimizacion_y_algoritmos.md": "Twists, producto de exponenciales, IK numérica en $SE(3)$ (C.1)."
+  },
+  "citekey": "Lynch2017modern"
+ },
+ {
+  "title": "A Mathematical Introduction to Robotic Manipulation",
+  "authors": "R. M. Murray, Z. Li, S. S. Sastry",
+  "year": 1994,
+  "url": "https://www.cds.caltech.edu/~murray/books/MLS/",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Tratamiento riguroso clásico de teoría de tornillos y dinámica lagrangiana."
+  },
+  "citekey": "Murray1994mathematical"
+ },
+ {
+  "title": "Manipulability of Robotic Mechanisms",
+  "authors": "T. Yoshikawa",
+  "year": 1985,
+  "url": "https://journals.sagepub.com/doi/10.1177/027836498500400201",
+  "arxiv": null,
+  "doi": "10.1177/027836498500400201",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Índice y elipsoide de manipulabilidad."
+  },
+  "citekey": "Yoshikawa1985manipulability"
+ },
+ {
+  "title": "A Lie Group Formulation of Robot Dynamics",
+  "authors": "F. C. Park, J. E. Bobrow, S. R. Ploen",
+  "year": 1995,
+  "url": "https://doi.org/10.1177/027836499501400606",
+  "arxiv": null,
+  "doi": "10.1177/027836499501400606",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Newton–Euler recursivo y forma cerrada con operaciones de álgebra de Lie."
+  },
+  "citekey": "Park1995lie"
+ },
+ {
+  "title": "Rigid Body Dynamics Algorithms",
+  "authors": "R. Featherstone",
+  "year": 2008,
+  "url": "https://link.springer.com/book/10.1007/978-1-4899-7560-7",
+  "arxiv": null,
+  "doi": "10.1007/978-1-4899-7560-7",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Álgebra espacial 6D; base de RNEA/CRBA/ABA de simuladores como MuJoCo."
+  },
+  "citekey": "Featherstone2008rigid"
+ },
+ {
+  "title": "Geometric Control of Mechanical Systems",
+  "authors": "F. Bullo, A. D. Lewis",
+  "year": 2005,
+  "url": "https://link.springer.com/book/10.1007/978-1-4899-7276-7",
+  "arxiv": null,
+  "doi": "10.1007/978-1-4899-7276-7",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Sistemas mecánicos como métricas riemannianas + conexiones afines."
+  },
+  "citekey": "Bullo2005geometric"
+ },
+ {
+  "title": "Introduction to Mechanics and Symmetry",
+  "authors": "J. E. Marsden, T. S. Ratiu",
+  "year": 1999,
+  "url": "https://link.springer.com/book/10.1007/978-0-387-21792-5",
+  "arxiv": null,
+  "doi": "10.1007/978-0-387-21792-5",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Euler–Poincaré, reducción por simetría, mecánica en grupos de Lie."
+  },
+  "citekey": "Marsden1999introduction"
+ },
+ {
+  "title": "Coriolis Factorizations and their Connections to Riemannian Geometry",
+  "authors": "P. M. Wensing, J.-J. E. Slotine",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2312.14425",
+  "arxiv": "2312.14425",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Relación entre elección de $C(q,\\dot q)$, conexiones afines y pasividad."
+  },
+  "citekey": "Wensing2023coriolis",
+  "pdf": "Content/Papers/Wensing2023coriolis.pdf",
+  "sha256": "c11b6bab4c2698c408c9e4ea9ce4b9a8ee202cb541dcd6039ad63a6b71ae4f58"
+ },
+ {
+  "title": "Riemannian Motion Policies",
+  "authors": "N. D. Ratliff, J. Issac, D. Kappler, S. Birchfield, D. Fox",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1801.02854",
+  "arxiv": "1801.02854",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Políticas de movimiento como (aceleración, métrica); pullback al espacio articular.",
+   "02_optimizacion_y_algoritmos.md": "Políticas + métricas; analogía con el gradiente natural (C.3)."
+  },
+  "citekey": "Ratliff2018riemannian",
+  "pdf": "Content/Papers/Ratliff2018riemannian.pdf",
+  "sha256": "5e0e8497db2f909339f2d1ee39aecd69407662322ab3e595430d8a5653a9cd56"
+ },
+ {
+  "title": "Riemannian geometry as a unifying theory for robot motion learning and control",
+  "authors": "N. Jaquier, T. Asfour",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2209.15539",
+  "arxiv": "2209.15539",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Visión de conjunto de la geometría riemanniana en aprendizaje y control de robots.",
+   "02_optimizacion_y_algoritmos.md": "Marco conceptual riemanniano para movimiento robótico (C.4)."
+  },
+  "citekey": "Jaquier2022riemannian",
+  "pdf": "Content/Papers/Jaquier2022riemannian.pdf",
+  "sha256": "20e8ca66666b512646f661a08b76eb3d610be8d8e69305af178c244319580052"
+ },
+ {
+  "title": "Gaussians on Riemannian Manifolds: Applications for Robot Learning and Adaptive Control",
+  "authors": "S. Calinon",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/1909.05946",
+  "arxiv": "1909.05946",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Gaussianas, geodésicas y transporte paralelo en variedades para aprendizaje robótico.",
+   "02_optimizacion_y_algoritmos.md": "GMM/GMR/LQR en variedades (C.4)."
+  },
+  "citekey": "Calinon2020gaussians",
+  "pdf": "Content/Papers/Calinon2020gaussians.pdf",
+  "sha256": "486ab24354634ffc3e1e8866a2100225d8dcbcedeb1137481216d99defcddb1d"
+ },
+ {
+  "title": "Introduction to Smooth Manifolds (2ª ed.)",
+  "authors": "J. M. Lee",
+  "year": 2012,
+  "url": "https://link.springer.com/book/10.1007/978-1-4419-9982-5",
+  "arxiv": null,
+  "doi": "10.1007/978-1-4419-9982-5",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Referencia estándar de variedades, tangentes, grupos y álgebras de Lie."
+  },
+  "citekey": "Lee2012introduction"
+ },
+ {
+  "title": "Optimization Algorithms on Matrix Manifolds",
+  "authors": "P.-A. Absil, R. Mahony, R. Sepulchre",
+  "year": 2008,
+  "url": "https://press.princeton.edu/books/hardcover/9780691132983/optimization-algorithms-on-matrix-manifolds",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Retracciones, gradiente riemanniano en variedades matriciales (enlace con Parte 2).",
+   "02_optimizacion_y_algoritmos.md": "Texto clásico: gradiente riemanniano, retracciones, transporte vectorial, Newton y trust-regions en variedades (A)."
+  },
+  "citekey": "Absil2008optimization"
+ },
+ {
+  "title": "An Introduction to Optimization on Smooth Manifolds",
+  "authors": "N. Boumal",
+  "year": 2023,
+  "url": "https://doi.org/10.1017/9781009166164",
+  "arxiv": null,
+  "doi": "10.1017/9781009166164",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Introducción moderna a geometría y optimización en variedades.",
+   "02_optimizacion_y_algoritmos.md": "Referencia moderna y gratuita; complejidad de RGD, convexidad geodésica (A)."
+  },
+  "citekey": "Boumal2023introduction"
+ },
+ {
+  "title": "Integrating generic sensor fusion algorithms with sound state representations through encapsulation of manifolds",
+  "authors": "C. Hertzberg, R. Wagner, U. Frese, L. Schröder",
+  "year": 2013,
+  "url": "https://arxiv.org/abs/1107.1119",
+  "arxiv": "1107.1119",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Operadores $\\boxplus/\\boxminus$ que encapsulan la variedad para algoritmos genéricos."
+  },
+  "citekey": "Hertzberg2013integrating",
+  "pdf": "Content/Papers/Hertzberg2013integrating.pdf",
+  "sha256": "b8f0be7d5b545c7372f7c6e271dc361cc27cf11f1a719c5c82510fa4b21f1f61"
+ },
+ {
+  "title": "Quaternion kinematics for the error-state Kalman filter",
+  "authors": "J. Solà",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1711.02508",
+  "arxiv": "1711.02508",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Cuaterniones, perturbaciones de rotación, derivadas e integración."
+  },
+  "citekey": "Sola2017quaternion",
+  "pdf": "Content/Papers/Sola2017quaternion.pdf",
+  "sha256": "6a3d3d3933c425eb6cef049290c2b48b71a90f5189e9810575d83d3a922faaca"
+ },
+ {
+  "title": "On-Manifold Preintegration for Real-Time Visual-Inertial Odometry",
+  "authors": "C. Forster, L. Carlone, F. Dellaert, D. Scaramuzza",
+  "year": 2016,
+  "url": "https://arxiv.org/abs/1512.02363",
+  "arxiv": "1512.02363",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Ejemplo canónico de cálculo con $J_r$ en SO(3) y ruido en el álgebra.",
+   "03_aplicaciones_vision_por_computador.md": "Preintegración IMU en $SO(3)$"
+  },
+  "citekey": "Forster2016manifold",
+  "pdf": "Content/Papers/Forster2016manifold.pdf",
+  "sha256": "214b8bee53e1fb6218c1cec1352d74c24951feec815517e6a0cc6dfcf1fd8f32"
+ },
+ {
+  "title": "The invariant extended Kalman filter as a stable observer",
+  "authors": "A. Barrau, S. Bonnabel",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1410.1465",
+  "arxiv": "1410.1465",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Error invariante en grupos de Lie y garantías de estabilidad.",
+   "03_aplicaciones_vision_por_computador.md": "IEKF: error autónomo en grupos de Lie"
+  },
+  "citekey": "Barrau2017invariant",
+  "pdf": "Content/Papers/Barrau2017invariant.pdf",
+  "sha256": "ca81b8ef0fc135e6d67a9531f30188476a2d927ee47a95e83d0f9da4f8a91e37"
+ },
+ {
+  "title": "Natural Gradient Works Efficiently in Learning",
+  "authors": "S. Amari",
+  "year": 1998,
+  "url": "https://doi.org/10.1162/089976698300017746",
+  "arxiv": null,
+  "doi": "10.1162/089976698300017746",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Gradiente natural con la métrica de Fisher (puente a Parte 2).",
+   "02_optimizacion_y_algoritmos.md": "Origen del gradiente natural y la métrica de Fisher (B.2)."
+  },
+  "citekey": "Amari1998natural"
+ },
+ {
+  "title": "Information Geometry and Its Applications",
+  "authors": "S. Amari",
+  "year": 2016,
+  "url": "https://link.springer.com/book/10.1007/978-4-431-55978-8",
+  "arxiv": null,
+  "doi": "10.1007/978-4-431-55978-8",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Monografía del fundador: conexiones duales, variedades dualmente planas."
+  },
+  "citekey": "Amari2016information"
+ },
+ {
+  "title": "An elementary introduction to information geometry",
+  "authors": "F. Nielsen",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1808.08271",
+  "arxiv": "1808.08271",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Introducción autocontenida a la geometría de la información."
+  },
+  "citekey": "Nielsen2018elementary",
+  "pdf": "Content/Papers/Nielsen2018elementary.pdf",
+  "sha256": "c691923b1b65547561d8f641d5a5762c3d0d8d39ff8724cd5d4b2cae52a62d6f"
+ },
+ {
+  "title": "Group Equivariant Convolutional Networks",
+  "authors": "T. S. Cohen, M. Welling",
+  "year": 2016,
+  "url": "https://arxiv.org/abs/1602.07576",
+  "arxiv": "1602.07576",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "G-CNN: convolución de grupo y equivariancia."
+  },
+  "citekey": "Cohen2016group",
+  "pdf": "Content/Papers/Cohen2016group.pdf",
+  "sha256": "f99aa84fcd750c5f99ce700c635a2128cd741142d3df96d9794645c9cb199570"
+ },
+ {
+  "title": "Geometric Deep Learning: Grids, Groups, Graphs, Geodesics, and Gauges",
+  "authors": "M. M. Bronstein, J. Bruna, T. Cohen, P. Veličković",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2104.13478",
+  "arxiv": "2104.13478",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Blueprint unificado del aprendizaje profundo geométrico."
+  },
+  "citekey": "Bronstein2021geometric",
+  "pdf": "Content/Papers/Bronstein2021geometric.pdf",
+  "sha256": "dcf8212ed37db9ac154ac975b8f9c7d36831cf56b75261679b04ab9814985fc2"
+ },
+ {
+  "title": "On the Generalization of Equivariance and Convolution in Neural Networks to the Action of Compact Groups",
+  "authors": "R. Kondor, S. Trivedi",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1802.03690",
+  "arxiv": "1802.03690",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Convolución ⇔ equivariancia para grupos compactos."
+  },
+  "citekey": "Kondor2018generalization",
+  "pdf": "Content/Papers/Kondor2018generalization.pdf",
+  "sha256": "ce6bf070b3683a705a6229e9e505a7b523d495f279e72a26b551833a0d1ecf42"
+ },
+ {
+  "title": "A General Theory of Equivariant CNNs on Homogeneous Spaces",
+  "authors": "T. S. Cohen, M. Geiger, M. Weiler",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1811.02017",
+  "arxiv": "1811.02017",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Teoría de campos y núcleos steerable sobre $G/H$."
+  },
+  "citekey": "Cohen2019general",
+  "pdf": "Content/Papers/Cohen2019general.pdf",
+  "sha256": "ae26fab38f6621030b3eb00454ccd1bffdccf7d75b704f7a5a758f4bf91f2b29"
+ },
+ {
+  "title": "3D Steerable CNNs: Learning Rotationally Equivariant Features in Volumetric Data",
+  "authors": "M. Weiler, M. Geiger, M. Welling, W. Boomsma, T. Cohen",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1807.02547",
+  "arxiv": "1807.02547",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Convoluciones equivariantes a SE(3) en datos volumétricos."
+  },
+  "citekey": "Weiler20183d",
+  "pdf": "Content/Papers/Weiler20183d.pdf",
+  "sha256": "cb1b094979494f5fb8dad0af247ef5b77ffd9f7f60d8ae63e24239cee584ba5f"
+ },
+ {
+  "title": "Generalizing Convolutional Neural Networks for Equivariance to Lie Groups on Arbitrary Continuous Data",
+  "authors": "M. Finzi, S. Stanton, P. Izmailov, A. G. Wilson",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2002.12880",
+  "arxiv": "2002.12880",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "LieConv: equivariancia a cualquier grupo de Lie usando solo exp/log."
+  },
+  "citekey": "Finzi2020generalizing",
+  "pdf": "Content/Papers/Finzi2020generalizing.pdf",
+  "sha256": "28f7498b5c078cf7b4c606818508fbc6d3e9960c7d4f7dfb3aa581aa0c893472"
+ },
+ {
+  "title": "Testing the Manifold Hypothesis",
+  "authors": "C. Fefferman, S. Mitter, H. Narayanan",
+  "year": 2016,
+  "url": "https://arxiv.org/abs/1310.0425",
+  "arxiv": "1310.0425",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Formalización matemática de la hipótesis de la variedad."
+  },
+  "citekey": "Fefferman2016testing",
+  "pdf": "Content/Papers/Fefferman2016testing.pdf",
+  "sha256": "88f5ebb8238233a5af6e2f22184806832afb61a99f3745864a7441f4bd544836"
+ },
+ {
+  "title": "On the Continuity of Rotation Representations in Neural Networks",
+  "authors": "Y. Zhou, C. Barnes, J. Lu, J. Yang, H. Li",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1812.07035",
+  "arxiv": "1812.07035",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "No hay representación continua de SO(3) en $\\mathbb{R}^{\\le4}$; propone 5D/6D.",
+   "02_optimizacion_y_algoritmos.md": "Representación 6D continua (D.4).",
+   "03_aplicaciones_vision_por_computador.md": "Justifica la representación 6D (§2.3, §6.3)"
+  },
+  "citekey": "Zhou2019continuity",
+  "pdf": "Content/Papers/Zhou2019continuity.pdf",
+  "sha256": "369c6c54101ce827b2ef84ff5bbea91fe5209ffd2749c158532d06bf4eed0633"
+ },
+ {
+  "title": "An Analysis of SVD for Deep Rotation Estimation",
+  "authors": "J. Levinson, C. Esteves, K. Chen, N. Snavely, A. Kanazawa, A. Rostamizadeh, A. Makadia",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2006.14616",
+  "arxiv": "2006.14616",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Ortogonalización SVD (9D) como salida óptima para rotaciones."
+  },
+  "citekey": "Levinson2020analysis",
+  "pdf": "Content/Papers/Levinson2020analysis.pdf",
+  "sha256": "638cb6f7de8f12e475ca34e0179a158fbd6fac25d736177bf92ddd494b133a70"
+ },
+ {
+  "title": "Deep Regression on Manifolds: A 3D Rotation Case Study",
+  "authors": "R. Brégier",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2103.16317",
+  "arxiv": "2103.16317",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Propiedades deseables de las aplicaciones $\\mathbb{R}^k\\to SO(3)$; librería RoMa."
+  },
+  "citekey": "Bregier2021deep",
+  "pdf": "Content/Papers/Bregier2021deep.pdf",
+  "sha256": "885a06f91568ca50ea5e0835193578b2fcdae0055378ec95136023e18e33bfa7"
+ },
+ {
+  "title": "Learning with 3D rotations, a hitchhiker's guide to SO(3)",
+  "authors": "A. R. Geist, J. Frey, M. Zhobro, A. Levina, G. Martius",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2404.11735",
+  "arxiv": "2404.11735",
+  "doi": null,
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Guía práctica: qué representación usar en entradas vs. salidas."
+  },
+  "citekey": "Geist2024learning",
+  "pdf": "Content/Papers/Geist2024learning.pdf",
+  "sha256": "9e2e21a102a627b7e1f56c0331ced71b83d8a2269e95535b2c33c90f4d6f4d65"
+ },
+ {
+  "title": "On the Parametrization of the Three-Dimensional Rotation Group",
+  "authors": "J. Stuelpnagel",
+  "year": 1964,
+  "url": "https://doi.org/10.1137/1006093",
+  "arxiv": null,
+  "doi": "10.1137/1006093",
+  "why": {
+   "01_matematicas_grupos_de_lie.md": "Ninguna parametrización 3D de SO(3) es global y no singular."
+  },
+  "citekey": "Stuelpnagel1964parametrization"
+ },
+ {
+  "title": "Riemannian Adaptive Optimization Methods",
+  "authors": "G. Bécigneul, O.-E. Ganea",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1810.00760",
+  "arxiv": "1810.00760",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Adam/AMSGrad riemannianos en productos de variedades (A.5)."
+  },
+  "citekey": "Becigneul2018riemannian",
+  "pdf": "Content/Papers/Becigneul2018riemannian.pdf",
+  "sha256": "5923517615e9dd5931b3f519613dc0510502acc5db2cf6e8a76702d308f4b3ee"
+ },
+ {
+  "title": "Pymanopt: A Python Toolbox for Optimization on Manifolds using Automatic Differentiation",
+  "authors": "J. Townsend, N. Koep, S. Weichwald",
+  "year": 2016,
+  "url": "https://arxiv.org/abs/1603.03236",
+  "arxiv": "1603.03236",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Toolbox de variedades con autodiff (A.6)."
+  },
+  "citekey": "Townsend2016pymanopt",
+  "pdf": "Content/Papers/Townsend2016pymanopt.pdf",
+  "sha256": "ead0e9f60f58289464dc4d68fa2b6ca82b327c07df1f3ec945bbff28faf87c65"
+ },
+ {
+  "title": "Geoopt: Riemannian Optimization in PyTorch",
+  "authors": "M. Kochurov, R. Karimov, S. Kozlukov",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2005.02819",
+  "arxiv": "2005.02819",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "`RiemannianAdam`/`RiemannianSGD` en PyTorch (A.5–A.6)."
+  },
+  "citekey": "Kochurov2020geoopt",
+  "pdf": "Content/Papers/Kochurov2020geoopt.pdf",
+  "sha256": "39746ffed2db3524c72fb3bf5ad0277acf35bfddd4170c46e967e7418138dd2d"
+ },
+ {
+  "title": "Theseus: A Library for Differentiable Nonlinear Optimization",
+  "authors": "L. Pineda et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2207.09442",
+  "arxiv": "2207.09442",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "GN/LM diferenciables con grupos de Lie como capa de red (A.6, F.5)."
+  },
+  "citekey": "Pineda2022theseus",
+  "pdf": "Content/Papers/Pineda2022theseus.pdf",
+  "sha256": "8495ea9528d96129ce8c95136a46ceeb81ca9aff4cbc5ace2a415404d7b607a7"
+ },
+ {
+  "title": "Tangent Space Backpropagation for 3D Transformation Groups (LieTorch)",
+  "authors": "Z. Teed, J. Deng",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2103.12032",
+  "arxiv": "2103.12032",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Retropropagación en el álgebra de Lie; base conceptual de los gradientes en el tangente (A.6).",
+   "03_aplicaciones_vision_por_computador.md": "Biblioteca para retropropagar en el tangente de $SE(3)$/$Sim(3)$"
+  },
+  "citekey": "Teed2021tangent",
+  "pdf": "Content/Papers/Teed2021tangent.pdf",
+  "sha256": "645a8ac67275f2609d692fc54214a7bd0b5e24e8790957ba5953d1db322beb25"
+ },
+ {
+  "title": "PyPose: A Library for Robot Learning with Physics-based Optimization",
+  "authors": "C. Wang et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2209.15428",
+  "arxiv": "2209.15428",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "`LieTensor` + optimizadores LM con trust region; librería recomendada en F.",
+   "03_aplicaciones_vision_por_computador.md": "Grupos de Lie y optimizadores de 2.º orden en PyTorch"
+  },
+  "citekey": "Wang2022pypose",
+  "pdf": "Content/Papers/Wang2022pypose.pdf",
+  "sha256": "60ee1b6d3661088763c206ffdf4a82309156946ae2ad65d9bd23a07b331bbd91"
+ },
+ {
+  "title": "jaxlie — Rigid transforms + Lie groups for JAX",
+  "authors": "B. Yi",
+  "year": null,
+  "url": "https://github.com/brentyi/jaxlie",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "$SO(3)$/$SE(3)$ en JAX con `manifold.grad` (A.6)."
+  },
+  "citekey": "Yi0jaxlie"
+ },
+ {
+  "title": "manif — small C++11 header-only library for Lie theory",
+  "authors": "J. Deray, J. Solà",
+  "year": null,
+  "url": "https://github.com/artivis/manif",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Jacobianos analíticos en el tangente; compañero de (3)."
+  },
+  "citekey": "Deray0manif"
+ },
+ {
+  "title": "Sophus — C++ implementation of Lie Groups using Eigen",
+  "authors": "H. Strasdat",
+  "year": null,
+  "url": "https://github.com/strasdat/Sophus",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Implementación de referencia en C++/SLAM (A.6)."
+  },
+  "citekey": "Strasdat0sophus"
+ },
+ {
+  "title": "liegroups — SO2/SE2/SO3/SE3 in numpy or pytorch",
+  "authors": "utiasSTARS",
+  "year": null,
+  "url": "https://github.com/utiasSTARS/liegroups",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Implementación ligera (sin mantenimiento; ver PyMLG) (A.6)."
+  },
+  "citekey": "UtiasSTARS0liegroups"
+ },
+ {
+  "title": "New Insights and Perspectives on the Natural Gradient Method",
+  "authors": "J. Martens",
+  "year": 2014,
+  "url": "https://arxiv.org/abs/1412.1193",
+  "arxiv": "1412.1193",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Fisher = Gauss-Newton generalizada; amortiguamiento y trust regions (B.2)."
+  },
+  "citekey": "Martens2014new",
+  "pdf": "Content/Papers/Martens2014new.pdf",
+  "sha256": "751f91031561cb5de4cd6255b11732feced7036a6b54534793c2fdccebde9fac"
+ },
+ {
+  "title": "Optimizing Neural Networks with Kronecker-factored Approximate Curvature",
+  "authors": "J. Martens, R. Grosse",
+  "year": 2015,
+  "url": "https://arxiv.org/abs/1503.05671",
+  "arxiv": "1503.05671",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "K-FAC: gradiente natural escalable (B.3)."
+  },
+  "citekey": "Martens2015optimizing",
+  "pdf": "Content/Papers/Martens2015optimizing.pdf",
+  "sha256": "da06b21e402d147a2852a3ca7c63be8b0448d5083053b595d754e9bf6439e1fe"
+ },
+ {
+  "title": "Scalable trust-region method for deep RL using Kronecker-factored approximation (ACKTR)",
+  "authors": "Y. Wu et al.",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1708.05144",
+  "arxiv": "1708.05144",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "K-FAC + trust region en actor-crítico, probado en MuJoCo (B.3, F.7)."
+  },
+  "citekey": "Wu2017scalable",
+  "pdf": "Content/Papers/Wu2017scalable.pdf",
+  "sha256": "11decb0222c4c0639b5bddc3d07babe6b7f66c796c502efd0d352078aeb61e14"
+ },
+ {
+  "title": "Shampoo: Preconditioned Stochastic Tensor Optimization",
+  "authors": "V. Gupta, T. Koren, Y. Singer",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1802.09568",
+  "arxiv": "1802.09568",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Precondicionador de Kronecker por modos (B.4)."
+  },
+  "citekey": "Gupta2018shampoo",
+  "pdf": "Content/Papers/Gupta2018shampoo.pdf",
+  "sha256": "dedd4fdb7f591342eb3bcee119d7d51f3b751d7070afc0b1ba59560ef2594d64"
+ },
+ {
+  "title": "A Natural Policy Gradient",
+  "authors": "S. Kakade",
+  "year": 2001,
+  "url": "https://dblp.org/rec/conf/nips/Kakade01.html",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Gradiente natural aplicado a políticas (B.5)."
+  },
+  "citekey": "Kakade2001natural"
+ },
+ {
+  "title": "Trust Region Policy Optimization",
+  "authors": "J. Schulman et al.",
+  "year": 2015,
+  "url": "https://arxiv.org/abs/1502.05477",
+  "arxiv": "1502.05477",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Gradiente natural con restricción KL y CG (B.5, F.7)."
+  },
+  "citekey": "Schulman2015trust",
+  "pdf": "Content/Papers/Schulman2015trust.pdf",
+  "sha256": "c228ad36d9d46972b898c96d58b5929c51b54cc43fd42f01d751b36f434bfa4a"
+ },
+ {
+  "title": "Proximal Policy Optimization Algorithms",
+  "authors": "J. Schulman et al.",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1707.06347",
+  "arxiv": "1707.06347",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Sustituto de primer orden de la trust region; estándar para fine-tuning (B.5, D.2)."
+  },
+  "citekey": "Schulman2017proximal",
+  "pdf": "Content/Papers/Schulman2017proximal.pdf",
+  "sha256": "e78feadadbdbb0b601b3c2bcc81404722cd431a489b307545f9b7bea1e8c4f5b"
+ },
+ {
+  "title": "The Information Geometry of Mirror Descent",
+  "authors": "G. Raskutti, S. Mukherjee",
+  "year": 2013,
+  "url": "https://arxiv.org/abs/1310.7780",
+  "arxiv": "1310.7780",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Equivalencia descenso espejo ↔ gradiente natural (B.6)."
+  },
+  "citekey": "Raskutti2013information",
+  "pdf": "Content/Papers/Raskutti2013information.pdf",
+  "sha256": "51d26f92ec6d35f3d8804a1b7a54f97071d1d7b97ec9738c74a515d5a19ff18e"
+ },
+ {
+  "title": "Natural gradient via optimal transport",
+  "authors": "W. Li, G. Montúfar",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1803.07033",
+  "arxiv": "1803.07033",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Gradiente natural de Wasserstein (B.8)."
+  },
+  "citekey": "Li2018natural",
+  "pdf": "Content/Papers/Li2018natural.pdf",
+  "sha256": "c3a8c7d411e5d5cf82700a88f11148ea057cff8d11dc8c4dc6d95f0fc0ef75db"
+ },
+ {
+  "title": "Kernelized Wasserstein Natural Gradient",
+  "authors": "M. Arbel, A. Gretton, W. Li, G. Montúfar",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1910.09652",
+  "arxiv": "1910.09652",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Estimador escalable del gradiente natural de Wasserstein (B.8)."
+  },
+  "citekey": "Arbel2019kernelized",
+  "pdf": "Content/Papers/Arbel2019kernelized.pdf",
+  "sha256": "9cb96e081b7df04b8dbfeb25992b7d739cd4cbae7bc01f3f858be673df6cf478"
+ },
+ {
+  "title": "Introduction to Inverse Kinematics with Jacobian Transpose, Pseudoinverse and Damped Least Squares Methods",
+  "authors": "S. R. Buss",
+  "year": 2004,
+  "url": "https://mathweb.ucsd.edu/~sbuss/ResearchWeb/ikmethods/index.html",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Análisis SVD de DLS para IK (C.1, F.3)."
+  },
+  "citekey": "Buss2004introduction"
+ },
+ {
+  "title": "mink — Python inverse kinematics based on MuJoCo",
+  "authors": "K. Zakka",
+  "year": null,
+  "url": "https://github.com/kevinzakka/mink",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "IK diferencial por QP nativa de MuJoCo; fijar 0.0.13 para MuJoCo 3.3.0 (F.3)."
+  },
+  "citekey": "Zakka0mink"
+ },
+ {
+  "title": "CHOMP: Covariant Hamiltonian Optimization for Motion Planning",
+  "authors": "M. Zucker et al.",
+  "year": 2013,
+  "url": "https://doi.org/10.1177/0278364913488805",
+  "arxiv": null,
+  "doi": "10.1177/0278364913488805",
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Gradiente funcional covariante (natural) para trayectorias (C.2)."
+  },
+  "citekey": "Zucker2013chomp"
+ },
+ {
+  "title": "Motion planning with sequential convex optimization and convex collision checking (TrajOpt)",
+  "authors": "J. Schulman et al.",
+  "year": 2014,
+  "url": "https://doi.org/10.1177/0278364914528132",
+  "arxiv": null,
+  "doi": "10.1177/0278364914528132",
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "SQP con trust region para planificación (C.2)."
+  },
+  "citekey": "Schulman2014motion"
+ },
+ {
+  "title": "STOMP: Stochastic Trajectory Optimization for Motion Planning",
+  "authors": "M. Kalakrishnan et al.",
+  "year": 2011,
+  "url": "https://is.mpg.de/publications/kalakrishnan_raiic_2011",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Optimización de trayectorias sin gradientes (C.2)."
+  },
+  "citekey": "Kalakrishnan2011stomp"
+ },
+ {
+  "title": "Differential Dynamic Programming on Lie Groups",
+  "authors": "G. Boutselis, E. Theodorou",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1809.07883",
+  "arxiv": "1809.07883",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "DDP libre de coordenadas en grupos de Lie (C.2)."
+  },
+  "citekey": "Boutselis2018differential",
+  "pdf": "Content/Papers/Boutselis2018differential.pdf",
+  "sha256": "0c48cd345d5394f841d446621067b8dd0f92e373b8c049660d5db2f525b3cce4"
+ },
+ {
+  "title": "Constrained Trajectory Optimization on Matrix Lie Groups via Lie-Algebraic DDP",
+  "authors": "G. Alcan, F. J. Abu-Dakka, V. Kyrki",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2301.02018",
+  "arxiv": "2301.02018",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "DDP con restricciones en el álgebra (C.2)."
+  },
+  "citekey": "Alcan2023constrained",
+  "pdf": "Content/Papers/Alcan2023constrained.pdf",
+  "sha256": "cb09da56341cd33ac71ec0c1cfa3a95f19c68bf4ac5a9a901358baef6274c3a4"
+ },
+ {
+  "title": "Lie Algebraic Cost Function Design for Control on Lie Groups",
+  "authors": "S. Teng, M. Ghaffari et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2204.09177",
+  "arxiv": "2204.09177",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Costes en el álgebra con convergencia exponencial (C.2, F.4)."
+  },
+  "citekey": "Teng2022lie",
+  "pdf": "Content/Papers/Teng2022lie.pdf",
+  "sha256": "7a6df199a4405c94039dd8797a3654c09477dc3aa11c0c8c0970e973735ed7db"
+ },
+ {
+  "title": "An Error-State MPC on Connected Matrix Lie Groups for Legged Robot Control",
+  "authors": "S. Teng et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2203.08728",
+  "arxiv": "2203.08728",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "MPC convexo de estado de error en $\\mathfrak{g}$ (C.2)."
+  },
+  "citekey": "Teng2022error",
+  "pdf": "Content/Papers/Teng2022error.pdf",
+  "sha256": "2a21df1d96f73d22c957281d94b9abd1b3e2bed2d3b7f7383755c6aa0094ce24"
+ },
+ {
+  "title": "RMPflow: A Computational Graph for Automatic Motion Policy Generation",
+  "authors": "C.-A. Cheng et al.",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1811.07049",
+  "arxiv": "1811.07049",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Combinación geométricamente consistente de RMPs (C.3)."
+  },
+  "citekey": "Cheng2018rmpflow",
+  "pdf": "Content/Papers/Cheng2018rmpflow.pdf",
+  "sha256": "069d06920ffdffd1e9ec3d4b562a1c016f81a9f9f803c59d271d25a6251f550c"
+ },
+ {
+  "title": "Geometric Fabrics: Generalizing Classical Mechanics to Capture the Physics of Behavior",
+  "authors": "K. Van Wyk et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2109.10443",
+  "arxiv": "2109.10443",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Estabilidad garantizada con geometrías de Finsler (C.3)."
+  },
+  "citekey": "Wyk2021geometric",
+  "pdf": "Content/Papers/Wyk2021geometric.pdf",
+  "sha256": "49cabb92e79ab30d83fa7824c0bf48e452ac3de6335ca18e0576b20c6449e5f9"
+ },
+ {
+  "title": "Geometry-aware Bayesian Optimization in Robotics using Riemannian Matérn Kernels",
+  "authors": "N. Jaquier et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2111.01460",
+  "arxiv": "2111.01460",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "BO en $SO(3)$, esferas, SPD (C.4, F.7 ruta C)."
+  },
+  "citekey": "Jaquier2021geometry",
+  "pdf": "Content/Papers/Jaquier2021geometry.pdf",
+  "sha256": "300c95d15bfc4a4a1f49517af84b55d06c9a35ab32ee59b43a5c487688368753"
+ },
+ {
+  "title": "Learning Riemannian Manifolds for Geodesic Motion Skills",
+  "authors": "H. Beik-Mohammadi et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2106.04315",
+  "arxiv": "2106.04315",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Geodésicas de métricas pullback como habilidades (C.4, E.3)."
+  },
+  "citekey": "BeikMohammadi2021learning",
+  "pdf": "Content/Papers/BeikMohammadi2021learning.pdf",
+  "sha256": "a0b3a8e70e3808a49527095d916ef1a7f298cdc8e1337ee10ddaf7a959d92299"
+ },
+ {
+  "title": "Reactive Motion Generation on Learned Riemannian Manifolds",
+  "authors": "H. Beik-Mohammadi et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2203.07761",
+  "arxiv": "2203.07761",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Versión reactiva con evitación de obstáculos (C.4, E.3)."
+  },
+  "citekey": "BeikMohammadi2022reactive",
+  "pdf": "Content/Papers/BeikMohammadi2022reactive.pdf",
+  "sha256": "2684673c93b0ca7939a1b9991be34747bc5df14d6f2ba5b6f17fc3996b749d25"
+ },
+ {
+  "title": "Diffusion Policy: Visuomotor Policy Learning via Action Diffusion",
+  "authors": "C. Chi et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2303.04137",
+  "arxiv": "2303.04137",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Políticas de difusión con *action chunks* (C.5, F.6).",
+   "03_aplicaciones_vision_por_computador.md": "Política visuomotora por difusión, rotación 6D"
+  },
+  "citekey": "Chi2023diffusion",
+  "pdf": "Content/Papers/Chi2023diffusion.pdf",
+  "sha256": "b65c474b696a4802d8f1457d86b637ce2c5521412570d3aa928cd54563babc8f"
+ },
+ {
+  "title": "SE(3)-DiffusionFields",
+  "authors": "J. Urain et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2209.03855",
+  "arxiv": "2209.03855",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Difusión en $SE(3)$ como coste de agarre + trayectoria (C.5)."
+  },
+  "citekey": "Urain2022se",
+  "pdf": "Content/Papers/Urain2022se.pdf",
+  "sha256": "a08c6a54bed308ed55b04cf8b476c60616af94a01946d7949bcdfe253b6c664f"
+ },
+ {
+  "title": "Flow Matching on General Geometries",
+  "authors": "R. T. Q. Chen, Y. Lipman",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2302.03660",
+  "arxiv": "2302.03660",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Riemannian Flow Matching (C.5, F.6)."
+  },
+  "citekey": "Chen2023flow",
+  "pdf": "Content/Papers/Chen2023flow.pdf",
+  "sha256": "5860a6f32978550acdbca99d82a1e4af6020ae76220e62951d92f8b43ac880ab"
+ },
+ {
+  "title": "Riemannian Flow Matching Policy for Robot Motion Learning",
+  "authors": "M. Braun, N. Jaquier, L. Rozo, T. Asfour",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2403.10672",
+  "arxiv": "2403.10672",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "RFM aplicado a políticas visuomotoras (C.5)."
+  },
+  "citekey": "Braun2024riemannian",
+  "pdf": "Content/Papers/Braun2024riemannian.pdf",
+  "sha256": "2eaa20492375c4f4584cc21c7907a384630019705e9809700d82e7795afc00cf"
+ },
+ {
+  "title": "EquiGraspFlow: SE(3)-Equivariant 6-DoF Grasp Pose Generative Flows",
+  "authors": "B. Lim, J. Kim, J. Kim, Y. Lee, F. C. Park",
+  "year": 2024,
+  "url": "https://proceedings.mlr.press/v270/lim25a.html",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Flujos equivariantes para agarres (C.5, F.4).",
+   "03_aplicaciones_vision_por_computador.md": "Flujos generativos en la variedad $SE(3)$ para agarres"
+  },
+  "citekey": "Lim2024equigraspflow"
+ },
+ {
+  "title": "SO(2)-Equivariant Reinforcement Learning",
+  "authors": "D. Wang, R. Walters, R. Platt",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2203.04439",
+  "arxiv": "2203.04439",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "RL equivariante para manipulación (C.6)."
+  },
+  "citekey": "Wang2022so",
+  "pdf": "Content/Papers/Wang2022so.pdf",
+  "sha256": "b7cd56a41fc2f7e20c6ad560ecc456fc2fbf6039c693c8fdf020b60e5571a0a4"
+ },
+ {
+  "title": "Equivariant Diffusion Policy",
+  "authors": "D. Wang et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2407.01812",
+  "arxiv": "2407.01812",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Difusión con denoiser equivariante (C.6).",
+   "03_aplicaciones_vision_por_computador.md": "Diffusion Policy con *denoiser* equivariante"
+  },
+  "citekey": "Wang2024equivariant",
+  "pdf": "Content/Papers/Wang2024equivariant.pdf",
+  "sha256": "3e4ed85a4bae7b5322f5e2d8fb00461ee436a31a574d030c68d4aed3c9593c1f"
+ },
+ {
+  "title": "EquiBot: SIM(3)-Equivariant Diffusion Policy",
+  "authors": "J. Yang et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2407.01479",
+  "arxiv": "2407.01479",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Equivariancia a rotación/traslación/escala (C.6).",
+   "03_aplicaciones_vision_por_computador.md": "Política equivariante a rotación, traslación y escala"
+  },
+  "citekey": "Yang2024equibot",
+  "pdf": "Content/Papers/Yang2024equibot.pdf",
+  "sha256": "00b111de1a9cb716d030567bf3607e43e294c42772231183990f64bca4daadd4"
+ },
+ {
+  "title": "OpenVLA: An Open-Source Vision-Language-Action Model",
+  "authors": "M. J. Kim et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2406.09246",
+  "arxiv": "2406.09246",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "VLA abierto con fine-tuning LoRA (D.1).",
+   "03_aplicaciones_vision_por_computador.md": "VLA abierto ajustable con LoRA, acciones $\\Delta$ discretizadas"
+  },
+  "citekey": "Kim2024openvla",
+  "pdf": "Content/Papers/Kim2024openvla.pdf",
+  "sha256": "353c37df34458f12f969b14dfd8b77175b727b9cddea7bb891759beddeefe1be"
+ },
+ {
+  "title": "π0: A Vision-Language-Action Flow Model for General Robot Control",
+  "authors": "K. Black et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2410.24164",
+  "arxiv": "2410.24164",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "VLA con *action expert* de flow matching (D.1).",
+   "03_aplicaciones_vision_por_computador.md": "VLA con *flow matching*, evaluado en AutoBio"
+  },
+  "citekey": "Black2024vision",
+  "pdf": "Content/Papers/Black2024vision.pdf",
+  "sha256": "fbdfba56258bdbd220207ba63410c6c943e43a73e97a7a5a47ca0bc74204f821"
+ },
+ {
+  "title": "AutoBio: A Simulation and Benchmark for Robotic Automation in Digital Biology Laboratory",
+  "authors": "Lan et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2505.14030",
+  "arxiv": "2505.14030",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Origen de la escena y de la evaluación de VLAs en laboratorio (contexto, F).",
+   "03_aplicaciones_vision_por_computador.md": "Base de la escena. Muestra que la precisión es el cuello de botella de los VLA"
+  },
+  "citekey": "Lan2025autobio",
+  "pdf": "Content/Papers/Lan2025autobio.pdf",
+  "sha256": "987d557fe26642e96a1d4c9b3021c3d373717d4a5bc3f9eae48b5bc9de84df91"
+ },
+ {
+  "title": "Diffusion Policy Policy Optimization (DPPO)",
+  "authors": "A. Z. Ren et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2409.00588",
+  "arxiv": "2409.00588",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "PPO sobre la cadena de denoising (D.2, F.7)."
+  },
+  "citekey": "Ren2024diffusion",
+  "pdf": "Content/Papers/Ren2024diffusion.pdf",
+  "sha256": "4b81907b0a8ea7118e4922720f2e7d269d5cf00d3725e44fc6d25f49d02413f3"
+ },
+ {
+  "title": "ReinFlow: Fine-tuning Flow Matching Policy with Online RL",
+  "authors": "—",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2505.22094",
+  "arxiv": "2505.22094",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "RL para políticas de flujo con ruido aprendible (D.2)."
+  },
+  "citekey": "Zhang2025reinflow",
+  "pdf": "Content/Papers/Zhang2025reinflow.pdf",
+  "sha256": "dff2f6406cb7b07fb18efdbffda74b46d8ca5cfea0548a09176d38ecd8141994"
+ },
+ {
+  "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+  "authors": "E. Hu et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2106.09685",
+  "arxiv": "2106.09685",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Adaptación de bajo rango (D.3)."
+  },
+  "citekey": "Hu2021lora",
+  "pdf": "Content/Papers/Hu2021lora.pdf",
+  "sha256": "e9a0d3128767db616085dc0f4e6e455e672e89af823e8ed1282793682787395a"
+ },
+ {
+  "title": "Riemannian Preconditioned LoRA for Fine-Tuning Foundation Models",
+  "authors": "F. Zhang, M. Pilanci",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2402.02347",
+  "arxiv": "2402.02347",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Precondicionador $r\\times r$ desde una métrica riemanniana (D.3)."
+  },
+  "citekey": "Zhang2024riemannian",
+  "pdf": "Content/Papers/Zhang2024riemannian.pdf",
+  "sha256": "919768cf41ad8130613619e69904914d30178339552bac0f0eb5dc5a0eaebfef"
+ },
+ {
+  "title": "Metrics for 3D Rotations: Comparison and Analysis",
+  "authors": "D. Q. Huynh",
+  "year": 2009,
+  "url": "https://doi.org/10.1007/s10851-009-0161-2",
+  "arxiv": null,
+  "doi": "10.1007/s10851-009-0161-2",
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Métricas en $SO(3)$ para pérdidas (D.4)."
+  },
+  "citekey": "Huynh2009metrics"
+ },
+ {
+  "title": "Neural Tangent Kernel: Convergence and Generalization in Neural Networks",
+  "authors": "A. Jacot, F. Gabriel, C. Hongler",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1806.07572",
+  "arxiv": "1806.07572",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Geometría del espacio de funciones (E.1)."
+  },
+  "citekey": "Jacot2018neural",
+  "pdf": "Content/Papers/Jacot2018neural.pdf",
+  "sha256": "e052eb972f646747ac4554a294eb62874077e59a5f585f459e2dbd5cb2a0975d"
+ },
+ {
+  "title": "Pathological spectra of the Fisher information metric and its variants in deep neural networks",
+  "authors": "R. Karakida, S. Akaho, S. Amari",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1910.05992",
+  "arxiv": "1910.05992",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Espectro de la Fisher y relación con el NTK (E.1)."
+  },
+  "citekey": "Karakida2019pathological",
+  "pdf": "Content/Papers/Karakida2019pathological.pdf",
+  "sha256": "4ae6aa8e8bbf77a89e67745778b20c93388359166da6bf7458fe9a99cbeac1ab"
+ },
+ {
+  "title": "Visualizing the Loss Landscape of Neural Nets",
+  "authors": "H. Li, Z. Xu, G. Taylor, C. Studer, T. Goldstein",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1712.09913",
+  "arxiv": "1712.09913",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Geometría del paisaje de pérdida (E.2)."
+  },
+  "citekey": "Li2017visualizing",
+  "pdf": "Content/Papers/Li2017visualizing.pdf",
+  "sha256": "f1d5a34270925e3915d558594a06626ee62a645a8c8f90d1afb70954157261c6"
+ },
+ {
+  "title": "Latent Space Oddity: on the Curvature of Deep Generative Models",
+  "authors": "G. Arvanitidis, L. K. Hansen, S. Hauberg",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1710.11379",
+  "arxiv": "1710.11379",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Métrica pullback estocástica y geodésicas latentes (E.3)."
+  },
+  "citekey": "Arvanitidis2017latent",
+  "pdf": "Content/Papers/Arvanitidis2017latent.pdf",
+  "sha256": "8bde633d5fb0b635e4081926e1684b5589d40c2f82dca95acf7a7ffdcdf2278f"
+ },
+ {
+  "title": "Symmetry Teleportation for Accelerated Optimization",
+  "authors": "B. Zhao et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2205.10637",
+  "arxiv": "2205.10637",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Explotar simetrías del paisaje de parámetros (E.4)."
+  },
+  "citekey": "Zhao2022symmetry",
+  "pdf": "Content/Papers/Zhao2022symmetry.pdf",
+  "sha256": "dcfddea840928c72c2197b79691b54bc1c82375ae32441217912517b56abc7b8"
+ },
+ {
+  "title": "MuJoCo Playground",
+  "authors": "UC Berkeley, Google DeepMind et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2502.08844",
+  "arxiv": "2502.08844",
+  "doi": null,
+  "why": {
+   "02_optimizacion_y_algoritmos.md": "Entrenamiento masivo en GPU con MJX (alternativa en F.1)."
+  },
+  "citekey": "Zakka2025mujoco",
+  "pdf": "Content/Papers/Zakka2025mujoco.pdf",
+  "sha256": "1227d94174639184a24c907fa1dda4b0639edc6fabdcc7ec4cfe17198c30afe3"
+ },
+ {
+  "title": "Robot sensor calibration: solving AX=XB on the Euclidean group",
+  "authors": "F. C. Park, B. J. Martin",
+  "year": 1994,
+  "url": "https://doi.org/10.1109/70.326576",
+  "arxiv": null,
+  "doi": "10.1109/70.326576",
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Calibración mano-ojo resuelta en el álgebra de Lie (§1.5)"
+  },
+  "citekey": "Park1994robot"
+ },
+ {
+  "title": "A new technique for fully autonomous and efficient 3D robotics hand/eye calibration",
+  "authors": "R. Y. Tsai, R. K. Lenz",
+  "year": 1989,
+  "url": "https://doi.org/10.1109/70.34770",
+  "arxiv": null,
+  "doi": "10.1109/70.34770",
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Método clásico de mano-ojo, incluido en OpenCV"
+  },
+  "citekey": "Tsai1989new"
+ },
+ {
+  "title": "EasyHeC: Accurate and Automatic Hand-eye Calibration via Differentiable Rendering and Space Exploration",
+  "authors": "L. Chen, Y. Qin, X. Zhou, H. Su",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2305.01191",
+  "arxiv": "2305.01191",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Calibración sin marcadores con renderizado diferenciable en $SE(3)$"
+  },
+  "citekey": "Chen2023easyhec",
+  "pdf": "Content/Papers/Chen2023easyhec.pdf",
+  "sha256": "3ee6fbc4e634efd82861a4594dad6fd49f418e396cffa3418422c71fb5f60202"
+ },
+ {
+  "title": "PoseCNN: A Convolutional Neural Network for 6D Object Pose Estimation in Cluttered Scenes",
+  "authors": "Y. Xiang, T. Schmidt, V. Narayanan, D. Fox",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1711.00199",
+  "arxiv": "1711.00199",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Regresión directa de pose, pérdida para simetrías, YCB-Video"
+  },
+  "citekey": "Xiang2017posecnn",
+  "pdf": "Content/Papers/Xiang2017posecnn.pdf",
+  "sha256": "d19a33a45655a713e8028f6be0538fcbf7f7365a80e12dbc68e1f651b639b421"
+ },
+ {
+  "title": "DenseFusion: 6D Object Pose Estimation by Iterative Dense Fusion",
+  "authors": "C. Wang et al.",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1901.04780",
+  "arxiv": "1901.04780",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "*Baseline* RGB-D entrenable con datos propios"
+  },
+  "citekey": "Wang2019densefusion",
+  "pdf": "Content/Papers/Wang2019densefusion.pdf",
+  "sha256": "e04a4c884ee00ccbbc22470ab002717f1c98bfb089a02cfc195f200da200acef"
+ },
+ {
+  "title": "PVNet: Pixel-wise Voting Network for 6DoF Pose Estimation",
+  "authors": "S. Peng, Y. Liu, Q. Huang, H. Bao, X. Zhou",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1812.11788",
+  "arxiv": "1812.11788",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Puntos clave por votación más PnP, robusto a la oclusión"
+  },
+  "citekey": "Peng2018pvnet",
+  "pdf": "Content/Papers/Peng2018pvnet.pdf",
+  "sha256": "1fa219dedf1bb34a8cc236f45e3dad7c16aaffe38ca60da0e32ca98c05430d76"
+ },
+ {
+  "title": "GDR-Net: Geometry-Guided Direct Regression Network for Monocular 6D Object Pose Estimation",
+  "authors": "G. Wang, F. Manhardt, F. Tombari, X. Ji",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2102.12145",
+  "arxiv": "2102.12145",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Patch-PnP diferenciable y rotación 6D"
+  },
+  "arxiv_mismatch": "GDRNPP: A Geometry-guided and Fully Learning-based Object Pose Estimator",
+  "citekey": "Wang2021gdr"
+ },
+ {
+  "title": "CosyPose: Consistent multi-view multi-object 6D pose estimation",
+  "authors": "Y. Labbé, J. Carpentier, M. Aubry, J. Sivic",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2008.08465",
+  "arxiv": "2008.08465",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "*Render-and-compare* y BA a nivel de objeto (varias cámaras)"
+  },
+  "citekey": "Labbe2020cosypose",
+  "pdf": "Content/Papers/Labbe2020cosypose.pdf",
+  "sha256": "dea7d071c24cfc42eb6174838091b40a8c6ee4924ccafaa9f1ed6bee41da2ef4"
+ },
+ {
+  "title": "MegaPose: 6D Pose Estimation of Novel Objects via Render & Compare",
+  "authors": "Y. Labbé et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2212.06870",
+  "arxiv": "2212.06870",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Pose de objetos nuevos con solo CAD"
+  },
+  "citekey": "Labbe2022megapose",
+  "pdf": "Content/Papers/Labbe2022megapose.pdf",
+  "sha256": "b3fae7874a49074eb0070136d77235540adf3fe4ff8526943535c12b230d95dd"
+ },
+ {
+  "title": "FoundationPose: Unified 6D Pose Estimation and Tracking of Novel Objects",
+  "authors": "B. Wen, W. Yang, J. Kautz, S. Birchfield",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2312.08344",
+  "arxiv": "2312.08344",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Estimador y seguidor recomendado para el tubo (§8)"
+  },
+  "citekey": "Wen2023foundationpose",
+  "pdf": "Content/Papers/Wen2023foundationpose.pdf",
+  "sha256": "2f02b05d5c6ac8ca0b0828bce7d6ffeabfa1fea5f61934a5716acdb348fecebc"
+ },
+ {
+  "title": "SAM-6D: Segment Anything Model Meets Zero-Shot 6D Object Pose Estimation",
+  "authors": "J. Lin, L. Liu, D. Lu, K. Jia",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2311.15707",
+  "arxiv": "2311.15707",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Alternativa *zero-shot* a FoundationPose"
+  },
+  "citekey": "Lin2023sam",
+  "pdf": "Content/Papers/Lin2023sam.pdf",
+  "sha256": "ec47a5892933d60754b29c4f7baa2d0eb7c5f4524fd50ac0aa47c5b8b7c89290"
+ },
+ {
+  "title": "BOP Challenge 2023 on Detection, Segmentation and Pose Estimation of Seen and Unseen Rigid Objects",
+  "authors": "T. Hodaň et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2403.09799",
+  "arxiv": "2403.09799",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Benchmark, métricas VSD/MSSD/MSPD y formato de datos"
+  },
+  "citekey": "Hodan2024bop",
+  "pdf": "Content/Papers/Hodan2024bop.pdf",
+  "sha256": "c94145f10e53118ba275591faf6469e2bf29ca07bf19f322fd354f0dc968e5d2"
+ },
+ {
+  "title": "BOP: Benchmark for 6D Object Pose Estimation",
+  "authors": "T. Hodaň et al.",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1808.08319",
+  "arxiv": "1808.08319",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Definición original del benchmark y del formato"
+  },
+  "citekey": "Hodan2018bop",
+  "pdf": "Content/Papers/Hodan2018bop.pdf",
+  "sha256": "172781ddcbabfdf1716d080d1878fbdc7a7ab602b184c2941cfe316397726b2c"
+ },
+ {
+  "title": "Implicit-PDF: Non-Parametric Representation of Probability Distributions on the Rotation Manifold",
+  "authors": "K. Murphy, C. Esteves, V. Jampani, S. Ramalingam, A. Makadia",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2106.05965",
+  "arxiv": "2106.05965",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Densidades multimodales en $SO(3)$ para objetos simétricos"
+  },
+  "citekey": "Murphy2021implicit",
+  "pdf": "Content/Papers/Murphy2021implicit.pdf",
+  "sha256": "591572aee82ee4331b42527bd3d2b4b68dbf4b7efde4be00c670f4bc40661334"
+ },
+ {
+  "title": "Probabilistic orientation estimation with matrix Fisher distributions",
+  "authors": "D. Mohlin, G. Bianchi, J. Sullivan",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2006.09740",
+  "arxiv": "2006.09740",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Distribución de Fisher matricial en $SO(3)$ con NLL"
+  },
+  "citekey": "Mohlin2020probabilistic",
+  "pdf": "Content/Papers/Mohlin2020probabilistic.pdf",
+  "sha256": "339c8fa4cccb54839deaad5cfa8239662c05ae5fc2ebfd6b9eab41d375f7e624"
+ },
+ {
+  "title": "Deep Bingham Networks: Dealing with Uncertainty and Ambiguity in Pose Estimation",
+  "authors": "H. Deng et al.",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2012.11002",
+  "arxiv": "2012.11002",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Mezclas de Bingham sobre cuaterniones"
+  },
+  "citekey": "Deng2020deep",
+  "pdf": "Content/Papers/Deng2020deep.pdf",
+  "sha256": "9c71544ea46b3673bb271db44fa3cd8685ae92f04394f7c87e91d857717a3963"
+ },
+ {
+  "title": "ClearGrasp: 3D Shape Estimation of Transparent Objects for Manipulation",
+  "authors": "S. Sajjan et al.",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1910.02550",
+  "arxiv": "1910.02550",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Completado de profundidad para objetos transparentes"
+  },
+  "citekey": "Sajjan2019cleargrasp",
+  "pdf": "Content/Papers/Sajjan2019cleargrasp.pdf",
+  "sha256": "283d1d9c4403fe0786b9f338b047c4f0ae14d707d4ad6d31c93c30cb77951b9b"
+ },
+ {
+  "title": "KeyPose: Multi-View 3D Labeling and Keypoint Estimation for Transparent Objects",
+  "authors": "X. Liu, R. Jonschkowski, A. Angelova, K. Konolige",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1912.02805",
+  "arxiv": "1912.02805",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Pose de objetos transparentes desde estéreo, sin profundidad"
+  },
+  "citekey": "Liu2019keypose",
+  "pdf": "Content/Papers/Liu2019keypose.pdf",
+  "sha256": "8cc603278f6fa80b8a358f1ff9df48493c9e1dbd5715bdca858900d61e8d0dbc"
+ },
+ {
+  "title": "TransCG: A Large-Scale Real-World Dataset for Transparent Object Depth Completion and a Grasping Baseline",
+  "authors": "H. Fang, H.-S. Fang, S. Xu, C. Lu",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2202.08471",
+  "arxiv": "2202.08471",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Datos reales y red rápida para el *sim-to-real* de vidrio"
+  },
+  "citekey": "Fang2022transcg",
+  "pdf": "Content/Papers/Fang2022transcg.pdf",
+  "sha256": "a891405c19633d5bafa1f04661eda9ae3b5c7c896e8723aa9955fe39fecc1d9e"
+ },
+ {
+  "title": "ClearPose: Large-scale Transparent Object Dataset and Benchmark",
+  "authors": "X. Chen, H. Zhang, Z. Yu, A. Opipari, O. C. Jenkins",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2203.03890",
+  "arxiv": "2203.03890",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Benchmark de pose de objetos transparentes (con líquidos)"
+  },
+  "citekey": "Chen2022clearpose",
+  "pdf": "Content/Papers/Chen2022clearpose.pdf",
+  "sha256": "aad5a459ac5dde7dabd95ed017dc0346e8fb3b8e0458d1bf39f3d8ac9b83a9d0"
+ },
+ {
+  "title": "LucidGrasp: Robotic Framework for Autonomous Manipulation of Laboratory Equipment with Different Degrees of Transparency via 6D Pose Estimation",
+  "authors": "(ver arXiv)",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2410.07801",
+  "arxiv": "2410.07801",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Manipulación de material de laboratorio transparente con pose 6D"
+  },
+  "citekey": "Makarova2024lucidgrasp",
+  "pdf": "Content/Papers/Makarova2024lucidgrasp.pdf",
+  "sha256": "128d8b3239171b1e4d7bd37630cfa1fb49673011d464616b2c1e915433d698f8"
+ },
+ {
+  "title": "Robotic Perception of Transparent Objects: A Review",
+  "authors": "J. Jiang et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2304.00157",
+  "arxiv": "2304.00157",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Revisión del estado del arte en transparencia"
+  },
+  "citekey": "Jiang2023robotic",
+  "pdf": "Content/Papers/Jiang2023robotic.pdf",
+  "sha256": "f9a3a4445aa450bfb869beec0a2b520f41b1536d8be6d893899b5263600cb4d7"
+ },
+ {
+  "title": "Visual servo control, Part I: Basic approaches",
+  "authors": "F. Chaumette, S. Hutchinson",
+  "year": 2006,
+  "url": "https://doi.org/10.1109/MRA.2006.250573",
+  "arxiv": null,
+  "doi": "10.1109/MRA.2006.250573",
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "IBVS, PBVS y matriz de interacción (§3)"
+  },
+  "citekey": "Chaumette2006visual"
+ },
+ {
+  "title": "Visual servo control, Part II: Advanced approaches",
+  "authors": "F. Chaumette, S. Hutchinson",
+  "year": 2007,
+  "url": "https://doi.org/10.1109/MRA.2007.339609",
+  "arxiv": null,
+  "doi": "10.1109/MRA.2007.339609",
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Esquemas híbridos, estimación de $L_s$, seguimiento"
+  },
+  "citekey": "Chaumette2007visual"
+ },
+ {
+  "title": "Photometric visual servoing",
+  "authors": "C. Collewet, E. Marchand",
+  "year": 2011,
+  "url": "",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Servo directo sobre intensidades"
+  },
+  "citekey": "Collewet2011photometric"
+ },
+ {
+  "title": "Visual Servoing from Deep Neural Networks",
+  "authors": "Q. Bateux, E. Marchand, J. Leitner, F. Chaumette, P. Corke",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1705.08940",
+  "arxiv": "1705.08940",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "CNN de pose relativa más PBVS, datos generados automáticamente"
+  },
+  "citekey": "Bateux2017visual",
+  "pdf": "Content/Papers/Bateux2017visual.pdf",
+  "sha256": "9c6288119a284dac806811dbe8bd60274b3bcc87854cf2a99fda0a3d38573f9d"
+ },
+ {
+  "title": "Siame-se(3): regression in se(3) for end-to-end visual servoing",
+  "authors": "S. Felton, E. Fromont, E. Marchand",
+  "year": 2021,
+  "url": "https://doi.org/10.1109/ICRA48506.2021.9561488",
+  "arxiv": null,
+  "doi": "10.1109/ICRA48506.2021.9561488",
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Regresión directa del *twist* en $\\mathfrak{se}(3)$ entrenada en simulación"
+  },
+  "citekey": "Felton2021siame"
+ },
+ {
+  "title": "DFVS: Deep Flow Guided Scene Agnostic Image Based Visual Servoing",
+  "authors": "Y. V. S. Harish et al.",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2003.03766",
+  "arxiv": "2003.03766",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Flujo aprendido más matriz de interacción"
+  },
+  "citekey": "Harish2020dfvs",
+  "pdf": "Content/Papers/Harish2020dfvs.pdf",
+  "sha256": "33dd92be94662eedffb72ec8d71387354411fbe3c8a4f81f024a936b6cd22348"
+ },
+ {
+  "title": "Direct Sparse Odometry",
+  "authors": "J. Engel, V. Koltun, D. Cremers",
+  "year": 2016,
+  "url": "https://arxiv.org/abs/1607.02565",
+  "arxiv": "1607.02565",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Odometría directa fotométrica en $SE(3)$"
+  },
+  "citekey": "Engel2016direct",
+  "pdf": "Content/Papers/Engel2016direct.pdf",
+  "sha256": "cd85260a38b0b5d0e82c85c37c3540c498a953e39a501d9af5192a35b8284223"
+ },
+ {
+  "title": "ORB-SLAM3: An Accurate Open-Source Library for Visual, Visual-Inertial and Multi-Map SLAM",
+  "authors": "C. Campos et al.",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2007.11898",
+  "arxiv": "2007.11898",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "SLAM de referencia basado en características"
+  },
+  "citekey": "Campos2020orb",
+  "pdf": "Content/Papers/Campos2020orb.pdf",
+  "sha256": "4d119517be7565c9651fbf1e36a330d605b7a534d738558858c96feca7b99156"
+ },
+ {
+  "title": "DROID-SLAM: Deep Visual SLAM for Monocular, Stereo, and RGB-D Cameras",
+  "authors": "Z. Teed, J. Deng",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2108.10869",
+  "arxiv": "2108.10869",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "*Dense BA* diferenciable con lietorch"
+  },
+  "citekey": "Teed2021droid",
+  "pdf": "Content/Papers/Teed2021droid.pdf",
+  "sha256": "0e15f20bff5f7ceac468c2899baafc8c114a3018c7a7b213eed7c402e5ccec90"
+ },
+ {
+  "title": "Gaussian Splatting SLAM",
+  "authors": "H. Matsuki, R. Murai, P. H. J. Kelly, A. J. Davison",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2312.06741",
+  "arxiv": "2312.06741",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Seguimiento de cámara con Jacobianos en $\\mathfrak{se}(3)$ sobre 3DGS"
+  },
+  "citekey": "Matsuki2023gaussian",
+  "pdf": "Content/Papers/Matsuki2023gaussian.pdf",
+  "sha256": "d7a1ef9b7f313156c61f23ea76423eecd3f8f7d2a795a74774dfbaf23f7a803e"
+ },
+ {
+  "title": "Vector Neurons: A General Framework for SO(3)-Equivariant Networks",
+  "authors": "C. Deng et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2104.12229",
+  "arxiv": "2104.12229",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Capas equivariantes simples para nubes de puntos"
+  },
+  "citekey": "Deng2021vector",
+  "pdf": "Content/Papers/Deng2021vector.pdf",
+  "sha256": "e84900560ba435d6edce464e16b305a6ba972ec8c9d81f25bbe642e44618d837"
+ },
+ {
+  "title": "e3nn: Euclidean Neural Networks",
+  "authors": "M. Geiger, T. Smidt",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2207.09453",
+  "arxiv": "2207.09453",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Biblioteca general $E(3)$-equivariante (irreps)"
+  },
+  "citekey": "Geiger2022e3nn",
+  "pdf": "Content/Papers/Geiger2022e3nn.pdf",
+  "sha256": "c04b2de728eb8c0d06405043ee4fb0eea666ac6c9615a396f1579a35d4bceedc"
+ },
+ {
+  "title": "SE(3)-Transformers: 3D Roto-Translation Equivariant Attention Networks",
+  "authors": "F. B. Fuchs, D. E. Worrall, V. Fischer, M. Welling",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2006.10503",
+  "arxiv": "2006.10503",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Atención equivariante a $SE(3)$"
+  },
+  "citekey": "Fuchs2020se",
+  "pdf": "Content/Papers/Fuchs2020se.pdf",
+  "sha256": "37b2316983ba42e7e04dd9487c97b3e00b7d2d2b7c393d75aa96ed009060d030"
+ },
+ {
+  "title": "Neural Descriptor Fields: SE(3)-Equivariant Object Representations for Manipulation",
+  "authors": "A. Simeonov et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2112.05124",
+  "arxiv": "2112.05124",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Transferencia de agarres por optimización en $SE(3)$ con pocas demos"
+  },
+  "citekey": "Simeonov2021neural",
+  "pdf": "Content/Papers/Simeonov2021neural.pdf",
+  "sha256": "aee9e41933d196ffcc80c70510f13636ce32426886626e84be863c6a63955de9"
+ },
+ {
+  "title": "Transporter Networks: Rearranging the Visual World for Robotic Manipulation",
+  "authors": "A. Zeng et al.",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2010.14406",
+  "arxiv": "2010.14406",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "*Pick-and-place* $SE(2)$-equivariante y eficiente en muestras"
+  },
+  "citekey": "Zeng2020transporter",
+  "pdf": "Content/Papers/Zeng2020transporter.pdf",
+  "sha256": "3a5e78b5c8881863845c46bda0bf8c9071aa79a59a6f9a9f4d8732690482b228"
+ },
+ {
+  "title": "Edge Grasp Network: A Graph-Based SE(3)-invariant Approach to Grasp Detection",
+  "authors": "H. Huang, D. Wang, X. Zhu, R. Walters, R. Platt",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2211.00191",
+  "arxiv": "2211.00191",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Evaluación de agarres invariante a $SE(3)$"
+  },
+  "citekey": "Huang2022edge",
+  "pdf": "Content/Papers/Huang2022edge.pdf",
+  "sha256": "2cf78c5bf3940fdd7ea20e3bce8e0d51e923de50f9cc24ca0acbedc08d764e80"
+ },
+ {
+  "title": "Contact-GraspNet: Efficient 6-DoF Grasp Generation in Cluttered Scenes",
+  "authors": "M. Sundermeyer, A. Mousavian, R. Triebel, D. Fox",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2103.14127",
+  "arxiv": "2103.14127",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Agarres 6-DoF anclados a contactos"
+  },
+  "citekey": "Sundermeyer2021contact",
+  "pdf": "Content/Papers/Sundermeyer2021contact.pdf",
+  "sha256": "6bfe10128f6f0a5231afd1745064475d92084deff673c26c7393fb42b8a26465"
+ },
+ {
+  "title": "AnyGrasp: Robust and Efficient Grasp Perception in Spatial and Temporal Domains",
+  "authors": "H.-S. Fang et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2212.08333",
+  "arxiv": "2212.08333",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Agarres densos con seguimiento temporal"
+  },
+  "citekey": "Fang2022anygrasp",
+  "pdf": "Content/Papers/Fang2022anygrasp.pdf",
+  "sha256": "57eaa4eb9756c351d0ffeb0dbdfdf8ffd04d178cabb6de3f8d39ec201f250de7"
+ },
+ {
+  "title": "GraspNet-1Billion: A Large-Scale Benchmark for General Object Grasping",
+  "authors": "H.-S. Fang, C. Wang, M. Gou, C. Lu",
+  "year": 2020,
+  "url": "https://openaccess.thecvf.com/content_CVPR_2020/html/Fang_GraspNet-1Billion_A_Large-Scale_Benchmark_for_General_Object_Grasping_CVPR_2020_paper.html",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Benchmark estándar de agarre 6-DoF"
+  },
+  "citekey": "Fang2020graspnet"
+ },
+ {
+  "title": "Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware (ACT)",
+  "authors": "T. Z. Zhao, V. Kumar, S. Levine, C. Finn",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2304.13705",
+  "arxiv": "2304.13705",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "ACT y hardware ALOHA (el brazo de nuestra escena)"
+  },
+  "citekey": "Zhao2023learning",
+  "pdf": "Content/Papers/Zhao2023learning.pdf",
+  "sha256": "2e2fe25860f5f9cee9e655a2714e9f2264a7a5078bcd267c16d3f39af461345a"
+ },
+ {
+  "title": "RT-2: Vision-Language-Action Models Transfer Web Knowledge to Robotic Control",
+  "authors": "A. Brohan et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2307.15818",
+  "arxiv": "2307.15818",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "VLA con acciones como tokens"
+  },
+  "citekey": "Brohan2023rt",
+  "pdf": "Content/Papers/Brohan2023rt.pdf",
+  "sha256": "0a62dc36bbbfdea232ad45a0ab75c82e9cf535b55333ff22c02d5da1897ccac3"
+ },
+ {
+  "title": "Octo: An Open-Source Generalist Robot Policy",
+  "authors": "Octo Model Team et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2405.12213",
+  "arxiv": "2405.12213",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Política generalista con cabeza de difusión, fácil de ajustar"
+  },
+  "citekey": "Team2024octo",
+  "pdf": "Content/Papers/Team2024octo.pdf",
+  "sha256": "73bff297cfafe523319162124e6b7f96919c0930e0a380f307255c4c7464ac93"
+ },
+ {
+  "title": "π0.5: a Vision-Language-Action Model with Open-World Generalization",
+  "authors": "Physical Intelligence et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2504.16054",
+  "arxiv": "2504.16054",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Co-entrenamiento heterogéneo para la generalización"
+  },
+  "citekey": "Intelligence2025vision",
+  "pdf": "Content/Papers/Intelligence2025vision.pdf",
+  "sha256": "6a1029fd8ab6944b74cf22f5e5d30e60bc15699d964b2900af799b807a34b64c"
+ },
+ {
+  "title": "FAST: Efficient Action Tokenization for Vision-Language-Action Models",
+  "authors": "K. Pertsch et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2501.09747",
+  "arxiv": "2501.09747",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Tokenización DCT de acciones"
+  },
+  "citekey": "Pertsch2025fast",
+  "pdf": "Content/Papers/Pertsch2025fast.pdf",
+  "sha256": "3739b31f5fecdde371509ff5bb13619979734e894a255a9b264253f4cc53934a"
+ },
+ {
+  "title": "RDT-1B: a Diffusion Foundation Model for Bimanual Manipulation",
+  "authors": "S. Liu et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2410.07864",
+  "arxiv": "2410.07864",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Modelo bimanual evaluado en AutoBio (harness en el repo)"
+  },
+  "citekey": "Liu2024rdt",
+  "pdf": "Content/Papers/Liu2024rdt.pdf",
+  "sha256": "fabfa885b63f2d68b8e7868549563c346d4323a596d24ee3e43d0a62b4ef9667"
+ },
+ {
+  "title": "Universal Manipulation Interface: In-The-Wild Robot Teaching Without In-The-Wild Robots",
+  "authors": "C. Chi et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2402.10329",
+  "arxiv": "2402.10329",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Acciones relativas en el grupo: invariancia al marco"
+  },
+  "citekey": "Chi2024universal",
+  "pdf": "Content/Papers/Chi2024universal.pdf",
+  "sha256": "a9452cbaf9f5d2a77d5f8b631632fa7f45ae4bbc32400be1cc939b91a36e1609"
+ },
+ {
+  "title": "Chemistry3D: Robotic Interaction Benchmark for Chemistry Experiments",
+  "authors": "(ver arXiv)",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2406.08160",
+  "arxiv": "2406.08160",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Otro benchmark de automatización de laboratorio"
+  },
+  "citekey": "Li2024chemistry3d",
+  "pdf": "Content/Papers/Li2024chemistry3d.pdf",
+  "sha256": "f3588e639b4f4960e02caad7f06254b62aff65a0bdc9ba6d8374cc75c457223d"
+ },
+ {
+  "title": "Domain Randomization for Transferring Deep Neural Networks from Simulation to the Real World",
+  "authors": "J. Tobin et al.",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1703.06907",
+  "arxiv": "1703.06907",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Fundamento de la aleatorización de dominio (§6.5)"
+  },
+  "citekey": "Tobin2017domain",
+  "pdf": "Content/Papers/Tobin2017domain.pdf",
+  "sha256": "3fc98c5f4cea050686d45858e647e1b704492121fdae80f8fcd5d560c107f11f"
+ },
+ {
+  "title": "MuJoCo: A physics engine for model-based control",
+  "authors": "E. Todorov, T. Erez, Y. Tassa",
+  "year": 2012,
+  "url": "https://doi.org/10.1109/IROS.2012.6386109",
+  "arxiv": null,
+  "doi": "10.1109/IROS.2012.6386109",
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Simulador del proyecto"
+  },
+  "citekey": "Todorov2012mujoco"
+ },
+ {
+  "title": "MuJoCo Menagerie",
+  "authors": "Google DeepMind",
+  "year": 2022,
+  "url": "https://github.com/google-deepmind/mujoco_menagerie",
+  "arxiv": null,
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Modelos de brazos adicionales"
+  },
+  "citekey": "DeepMind2022mujoco"
+ },
+ {
+  "title": "Explorations in Homeomorphic Variational Auto-Encoding",
+  "authors": "L. Falorsi et al.",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1807.04689",
+  "arxiv": "1807.04689",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Latentes en $SO(3)$ por razones topológicas (§7)"
+  },
+  "citekey": "Falorsi2018explorations",
+  "pdf": "Content/Papers/Falorsi2018explorations.pdf",
+  "sha256": "f6ac3ca0575b0beb76074fcf50182c5d85f2945a0de12d7d2120f08e85bb63c9"
+ },
+ {
+  "title": "Commutative Lie Group VAE for Disentanglement Learning",
+  "authors": "X. Zhu, C. Xu, D. Tao",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2106.03375",
+  "arxiv": "2106.03375",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Desenmarañamiento como acción de grupo de Lie"
+  },
+  "citekey": "Zhu2021commutative",
+  "pdf": "Content/Papers/Zhu2021commutative.pdf",
+  "sha256": "fe5b85c71e01efa74e133518531ec86815182f2f3a78a52bfd60bcf3b3c7784b"
+ },
+ {
+  "title": "Learning Lie Group Symmetry Transformations with Neural Networks",
+  "authors": "A. Gabel et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2307.01583",
+  "arxiv": "2307.01583",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Descubrimiento de generadores de simetrías"
+  },
+  "citekey": "Gabel2023learning",
+  "pdf": "Content/Papers/Gabel2023learning.pdf",
+  "sha256": "6872036f55ff9e1624606273be9758226922108f34921cd242519ff598fbd653"
+ },
+ {
+  "title": "iNeRF: Inverting Neural Radiance Fields for Pose Estimation",
+  "authors": "L. Yen-Chen et al.",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2012.05877",
+  "arxiv": "2012.05877",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Pose por inversión de un campo de radiancia en $SE(3)$"
+  },
+  "citekey": "YenChen2020inerf",
+  "pdf": "Content/Papers/YenChen2020inerf.pdf",
+  "sha256": "2d87183839b327ceae2f7d46ef724c4c9239f6d82ee2252864e28d4b3ce63614"
+ },
+ {
+  "title": "BARF: Bundle-Adjusting Neural Radiance Fields",
+  "authors": "C.-H. Lin, W.-C. Ma, A. Torralba, S. Lucey",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2104.06405",
+  "arxiv": "2104.06405",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Optimización conjunta de NeRF y poses, de grueso a fino"
+  },
+  "citekey": "Lin2021barf",
+  "pdf": "Content/Papers/Lin2021barf.pdf",
+  "sha256": "1261b93ddaf172e6700f2bc806deea1bde1a857dcd64dc6cc45a2fe2fee5e25a"
+ },
+ {
+  "title": "Grounding DINO: Marrying DINO with Grounded Pre-Training for Open-Set Object Detection",
+  "authors": "S. Liu et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2303.05499",
+  "arxiv": "2303.05499",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Detección de \"tubo de centrífuga\" por texto"
+  },
+  "citekey": "Liu2023grounding",
+  "pdf": "Content/Papers/Liu2023grounding.pdf",
+  "sha256": "ba1c64ec2ac4fedeb50b269eadc994456a8428dbe64a8dba2673f22df0fa20b3"
+ },
+ {
+  "title": "SAM 2: Segment Anything in Images and Videos",
+  "authors": "N. Ravi et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2408.00714",
+  "arxiv": "2408.00714",
+  "doi": null,
+  "why": {
+   "03_aplicaciones_vision_por_computador.md": "Máscaras y seguimiento en vídeo para FoundationPose"
+  },
+  "citekey": "Ravi2024sam",
+  "pdf": "Content/Papers/Ravi2024sam.pdf",
+  "sha256": "664f5c4254db441569ecfe36a2a2fa91a1ecec5f4d31b3bcc5d451193efc2c0d"
+ },
+ {
+  "title": "Screw and Lie Group Theory in Multibody Kinematics -- Motion Representation and Recursive Kinematics of Tree-Topology Systems",
+  "authors": "Andreas Mueller",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2306.17415",
+  "arxiv": "2306.17415",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** Sustituto abierto de Murray-Li-Sastry y Lynch-Park: PoE, cuatro representaciones de giros (cuerpo, espacial, híbrida, mixta) y Jacobianos recursivos con sus derivadas."
+  },
+  "citekey": "Mueller2023screw",
+  "pdf": "Content/Papers/Mueller2023screw.pdf",
+  "sha256": "3eab920896b2558d9f37bb6be114b69358db64388e6f830239a3da6fa821d8e4"
+ },
+ {
+  "title": "Screw and Lie Group Theory in Multibody Dynamics -- Recursive Algorithms and Equations of Motion of Tree-Topology Systems",
+  "authors": "Andreas Mueller",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2306.17793",
+  "arxiv": "2306.17793",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** Newton-Euler recursivo O(n) y ecuaciones de movimiento en forma cerrada con Ad y ad, versión abierta de Park et al. (1995) y Featherstone."
+  },
+  "citekey": "Mueller2023screw2",
+  "pdf": "Content/Papers/Mueller2023screw2.pdf",
+  "sha256": "43c0f6524855a817b677195ba01b69c8e8146cca80da95301f983ecfc56f786d"
+ },
+ {
+  "title": "A tutorial on $\\mathbf{SE}(3)$ transformation parameterizations and on-manifold optimization",
+  "authors": "José Luis Blanco-Claraco",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2103.15980",
+  "arxiv": "2103.15980",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** Tutorial con los Jacobianos de composición, Exp y Log en SE(3) y el esquema Gauss-Newton en la variedad que usa la IK por LM del proyecto."
+  },
+  "citekey": "BlancoClaraco2021tutorial",
+  "pdf": "Content/Papers/BlancoClaraco2021tutorial.pdf",
+  "sha256": "1c46c46f941021150cdc681b42154a4db628b9d96fb212a32bc4a47bb5bd254a"
+ },
+ {
+  "title": "Efficient Analytical Derivatives of Rigid-Body Dynamics using Spatial Vector Algebra",
+  "authors": "Shubham Singh, Ryan P. Russell, Patrick M. Wensing",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2105.05102",
+  "arxiv": "2105.05102",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** Derivadas cerradas y recursivas de la dinámica inversa para juntas que son grupos de Lie, necesarias para DDP y ajuste por gradiente."
+  },
+  "citekey": "Singh2021efficient",
+  "pdf": "Content/Papers/Singh2021efficient.pdf",
+  "sha256": "190b2a918d3b2e9bbaefb5c5cd70535655865ae6c525ea7c59ba4327b82bbcf2"
+ },
+ {
+  "title": "Geometry-aware Manipulability Learning, Tracking and Transfer",
+  "authors": "Noémie Jaquier, Leonel Rozo, Darwin G. Caldwell et al.",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1811.11050",
+  "arxiv": "1811.11050",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** Trata el elipsoide de manipulabilidad de Yoshikawa como matriz SPD y lo aprende y sigue con el Jacobiano de manipulabilidad en la variedad SPD."
+  },
+  "citekey": "Jaquier2018geometry",
+  "pdf": "Content/Papers/Jaquier2018geometry.pdf",
+  "sha256": "f6bed65209b78d575171b5a71182df50d963fd9d600f49b378e9f79d080fac19"
+ },
+ {
+  "title": "IKFlow: Generating Diverse Inverse Kinematics Solutions",
+  "authors": "Barrett Ames, Jeremy Morgan, George Konidaris",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2111.08933",
+  "arxiv": "2111.08933",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** IK aprendida con flujos normalizantes que muestrea la variedad de soluciones de un brazo redundante en milisegundos."
+  },
+  "citekey": "Ames2021ikflow",
+  "pdf": "Content/Papers/Ames2021ikflow.pdf",
+  "sha256": "8b1b41b7321275ad9039fc02b7e41c65e45365ee540ad722f971481eb1a95995"
+ },
+ {
+  "title": "cuRobo: Parallelized Collision-Free Minimum-Jerk Robot Motion Generation",
+  "authors": "Balakumar Sundaralingam, Siva Kumar Sastry Hari, Adam Fishman et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2310.17274",
+  "arxiv": "2310.17274",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** Referencia de IK y trayectorias libres de colisión en GPU con miles de semillas paralelas."
+  },
+  "citekey": "Sundaralingam2023curobo",
+  "pdf": "Content/Papers/Sundaralingam2023curobo.pdf",
+  "sha256": "cffeaf2d4e7a396f0d0ae99b2213688f19a24f756cccb828bd16fca223abc561"
+ },
+ {
+  "title": "PyRoki: A Modular Toolkit for Robot Kinematic Optimization",
+  "authors": "Chung Min Kim, Brent Yi, Hongsuk Choi et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2505.03728",
+  "arxiv": "2505.03728",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** Toolkit JAX (CPU/GPU/TPU) de IK, trayectorias y retargeting del autor de jaxlie; más rápido que cuRobo en IK según sus autores."
+  },
+  "citekey": "Kim2025pyroki",
+  "pdf": "Content/Papers/Kim2025pyroki.pdf",
+  "sha256": "bb530aae518b8c378864d15760011f60453246397ff677f3fa9a8a77609aedb9"
+ },
+ {
+  "title": "Analytical Derivatives of Rigid Body Dynamics Algorithms",
+  "authors": "Justin Carpentier, Nicolas Mansard",
+  "year": 2018,
+  "url": "https://doi.org/10.15607/RSS.2018.XIV.038",
+  "arxiv": null,
+  "doi": "10.15607/RSS.2018.XIV.038",
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** Artículo base de las derivadas analíticas de RNEA y ABA en Pinocchio (sin versión arXiv)."
+  },
+  "citekey": "Carpentier2018analytical"
+ },
+ {
+  "title": "Linear-time Differential Inverse Kinematics: an Augmented Lagrangian Perspective",
+  "authors": "Bruce Wingo, Ajay Suresha Sathya, Stéphane Caron et al.",
+  "year": 2024,
+  "url": "https://doi.org/10.15607/RSS.2024.XX.110",
+  "arxiv": null,
+  "doi": "10.15607/RSS.2024.XX.110",
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H1.** IK diferencial con restricciones (la clase de problemas QP de mink) resuelta en tiempo lineal con Lagrangiano aumentado y recursión estilo Featherstone (sin versión arXiv)."
+  },
+  "citekey": "Wingo2024linear"
+ },
+ {
+  "title": "Characterizing the Uncertainty of Jointly Distributed Poses in the Lie Algebra",
+  "authors": "Joshua G. Mangelson, Maani Ghaffari, Ram Vasudevan et al.",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1906.07795",
+  "arxiv": "1906.07795",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Propaga covarianzas de poses correlacionadas en se(3), justo lo que necesita la cadena cámara-muñeca-objeto-pinza con errores de calibración compartidos."
+  },
+  "citekey": "Mangelson2019characterizing",
+  "pdf": "Content/Papers/Mangelson2019characterizing.pdf",
+  "sha256": "259ba12a85909328a236dc39ef3606604d9101046110c81a71f203b51a11177d"
+ },
+ {
+  "title": "A Code for Unscented Kalman Filtering on Manifolds (UKF-M)",
+  "authors": "Martin Brossard, Axel Barrau, Silvere Bonnabel",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2002.00878",
+  "arxiv": "2002.00878",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** UKF genérico en variedades mediante retracciones y sin Jacobianos, con código Python listo para filtrar la pose del efector o de los objetos."
+  },
+  "citekey": "Brossard2020code",
+  "pdf": "Content/Papers/Brossard2020code.pdf",
+  "sha256": "eb24132fe7ed31df50e114feda864a943f1047e376ebc9846117e4c283fd0410"
+ },
+ {
+  "title": "Contact-Aided Invariant Extended Kalman Filtering for Robot State Estimation",
+  "authors": "Ross Hartley, Maani Ghaffari, Ryan M. Eustice et al.",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1904.09251",
+  "arxiv": "1904.09251",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Extiende el EKF invariante de Barrau2017 usando la cinemática directa como medida en un grupo de Lie matricial, plantilla directa para fusionar encoders y cámara."
+  },
+  "citekey": "Hartley2019contact",
+  "pdf": "Content/Papers/Hartley2019contact.pdf",
+  "sha256": "b519bbd4b0182da64f3fe0ec2834e7fec89be05931f1a7cffa6dc13f999b3f5c"
+ },
+ {
+  "title": "Invariant Stochastic Filtering on SE(3) for Inertial-Encoder State Estimation of Serial Rigid Manipulators",
+  "authors": "S. Yaqubi, J. Mattila",
+  "year": 2026,
+  "url": "https://arxiv.org/abs/2607.00026",
+  "arxiv": "2607.00026",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Aplica el IEKF en SE(3) eslabón a eslabón a brazos seriales con garantías de estabilidad, el caso exacto de un manipulador de laboratorio."
+  },
+  "citekey": "Yaqubi2026invariant",
+  "pdf": "Content/Papers/Yaqubi2026invariant.pdf",
+  "sha256": "3811a86948779e2940f26dc833ac8c91f3670e33366ce757e1d7f4dd8c28fd00"
+ },
+ {
+  "title": "Riemannian Score-Based Generative Modelling",
+  "authors": "Valentin De Bortoli, Emile Mathieu, Michael Hutchinson et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2202.02763",
+  "arxiv": "2202.02763",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Fundamento teórico de la difusión por score en variedades compactas como SO(3), base de los generadores de agarres y acciones del corpus."
+  },
+  "citekey": "Bortoli2022riemannian",
+  "pdf": "Content/Papers/Bortoli2022riemannian.pdf",
+  "sha256": "059cdfa319a90a127ff3e1e094c7d941a629860f9ebeb24b05418110130c229a"
+ },
+ {
+  "title": "Riemannian Diffusion Models",
+  "authors": "Chin-Wei Huang, Milad Aghajohari, Avishek Joey Bose et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2208.07949",
+  "arxiv": "2208.07949",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Da la formulación variacional (ELBO en tiempo continuo) de la difusión en variedades, complementaria a la visión por score."
+  },
+  "citekey": "Huang2022riemannian",
+  "pdf": "Content/Papers/Huang2022riemannian.pdf",
+  "sha256": "4e8afee838bcecb6f4d17cccf6def0a29b558413447faf8ef37bbbc9f1ed6b2d"
+ },
+ {
+  "title": "SE(3) diffusion model with application to protein backbone generation",
+  "authors": "Jason Yim, Brian L. Trippe, Valentin De Bortoli et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2302.02277",
+  "arxiv": "2302.02277",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Receta de referencia para difundir poses rígidas en SE(3) con ruido IGSO(3) y score cerrada en so(3), trasladable a poses de pinza."
+  },
+  "citekey": "Yim2023se",
+  "pdf": "Content/Papers/Yim2023se.pdf",
+  "sha256": "2d60cb8c5e13476ec73949482585da4a604f24e9eb990f818c7378b25d031cfd"
+ },
+ {
+  "title": "Confronting Ambiguity in 6D Object Pose Estimation via Score-Based Diffusion on SE(3)",
+  "authors": "Tsu-Ching Hsiao, Hao-Wei Chen, Hsuan-Kung Yang et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2305.15873",
+  "arxiv": "2305.15873",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Difusión en SE(3) para pose 6D ambigua de objetos simétricos, relevante para frascos y tapones de revolución del laboratorio."
+  },
+  "citekey": "Hsiao2023confronting",
+  "pdf": "Content/Papers/Hsiao2023confronting.pdf",
+  "sha256": "55d723518b403e458b606308e2c5aef3f579e8db744ff9395939a8ccf86e2a8c"
+ },
+ {
+  "title": "Flow Matching on Lie Groups",
+  "authors": "Finn M. Sherry, Bart M. N. Smets",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2504.00494",
+  "arxiv": "2504.00494",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Generaliza el flow matching a grupos de Lie con curvas exponenciales, sin simulación, para generar agarres o acciones en SE(3)."
+  },
+  "citekey": "Sherry2025flow",
+  "pdf": "Content/Papers/Sherry2025flow.pdf",
+  "sha256": "a56811a4a749fc12d043b674e6b6935d9ccdf90bc79a136da7cc3b9f5244fb14"
+ },
+ {
+  "title": "Fast Generative Grasping via Lie Group-Constrained MeanFlow",
+  "authors": "S. Talha Bukhari, Yi Wei, Ruiqi Ni et al.",
+  "year": 2026,
+  "url": "https://arxiv.org/abs/2608.26076",
+  "arxiv": "2608.26076",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Genera agarres en SO(3)xR3 con 5 o menos evaluaciones de red, lo que permite replanificar agarres en bucle cerrado en tiempo real."
+  },
+  "citekey": "Bukhari2026fast",
+  "pdf": "Content/Papers/Bukhari2026fast.pdf",
+  "sha256": "1e264d1b846b11b8a9c36c19aa34f870f9dd1ffc928431301acb038a021b3fdd"
+ },
+ {
+  "title": "Neural Manifold Ordinary Differential Equations",
+  "authors": "Aaron Lou, Derek Lim, Isay Katsman et al.",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2006.10254",
+  "arxiv": "2006.10254",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H2.** Flujos continuos (ODE) definidos en cartas de la variedad: densidades exactas en $S^2$, $SO(3)$ o espacios hiperbólicos, precursor de los flujos riemannianos usados para poses."
+  },
+  "citekey": "Lou2020neural",
+  "pdf": "Content/Papers/Lou2020neural.pdf",
+  "sha256": "d782e6c62c6b7570c90eabf5f235b0322d8558da9787aacd43192b9e0e2c4ea7"
+ },
+ {
+  "title": "Information Theoretic Model Predictive Control: Theory and Applications to Autonomous Driving",
+  "authors": "Grady Williams, Paul Drews, Brian Goldfain et al.",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1707.02342",
+  "arxiv": "1707.02342",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** Derivación fundacional de MPPI por energía libre y KL, base de todo el MPC por muestreo aplicable al brazo."
+  },
+  "citekey": "Williams2017information",
+  "pdf": "Content/Papers/Williams2017information.pdf",
+  "sha256": "c11163a2c07fccc4bdb7eebe92bfcc31fcfe7f366433262bc2cc320328476363"
+ },
+ {
+  "title": "STORM: An Integrated Framework for Fast Joint-Space Model-Predictive Control for Reactive Manipulation",
+  "authors": "Mohak Bhardwaj, Balakumar Sundaralingam, Arsalan Mousavian et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2104.13542",
+  "arxiv": "2104.13542",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** MPC por muestreo en espacio articular y en GPU para manipuladores, con colisión, límites y manipulabilidad como costes."
+  },
+  "citekey": "Bhardwaj2021storm",
+  "pdf": "Content/Papers/Bhardwaj2021storm.pdf",
+  "sha256": "d977ff6dab9f4baa2d7ea1dc2d35596bfc094ab797b5478e5f9a4a3c7cb596b6"
+ },
+ {
+  "title": "Sampling-based Model Predictive Control Leveraging Parallelizable Physics Simulations",
+  "authors": "Corrado Pezzato, Chadi Salmi, Elia Trevisan et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2307.09105",
+  "arxiv": "2307.09105",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** Usa un simulador físico paralelo como modelo de MPPI, receta trasladable a MuJoCo/MJX para tareas con contacto en AutoBio."
+  },
+  "citekey": "Pezzato2023sampling",
+  "pdf": "Content/Papers/Pezzato2023sampling.pdf",
+  "sha256": "4469758cb0cdde16ed2eae12b548429142c2bf2345de2c424ae9195e0cab62f7"
+ },
+ {
+  "title": "Model Predictive Path Integral Control as Preconditioned Gradient Descent",
+  "authors": "Mahyar Fazlyab, Sina Sharifi, Jiarui Wang",
+  "year": 2026,
+  "url": "https://arxiv.org/abs/2603.24489",
+  "arxiv": "2603.24489",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** Demuestra que la actualización de MPPI es un paso de gradiente precondicionado, puente formal entre gradientes covariantes y gradiente natural."
+  },
+  "citekey": "Fazlyab2026model",
+  "pdf": "Content/Papers/Fazlyab2026model.pdf",
+  "sha256": "2db8295ac97373029d6706401869370cbec507eaab1855355b09ffec0d483e0f"
+ },
+ {
+  "title": "Continuous-Time Gaussian Process Motion Planning via Probabilistic Inference",
+  "authors": "Mustafa Mukadam, Jing Dong, Xinyan Yan et al.",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1707.07383",
+  "arxiv": "1707.07383",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** GPMP2 formula la planificación como inferencia con prior GP y Gauss-Newton disperso, sustituto con PDF de la familia CHOMP/TrajOpt."
+  },
+  "citekey": "Mukadam2017continuous",
+  "pdf": "Content/Papers/Mukadam2017continuous.pdf",
+  "sha256": "4aaa5b381fe91ec41b1ab8ce03c0a3edcae543b9a864746f31c8a9b7fc522385"
+ },
+ {
+  "title": "Accelerating Motion Planning via Optimal Transport",
+  "authors": "An T. Le, Georgia Chalvatzaki, Armin Biess et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2309.15970",
+  "arxiv": "2309.15970",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** Sinkhorn Step: optimización de orden cero por lotes de trayectorias suaves en alta dimensión, alternativa paralela a STOMP."
+  },
+  "citekey": "Le2023accelerating",
+  "pdf": "Content/Papers/Le2023accelerating.pdf",
+  "sha256": "2c2e250afbbd35519c83342a2ff16b67637233df74a1671442d97a0505bd0132"
+ },
+ {
+  "title": "Motion Planning Diffusion: Learning and Planning of Robot Motions with Diffusion Models",
+  "authors": "Joao Carvalho, An T. Le, Mark Baierl et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2308.01557",
+  "arxiv": "2308.01557",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** Usa difusión como prior de trayectorias y muestrea la posterior guiada por costes, uniendo planificación y modelos generativos."
+  },
+  "citekey": "Carvalho2023motion",
+  "pdf": "Content/Papers/Carvalho2023motion.pdf",
+  "sha256": "5045a1eef8b1e29e7007877083ddf26932fa6561717242e7a0b988cda751db95"
+ },
+ {
+  "title": "DiffusionSeeder: Seeding Motion Optimization with Diffusion for Rapid Motion Planning",
+  "authors": "Huang Huang, Balakumar Sundaralingam, Arsalan Mousavian et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2410.16727",
+  "arxiv": "2410.16727",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** Difusión condicionada a profundidad que siembra cuRobo, vínculo directo entre el pipeline de visión y el optimizador de trayectorias."
+  },
+  "citekey": "Huang2024diffusionseeder",
+  "pdf": "Content/Papers/Huang2024diffusionseeder.pdf",
+  "sha256": "4ef3e01a6507493ef506da6e2da13030c351490bae308f51bad6a0efaab8893c"
+ },
+ {
+  "title": "Geometric Impedance Control on SE(3) for Robotic Manipulators",
+  "authors": "Joohwan Seo, Nikhil Potu Surya Prakash, Alexander Rose et al.",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2211.07945",
+  "arxiv": "2211.07945",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** Control de impedancia con potencial invariante a izquierda en SE(3) para ejecutar trayectorias con contacto seguro."
+  },
+  "citekey": "Seo2022geometric",
+  "pdf": "Content/Papers/Seo2022geometric.pdf",
+  "sha256": "624f9f5e6c553aa2fde1be9ebc1daea2ec77a9a21028c684cb040efa526f25d8"
+ },
+ {
+  "title": "Stein Variational Ergodic Surface Coverage with SE(3) Constraints",
+  "authors": "Jiayun Li, Yufeng Jin, Sangli Teng et al.",
+  "year": 2026,
+  "url": "https://arxiv.org/abs/2603.09458",
+  "arxiv": "2603.09458",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** SVGD precondicionado con partículas en SE(3), ejemplo reciente de optimización de trayectorias por muestreo nativa en el grupo de Lie."
+  },
+  "citekey": "Li2026stein",
+  "pdf": "Content/Papers/Li2026stein.pdf",
+  "sha256": "42d3964ca1316dc0a0b8a8606667915b992c3e741b62198642b7dea233ff55a6"
+ },
+ {
+  "title": "Batch Nonlinear Continuous-Time Trajectory Estimation as Exactly Sparse Gaussian Process Regression",
+  "authors": "Sean Anderson, Timothy D. Barfoot, Chi Hay Tong et al.",
+  "year": 2014,
+  "url": "https://arxiv.org/abs/1412.0630",
+  "arxiv": "1412.0630",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H3.** Prior GP de trayectoria en tiempo continuo con estructura tridiagonal por bloques; es la base matemática de GPMP/GPMP2 y del STEAM de Barfoot en $SE(3)$."
+  },
+  "citekey": "Anderson2014batch",
+  "pdf": "Content/Papers/Anderson2014batch.pdf",
+  "sha256": "95b68f94c7f4f6c651c873ede720a779c1ff6ae4bc650a8656ae79edde5c9f65"
+ },
+ {
+  "title": "Overcoming catastrophic forgetting in neural networks",
+  "authors": "James Kirkpatrick, Razvan Pascanu, Neil Rabinowitz et al.",
+  "year": 2016,
+  "url": "https://arxiv.org/abs/1612.00796",
+  "arxiv": "1612.00796",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** EWC: penalización cuadrática ponderada por la Fisher diagonal que ancla el fine-tuning al modelo base y evita olvidar las habilidades preentrenadas."
+  },
+  "citekey": "Kirkpatrick2016overcoming",
+  "pdf": "Content/Papers/Kirkpatrick2016overcoming.pdf",
+  "sha256": "5e181839191ab4582da2b5ff9666f5222e40b8b8d2f1cdf4fa7100b3a58d7a29"
+ },
+ {
+  "title": "Merging Models with Fisher-Weighted Averaging",
+  "authors": "Michael Matena, Colin Raffel",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2111.09832",
+  "arxiv": "2111.09832",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** Fusiona modelos o adaptadores de tarea con una media ponderada por la Fisher, útil para combinar LoRA por subtarea del laboratorio."
+  },
+  "citekey": "Matena2021merging",
+  "pdf": "Content/Papers/Matena2021merging.pdf",
+  "sha256": "d9d5882c924963c46eb38805e7d39b198bc677d71f29f28f21246c35eed59735"
+ },
+ {
+  "title": "Mirror Descent Policy Optimization",
+  "authors": "Manan Tomar, Lior Shani, Yonathan Efroni et al.",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2005.09814",
+  "arxiv": "2005.09814",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** Formula el RL de políticas como descenso espejo con KL como divergencia de Bregman y unifica TRPO y PPO en ese marco."
+  },
+  "citekey": "Tomar2020mirror",
+  "pdf": "Content/Papers/Tomar2020mirror.pdf",
+  "sha256": "b0f3962739b97c24f8a64d1aabc474fd25170d38ea72ec4c142f8c57600d7010"
+ },
+ {
+  "title": "Old Optimizer, New Norm: An Anthology",
+  "authors": "Jeremy Bernstein, Laker Newhouse",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2409.20325",
+  "arxiv": "2409.20325",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** Reinterpreta Adam, Shampoo y Prodigy como descenso más pronunciado bajo normas concretas, la base teórica de elegir la geometría de cada paso."
+  },
+  "citekey": "Bernstein2024old",
+  "pdf": "Content/Papers/Bernstein2024old.pdf",
+  "sha256": "75e911f6d3ab68ac04e3bfab622b32e052116cd01ca2d2b909731b1aedd7f140"
+ },
+ {
+  "title": "Muon is Scalable for LLM Training",
+  "authors": "Jingyuan Liu, Jianlin Su, Xingcheng Yao et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2502.16982",
+  "arxiv": "2502.16982",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** Escala Muon (descenso por gradiente ortogonalizado, norma espectral) con decaimiento de pesos y ajuste de escala, unas 2x más eficiente que AdamW."
+  },
+  "citekey": "Liu2025muon",
+  "pdf": "Content/Papers/Liu2025muon.pdf",
+  "sha256": "6b8e3b47da4db09c952a35486c905f416c57081a32b445a36a3744c441b1c7f3"
+ },
+ {
+  "title": "SOAP: Improving and Stabilizing Shampoo using Adam",
+  "authors": "Nikhil Vyas, Depen Morwani, Rosie Zhao et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2409.11321",
+  "arxiv": "2409.11321",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** Demuestra que Shampoo equivale a Adafactor en la base propia del precondicionador y propone correr Adam en esa base, heredero práctico de Shampoo y K-FAC."
+  },
+  "citekey": "Vyas2024soap",
+  "pdf": "Content/Papers/Vyas2024soap.pdf",
+  "sha256": "d6f33bb71eab0f046d911b60800846fd3332f1dcf5f2f1434ab444ab89d0b22a"
+ },
+ {
+  "title": "Fine-Tuning Vision-Language-Action Models: Optimizing Speed and Success",
+  "authors": "Moo Jin Kim, Chelsea Finn, Percy Liang",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2502.19645",
+  "arxiv": "2502.19645",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** OpenVLA-OFT: receta de fine-tuning de VLA con acciones continuas, chunks, decodificación paralela y pérdida L1, validada en ALOHA bimanual."
+  },
+  "citekey": "Kim2025fine",
+  "pdf": "Content/Papers/Kim2025fine.pdf",
+  "sha256": "b860aa1206b6cfb0ce8be177f961379dd6a133d52cc74ac346636e0f4952a596"
+ },
+ {
+  "title": "SimpleVLA-RL: Scaling VLA Training via Reinforcement Learning",
+  "authors": "Haozhan Li, Yuxin Zuo, Jiale Yu et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2509.09674",
+  "arxiv": "2509.09674",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** RL con recompensa de resultado sobre OpenVLA-OFT que supera al SFT y descubre comportamientos nuevos, una vía para ir más allá de las demostraciones."
+  },
+  "citekey": "Li2025simplevla",
+  "pdf": "Content/Papers/Li2025simplevla.pdf",
+  "sha256": "c3f9c608ba58bb274dc6d093e78836603edfe3475278be19ff96b91b0654a3e5"
+ },
+ {
+  "title": "$\\pi_\\texttt{RL}$: Online RL Fine-tuning for Flow-based Vision-Language-Action Models",
+  "authors": "Kang Chen, Zhihao Liu, Tonghe Zhang et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2510.25889",
+  "arxiv": "2510.25889",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** Extiende DPPO y ReinFlow a VLA de flujo (pi0, pi0.5) con Flow-Noise y Flow-SDE para obtener log-verosimilitudes tratables en RL online."
+  },
+  "citekey": "Chen2025pi",
+  "pdf": "Content/Papers/Chen2025pi.pdf",
+  "sha256": "484e9f8be118be4f7adfd18470abc330e29b1b4cf457d316dc85a63e65299d36"
+ },
+ {
+  "title": "ET-SEED: Efficient Trajectory-Level SE(3) Equivariant Diffusion Policy",
+  "authors": "Chenrui Tie, Yue Chen, Ruihai Wu et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2411.03990",
+  "arxiv": "2411.03990",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** Política de difusión equivariante en SE(3) a nivel de trayectoria que aprende con pocas demostraciones, de modo que el fine-tuning no tiene que reaprender la simetría."
+  },
+  "citekey": "Tie2024et",
+  "pdf": "Content/Papers/Tie2024et.pdf",
+  "sha256": "093bcbd1cb86934a97705385b88234fa82d89ed47286e047295ca4c177cb5902"
+ },
+ {
+  "title": "Diffusion-EDFs: Bi-equivariant Denoising Generative Modeling on SE(3) for Visual Robotic Manipulation",
+  "authors": "Hyunwoo Ryu, Jiwoo Kim, Hyunseok An et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2309.02685",
+  "arxiv": "2309.02685",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H4.** Difusión bi-equivariante en $SE(3)$ (respecto a la escena y a la pinza) sobre campos de descriptores; aprende pick-and-place con 5-10 demostraciones."
+  },
+  "citekey": "Ryu2023diffusion",
+  "pdf": "Content/Papers/Ryu2023diffusion.pdf",
+  "sha256": "edeb2b8589c87ee29624c47f7a8e5938267dd29eaed9ea4a1e6e83ca68356b42"
+ },
+ {
+  "title": "Certifiably Optimal Monocular Hand-Eye Calibration",
+  "authors": "Emmett Wise, Matthew Giamou, Soroush Khoubyarian et al.",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2005.08298",
+  "arxiv": "2005.08298",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** Relajación SDP de la calibración mano-ojo con escala desconocida y certificado de optimalidad global, complemento riguroso de Park-Martin."
+  },
+  "citekey": "Wise2020certifiably",
+  "pdf": "Content/Papers/Wise2020certifiably.pdf",
+  "sha256": "5cc86e76b133c9a659f14708f8595df59b0624e736b2cd0a982b8a8bc48b499e"
+ },
+ {
+  "title": "A Certifably Correct Algorithm for Generalized Robot-World and Hand-Eye Calibration",
+  "authors": "Emmett Wise, Pushyami Kaveti, Qilong Chen et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2507.23045",
+  "arxiv": "2507.23045",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** Resuelve AX=YB con varios sensores y patrones con garantías globales y criterios de identificabilidad para planificar las poses de calibración."
+  },
+  "citekey": "Wise2025certifably",
+  "pdf": "Content/Papers/Wise2025certifably.pdf",
+  "sha256": "1e871cb8e178be7db0f4c7039d284ebee80f5024f9045b92dac54d941bd8adf3"
+ },
+ {
+  "title": "Optimal Uncertainty-Aware Calibration for the AX=YB Problem",
+  "authors": "Yanjia Chen, Xiangfei Li, Huan Zhao et al.",
+  "year": 2026,
+  "url": "https://arxiv.org/abs/2605.04809",
+  "arxiv": "2605.04809",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** Iteración en el álgebra de Lie para AX=YB que repondera según la incertidumbre relativa entre cinemática y visión."
+  },
+  "citekey": "Chen2026optimal",
+  "pdf": "Content/Papers/Chen2026optimal.pdf",
+  "sha256": "99109f92f5071cac8dba3b5d21f468c7c61f6581a276f91d13a19aa23238d970"
+ },
+ {
+  "title": "Markerless Camera-to-Robot Pose Estimation via Self-supervised Sim-to-Real Transfer",
+  "authors": "Jingpei Lu, Florian Richter, Michael C. Yip",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2302.14332",
+  "arxiv": "2302.14332",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** CtRNet estima el extrínseco cámara-robot sin marcadores con keypoints y PnP, autosupervisado con renderizado diferenciable de siluetas."
+  },
+  "citekey": "Lu2023markerless",
+  "pdf": "Content/Papers/Lu2023markerless.pdf",
+  "sha256": "3b7dd4dbcd76a0ab47bc47cf702d3c4b21a84eae9b5fbef595796050b457bd4c"
+ },
+ {
+  "title": "Differentiable Robot Rendering",
+  "authors": "Ruoshi Liu, Alper Canberk, Shuran Song et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2410.13851",
+  "arxiv": "2410.13851",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** Modelo Gaussian Splatting del robot diferenciable respecto a sus parámetros de control, útil para recuperar pose y calibrar desde píxeles."
+  },
+  "citekey": "Liu2024differentiable",
+  "pdf": "Content/Papers/Liu2024differentiable.pdf",
+  "sha256": "ff4671121e2052dfb5a5eb2a11362a96ac9daaaf175af6be4ddffbcb73df20c6"
+ },
+ {
+  "title": "Kalib: Easy Hand-Eye Calibration with Reference Point Tracking",
+  "authors": "Tutian Tang, Minghao Liu, Wenqiang Xu et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2408.10562",
+  "arxiv": "2408.10562",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** Calibración sin marcadores ni reentrenamiento que sigue un punto del robot con un modelo fundacional y resuelve PnP con la cinemática."
+  },
+  "citekey": "Tang2024kalib",
+  "pdf": "Content/Papers/Tang2024kalib.pdf",
+  "sha256": "c5976e98a5f8b78b04baa5a79934c08e8543312dc6d10751d72cd124cda57179"
+ },
+ {
+  "title": "ARC-Calib: Autonomous Markerless Camera-to-Robot Calibration via Exploratory Robot Motions",
+  "authors": "Podshara Chanrungmaneekul, Yiting Chen, Joshua T. Grace et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2503.14701",
+  "arxiv": "2503.14701",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** Calibración autónoma basada en modelo que explota restricciones de coplanaridad y colinealidad de movimientos exploratorios del brazo."
+  },
+  "citekey": "Chanrungmaneekul2025arc",
+  "pdf": "Content/Papers/Chanrungmaneekul2025arc.pdf",
+  "sha256": "ea21554398a272ddaa42130da1912285fc89a57b929f27e61a8cde41ee1a4180"
+ },
+ {
+  "title": "CNS: Correspondence Encoded Neural Image Servo Policy",
+  "authors": "Anzhe Chen, Hongxiang Yu, Yue Wang et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2309.09047",
+  "arxiv": "2309.09047",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** Servo visual con GNN sobre grafos de correspondencias, entrenado solo en simulación y transferido sin ajuste al robot real."
+  },
+  "citekey": "Chen2023cns",
+  "pdf": "Content/Papers/Chen2023cns.pdf",
+  "sha256": "d109af4794e5950e6d3b290edbd004d0c7fa701496abeeb41233e553e57c61b4"
+ },
+ {
+  "title": "ViT-VS: On the Applicability of Pretrained Vision Transformer Features for Generalizable Visual Servoing",
+  "authors": "Alessandro Scherl, Stefan Thalhammer, Bernhard Neuberger et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2503.04545",
+  "arxiv": "2503.04545",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** IBVS con features DINOv2 preentrenadas que no necesita entrenamiento por tarea y es candidato directo para la aproximación fina con cámara de muñeca."
+  },
+  "citekey": "Scherl2025vit",
+  "pdf": "Content/Papers/Scherl2025vit.pdf",
+  "sha256": "71d4e2ccc81845fd0988d9e61f0fdbd742a6064810c969b24d49ea22638c9fbf"
+ },
+ {
+  "title": "Exponentially Stable First Order Control on Matrix Lie Groups",
+  "authors": "Valmik Prabhu, Amay Saxena, S. Shankar Sastry",
+  "year": 2020,
+  "url": "https://arxiv.org/abs/2004.00239",
+  "arxiv": "2004.00239",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H5.** Controlador de velocidad cartesiana en grupos de Lie matriciales con convergencia exponencial global en SE(n), base teórica de la ley PBVS con Log."
+  },
+  "citekey": "Prabhu2020exponentially",
+  "pdf": "Content/Papers/Prabhu2020exponentially.pdf",
+  "sha256": "9a28df3c2eaaf025feaf892f82b30267c02b15d6f24cf4671123d97c049169b1"
+ },
+ {
+  "title": "Only Bayes should learn a manifold (on the estimation of differential geometric structure from data)",
+  "authors": "Søren Hauberg",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1806.04994",
+  "arxiv": "1806.04994",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Demuestra que solo los modelos probabilísticos recuperan la geometría diferencial de la variedad de datos, lo que justifica las métricas pullback con incertidumbre para geodésicas de movimiento."
+  },
+  "citekey": "Hauberg2018only",
+  "pdf": "Content/Papers/Hauberg2018only.pdf",
+  "sha256": "cb96a894f5700fb43cb2c1fc2314cdd1a8c6e5f731d7e057bb3898fe63f26f23"
+ },
+ {
+  "title": "Pulling back information geometry",
+  "authors": "Georgios Arvanitidis, Miguel González-Duque, Alison Pouplin et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2106.05367",
+  "arxiv": "2106.05367",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Tira hacia atrás la métrica de Fisher-Rao al latente para cualquier decodificador y une la geometría latente con el gradiente natural del corpus."
+  },
+  "citekey": "Arvanitidis2021pulling",
+  "pdf": "Content/Papers/Arvanitidis2021pulling.pdf",
+  "sha256": "4b2174eb59d28c6ecbc76c92f512012ee020eb3816a6d67bea5d3e8e8d98e46a"
+ },
+ {
+  "title": "Metrics for Deep Generative Models",
+  "authors": "Nutan Chen, Alexej Klushyn, Richard Kurle et al.",
+  "year": 2017,
+  "url": "https://arxiv.org/abs/1711.01204",
+  "arxiv": "1711.01204",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Calcula geodésicas en el latente de modelos generativos y las aplica a la generalización de movimientos de un brazo robótico."
+  },
+  "citekey": "Chen2017metrics",
+  "pdf": "Content/Papers/Chen2017metrics.pdf",
+  "sha256": "3d8d7e095f419dccccb13d1c994fd0a724932505389f46fbcd1998124e6029e4"
+ },
+ {
+  "title": "Intrinsic dimension of data representations in deep neural networks",
+  "authors": "Alessio Ansuini, Alessandro Laio, Jakob H. Macke et al.",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1905.12784",
+  "arxiv": "1905.12784",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Estima con TwoNN la dimensión intrínseca de cada capa y da una herramienta para dimensionar latentes de políticas y codificadores visuales."
+  },
+  "citekey": "Ansuini2019intrinsic",
+  "pdf": "Content/Papers/Ansuini2019intrinsic.pdf",
+  "sha256": "df8926979c09b4cf8d7a20f95984e2b323bd55381580dbd9f9eb74fc3b91b6a4"
+ },
+ {
+  "title": "Neural Manifolds for the Control of Movement",
+  "authors": "Juan A. Gallego, Matthew G. Perich, Lee E. Miller et al.",
+  "year": 2017,
+  "url": "https://doi.org/10.1016/j.neuron.2017.05.025",
+  "arxiv": null,
+  "doi": "10.1016/j.neuron.2017.05.025",
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Marco de referencia de las variedades neuronales motoras: pocos modos neuronales cuya dinámica genera el movimiento del brazo, análogo a las sinergias robóticas."
+  },
+  "citekey": "Gallego2017neural"
+ },
+ {
+  "title": "LFADS - Latent Factor Analysis via Dynamical Systems",
+  "authors": "David Sussillo, Rafal Jozefowicz, L. F. Abbott et al.",
+  "year": 2016,
+  "url": "https://arxiv.org/abs/1608.06315",
+  "arxiv": "1608.06315",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** VAE secuencial que infiere la dinámica latente de poblaciones motoras durante el alcance y sirve de plantilla para modelos de dinámica latente del robot."
+  },
+  "citekey": "Sussillo2016lfads",
+  "pdf": "Content/Papers/Sussillo2016lfads.pdf",
+  "sha256": "3b2905a690e82bef9ef99b25078b8beef39850a7ea5050e93a5b2e3df645dad1"
+ },
+ {
+  "title": "Learnable latent embeddings for joint behavioral and neural analysis",
+  "authors": "Steffen Schneider, Jin Hwa Lee, Mackenzie Weygandt Mathis",
+  "year": 2022,
+  "url": "https://arxiv.org/abs/2204.00673",
+  "arxiv": "2204.00673",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** CEBRA obtiene embeddings contrastivos consistentes entre sesiones y sujetos, una idea trasladable a alinear latentes entre simulación y realidad."
+  },
+  "citekey": "Schneider2022learnable",
+  "pdf": "Content/Papers/Schneider2022learnable.pdf",
+  "sha256": "a2bb4117aa47640fb4bcb071705708d42ffa9bb11715c4faad92d83817e2b799"
+ },
+ {
+  "title": "Adversarial Domain Adaptation for Stable Brain-Machine Interfaces",
+  "authors": "Ali Farshchian, Juan A. Gallego, Joseph P. Cohen et al.",
+  "year": 2018,
+  "url": "https://arxiv.org/abs/1810.00045",
+  "arxiv": "1810.00045",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Estabiliza un decodificador de BMI alineando la variedad latente entre días con CCA, KL o redes adversarias, equivalente neuronal de la adaptación sim-to-real."
+  },
+  "citekey": "Farshchian2018adversarial",
+  "pdf": "Content/Papers/Farshchian2018adversarial.pdf",
+  "sha256": "d4ac216f387209178af3ed577bbf1e87ef544470498718262162e06786dfaef5"
+ },
+ {
+  "title": "Learning Latent Actions to Control Assistive Robots",
+  "authors": "Dylan P. Losey, Hong Jun Jeon, Mengxi Li et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2107.02907",
+  "arxiv": "2107.02907",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Aprende acciones latentes de baja dimensión condicionadas al estado para controlar un brazo de 7 grados de libertad con un joystick de 2, versión robótica del control por la variedad."
+  },
+  "citekey": "Losey2021learning",
+  "pdf": "Content/Papers/Losey2021learning.pdf",
+  "sha256": "c8b3d3ad416187f15c05bd27c89ea3b64c4cdccbce29fbfb888b301e16b815c4"
+ },
+ {
+  "title": "Learning Action Manifold with Multi-view Latent Priors for Robotic Manipulation",
+  "authors": "Junjin Xiao, Dongyang Li, Yandan Yang et al.",
+  "year": 2026,
+  "url": "https://arxiv.org/abs/2605.11832",
+  "arxiv": "2605.11832",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Trabajo de 2026 que hace que una VLA prediga acciones directamente sobre la variedad de acciones válidas, la hipótesis de la variedad aplicada a la cabeza de acción."
+  },
+  "citekey": "Xiao2026learning",
+  "pdf": "Content/Papers/Xiao2026learning.pdf",
+  "sha256": "538d35b8a9bf621de724bed5d0fc4cb052110d47ab188e68cef715ebeffdb19f"
+ },
+ {
+  "title": "Neural population geometry: An approach for understanding biological and artificial neural networks",
+  "authors": "SueYeon Chung, L. F. Abbott",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2104.07059",
+  "arxiv": "2104.07059",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Revisión que unifica la geometría de poblaciones (capacidad de variedades, dimensión, desenmarañamiento) en corteza y en redes profundas; el puente teórico que faltaba entre neurociencia y deep learning."
+  },
+  "citekey": "Chung2021neural",
+  "pdf": "Content/Papers/Chung2021neural.pdf",
+  "sha256": "154902f4eccb1b24a765543b700b4f23655c2fad2a1a37bb6d6f03a694c180e5"
+ },
+ {
+  "title": "The geometry of hidden representations of large transformer models",
+  "authors": "Lucrezia Valeriani, Diego Doimo, Francesca Cuturello et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2302.00294",
+  "arxiv": "2302.00294",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Mide dimensión intrínseca capa a capa en transformers: expansión, contracción y meseta semántica; guía para elegir de qué capa extraer rasgos de un ViT/VLA."
+  },
+  "citekey": "Valeriani2023geometry",
+  "pdf": "Content/Papers/Valeriani2023geometry.pdf",
+  "sha256": "0b85eb44fe70e34b774320fb52e10d8e896e095815fb58ab405f3116a877efd1"
+ },
+ {
+  "title": "A Practical Method for Constructing Equivariant Multilayer Perceptrons for Arbitrary Matrix Groups",
+  "authors": "Marc Finzi, Max Welling, Andrew Gordon Wilson",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2104.09459",
+  "arxiv": "2104.09459",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** EMLP: resuelve las restricciones de equivarianza con los generadores del álgebra de Lie para cualquier grupo matricial ($SO(3)$, $SE(3)$, $O(1,3)$), sin derivar la teoría de representaciones a mano."
+  },
+  "citekey": "Finzi2021practical",
+  "pdf": "Content/Papers/Finzi2021practical.pdf",
+  "sha256": "1070318df41d4a83e0b004626a35f513129b9472bf0e5bbf7f690c2f6adb0d96"
+ },
+ {
+  "title": "Lie Neurons: Adjoint-Equivariant Neural Networks for Semisimple Lie Algebras",
+  "authors": "Tzu-Yuan Lin, Minghan Zhu, Maani Ghaffari",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2310.04521",
+  "arxiv": "2310.04521",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H6.** Redes cuyas entradas y salidas son elementos del álgebra de Lie y que son equivariantes a la acción adjunta; procesan twists y transformaciones como datos."
+  },
+  "citekey": "Lin2023lie",
+  "pdf": "Content/Papers/Lin2023lie.pdf",
+  "sha256": "2d6d5ca1d3b23fe94b1a933a3c472f7ebe41c313df5bb23283d4e5d0e0801930"
+ },
+ {
+  "title": "Normalized Object Coordinate Space for Category-Level 6D Object Pose and Size Estimation",
+  "authors": "He Wang, Srinath Sridhar, Jingwei Huang et al.",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1901.02970",
+  "arxiv": "1901.02970",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Introduce la pose y el tamaño por categoría (NOCS, CAMERA, REAL275), clave para frascos de 6 tamaños sin CAD por instancia."
+  },
+  "citekey": "Wang2019normalized",
+  "pdf": "Content/Papers/Wang2019normalized.pdf",
+  "sha256": "d99c86f41430df0e41c7375cd4bf561405bed1d971303f39ffc2c11e21053931"
+ },
+ {
+  "title": "6-PACK: Category-level 6D Pose Tracker with Anchor-Based Keypoints",
+  "authors": "Chen Wang, Roberto Martín-Martín, Danfei Xu et al.",
+  "year": 2019,
+  "url": "https://arxiv.org/abs/1910.10750",
+  "arxiv": "1910.10750",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Seguimiento 6D en tiempo real a nivel de categoría mediante puntos clave, útil para seguir frascos durante el transporte y el vertido."
+  },
+  "citekey": "Wang2019pack",
+  "pdf": "Content/Papers/Wang2019pack.pdf",
+  "sha256": "33b540fc821ba0f49afcca19bd8d99b5120078c9874e60bd92248fd52376d470"
+ },
+ {
+  "title": "GenPose: Generative Category-level Object Pose Estimation via Diffusion Models",
+  "authors": "Jiyao Zhang, Mingdong Wu, Hao Dong",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2306.10531",
+  "arxiv": "2306.10531",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Plantea la pose por categoría como difusión condicional con múltiples hipótesis, adecuada para objetos casi simétricos como los frascos."
+  },
+  "citekey": "Zhang2023genpose",
+  "pdf": "Content/Papers/Zhang2023genpose.pdf",
+  "sha256": "9b582ba05ec16be084cad24a6a1336545fe5cfaa173b29e37def4ed0805232c9"
+ },
+ {
+  "title": "DiffusionNOCS: Managing Symmetry and Uncertainty in Sim2Real Multi-Modal Category-level Pose Estimation",
+  "authors": "Takuya Ikeda, Sergey Zakharov, Tianyi Ko et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2402.12647",
+  "arxiv": "2402.12647",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Demuestra pose por categoría entrenada solo con datos sintéticos que generaliza a datos reales, lo que respalda el pipeline sim-to-real con AutoBio."
+  },
+  "citekey": "Ikeda2024diffusionnocs",
+  "pdf": "Content/Papers/Ikeda2024diffusionnocs.pdf",
+  "sha256": "333062dde6772dcb6a680a4ff7871655398e438e1dfcd9d68bba826447d3dce2"
+ },
+ {
+  "title": "TransNet: Transparent Object Manipulation Through Category-Level Pose Estimation",
+  "authors": "Huijie Zhang, Anthony Opipari, Xiaotong Chen et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2307.12400",
+  "arxiv": "2307.12400",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Une la pose por categoría con los objetos transparentes e incluye pick-and-place y vertido robótico con vasos."
+  },
+  "citekey": "Zhang2023transnet",
+  "pdf": "Content/Papers/Zhang2023transnet.pdf",
+  "sha256": "ffa08957c4c4926648cb8115362bf1b7e0c9c3d573534915fcf16de6bd56276a"
+ },
+ {
+  "title": "Vision-based robot manipulation of transparent liquid containers in a laboratory setting",
+  "authors": "Daniel Schober, Ronja Güldenring, James Love et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2404.16529",
+  "arxiv": "2404.16529",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Estima el volumen de líquido por visión y vierte guiado por simulación con un UR5 en un laboratorio real, con el dataset LabLiquidVolume."
+  },
+  "citekey": "Schober2024vision",
+  "pdf": "Content/Papers/Schober2024vision.pdf",
+  "sha256": "0c3521f84272eee558d44016f60cafaa1f03420d6f0031c82ef48b048f279a28"
+ },
+ {
+  "title": "LabUtopia: High-Fidelity Simulation and Hierarchical Benchmark for Scientific Embodied Agents",
+  "authors": "Rui Li, Zixuan Hu, Wenxi Qu et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2505.22634",
+  "arxiv": "2505.22634",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Simulador y benchmark jerárquico de laboratorio (30 tareas, más de 200 activos), comparable a AutoBio y Chemistry3D."
+  },
+  "citekey": "Li2025labutopia",
+  "pdf": "Content/Papers/Li2025labutopia.pdf",
+  "sha256": "b0b27a506f9ec028871b09e93a5a3aead74e382739b65fa5092af90ab062e862"
+ },
+ {
+  "title": "ORGANA: A Robotic Assistant for Automated Chemistry Experimentation and Characterization",
+  "authors": "Kourosh Darvish, Marta Skreta, Yuchi Zhao et al.",
+  "year": 2024,
+  "url": "https://arxiv.org/abs/2401.06949",
+  "arxiv": "2401.06949",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Sistema real de química robótica con LLM y realimentación visual que sirve de referencia de extremo a extremo para la automatización de laboratorio."
+  },
+  "citekey": "Darvish2024organa",
+  "pdf": "Content/Papers/Darvish2024organa.pdf",
+  "sha256": "ad20624cddfee3802a50776cbe2a63006f59f7c216444fb76459445aa69e6331"
+ },
+ {
+  "title": "Closed-Loop Robotic Manipulation of Transparent Substrates for Self-Driving Laboratories using Deep Learning Micro-Error Correction",
+  "authors": "Kelsey Fontenot, Anjali Gorti, Iva Goel et al.",
+  "year": 2025,
+  "url": "https://arxiv.org/abs/2512.06038",
+  "arxiv": "2512.06038",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Muestra la corrección de errores por visión en lazo cerrado para vidrio transparente en un self-driving lab (98,5 % de colocaciones correctas al primer intento)."
+  },
+  "citekey": "Fontenot2025closed",
+  "pdf": "Content/Papers/Fontenot2025closed.pdf",
+  "sha256": "5722ae9c9a312b727900ccab4e6b252ea39a7c10f7f574266e9a7c33e9f6e5df"
+ },
+ {
+  "title": "Towards Robotic Laboratory Automation Plug & Play: The \"LAPP\" Framework",
+  "authors": "Ádám Wolf, David Wolton, Josef Trapl et al.",
+  "year": 2021,
+  "url": "https://arxiv.org/abs/2106.10129",
+  "arxiv": "2106.10129",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Es la referencia citable sobre lectura de códigos de barras y marcadores fiduciales para identificar y localizar equipos en un laboratorio robotizado."
+  },
+  "citekey": "Wolf2021robotic",
+  "pdf": "Content/Papers/Wolf2021robotic.pdf",
+  "sha256": "37ce87bdc3e1f847906ac455f8427516f6560349ae98dbcb2d36f89f3f197236"
+ },
+ {
+  "title": "Orbit: A Unified Simulation Framework for Interactive Robot Learning Environments",
+  "authors": "Mayank Mittal, Calvin Yu, Qinxi Yu et al.",
+  "year": 2023,
+  "url": "https://arxiv.org/abs/2301.04195",
+  "arxiv": "2301.04195",
+  "doi": null,
+  "why": {
+   "04_huecos_y_ampliacion.md": "**H7.** Artículo de referencia de Isaac Lab (antes Orbit): entornos de manipulación, sensores y aprendizaje paralelo en GPU; base del port IsaacLab-mlx del equipo."
+  },
+  "citekey": "Mittal2023orbit",
+  "pdf": "Content/Papers/Mittal2023orbit.pdf",
+  "sha256": "4e7171df4716689f182079687924cd776e0fc44fcac65d3c7da00c7a90298e36"
+ }
+]

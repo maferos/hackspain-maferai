@@ -1,0 +1,83 @@
+{"agent": "concept-drafter", "prompt_version": "e38f9e0effb9", "packet": "q4-geometric-finetuning",
+ "topic": "Information geometry and natural-gradient optimization",
+ "scope": "Optimizers and weight-space procedures that use curvature or norm geometry: Fisher-based preconditioning, Kronecker-factored and spectral-norm updates and the routines that compute them, and Fisher-weighted consolidation or merging of trained weights. Not general training recipes, learning-rate schedules or architectures.",
+ "concepts": [
+  {"title": "Kronecker-factored preconditioning", "status": "at-bar", "element_type": "method",
+   "definition": "Preconditioning a layer's matrix-shaped gradient with the Kronecker product of two small per-dimension matrices, so that a full-matrix preconditioner is approximated with memory and compute that scale with each dimension rather than with their product.",
+   "aliases": [], "suggested_as": ["Kronecker-factored preconditioning"],
+   "evidence": [
+    {"id": "^gupta2018shampoo-006", "phrase": "a separate preconditioner matrix for each of the gradient's dimensions"},
+    {"id": "^gupta2018shampoo-016", "phrase": "smaller left and right matrices"},
+    {"id": "^gupta2018shampoo-018", "phrase": "the left and right preconditioners"},
+    {"id": "^gupta2018shampoo-020", "phrase": "the Kronecker product of the two root matrices"},
+    {"id": "^gupta2018shampoo-023", "phrase": "a Kronecker product of two smaller matrices"},
+    {"id": "^vyas2024soap-002", "phrase": "the optimal Kronecker approximation of Adagrad"},
+    {"id": "^vyas2024soap-010", "phrase": "Shampoo's preconditioner"},
+    {"id": "^bernstein2024old-024", "phrase": "the left and right Shampoo preconditioners"},
+    {"id": "^martens2015optimizing-007", "phrase": "Kronecker products of much smaller matrices"},
+    {"id": "^martens2015optimizing-009", "phrase": "The Kronecker factorization"},
+    {"id": "^martens2015optimizing-013", "phrase": "The Kronecker approximation"},
+    {"id": "^wu2017scalable-009", "phrase": "a Kronecker-factored approximation"}
+   ],
+   "relations": [],
+   "near_pairs": [{"name": "Kronecker-factored approximate curvature", "why": "K-FAC is the Fisher-based instance of the same Kronecker factorization; the reader decides whether the general idea (Shampoo, SOAP, K-FAC) deserves its own note or folds into K-FAC."}]},
+  {"title": "Newton-Schulz orthogonalization", "status": "at-bar", "element_type": "method",
+   "definition": "An iterative odd-polynomial matrix routine that pushes every singular value of a matrix toward one, approximating its semi-orthogonal factor UV^T without an SVD, and so computes spectral-norm steepest-descent updates such as Muon's.",
+   "aliases": ["Newton-Schulz iteration"], "suggested_as": ["Newton-Schulz orthogonalization"],
+   "evidence": [
+    {"id": "^bernstein2024old-064", "phrase": "Newton-Schulz iteration"},
+    {"id": "^bernstein2024old-065", "phrase": "The Newton-Schulz iteration"},
+    {"id": "^bernstein2024old-066", "phrase": "The iteration"},
+    {"id": "^bernstein2024old-067", "phrase": "the iteration"},
+    {"id": "^liu2025muon-001", "phrase": "Newton-Schulz iteration"},
+    {"id": "^liu2025muon-002", "phrase": "A Newton-Schulz iteration"},
+    {"id": "^liu2025muon-003", "phrase": "Newton-Schulz coefficients"},
+    {"id": "^liu2025muon-004", "phrase": "the orthogonalization"},
+    {"id": "^liu2025muon-017", "phrase": "a more accurate orthogonalization"},
+    {"id": "^liu2025muon-021", "phrase": "Newton-Schulz"}
+   ],
+   "relations": [],
+   "near_pairs": []},
+  {"title": "Elastic weight consolidation", "status": "top-down", "element_type": "method",
+   "definition": "A continual-learning regularizer that adds a quadratic penalty anchoring each weight to its value after earlier tasks, with a stiffness set by the diagonal Fisher information, so weights important to old tasks change slowly while the rest stay free to learn.",
+   "aliases": ["EWC"], "suggested_as": ["Elastic weight consolidation"],
+   "evidence": [
+    {"id": "^kirkpatrick2016overcoming-006", "phrase": "Elastic weight consolidation"},
+    {"id": "^kirkpatrick2016overcoming-008", "phrase": "EWC"},
+    {"id": "^kirkpatrick2016overcoming-009", "phrase": "the EWC spring"},
+    {"id": "^kirkpatrick2016overcoming-015", "phrase": "EWC"},
+    {"id": "^kirkpatrick2016overcoming-021", "phrase": "EWC"},
+    {"id": "^kirkpatrick2016overcoming-024", "phrase": "EWC"},
+    {"id": "^kirkpatrick2016overcoming-032", "phrase": "the EWC approach"},
+    {"id": "^kirkpatrick2016overcoming-042", "phrase": "EWC"},
+    {"id": "^kirkpatrick2016overcoming-054", "phrase": "EWC"},
+    {"id": "^kirkpatrick2016overcoming-055", "phrase": "EWC"},
+    {"id": "^matena2021merging-064", "phrase": "Elastic weight consolidation"},
+    {"id": "^matena2021merging-065", "phrase": "EWC"}
+   ],
+   "relations": [
+    {"target": "Fisher information matrix", "type": "requires", "evidence_id": "^kirkpatrick2016overcoming-035", "quote": "the Fisher information matrix is computed at each task switch to form a new EWC penalty"}
+   ],
+   "near_pairs": []},
+  {"title": "Fisher merging", "status": "top-down", "element_type": "method",
+   "definition": "Merging models that share an initialization by averaging their parameters with per-parameter weights given by each model's diagonal Fisher information, which maximizes the joint likelihood of their Gaussian approximate posteriors.",
+   "aliases": [], "suggested_as": ["Fisher merging"],
+   "evidence": [
+    {"id": "^matena2021merging-003", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-004", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-011", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-019", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-023", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-026", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-037", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-039", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-048", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-051", "phrase": "Fisher merging"},
+    {"id": "^matena2021merging-069", "phrase": "Fisher merging"}
+   ],
+   "relations": [
+    {"target": "Fisher information matrix", "type": "requires", "evidence_id": "^matena2021merging-003", "quote": "Fisher merging uses the diagonal of each model's Fisher information as the precision matrix"}
+   ],
+   "near_pairs": []}
+ ],
+ "struck": []}

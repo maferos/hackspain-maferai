@@ -1,0 +1,7 @@
+[
+ {"id": "p1-information-geometry", "topic_hint": "Information geometry and natural-gradient optimization", "names": ["Natural gradient descent", "Natural policy gradient", "Wasserstein natural gradient", "Trust region policy optimization", "Bregman divergence", "Neural Tangent Kernel"]},
+ {"id": "p2-riemannian-robot-motion", "topic_hint": "Riemannian and Lie-group methods for robot motion and optimization", "names": ["Riemannian Motion Policies", "Riemannian optimization", "Riemannian flow matching", "Differentiable optimization layers"]},
+ {"id": "p3-equivariance-rotations", "topic_hint": "Equivariant networks and rotation representations", "names": ["Steerable CNN", "Vector Neurons", "Rotation representation continuity", "Pose ambiguity from symmetry"]},
+ {"id": "p4-object-pose", "topic_hint": "6D object pose estimation", "names": ["Render-and-compare pose refinement", "BOP benchmark", "YCB-Video dataset", "Transparent object depth completion"]},
+ {"id": "p5-robot-policies", "topic_hint": "Visuomotor and vision-language-action robot policies", "names": ["Action chunking", "Diffusion Policy", "Action tokenization", "Open X-Embodiment dataset", "Vision-language-action models"]}
+]

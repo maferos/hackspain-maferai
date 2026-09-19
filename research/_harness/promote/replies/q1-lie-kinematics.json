@@ -1,0 +1,286 @@
+{
+ "agent": "concept-drafter",
+ "prompt_version": "e38f9e0effb9",
+ "packet": "q1-lie-kinematics",
+ "topic": "Lie-group kinematics and dynamics of robot arms",
+ "scope": "How the motion of articulated robots is modelled with screw and Lie group theory: forward kinematics as products of joint-screw exponentials, the choice of twist representation, recursive O(n) inverse and forward dynamics and their derivatives, Lie-algebraic tools such as the Baker-Campbell-Hausdorff formula used to linearise or differentiate motion on SE(3) and SO(3), and kinematic performance descriptors such as the manipulability ellipsoid. It does not cover learning or optimisation on manifolds in general (Riemannian optimisation, Riemannian motion policies, diffusion or flow models on Lie groups), which belong to the Riemannian and Lie-group methods area, nor rotation representations inside neural networks.",
+ "concepts": [
+  {
+   "title": "Product of exponentials formula",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "A way of writing the forward kinematics of an open chain as a product of matrix exponentials of the joint screws, one per joint, times a reference configuration, without needing joint frames or Denavit-Hartenberg parameters.",
+   "aliases": [
+    "POE formula"
+   ],
+   "suggested_as": [
+    "Product of exponentials formula"
+   ],
+   "evidence": [
+    {
+     "id": "^mueller2023screw2-006",
+     "phrase": "product of exponentials formula"
+    },
+    {
+     "id": "^mueller2023screw-007",
+     "phrase": "product of exponentials"
+    },
+    {
+     "id": "^mueller2023screw-026",
+     "phrase": "product of exponentials"
+    },
+    {
+     "id": "^mueller2023screw-028",
+     "phrase": "body-fixed product-of-exponentials formulation"
+    },
+    {
+     "id": "^mueller2023screw-029",
+     "phrase": "spatial product-of-exponentials formula"
+    },
+    {
+     "id": "^mueller2023screw-030",
+     "phrase": "POE formula"
+    },
+    {
+     "id": "^mueller2023screw-061",
+     "phrase": "product of exponentials"
+    },
+    {
+     "id": "^seo2022geometric-015",
+     "phrase": "product of matrix exponentials"
+    }
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Twist representations",
+   "status": "at-bar",
+   "element_type": "concept",
+   "definition": "The four ways of expressing a rigid body's velocity as a six-vector (body-fixed, spatial, hybrid and mixed), which differ in the point where velocity is measured and the frame it is resolved in, and which change the cost of recursive kinematics and dynamics algorithms.",
+   "aliases": [],
+   "suggested_as": [
+    "Twist representations (body-fixed, spatial, hybrid, mixed)"
+   ],
+   "evidence": [
+    {
+     "id": "^mueller2023screw-015",
+     "phrase": "four twist definitions"
+    },
+    {
+     "id": "^mueller2023screw-037",
+     "phrase": "body-fixed twist"
+    },
+    {
+     "id": "^mueller2023screw-039",
+     "phrase": "Body-fixed twists"
+    },
+    {
+     "id": "^mueller2023screw-045",
+     "phrase": "spatial twist recursion"
+    },
+    {
+     "id": "^mueller2023screw-051",
+     "phrase": "hybrid twists"
+    },
+    {
+     "id": "^mueller2023screw-053",
+     "phrase": "Mixed twists"
+    },
+    {
+     "id": "^mueller2023screw-057",
+     "phrase": "all four twist representations"
+    },
+    {
+     "id": "^mueller2023screw2-025",
+     "phrase": "different twist representations"
+    },
+    {
+     "id": "^mueller2023screw2-044",
+     "phrase": "representation of twists"
+    },
+    {
+     "id": "^mueller2023screw2-057",
+     "phrase": "spatial or hybrid twists"
+    },
+    {
+     "id": "^mueller2023screw2-066",
+     "phrase": "hybrid representation of twists"
+    },
+    {
+     "id": "^mueller2023screw-055",
+     "phrase": "four twist forms"
+    }
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Recursive Newton-Euler algorithm",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "The standard O(n) inverse dynamics method for a kinematic tree, which propagates velocities and accelerations outward from the base in a forward pass and then accumulates wrenches back toward the base to obtain the joint forces.",
+   "aliases": [
+    "RNEA"
+   ],
+   "suggested_as": [
+    "Recursive Newton-Euler algorithm"
+   ],
+   "evidence": [
+    {
+     "id": "^mueller2023screw2-028",
+     "phrase": "body-fixed recursive Newton-Euler algorithm"
+    },
+    {
+     "id": "^mueller2023screw2-029",
+     "phrase": "body-fixed recursive Newton-Euler algorithm"
+    },
+    {
+     "id": "^mueller2023screw2-031",
+     "phrase": "spatial recursive Newton-Euler algorithm"
+    },
+    {
+     "id": "^mueller2023screw2-040",
+     "phrase": "hybrid recursive Newton-Euler algorithm"
+    },
+    {
+     "id": "^mueller2023screw2-041",
+     "phrase": "hybrid recursive Newton-Euler algorithm"
+    },
+    {
+     "id": "^mueller2023screw2-049",
+     "phrase": "recursive body-fixed inverse dynamics algorithm"
+    },
+    {
+     "id": "^singh2021efficient-006",
+     "phrase": "two-pass RNEA"
+    },
+    {
+     "id": "^singh2021efficient-018",
+     "phrase": "RNEA"
+    },
+    {
+     "id": "^cheng2018rmpflow-005",
+     "phrase": "Recursive Newton-Euler algorithm"
+    },
+    {
+     "id": "^wensing2023coriolis-008",
+     "phrase": "Recursive Newton-Euler methods"
+    },
+    {
+     "id": "^wensing2023coriolis-009",
+     "phrase": "recursive Newton-Euler methods"
+    },
+    {
+     "id": "^wensing2023coriolis-011",
+     "phrase": "recursive Newton-Euler variant"
+    }
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Manipulability ellipsoid",
+   "status": "at-bar",
+   "element_type": "metric",
+   "definition": "An ellipsoid, given by a symmetric positive definite matrix such as J J^T, that describes how easily a robot in a given joint configuration can move or exert force along each task direction.",
+   "aliases": [],
+   "suggested_as": [
+    "Manipulability ellipsoid"
+   ],
+   "evidence": [
+    {
+     "id": "^jaquier2018geometry-001",
+     "phrase": "manipulability ellipsoid"
+    },
+    {
+     "id": "^jaquier2018geometry-004",
+     "phrase": "manipulability ellipsoids"
+    },
+    {
+     "id": "^jaquier2018geometry-005",
+     "phrase": "manipulability ellipsoids"
+    },
+    {
+     "id": "^jaquier2018geometry-008",
+     "phrase": "manipulability ellipsoid"
+    },
+    {
+     "id": "^jaquier2018geometry-010",
+     "phrase": "velocity manipulability ellipsoid"
+    },
+    {
+     "id": "^jaquier2018geometry-011",
+     "phrase": "velocity manipulability ellipsoid"
+    },
+    {
+     "id": "^jaquier2018geometry-017",
+     "phrase": "manipulability ellipsoid"
+    },
+    {
+     "id": "^jaquier2018geometry-018",
+     "phrase": "dynamic manipulability ellipsoids"
+    },
+    {
+     "id": "^jaquier2018geometry-048",
+     "phrase": "manipulability ellipsoid"
+    },
+    {
+     "id": "^jaquier2018geometry-054",
+     "phrase": "force manipulability ellipsoid"
+    },
+    {
+     "id": "^jaquier2021geometry-047",
+     "phrase": "manipulability ellipsoid"
+    }
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Baker-Campbell-Hausdorff formula",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "A series of nested Lie brackets that expresses the logarithm of a product of two group exponentials as a single Lie algebra element, used to expand, linearise or differentiate motion on matrix Lie groups.",
+   "aliases": [
+    "BCH formula"
+   ],
+   "suggested_as": [
+    "Baker-Campbell-Hausdorff formula"
+   ],
+   "evidence": [
+    {
+     "id": "^boutselis2018differential-023",
+     "phrase": "Baker-Campbell-Hausdorff formula"
+    },
+    {
+     "id": "^boutselis2018differential-027",
+     "phrase": "Baker-Campbell-Hausdorff expansion"
+    },
+    {
+     "id": "^boutselis2018differential-066",
+     "phrase": "BCH-based expansion"
+    },
+    {
+     "id": "^boutselis2018differential-067",
+     "phrase": "BCH formula"
+    },
+    {
+     "id": "^prabhu2020exponentially-024",
+     "phrase": "Baker-Campbell-Hausdorff formula"
+    },
+    {
+     "id": "^prabhu2020exponentially-051",
+     "phrase": "modified BCH formula"
+    },
+    {
+     "id": "^lin2023lie-030",
+     "phrase": "BCH series"
+    }
+   ],
+   "relations": [],
+   "near_pairs": []
+  }
+ ],
+ "struck": []
+}

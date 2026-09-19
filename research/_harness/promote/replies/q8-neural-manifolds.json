@@ -1,0 +1,138 @@
+{
+ "agent": "concept-drafter",
+ "prompt_version": "e38f9e0effb9",
+ "packet": "q8-neural-manifolds",
+ "topic": "Neural manifolds in deep networks and motor neuroscience",
+ "scope": "The geometry of neural representations in artificial networks and in recorded brain activity: how the intrinsic dimension of hidden representations changes across layers and training, how population activity forms manifolds whose dimension, radius and separability can be measured, how latent population dynamics are inferred from spiking data, and the pullback metrics that give learned latent spaces a Riemannian geometry. It covers the estimators and theories used for these measurements (TwoNN, manifold capacity, sequential latent-variable models). It deliberately leaves out robot motion generation on Riemannian manifolds and Lie groups, natural-gradient optimisation and information geometry of parameter spaces, and brain-machine interface decoding as an engineering problem, except where they supply a construction such as the pullback metric.",
+ "concepts": [
+  {
+   "title": "Intrinsic dimension of neural representations",
+   "status": "at-bar",
+   "element_type": "metric",
+   "definition": "The number of degrees of freedom needed to describe the manifold on which a layer's (or a neural population's) activity vectors lie, typically far smaller than the number of units or neurons.",
+   "aliases": [],
+   "suggested_as": ["Intrinsic dimension of neural representations"],
+   "evidence": [
+    {"id": "^ansuini2019intrinsic-001", "phrase": "intrinsic dimension of data representations"},
+    {"id": "^ansuini2019intrinsic-019", "phrase": "ID profiles"},
+    {"id": "^ansuini2019intrinsic-023", "phrase": "manifold dimensionality"},
+    {"id": "^ansuini2019intrinsic-026", "phrase": "training-set ID"},
+    {"id": "^ansuini2019intrinsic-037", "phrase": "last-hidden-layer ID"},
+    {"id": "^ansuini2019intrinsic-051", "phrase": "progressive reduction of the ID"},
+    {"id": "^valeriani2023geometry-001", "phrase": "intrinsic dimension"},
+    {"id": "^valeriani2023geometry-003", "phrase": "high intrinsic dimension"},
+    {"id": "^valeriani2023geometry-018", "phrase": "ID profile"},
+    {"id": "^valeriani2023geometry-039", "phrase": "plateau-layer ID"},
+    {"id": "^valeriani2023geometry-057", "phrase": "low ID after encoding"},
+    {"id": "^sussillo2016lfads-008", "phrase": "intrinsic dimensionality of neural recordings"},
+    {"id": "^chung2021neural-036", "phrase": "intrinsic dimensions"}
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Pullback metric",
+   "status": "top-down",
+   "element_type": "concept",
+   "definition": "The Riemannian metric induced on a latent or configuration space by a smooth map into another metric space, computed as the Jacobian transpose times the target metric times the Jacobian so that local lengths match those measured in the target space.",
+   "aliases": ["pull-back metric"],
+   "suggested_as": ["Pullback metric"],
+   "evidence": [
+    {"id": "^arvanitidis2021pulling-010", "phrase": "latent pullback metric"},
+    {"id": "^arvanitidis2021pulling-011", "phrase": "pullback metric"},
+    {"id": "^arvanitidis2021pulling-028", "phrase": "Fisher-Rao pullback"},
+    {"id": "^beikmohammadi2022reactive-015", "phrase": "joint-space pullback metric"},
+    {"id": "^ratliff2018riemannian-018", "phrase": "pullback metric"},
+    {"id": "^ratliff2018riemannian-045", "phrase": "pullback metric"},
+    {"id": "^hauberg2018only-007", "phrase": "pull-back metric"},
+    {"id": "^hauberg2018only-008", "phrase": "pull-back metric"},
+    {"id": "^hauberg2018only-017", "phrase": "pull-back metric"},
+    {"id": "^hauberg2018only-023", "phrase": "stochastic pull-back metric"},
+    {"id": "^li2018natural-014", "phrase": "pull-back of the Wasserstein metric"}
+   ],
+   "relations": [],
+   "near_pairs": [
+    {"name": "RMP pullback operator", "why": "Ratliff2018riemannian and Cheng2018rmpflow also use 'pullback' for the operator that transforms whole motion policies (force and metric) between spaces; the metric is one part of it, so the reader may want the operator kept distinct or folded in."}
+   ]
+  },
+  {
+   "title": "Neural population dynamics",
+   "status": "top-down",
+   "element_type": "phenomenon",
+   "definition": "The time evolution of the joint activity of a population of neurons, viewed as trajectories of a possibly input-driven dynamical system in a low-dimensional neural state space.",
+   "aliases": [],
+   "suggested_as": ["Neural population dynamics"],
+   "evidence": [
+    {"id": "^sussillo2016lfads-001", "phrase": "latent dynamics"},
+    {"id": "^sussillo2016lfads-002", "phrase": "driven nonlinear dynamical system"},
+    {"id": "^sussillo2016lfads-003", "phrase": "smooth dynamics"},
+    {"id": "^sussillo2016lfads-062", "phrase": "underlying firing rate dynamics"},
+    {"id": "^chung2021neural-002", "phrase": "recurrent dynamics"},
+    {"id": "^chung2021neural-037", "phrase": "state-space trajectories"},
+    {"id": "^chung2021neural-038", "phrase": "trajectories of recorded neural populations"},
+    {"id": "^chung2021neural-045", "phrase": "Dynamic motifs in recurrent networks"},
+    {"id": "^farshchian2018adversarial-007", "phrase": "past population dynamics"}
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "TwoNN estimator",
+   "status": "extra",
+   "element_type": "method",
+   "definition": "An intrinsic-dimension estimator that fits the Pareto distribution followed by the ratio of each point's second to first nearest-neighbour distance, needing only those two distances per point.",
+   "aliases": [],
+   "suggested_as": [],
+   "evidence": [
+    {"id": "^ansuini2019intrinsic-002", "phrase": "TwoNN"},
+    {"id": "^ansuini2019intrinsic-003", "phrase": "TwoNN"},
+    {"id": "^ansuini2019intrinsic-004", "phrase": "TwoNN"},
+    {"id": "^ansuini2019intrinsic-005", "phrase": "TwoNN"},
+    {"id": "^ansuini2019intrinsic-030", "phrase": "TwoNN"},
+    {"id": "^ansuini2019intrinsic-033", "phrase": "TwoNN"},
+    {"id": "^valeriani2023geometry-005", "phrase": "TwoNN estimator"},
+    {"id": "^valeriani2023geometry-007", "phrase": "TwoNN implementation"},
+    {"id": "^valeriani2023geometry-065", "phrase": "TwoNN estimates"}
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Neural population geometry",
+   "status": "extra",
+   "element_type": "framework",
+   "definition": "An approach that describes biological or artificial neural activity through the shape and arrangement of the manifolds that population responses form in neural state space.",
+   "aliases": [],
+   "suggested_as": [],
+   "evidence": [
+    {"id": "^chung2021neural-001", "phrase": "geometric approaches to neural population activity"},
+    {"id": "^chung2021neural-003", "phrase": "manifold-like representations"},
+    {"id": "^chung2021neural-009", "phrase": "Neural population structures"},
+    {"id": "^chung2021neural-010", "phrase": "neural population geometry"},
+    {"id": "^chung2021neural-049", "phrase": "neural population geometry"},
+    {"id": "^chung2021neural-059", "phrase": "neural population geometry approach"}
+   ],
+   "relations": [],
+   "near_pairs": []
+  },
+  {
+   "title": "Manifold capacity",
+   "status": "extra",
+   "element_type": "metric",
+   "definition": "The critical number of linearly separable category manifolds per neuron that a representation supports, determined by the manifolds' dimension, radius and correlation structure.",
+   "aliases": [],
+   "suggested_as": [],
+   "evidence": [
+    {"id": "^chung2021neural-021", "phrase": "object manifold capacity"},
+    {"id": "^chung2021neural-024", "phrase": "Manifold capacity"},
+    {"id": "^chung2021neural-025", "phrase": "manifold capacity theory"},
+    {"id": "^chung2021neural-026", "phrase": "Manifold capacity theory"},
+    {"id": "^chung2021neural-027", "phrase": "manifold capacity theory"},
+    {"id": "^chung2021neural-060", "phrase": "Manifold capacity"}
+   ],
+   "relations": [],
+   "near_pairs": []
+  }
+ ],
+ "struck": []
+}

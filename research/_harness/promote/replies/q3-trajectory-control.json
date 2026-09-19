@@ -1,0 +1,208 @@
+{
+ "agent": "concept-drafter",
+ "prompt_version": "e38f9e0effb9",
+ "packet": "q3-trajectory-control",
+ "topic": "Trajectory optimization and model predictive control for arms",
+ "scope": "Methods that compute or track manipulator motions online or per query: sampling-based and gradient-based model predictive control (MPPI and its variants, GPU-parallel rollouts, simulator-as-model MPC), trajectory optimization with smoothness or learned priors (GPMP-style Gaussian process planners, cost-guided sampling), and the low-level feedback laws that execute those trajectories, such as impedance control on SE(3). It covers the cost design, convergence theory and real-time engineering of these controllers. It deliberately leaves out learned end-to-end visuomotor policies, which belong to the robot-policy area, and the general Lie-group and Riemannian machinery, which belongs to the Riemannian and Lie-group methods area even when a controller here uses it.",
+ "concepts": [
+  {
+   "title": "Model Predictive Path Integral control",
+   "status": "at-bar",
+   "element_type": "method",
+   "definition": "A sampling-based model predictive controller that perturbs a nominal control sequence with noise, rolls out the samples, and moves the nominal controls toward the average of the samples weighted by their exponentiated negative cost, applying only the first input before replanning.",
+   "aliases": [
+    "MPPI",
+    "Model-Predictive Path Integral Control"
+   ],
+   "suggested_as": [
+    "Model Predictive Path Integral control"
+   ],
+   "evidence": [
+    {
+     "id": "^fazlyab2026model-002",
+     "phrase": "Standard MPPI"
+    },
+    {
+     "id": "^fazlyab2026model-008",
+     "phrase": "classical MPPI"
+    },
+    {
+     "id": "^fazlyab2026model-027",
+     "phrase": "the classical MPPI update"
+    },
+    {
+     "id": "^fazlyab2026model-032",
+     "phrase": "Exact unit-step MPPI"
+    },
+    {
+     "id": "^fazlyab2026model-053",
+     "phrase": "single-step MPPI"
+    },
+    {
+     "id": "^pezzato2023sampling-001",
+     "phrase": "an MPPI controller"
+    },
+    {
+     "id": "^pezzato2023sampling-023",
+     "phrase": "MPPI"
+    },
+    {
+     "id": "^bhardwaj2021storm-003",
+     "phrase": "MPPI"
+    },
+    {
+     "id": "^bhardwaj2021storm-008",
+     "phrase": "Model-Predictive Path Integral Control"
+    },
+    {
+     "id": "^bhardwaj2021storm-009",
+     "phrase": "Standard implementations of MPPI"
+    },
+    {
+     "id": "^williams2017information-026",
+     "phrase": "The path integral derivation"
+    }
+   ],
+   "relations": [],
+   "near_pairs": [
+    {
+     "name": "Sampling-based model-predictive control",
+     "why": "Suggested by Bhardwaj2021storm as the broader family (MPPI, CEM); MPPI is one member, so it may be a parent concept rather than the same thing."
+    },
+    {
+     "name": "Multi-step MPPI (M-MPPI)",
+     "why": "Fazlyab2026model's variant with several inner preconditioned updates per control step; could be folded in as a variant or kept separate."
+    },
+    {
+     "name": "Information theoretic MPC",
+     "why": "Williams et al. 2017 derive the same cost-weighted update from a KL objective and note it coincides with path integral control only under control-affine noise; the reader may treat it as the same method or its generalisation."
+    }
+   ]
+  },
+  {
+   "title": "Gaussian Process Motion Planning",
+   "status": "top-down",
+   "element_type": "method",
+   "definition": "A trajectory optimization approach that represents a robot trajectory as a sample from a Gaussian process prior over configuration, velocity and acceleration, and optimizes it against an obstacle cost weighted with the prior cost, which keeps the solution smooth.",
+   "aliases": [
+    "GPMP"
+   ],
+   "suggested_as": [
+    "Gaussian Process Motion Planning"
+   ],
+   "evidence": [
+    {
+     "id": "^mukadam2017continuous-013",
+     "phrase": "GPMP"
+    },
+    {
+     "id": "^mukadam2017continuous-014",
+     "phrase": "The GPMP objective"
+    },
+    {
+     "id": "^mukadam2017continuous-015",
+     "phrase": "GPMP"
+    },
+    {
+     "id": "^mukadam2017continuous-016",
+     "phrase": "GPMP's gradient-based scheme"
+    },
+    {
+     "id": "^mukadam2017continuous-026",
+     "phrase": "GPMP"
+    },
+    {
+     "id": "^mukadam2017continuous-048",
+     "phrase": "GPMP"
+    },
+    {
+     "id": "^carvalho2023motion-027",
+     "phrase": "GPMP with a straight-line prior"
+    },
+    {
+     "id": "^carvalho2023motion-035",
+     "phrase": "GPMP without an informed prior"
+    },
+    {
+     "id": "^carvalho2023motion-036",
+     "phrase": "GPMP"
+    },
+    {
+     "id": "^carvalho2023motion-055",
+     "phrase": "GPMP with a constant-velocity straight-line prior"
+    },
+    {
+     "id": "^li2026stein-012",
+     "phrase": "GPMP"
+    }
+   ],
+   "relations": [],
+   "near_pairs": [
+    {
+     "name": "GPMP2",
+     "why": "Mukadam et al. present GPMP2 as a successor that recasts GPMP as MAP inference solved by Gauss-Newton with a constant-velocity prior; it could be an alias of the family or a separate method."
+    },
+    {
+     "name": "Stochastic-GPMP (SGPMP)",
+     "why": "A sampling-based variant used by Carvalho2023motion and Le2023accelerating; may belong under this concept or stand alone."
+    }
+   ]
+  },
+  {
+   "title": "Geometric impedance control",
+   "status": "top-down",
+   "element_type": "method",
+   "definition": "Impedance control for a manipulator's end-effector in which position and velocity errors are defined in the body frame from a left-invariant error function on SE(3), and the restoring wrench is the gradient of the matching potential, so the closed loop has a Lyapunov stability proof.",
+   "aliases": [],
+   "suggested_as": [
+    "Geometric impedance control"
+   ],
+   "evidence": [
+    {
+     "id": "^seo2022geometric-032",
+     "phrase": "geometric impedance control"
+    },
+    {
+     "id": "^seo2022geometric-033",
+     "phrase": "the first geometric law"
+    },
+    {
+     "id": "^seo2022geometric-034",
+     "phrase": "the first geometric law"
+    },
+    {
+     "id": "^seo2022geometric-038",
+     "phrase": "the second geometric control law"
+    },
+    {
+     "id": "^seo2022geometric-040",
+     "phrase": "the first geometric control law"
+    },
+    {
+     "id": "^seo2022geometric-046",
+     "phrase": "the first geometric control law"
+    },
+    {
+     "id": "^seo2022geometric-062",
+     "phrase": "the geometric impedance control"
+    },
+    {
+     "id": "^seo2022geometric-063",
+     "phrase": "the geometric impedance control"
+    },
+    {
+     "id": "^seo2022geometric-064",
+     "phrase": "the geometric controller"
+    }
+   ],
+   "relations": [],
+   "near_pairs": [
+    {
+     "name": "Impedance control",
+     "why": "The general scheme (Hogan 1985) that this concept specialises; a reader may want a parent concept rather than merging."
+    }
+   ]
+  }
+ ],
+ "struck": []
+}

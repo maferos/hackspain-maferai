@@ -1,0 +1,226 @@
+{
+  "main": {
+    "id": "9fd53807a6097c6a",
+    "type": "split",
+    "children": [
+      {
+        "id": "c1dc300c5c20519b",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "b5ac800a2253ae32",
+            "type": "leaf",
+            "state": {
+              "type": "graph",
+              "state": {},
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "32eddbb9466225ea",
+    "type": "split",
+    "children": [
+      {
+        "id": "ffeb05e2ec4113db",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "1c3a1693a84563e9",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "0b67e568f5fce938",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "b03d73e6acd69906",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "9039ddb17d44e63c",
+    "type": "split",
+    "children": [
+      {
+        "id": "819ec43948bb26ca",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "e5ad4c65b6ea5ad1",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "Topics/Aplicaciones en visión por computador.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks"
+            }
+          },
+          {
+            "id": "5400e474c87cb98b",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "Topics/Aplicaciones en visión por computador.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links"
+            }
+          },
+          {
+            "id": "59633d935be3d12d",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "893b1b879413386d",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "97402fce2b723c0c",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "Topics/Aplicaciones en visión por computador.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "b5ac800a2253ae32",
+  "lastOpenFiles": [
+    "experiments.md",
+    "experiments.md.tmp.75808.1c7f57ece939",
+    "Content/Topics/Computer vision for manipulation.md",
+    "Content/Topics/Optimization and learning on manifolds.md",
+    "Content/Topics/Geometry of motion and representation.md",
+    "tools/__pycache__/promote.cpython-314.pyc",
+    "tools/__pycache__",
+    "tools/promote.py.tmp.22207.64ee86ad34b4",
+    "tools/promote.py.tmp.22207.1916e9cf96b7",
+    "tools/promote.py.tmp.22207.e05bc112503b",
+    "tools/promote.py.tmp.22207.cce3b5ca29fa",
+    "Content/Topics/6D object pose estimation.md",
+    "Content/Topics/Neural manifolds in deep networks and motor neuroscience.md",
+    "Content/Topics/Camera-robot calibration and visual servoing.md",
+    "Content/Topics/Trajectory optimization and model predictive control for arms.md",
+    "Content/Topics/Probability, filtering and generative models on Lie groups.md",
+    "Content/Topics/Lie-group kinematics and dynamics of robot arms.md",
+    "Content/Concepts/TwoNN estimator.md",
+    "Content/Concepts/Neural population dynamics.md",
+    "Content/Concepts/Pullback metric.md",
+    "Content/Concepts/Intrinsic dimension of neural representations.md",
+    "Content/Concepts/Domain randomization.md",
+    "Content/Concepts/ACRONYM dataset.md",
+    "Content/Concepts/Sim-to-real transfer.md",
+    "Content/Concepts/Symmetry-aware pose loss.md",
+    "Content/Concepts/Normalized Object Coordinate Space.md",
+    "Content/Concepts/Category-level object pose estimation.md",
+    "Content/Concepts/Position-based visual servoing.md",
+    "Content/Concepts/Image-based visual servoing.md",
+    "Content/Concepts/Robot-world and hand-eye calibration (AX = YB).md",
+    "Content/Concepts/Visual servoing.md",
+    "Content/Concepts/Hand-eye calibration (AX = XB).md",
+    "Content/Concepts/Markerless hand-eye calibration.md",
+    "_harness/promote/decisions.json",
+    "_harness/promote/replies/q2-lie-probability.json",
+    "_harness/promote/replies/q2-lie-probability.json.tmp.22207.4e356d1492c8"
+  ]
+}

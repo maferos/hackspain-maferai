@@ -1,0 +1,10 @@
+[
+ {"id": "q1-lie-kinematics", "topic_hint": "Lie-group kinematics and dynamics of robot arms", "names": ["Product of exponentials formula", "Twist representations (body-fixed, spatial, hybrid, mixed)", "Recursive Newton-Euler algorithm", "Manipulability ellipsoid", "Baker-Campbell-Hausdorff formula"]},
+ {"id": "q2-lie-probability", "topic_hint": "Probability, filtering and generative models on Lie groups", "names": ["Invariant extended Kalman filter", "Group-affine dynamics", "Diffusion models on Lie groups", "Riemannian diffusion models"]},
+ {"id": "q3-trajectory-control", "topic_hint": "Trajectory optimization and model predictive control for arms", "names": ["Model Predictive Path Integral control", {"name": "Gaussian Process Motion Planning", "status": "top-down"}, {"name": "Geometric impedance control", "status": "top-down"}]},
+ {"id": "q4-geometric-finetuning", "topic_hint": "Information geometry and natural-gradient optimization", "names": ["Kronecker-factored preconditioning", "Newton-Schulz orthogonalization", {"name": "Elastic weight consolidation", "status": "top-down"}, {"name": "Fisher merging", "status": "top-down"}]},
+ {"id": "q5-calibration-servoing", "topic_hint": "Camera-robot calibration and visual servoing", "names": ["Markerless hand-eye calibration", "Hand-eye calibration (AX = XB)", {"name": "Visual servoing", "status": "top-down"}]},
+ {"id": "q6-category-pose", "topic_hint": "6D object pose estimation", "names": ["Category-level object pose estimation", "Normalized Object Coordinate Space (NOCS)", "Symmetry-aware pose loss"]},
+ {"id": "q7-policies-sim", "topic_hint": "Visuomotor and vision-language-action robot policies", "names": ["Sim-to-real transfer", "ACRONYM dataset"]},
+ {"id": "q8-neural-manifolds", "topic_hint": "Neural manifolds in deep networks and motor neuroscience", "names": ["Intrinsic dimension of neural representations", {"name": "Pullback metric", "status": "top-down"}, {"name": "Neural population dynamics", "status": "top-down"}]}
+]
