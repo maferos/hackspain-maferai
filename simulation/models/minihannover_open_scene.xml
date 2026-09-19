@@ -35,19 +35,19 @@
     <frame pos="1.877 -0.4 0" quat="0.70710678 0 0 0.70710678">
       <attach model="sink" body="sink" prefix="sink_" />
     </frame>
-    <frame pos="-3.35 -0.91 0.904">
+    <frame pos="-3.35 -1.16 0.904">
       <attach model="balance" body="balance" prefix="balance_1_" />
     </frame>
-    <frame pos="-1.7 -0.91 0.9">
+    <frame pos="-1.7 -1.16 0.9">
       <attach model="balance" body="balance" prefix="balance_2_" />
     </frame>
-    <frame pos="-0.2 -0.91 0.9">
+    <frame pos="-0.2 -1.16 0.9">
       <attach model="balance" body="balance" prefix="balance_3_" />
     </frame>
-    <frame pos="-2.5 0.11 0.9" euler="0 0 3.1416">
+    <frame pos="-2.5 0.36 0.9" euler="0 0 3.1416">
       <attach model="balance" body="balance" prefix="balance_4_" />
     </frame>
-    <frame pos="-0.75 0.11 0.904" euler="0 0 3.1416">
+    <frame pos="-0.75 0.36 0.904" euler="0 0 3.1416">
       <attach model="balance" body="balance" prefix="balance_5_" />
     </frame>
     <frame pos="-5.85 1.78 0.9">
@@ -74,36 +74,36 @@
     <frame pos="-8.05 -1.45 0.9" euler="0 0 2.0944">
       <attach model="smp_0034" body="SMP-0034" prefix="corner_6_" />
     </frame>
-    <body name="loose_1" pos="-3.75 -1 0.9" euler="0 0 0.2094">
+    <body name="loose_1" pos="-3.75 -1.25 0.9" euler="0 0 0.2094">
       <freejoint />
       <attach model="smp_0009" body="SMP-0009" prefix="loose_1_" />
     </body>
-    <body name="loose_2" pos="-3.83 -0.86 0.9" euler="0 0 -0.4014">
+    <body name="loose_2" pos="-3.83 -1.11 0.9" euler="0 0 -0.4014">
       <freejoint />
       <attach model="pwd_0012" body="PWD-0012" prefix="loose_2_" />
     </body>
-    <body name="loose_3" pos="-0.78 -1.02 0.9" euler="0 0 -0.1396">
+    <body name="loose_3" pos="-0.78 -1.27 0.9" euler="0 0 -0.1396">
       <freejoint />
       <attach model="smp_0021" body="SMP-0021" prefix="loose_3_" />
     </body>
-    <body name="loose_4" pos="-0.68 -0.9 0.9" euler="0 0 0.4363">
+    <body name="loose_4" pos="-0.68 -1.15 0.9" euler="0 0 0.4363">
       <freejoint />
       <attach model="pwd_0026" body="PWD-0026" prefix="loose_4_" />
     </body>
-    <body name="loose_5" pos="-1.4 0.18 0.9" euler="0 0 2.9671">
+    <body name="loose_5" pos="-1.4 0.43 0.9" euler="0 0 2.9671">
       <freejoint />
       <attach model="smp_0013" body="SMP-0013" prefix="loose_5_" />
     </body>
-    <body name="loose_6" pos="-1.3 0.05 0.9" euler="0 0 3.4907">
+    <body name="loose_6" pos="-1.3 0.3 0.9" euler="0 0 3.4907">
       <freejoint />
       <attach model="pwd_0008" body="PWD-0008" prefix="loose_6_" />
     </body>
-    <body name="loose_7" pos="0.45 0.22 0.9" euler="0 0 3.2289">
+    <body name="loose_7" pos="0.45 0.47 0.9" euler="0 0 3.2289">
       <freejoint />
       <attach model="smp_0017" body="SMP-0017" prefix="loose_7_" />
     </body>
     <camera name="general" pos="-1.5 -2.9 3" xyaxes="1 0 0 0 0.6341 0.7733" fovy="60.44" resolution="1920 1080" />
-    <body name="wrist_camera_mount" mocap="true" pos="-3.959 -1.1639 0.99">
+    <body name="wrist_camera_mount" mocap="true" pos="-3.959 -1.4139 0.99">
       <camera name="wrist" xyaxes="0.9205 -0.3907 0 0.0412 0.0970 0.9944" fovy="60.44" resolution="1920 1080" />
     </body>
   </worldbody>
