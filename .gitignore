@@ -17,3 +17,4 @@ weights/
 *.torchscript
 *.onnx
 *.mp4
+mobileclip*.ts
