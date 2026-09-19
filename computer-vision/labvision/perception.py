@@ -38,9 +38,27 @@ from labvision.world import PerceivedBottle
 
 BENCH_TOP_Z = 0.90
 """Top of the minihannover worktop in the scene frame."""
-PROPOSAL_RADIUS_M = 0.025
-"""Radius for the base anchor's correction before the bottle is known: between
-the smallest flask (11 mm) and the 1 L bottle (44 mm)."""
+PROPOSAL_RADIUS_M = 0.018
+"""Radius for the base anchor's correction before the bottle is known.
+
+Measured, not guessed. The correction moves a proposal along the line of
+sight, so getting it wrong is a *bias*, the same size and direction for every
+bottle, and bias was most of the placement error: at 0.025 the fixed camera
+put 25 bottles 8.1 mm out at the median, of which 7.0 mm was a fixed offset
+away from the camera. Sweeping the radius against simulator truth on that run:
+
+    radius   bias y    median   p90
+      8 mm   -10.2 mm   9.6 mm  16.8 mm
+     14 mm    -4.2 mm   5.0 mm  10.9 mm
+     18 mm    -0.2 mm   3.9 mm   7.2 mm
+     25 mm    +6.8 mm   8.1 mm  12.3 mm
+
+18 mm is the bench of flasks this is used on, whose radii run 11 to 24 mm. A
+bench carrying the 1 L bottles as well wants a larger one; pass ``radius`` to
+:func:`propose` rather than changing this.
+
+A residual +1.9 mm along x survives every radius, so it is not this correction
+--- it is the camera's own pose, and worth about a fifth of what this was."""
 MERGE_M = 0.03
 """Proposals closer than this on the bench are taken to be the same bottle."""
 ASSOCIATE_PX = 200
