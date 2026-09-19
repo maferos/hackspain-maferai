@@ -444,7 +444,11 @@ class Lab:
         )  # fmt: skip
         return dist < 0 or dist > length
 
-    def aim_wrist_at_random_bottle(self, rng: np.random.Generator) -> bool:
+    def aim_wrist_at_random_bottle(
+        self,
+        rng: np.random.Generator,
+        reach_range: tuple[float, float] = WRIST_RANGE,
+    ) -> bool:
         """Fly the wrist camera to a random bottle standing on the worktop
 
         Returns:
@@ -463,7 +467,7 @@ class Lab:
             outward = -1.0 if base[1] < 0 else 1.0
             azimuth = np.radians(rng.uniform(-WRIST_AZIMUTH_DEG, WRIST_AZIMUTH_DEG))
             elevation = np.radians(rng.uniform(*WRIST_ELEVATION_DEG))
-            reach = rng.uniform(*WRIST_RANGE)
+            reach = rng.uniform(*reach_range)
             position = aim + reach * np.array(
                 [
                     np.cos(elevation) * np.sin(azimuth),
@@ -684,6 +688,14 @@ def main() -> None:
     parser.add_argument(
         "--wrist", type=int, default=40, help="frames from the wrist camera"
     )
+    parser.add_argument(
+        "--wrist-range",
+        type=float,
+        nargs=2,
+        default=WRIST_RANGE,
+        metavar=("NEAR", "FAR"),
+        help="wrist camera to target bottle, metres (default %(default)s)",
+    )
     parser.add_argument("--no-as-built", action="store_true", help="skip as_built")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
@@ -756,7 +768,7 @@ def main() -> None:
         x0 = rng.uniform(*BENCH_X)
         side = (int(rng.choice((-1, 1))),)
         lab.scatter(rng, int(rng.integers(4, 9)), (x0 - 0.4, x0 + 0.4), side)
-        if lab.aim_wrist_at_random_bottle(rng):
+        if lab.aim_wrist_at_random_bottle(rng, tuple(args.wrist_range)):
             save("wrist", wrist, *resolution(wrist))
             done += 1
 
