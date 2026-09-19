@@ -74,6 +74,12 @@ FRAME_HEIGHT = 1080
 RENDER_FPS = 15
 JPEG_QUALITY = 80
 
+# When the loaded scene is the railed arm (no LabState-compatible scripted run),
+# the viewport would otherwise stand still. Instead it plays rail_demo's `sweep`:
+# the carriage runs the length of the bench holding a hand-down scan pose. Posed
+# kinematically per frame so it stays smooth and can't knock the glassware over.
+RAIL_SWEEP_SPEED = 0.8  # carriage speed, m/s
+
 # --- Mock task log --------------------------------------------------------
 # Stands in for a real task/planner system (none exists in simulation/ yet).
 TASK_SCRIPT = [
@@ -178,6 +184,50 @@ class SceneRenderer:
                 opt.geomgroup[group] = 0
             self._scene_options[info["mj_name"]] = opt
 
+        # Optional scripted viewport motion (the rail sweep for the railed scene;
+        # None for scenes that just step physics as before).
+        self._motion = self._build_rail_sweep()
+
+    def _build_rail_sweep(self) -> dict | None:
+        """Precompute rail_demo's `sweep` for the railed scene, else return None.
+
+        The sweep is a list of per-frame rows (carriage X, then six arm joint
+        angles) that the render loop plays back kinematically. Any scene without
+        the `rail_x` actuator (the benches, the open lab) has no sweep and steps
+        physics as before.
+        """
+        try:
+            self.model.actuator("rail_x")
+        except KeyError:
+            return None
+        scripts = str(REPO_ROOT / "simulation" / "scripts")
+        if scripts not in sys.path:
+            sys.path.insert(0, scripts)
+        try:
+            import rail_demo  # noqa: E402  (pulls in rail_kinematics via sys.path)
+            import rail_kinematics as rk  # noqa: E402
+
+            waypoints = rail_demo.sweep_waypoints(self.model, self.data)
+            rows = rail_demo.trajectory(self.model, waypoints, speed=RAIL_SWEEP_SPEED)
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"[view] no rail sweep for {SCENE_PATH.name}: {exc!r}; "
+                "viewport is static",
+                file=sys.stderr,
+            )
+            return None
+        return {"rows": rows, "arm_qpos": rk.arm_qpos(self.model), "set_rail": rk.set_rail, "i": 0}
+
+    def _advance_motion(self) -> None:
+        """Pose the machine at the next sweep frame (caller holds _data_lock)."""
+        motion = self._motion
+        rows = motion["rows"]
+        row = rows[motion["i"] % len(rows)]
+        motion["set_rail"](self.model, self.data, float(row[0]))
+        self.data.qpos[motion["arm_qpos"]] = row[1:]
+        mujoco.mj_forward(self.model, self.data)
+        motion["i"] += 1
+
     def _encode(self, mj_camera_name: str, renderer: "mujoco.Renderer") -> bytes:
         with self._data_lock:
             renderer.update_scene(self.data, camera=mj_camera_name, scene_option=self._scene_options[mj_camera_name])
@@ -195,7 +245,10 @@ class SceneRenderer:
         while True:
             start = time.time()
             with self._data_lock:
-                mujoco.mj_step(self.model, self.data)
+                if self._motion is not None:
+                    self._advance_motion()
+                else:
+                    mujoco.mj_step(self.model, self.data)
             with self._condition:
                 for mj_name in mj_camera_names:
                     self._latest_jpeg[mj_name] = self._encode(mj_name, renderer)
