@@ -52,10 +52,14 @@ npm run dev
 Then open http://localhost:5173. Set `VITE_BACKEND_URL` if the backend runs
 somewhere other than `http://localhost:8000`.
 
-By default the viewport shows the Isaac Sim RTX renders of the `general` and
-`room_aisle` cameras (`frontend/public/renders/`, converted from
-`simulation/renders/isaac/full/`), which need no backend. Open
-http://localhost:5173/?live=1 to show the live MuJoCo streams instead. The lab
+By default the viewport shows the live MuJoCo cameras. Select **Replay** in
+the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
+3.0 EA / Isaac Sim 6.1 rail videos without a backend. The global and robot
+cameras loop together at 1080p, 30 fps (20.267 seconds); click the small view
+to swap cameras without restarting playback. The files are bundled in
+`frontend/public/renders/rail_global.mp4` and `rail_robot.mp4`.
+
+The lab
 state panels read the state publisher on :8765: either this backend, or
 `python -m labbridge.mock_run --fps 0 --loop` from `dashboard/bridge`, which
 renders nothing and uses far less memory. Without a publisher they play the

@@ -195,6 +195,7 @@ body {
 }
 
 .camera-frame--pip {
+  z-index: 1;
   position: absolute;
   bottom: 1rem;
   right: 1rem;

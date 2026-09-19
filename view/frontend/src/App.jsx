@@ -19,14 +19,13 @@ const DEFAULT_CAMERAS = [
 
 // The viewport has two sources, switchable from the header:
 //   realtime — the backend's live MuJoCo streams of the scene.
-//   replay   — Eloi's Isaac Sim RTX renders (simulation/renders/isaac/open),
-//              static images that need no backend.
+//   replay   — synchronized Isaac Lab rail videos, served without a backend.
 // Start in Real time on the live MuJoCo streams; ?replay=1 opens in Replay
-// (the Isaac stills, which need no backend).
+// (the Isaac Lab videos, which need no backend).
 const INITIAL_MODE = new URLSearchParams(window.location.search).get("replay") === "1" ? "replay" : "realtime";
-const STILL_CAMERAS = [
-  { id: "scene", label: "General camera", src: "/renders/general.jpg" },
-  { id: "aisle", label: "Aisle camera", src: "/renders/room_aisle.jpg" },
+const REPLAY_CAMERAS = [
+  { id: "scene", label: "General camera", src: "/renders/rail_global.mp4" },
+  { id: "robot", label: "Robot camera", src: "/renders/rail_robot.mp4" },
 ];
 
 // Views that can be opened and closed from the header, and the sizes the drag
@@ -208,12 +207,11 @@ function LiveCameraImage({ cameraId, label, preview }) {
   </>;
 }
 
-function CameraStream({ cameraId, label, className, onClick, big, still, detections }) {
+function CameraStream({ cameraId, label, className, onClick, big, detections }) {
   const boxes = detections && detections.camera === cameraId ? detections : null;
   return (
     <div className={`camera-frame ${className ?? ""}`} onClick={onClick}>
-      {still ? <img src={still} alt={label} className="camera-frame__img" />
-        : <LiveCameraImage key={`${cameraId}-${big}`} cameraId={cameraId} label={label} preview={!big} />}
+      <LiveCameraImage key={`${cameraId}-${big}`} cameraId={cameraId} label={label} preview={!big} />
       {boxes && <DetectionBoxes detections={boxes} />}
       <span className="camera-frame__label">
         {label}
@@ -224,11 +222,57 @@ function CameraStream({ cameraId, label, className, onClick, big, still, detecti
   );
 }
 
+function ReplayViewport({ mainCameraId, onSwap }) {
+  const videos = useRef({});
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    const [leader, follower] = REPLAY_CAMERAS.map(({ id }) => videos.current[id]);
+    let started = false;
+    const start = () => {
+      if (started || [leader, follower].some((video) => video.readyState < 3)) return;
+      started = true;
+      leader.currentTime = follower.currentTime = 0;
+      Promise.all([leader.play(), follower.play()]).catch(() => setError(true));
+    };
+    leader.addEventListener("canplay", start);
+    follower.addEventListener("canplay", start);
+    start();
+    // Keep the same video elements when swapping views, and correct playback
+    // drift (including at the loop boundary) against the global camera.
+    const timer = window.setInterval(() => {
+      if (started && Math.abs(leader.currentTime - follower.currentTime) > 0.1) {
+        follower.currentTime = leader.currentTime;
+      }
+    }, 250);
+    return () => {
+      clearInterval(timer);
+      for (const video of [leader, follower]) {
+        video.removeEventListener("canplay", start);
+        video.pause();
+      }
+    };
+  }, []);
+
+  return REPLAY_CAMERAS.map(({ id, label, src }) => {
+    const big = id === mainCameraId;
+    return <div key={id} className={`camera-frame camera-frame--${big ? "main" : "pip"}`}
+      onClick={big ? undefined : onSwap}>
+      <video ref={(video) => { videos.current[id] = video; }} src={src}
+        className="camera-frame__img" aria-label={label} muted loop playsInline
+        preload="auto" onError={() => setError(true)} />
+      <span className="camera-frame__label">{label}</span>
+      {error && <span className="camera-frame__connection" role="status">Replay unavailable. Reload to try again.</span>}
+      {!big && <span className="camera-frame__swap">⇄ swap</span>}
+    </div>;
+  });
+}
+
 export default function App() {
   const [mode, setMode] = useState(INITIAL_MODE);
   const realtime = mode === "realtime";
   const [liveCameras, setLiveCameras] = useState(DEFAULT_CAMERAS);
-  const cameras = realtime ? liveCameras : STILL_CAMERAS;
+  const cameras = realtime ? liveCameras : REPLAY_CAMERAS;
   const [mainCameraId, setMainCameraId] = useState(realtime ? "robot" : "scene");
   const [tasks, setTasks] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
@@ -355,8 +399,6 @@ export default function App() {
   const pipCameraId = cameras.find((c) => c.id !== mainCameraId)?.id ?? mainCameraId;
   const mainLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
   const pipLabel = cameras.find((c) => c.id === pipCameraId)?.label ?? pipCameraId;
-  const mainStill = cameras.find((c) => c.id === mainCameraId)?.src;
-  const pipStill = cameras.find((c) => c.id === pipCameraId)?.src;
 
   const swapCameras = useCallback(() => setMainCameraId(pipCameraId), [pipCameraId]);
 
@@ -455,22 +497,22 @@ export default function App() {
       <main className="app__body">
         <div className="main-column">
           <section className="viewport">
-            <CameraStream
-              cameraId={mainCameraId}
-              label={mainLabel}
-              className="camera-frame--main"
-              big
-              still={mainStill}
-              detections={detections}
-            />
-            <CameraStream
-              cameraId={pipCameraId}
-              label={pipLabel}
-              className="camera-frame--pip"
-              onClick={swapCameras}
-              still={pipStill}
-              detections={detections}
-            />
+            {realtime ? <>
+              <CameraStream
+                cameraId={mainCameraId}
+                label={mainLabel}
+                className="camera-frame--main"
+                big
+                detections={detections}
+              />
+              <CameraStream
+                cameraId={pipCameraId}
+                label={pipLabel}
+                className="camera-frame--pip"
+                onClick={swapCameras}
+                detections={detections}
+              />
+            </> : <ReplayViewport mainCameraId={mainCameraId} onSwap={swapCameras} />}
           </section>
           {showPanels && (
             <Splitter direction="row" onStart={dragPanels} onReset={() => resize({ panelsHeight: DEFAULT_SIZES.panelsHeight })} />

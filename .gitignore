@@ -25,6 +25,8 @@ data/
 *.torchscript
 *.onnx
 *.mp4
+!view/frontend/public/renders/rail_global.mp4
+!view/frontend/public/renders/rail_robot.mp4
 *.log
 mobileclip*.ts
 
