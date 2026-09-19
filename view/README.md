@@ -114,13 +114,14 @@ and discards intermediate frames rather than queuing inference.
 
 It needs `ultralytics` in the backend's venv and the weights: `VIEW_DETECTOR`
 names a `labvision.detector` backend or a weights path, and the default,
-`rail`, is the YOLO26n trained on this camera in the rail scene, which the
-backend finds as `computer-vision/weights/yolo26n_rail_general.pt` (not in git;
-get it from the team Drive, `hackathon/yolo26n_rail_general`, and see
-`computer-vision/weights/README.md`). The boxes use its best-F1 threshold,
-0.47, rather than the backend's 0.10, which is set for `propose_confirm`'s
-proposals; `VIEW_DETECTOR_CONF` overrides it. Without the weights the button is
-greyed out and says why. On the rail scene's test frames the model finds 99 %
+`full`, is the YOLO26n trained on MuJoCo renders of this scene from every
+angle, which the backend finds as
+`computer-vision/weights/yolo26n_full_1920_e25.pt` (not in git; get it from the
+team Drive, `hackathon/weights/yolo26n_full_1920_e25`, and see
+`computer-vision/weights/README.md`). The boxes use that backend's own best-F1
+threshold, 0.41; `VIEW_DETECTOR_CONF` overrides it. Without the weights the
+button is greyed out and says why. Replay stays on
+`yolo26n_rail_general.pt`, the model scored against those Isaac videos. On the rail scene's test frames the model finds 99 %
 of the bottles on the bench at 99.6 % precision
 (`computer-vision/scripts/fixedcam_bench.py`, splits `rail_*`).
 

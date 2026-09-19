@@ -110,13 +110,16 @@ PREVIEW_FPS = 5
 
 # Bottle detector on the general camera's live frames, run only while a client
 # has the boxes on (see Detector). VIEW_DETECTOR is a labvision backend name or
-# a weights path; the default `rail` is the YOLO26n trained on this camera in
-# the rail scene, found as computer-vision/weights/yolo26n_rail_general.pt. The
-# boxes are drawn raw, so they use that model's best-F1 threshold on the rail
-# scene's validation frames, 0.47, not the backend's 0.10, which is set for
-# propose_confirm's proposals. VIEW_DETECTOR_CONF overrides the threshold.
-DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "rail")
-DETECTOR_CONF = float(os.environ.get("VIEW_DETECTOR_CONF", "0.47"))
+# a weights path; the default `full` is the YOLO26n trained on MuJoCo renders of
+# this scene from every angle (computer-vision/weights/README.md), which it
+# finds as computer-vision/weights/yolo26n_full_1920_e25.pt. The boxes are drawn
+# raw, at the backend's own best-F1 threshold; VIEW_DETECTOR_CONF overrides it,
+# and a bare weights path with no backend behind it falls back to DEFAULT_CONF.
+# The older `rail` backend carries 0.10 instead, the operating point
+# propose_confirm wants, so drawing its boxes wants VIEW_DETECTOR_CONF=0.47.
+DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "full")
+DETECTOR_CONF = os.environ.get("VIEW_DETECTOR_CONF")
+DEFAULT_CONF = 0.41
 DETECTOR_CAMERA = "scene"  # logical id; the model only knows the fixed camera
 DETECTOR_FRAME_STRIDE = int(os.environ.get("VIEW_DETECTOR_FRAME_STRIDE", "5"))
 if DETECTOR_FRAME_STRIDE < 1:
@@ -385,14 +388,15 @@ class Detector:
         self.renderer = renderer
         self.mj_camera = renderer.cameras[DETECTOR_CAMERA]["mj_name"]
         self.error = None
+        score = None
         try:
-            path, _ = resolve_detector(spec)
+            path, score = resolve_detector(spec)
         except FileNotFoundError as exc:
             path, self.error = "", str(exc)
         self.weights = Path(path)
         if self.error is None and not self.weights.exists():
             self.error = f"no weights at {path}"
-        self.conf = DETECTOR_CONF
+        self.conf = float(DETECTOR_CONF) if DETECTOR_CONF else (score or DEFAULT_CONF)
         self.watchers = 0
         self.latest: dict | None = None
         self._lock = threading.Lock()
@@ -712,6 +716,8 @@ async def ws_replay_detections(websocket: WebSocket, pattern: str | None = None)
     await websocket.accept()
     worker = None
     try:
+        # Replay plays Isaac renders, which the newer `full` model has not been
+        # scored on, so this stays on the model measured against these videos.
         weights = Path(os.environ.get("VIEW_REPLAY_WEIGHTS", str(
             REPO_ROOT / "computer-vision/weights/yolo26n_rail_general.pt")))
         renders = REPO_ROOT / "view/frontend/public/renders"
