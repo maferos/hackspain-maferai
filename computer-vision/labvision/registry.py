@@ -39,7 +39,7 @@ DIGITS_FROM_HASH = 9
 DEFAULT_SEED = 20260918
 """Seed fixing the default catalogue, so the table is reproducible."""
 
-REGISTRY_VERSION = 4
+REGISTRY_VERSION = 5
 """Schema version written into the lookup table.
 
 Version 2 introduced the liquid/powder split: ``flask_ml`` became
@@ -51,6 +51,8 @@ the ``bottle_*`` classes and every powder barcode changes, while liquid rows are
 untouched. The field set is unchanged since 2, so the bumps exist to stop a
 consumer keyed on the old class names reading a newer table as if nothing had
 moved.
+Version 5 adds ``marker_id``, the ArUco marker (``DICT_4X4_250``) that
+the bottles now carry as a ring; no barcode changes.
 """
 
 # Nominal flask capacities in millilitres. 10, 20, 50 and 100 are standard
@@ -259,12 +261,16 @@ class Entry:
         sha256: Full hex digest of the sample's canonical payload.
         salt: Re-hash counter used to break a collision; 0 for almost every row.
         sample: The record the code resolves to.
+        marker_id: The ArUco marker the sample's bottle carries: the row's
+            position in the catalogue. Dealt out, not hashed, because a marker
+            dictionary has a few hundred ids and a hash would collide.
     """
 
     code: str
     sha256: str
     salt: int
     sample: Sample
+    marker_id: int = 0
 
 
 def sha256_of(sample: Sample, salt: int = 0) -> str:
@@ -348,7 +354,7 @@ def build_registry(samples: list[Sample]) -> list[Entry]:
             code = code_from_digest(digest)
             if code not in taken:
                 taken[code] = sample.sample_id
-                entries.append(Entry(code, digest, salt, sample))
+                entries.append(Entry(code, digest, salt, sample, len(entries)))
                 break
             logger.warning(
                 "code %s collided between %s and %s, re-hashing with salt %d",
@@ -465,6 +471,10 @@ def to_table(entries: list[Entry]) -> dict[str, object]:
                 # vessel_class is a property, so asdict does not reach it, but
                 # consumers want the detector class name in the table.
                 "vessel_class": e.sample.vessel_class,
+                # The ArUco marker on the bottle. It is the row's position in the
+                # catalogue, not a hash: a dictionary has 250 ids, so they are
+                # dealt out rather than derived.
+                "marker_id": e.marker_id,
             }
             for e in entries
         },

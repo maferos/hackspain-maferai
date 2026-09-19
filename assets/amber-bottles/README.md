@@ -12,7 +12,7 @@ Conventions: metres, origin bottom-centre, glTF +Y up. Amber glass = Principled 
 
 ## Barcode labels
 
-`labelled/` holds one GLB per liquid sample (100 files, named `<sample id>_<barcode>.glb`): the closed bottle with its EAN-13 label attached as a separate sticker mesh on the straight wall. The label is turned a quarter turn, bars lying flat, so the curve of the bottle does not distort the bar widths, and it has a plain white back so that it looks like paper, not a mirrored barcode, when seen through the glass from behind. Which sample each barcode names is in `computer-vision/barcodes/lookup_table.json`. Regenerate from `computer-vision/` after any change to the liquid barcodes or to the bottles:
+`labelled/` holds one GLB per liquid sample (100 files, named `<sample id>_<barcode>.glb`): the closed bottle with its ring of eight ArUco markers (`DICT_4X4_250`, the sample's `marker_id` in `lookup_table.json`), readable from any side (it was a one-sided EAN-13 label until the ring measured better); the label attached as a separate sticker mesh on the straight wall. The label is turned a quarter turn, bars lying flat, so the curve of the bottle does not distort the bar widths, and it has a plain white back so that it looks like paper, not a mirrored barcode, when seen through the glass from behind. Which sample each barcode names is in `computer-vision/barcodes/lookup_table.json`. Regenerate from `computer-vision/` after any change to the liquid barcodes or to the bottles:
 
 ```bash
 python -m labvision.bottles --phase liquid
