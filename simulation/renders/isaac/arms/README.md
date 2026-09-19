@@ -11,9 +11,14 @@ Omniverse content server (Franka/UR/Kinova), not baked into the MuJoCo scene.
 
 ## Layout
 
-- `eih/<arm>_posN.png` — eye-in-hand camera (the manipulation view)
+- `eih/<arm>_posN.png` — eye-in-hand camera (the manipulation view). Franka and
+  Kinova cover **6 positions** across the bottle field; UR10e keeps 3.
+- `eih_tilt25/<arm>.png` — eye-in-hand tilted 25° from vertical, so bottle sides
+  and their barcodes read clearly (better for barcode CV than the pure top-down).
 - `general/<arm>_posN.png` — overview camera with the arm in place
-- `montage_eih.png`, `montage_general.png` — 3×3 comparison grids
+- `montage_eih.png` / `montage_general.png` — 3-arm × 3-pos comparison grids
+- `montage_eih_6pos.png` — Franka & Kinova across all 6 positions
+- `montage_eih_tilt.png` — the 25° tilted variant
 
 ## Arms compared
 

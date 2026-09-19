@@ -23,9 +23,11 @@ from isaacsim.core.prims import SingleArticulation, SingleRigidPrim
 from isaacsim.core.utils.types import ArticulationAction
 
 W, H = 1600, 900
-OUT = "/root/arm_pose"
+OUT = os.environ.get("OUT", "/root/arm_pose")
 NPOSES = int(os.environ.get("NPOSES", "3"))
-ONLY = os.environ.get("ONLY_ARM", "").strip()
+ONLY = os.environ.get("ONLY_ARM", "").strip()          # comma-separated arm list ok
+TILT = float(os.environ.get("TILT", "0"))              # eye-in-hand tilt from vertical (deg)
+SKIP_GENERAL = os.environ.get("SKIP_GENERAL", "") == "1"
 
 # assets root
 def assets_root():
@@ -52,7 +54,8 @@ ARMS = {
               "panda_joint4": -1.45, "panda_joint5": 0.0, "panda_joint6": 1.65,
               "panda_joint7": 0.785,
               "panda_finger_joint1": 0.04, "panda_finger_joint2": 0.04},
-        bases=[(-3.7, -0.35, 0.9, 0), (-2.6, -0.30, 0.9, 0), (-1.6, -0.40, 0.9, 0)],
+        bases=[(-3.7, -0.35, 0.9, 0), (-3.1, 0.00, 0.9, 0), (-2.6, -0.30, 0.9, 0),
+               (-2.1, -0.15, 0.9, 0), (-1.6, -0.40, 0.9, 0), (-1.1, -0.25, 0.9, 0)],
     ),
     "ur10e": dict(
         usd=f"{ISAAC}/Robots/UniversalRobots/ur10e/ur10e.usd",
@@ -67,11 +70,13 @@ ARMS = {
         ee="/end_effector_link", cam_off=0.05,
         pose={"joint_1": 0.0, "joint_2": 0.18, "joint_3": 0.0, "joint_4": 1.10,
               "joint_5": 0.0, "joint_6": 0.95, "joint_7": 1.5708},
-        bases=[(-3.8, -0.35, 0.9, 0), (-2.7, -0.30, 0.9, 0), (-1.7, -0.40, 0.9, 0)],
+        bases=[(-3.8, -0.35, 0.9, 0), (-3.2, 0.00, 0.9, 0), (-2.7, -0.30, 0.9, 0),
+               (-2.2, -0.15, 0.9, 0), (-1.7, -0.40, 0.9, 0), (-1.2, -0.25, 0.9, 0)],
     ),
 }
 if ONLY:
-    ARMS = {ONLY: ARMS[ONLY]}
+    want = [a.strip() for a in ONLY.split(",") if a.strip()]
+    ARMS = {a: ARMS[a] for a in want}
 
 ctx = omni.usd.get_context()
 
@@ -130,8 +135,13 @@ for name, cfg in ARMS.items():
         art = SingleArticulation(prim_path=robot_path, name=f"arm_{name}_{i}")
         art.initialize()
         dof = list(art.dof_names)
+        pose = dict(cfg["pose"])
+        # optional per-run tuning: POSE_OVERRIDE="wrist_1_joint:-2.2,elbow_joint:1.4"
+        for kv in os.environ.get("POSE_OVERRIDE", "").split(","):
+            if ":" in kv:
+                k, v = kv.split(":"); pose[k.strip()] = float(v)
         q = np.zeros(len(dof), dtype=np.float32)
-        for jn, val in cfg["pose"].items():
+        for jn, val in pose.items():
             if jn in dof:
                 q[dof.index(jn)] = val
         art.set_joint_positions(q)
@@ -154,7 +164,9 @@ for name, cfg in ARMS.items():
         BENCH_Z, CAM_H = 0.9, 0.70
         cam_z = min(float(pos[2]) - cfg["cam_off"], BENCH_Z + CAM_H)
         eye = Gf.Vec3d(float(pos[0]), float(pos[1]), cam_z)
-        tgt = eye + Gf.Vec3d(0, 0, -1.0)
+        # straight down, or tilted TILT deg toward +y (shows bottle sides/labels)
+        t = math.radians(TILT)
+        tgt = eye + Gf.Vec3d(0.0, math.sin(t), -math.cos(t))
         view = Gf.Matrix4d().SetLookAt(eye, tgt, Gf.Vec3d(0, 1, 0))
         cam_path = f"/World/eih_cam_{name}_{i}"
         cam = UsdGeom.Camera.Define(stage, Sdf.Path(cam_path))
@@ -165,7 +177,7 @@ for name, cfg in ARMS.items():
 
         render_cam(cam_path, os.path.join(OUT, name, f"pose{i}", "eih"))
         print("  rendered eih", flush=True)
-        gc = general_cam(stage)
+        gc = None if SKIP_GENERAL else general_cam(stage)
         if gc:
             render_cam(gc, os.path.join(OUT, name, f"pose{i}", "general"))
             print("  rendered general", flush=True)
