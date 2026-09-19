@@ -427,11 +427,11 @@ def lights(m):
 # Central bench
 # =============================================================================
 
-def central_bench(m):
+def central_bench(m, half_width=BENCH_HY):
     m.comment("Worktop finish: glossy white laid over the minihannover slab (visual only, 0.2 mm proud) "
               "and a thin orange edge profile on the near stretch.")
-    m.box("worktop_finish", (0, 0, BENCH_TOP - 0.0248), (BENCH_HX + 0.0005, BENCH_HY + 0.0005, 0.025), "worktop")
-    m.span("edge_profile", (-3.0, -BENCH_HY - 0.003, BENCH_TOP - 0.012), (-1.0, -BENCH_HY - 0.0005, BENCH_TOP - 0.004), "orange")
+    m.box("worktop_finish", (0, 0, BENCH_TOP - 0.0248), (BENCH_HX + 0.0005, half_width + 0.0005, 0.025), "worktop")
+    m.span("edge_profile", (-3.0, -half_width - 0.003, BENCH_TOP - 0.012), (-1.0, -half_width - 0.0005, BENCH_TOP - 0.004), "orange")
 
     m.comment("Under-bench units on both sides: drawers, doors and knee spaces.")
     kinds = ["drawers", "knee", "door", "drawers", "knee", "door", "drawers", "knee", "drawers", "door"]
@@ -439,7 +439,7 @@ def central_bench(m):
     for side in (-1, 1):
         for i, kind in enumerate(kinds if side < 0 else kinds[::-1]):
             x0 = -BENCH_HX + i * unit
-            y_out, y_in = side * (BENCH_HY - 0.02), side * 0.05
+            y_out, y_in = side * (half_width - 0.02), side * 0.05
             ylo, yhi = sorted((y_out, y_in))
             if kind == "knee":
                 m.span("modesty", (x0 + 0.01, min(y_in, 0.05 * side) - 0.01, 0.10), (x0 + unit - 0.01, max(y_in, 0.05 * side) + 0.01, 0.84), "white_matte")

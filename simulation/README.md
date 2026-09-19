@@ -53,6 +53,14 @@ python scripts/view_model.py models/minihannover_scene.xml    # look at it (perf
 It ships as MJCF (boxes, and a mesh variant), URDF for the Isaac Lab importer, and an
 OBJ interchange mesh. See [`assets/minihannover/README.md`](assets/minihannover/README.md).
 
+The [open-desk variant](assets/minihannover_open/README.md) removes the central
+shelving and centers a wider 6 × 2 m desk in the room:
+
+```bash
+python scripts/generate_minihannover_open.py
+mjpython scripts/view_model.py models/minihannover_open_scene.xml  # macOS
+```
+
 ## AutoBio lab scenes
 
 [AutoBio](https://github.com/autobio-bench/AutoBio) ([paper](https://arxiv.org/abs/2505.14030)) provides

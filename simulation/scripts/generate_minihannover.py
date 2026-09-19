@@ -52,12 +52,12 @@ class Box:
         return 8.0 * hx * hy * hz * self.density
 
 
-def build():
+def build(width=WIDTH):
     parts = [
         Box(
             f"{NAME}_worktop",
             (0.0, 0.0, HEIGHT - TOP_THICKNESS / 2),
-            (LENGTH / 2, WIDTH / 2, TOP_THICKNESS / 2),
+            (LENGTH / 2, width / 2, TOP_THICKNESS / 2),
             TOP_DENSITY,
             TOP_RGBA,
             f"{NAME}_top",
@@ -66,7 +66,7 @@ def build():
 
     leg_h = HEIGHT - TOP_THICKNESS
     dx = LENGTH / 2 - LEG_INSET - LEG_SIZE / 2
-    dy = WIDTH / 2 - LEG_INSET - LEG_SIZE / 2
+    dy = width / 2 - LEG_INSET - LEG_SIZE / 2
     xs = [-dx + 2 * dx * i / (LEG_PAIRS - 1) for i in range(LEG_PAIRS)] if LEG_PAIRS > 1 else [0.0]
 
     for i, x in enumerate(xs):
