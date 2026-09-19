@@ -259,7 +259,7 @@ def balance_state(
 def empty_state(run_id: str = "RUN-000", workcell_doc: dict | None = None) -> dict:
     """A complete ``LabState`` with nothing running, to start a snapshot from."""
     return {
-        "run": {"id": run_id, "status": "idle", "mode": "autonomous", "elapsedSeconds": 0.0, "progress": 0.0, "phase": None, "simulated": True},
+        "run": {"id": run_id, "status": "idle", "mode": "autonomous", "elapsedSeconds": 0.0, "progress": 0.0, "phase": None, "simulated": True, "scripted": False},
         "recipe": {"id": "—", "name": "No recipe loaded", "targetMass": 0.0, "ingredients": []},
         "execution": {"currentStepId": None, "steps": []},
         "balance": balance_state(None),

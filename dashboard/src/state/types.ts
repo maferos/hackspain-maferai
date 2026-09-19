@@ -58,6 +58,8 @@ export interface RunInfo {
   phase: MacroPhase | null
   /** True when the workcell is a simulator rather than hardware. */
   simulated: boolean
+  /** True while the sequence is a script rather than the real planner. */
+  scripted?: boolean
 }
 
 export interface Ingredient {
