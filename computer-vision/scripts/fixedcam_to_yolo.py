@@ -10,7 +10,15 @@ A bottle is labelled when at least ``MIN_VISIBLE`` of it shows, wherever it
 stands, as in ``fixedcam_crops.py``; the few hidden further than that are left
 unlabelled rather than taught as bottles the model cannot see.
 
+With ``--crop`` every frame is cut to the part the bench occupies
+(``bench_crop.py``), at full resolution: from the wall camera a band about
+1920 x 448, the input the detector runs on to stay under 100 ms on a CPU.
+Labels move with the crop, and a bottle the crop leaves with under
+``bench_crop.KEEP`` of its box is dropped.
+
     python scripts/fixedcam_to_yolo.py rail_train:train rail_val:val --out DIR
+    python scripts/fixedcam_to_yolo.py rail_train:train orbit_train:train \
+        rail_val:val --out DIR --crop
 
 Writes OUT/{images,labels}/<role>/<split>_NNNN.{png,txt} and OUT/data.yaml.
 """
@@ -22,7 +30,10 @@ import shutil
 import sys
 from pathlib import Path
 
+import cv2
+
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from bench_crop import bench_crop, crop_labels  # noqa: E402
 from fixedcam_crops import MIN_VISIBLE  # noqa: E402
 from fixedcam_dataset import DEFAULT_OUT  # noqa: E402
 
@@ -51,6 +62,11 @@ def main() -> None:
     parser.add_argument("--src", type=Path, default=DEFAULT_OUT)
     parser.add_argument("--out", type=Path, required=True)
     parser.add_argument("--link", action="store_true", help="hard-link the images")
+    parser.add_argument(
+        "--crop",
+        action="store_true",
+        help="crop every frame to the bench (bench_crop.py), as the detector runs",
+    )
     args = parser.parse_args()
 
     for pair in args.pairs:
@@ -61,17 +77,23 @@ def main() -> None:
         boxes = hidden = 0
         for frame in gt["frames"]:
             w, h = frame["width"], frame["height"]
-            put(
-                args.src / split / frame["file"],
-                args.out / "images" / role / frame["file"],
-                args.link,
-            )
-            lines = []
+            crop = bench_crop(frame) if args.crop else (0, 0, w, h)
+            source = args.src / split / frame["file"]
+            target = args.out / "images" / role / frame["file"]
+            if crop == (0, 0, w, h):
+                put(source, target, args.link)
+            elif not target.exists():
+                image = cv2.imread(str(source))
+                cv2.imwrite(str(target), image[crop[1] : crop[3], crop[0] : crop[2]])
+            w, h = crop[2] - crop[0], crop[3] - crop[1]
+            seen = []
             for bottle in frame["bottles"]:
                 if bottle["visible_frac"] < MIN_VISIBLE or not bottle["pixels"]:
                     hidden += 1
                     continue
-                x0, y0, x1, y1 = bottle["xyxy"]
+                seen.append(tuple(map(float, bottle["xyxy"])))
+            lines = []
+            for x0, y0, x1, y1 in crop_labels(seen, crop):
                 x0, x1 = max(0.0, x0), min(float(w), x1)
                 y0, y1 = max(0.0, y0), min(float(h), y1)
                 if x1 <= x0 or y1 <= y0:

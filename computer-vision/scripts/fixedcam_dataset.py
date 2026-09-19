@@ -43,6 +43,28 @@ Splits, each rendered from its own seeds so no layout is shared:
     The same four roles on the rail scene, with the arm posed in every frame
     and some frames keeping the scene's own twelve vessels where it puts them.
     ``rail_train`` degrades a share of its frames too.
+``orbit_train`` / ``orbit_val`` / ``orbit_test``
+    The rail scene seen from anywhere in the room rather than from the wall
+    mount: the camera stands at any bearing, 1 to 3.5 m from a point on the
+    bench, always more than 30 degrees above the bench plane (below that the
+    view grazes the bench), with a random field of view and a little roll. For
+    a detector that does not depend on one mount; ``orbit_test`` keeps the
+    light nominal and the frames clean.
+``close_train`` / ``close_val`` / ``close_test``
+    The same, from 0.35 to 1 m: bottles 60 to 300 px tall instead of 10 to 60.
+    A detector that has only seen small bottles breaks a large one into
+    several boxes (``docs/YOLO26_STUDY.md``).
+``low_train`` / ``low_val`` / ``low_test``
+    The orbit camera 15 to 30 degrees above the bench, 0.5 to 3.5 m away: eye
+    height across the bench. Rendered after the
+    9,400-frame dataset, from seeds of their own, so that dataset still
+    regenerates frame for frame.
+``dark_test`` / ``orbit_dark_test`` / ``overhead_test``
+    Frozen tests of what a demo can throw at the detector: the wall mount and
+    the orbit camera with the room's lights at 8 to 50 %, and the orbit camera
+    looking down from 70 to 88 degrees, where a bottle is a cap on a disc. The
+    orbit and close training splits dim a quarter of their frames and take a
+    fifth of their poses from overhead.
 
 Bottles are laid out on free worktop by ray casts, sometimes spread out and
 sometimes in a cluster where they hide each other. Every sample bottle in view
@@ -66,6 +88,7 @@ import json
 import math
 import sys
 import time
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -76,6 +99,8 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "simulation" / "scripts"))
+import bottle_patterns  # noqa: E402
+import generate_minihannover_open as open_desk  # noqa: E402
 import rail_kinematics as rk  # noqa: E402
 import render_perfumery as rp  # noqa: E402
 
@@ -86,9 +111,35 @@ DEFAULT_OUT = REPO / "simulation" / "out" / "fixedcam"
 CAMERA = "general"
 WIDTH, HEIGHT = 1920, 1080
 
-EXTRA_PER_SIZE = 3
+EXTRA_PER_SIZE = 15
 """Extra bottles of every size of both kits added to the scene, on top of its
 own 7 loose ones, so a layout can hold up to 37 bottles of any mix."""
+
+ORBIT_ELEVATION_DEG = (30.0, 85.0)
+"""Elevation of the orbit camera above the bench plane, seen from its aim point."""
+ORBIT_RANGE_M = (1.0, 3.5)
+"""Distance from the orbit camera to its aim point on the bench."""
+OVERHEAD_ELEVATION_DEG = (70.0, 88.0)
+"""Elevation of the overhead poses; short of 90, where a look-at has no up."""
+DARK_LIGHT = (0.08, 0.5)
+"""Share of the scene's own light left in a dark frame."""
+CLOSE_RANGE_M = (0.35, 1.0)
+"""The same for the ``close_*`` splits, where a bottle fills much of the frame."""
+ORBIT_FOVY_DEG = (48.0, 72.0)
+"""Vertical field of view of the orbit camera, around the GoPro Linear's 60.44."""
+ORBIT_ROLL_DEG = 8.0
+"""Largest roll of the orbit camera about its line of sight."""
+ORBIT_ROOM = ((-8.4, 3.5), (-2.85, 2.05), (1.0, 2.85))
+"""Where in the rail scene's room the orbit camera may stand, x, y and z: inside
+the walls (x = -8.55, y = -2.95 and 2.15) and under the ceiling (z = 3.0), and
+short of the opening to the corridor past x = 3.5."""
+ORBIT_CLEAR = 0.85
+"""Share of the line of sight from the camera to its aim point that must be
+free; the last stretch may cross the bottles and the arm on the bench."""
+AIM_SPREAD_M = 0.25
+"""How far the orbit camera's aim wanders from the bottle it picks, at the
+orbit distances; scaled down with the distance, to 7.5 cm for ``close_*``,
+where 25 cm put the bottle out of a frame half a metre wide."""
 
 
 @dataclass(frozen=True)
@@ -148,6 +199,18 @@ class Split:
         light: Largest relative change of light intensity, 0 for nominal.
         tint: Chance of tinting the worktop.
         camera_jitter: Whether to move the camera off its mount.
+        orbit: Whether to stand the camera anywhere in the room instead, looking
+            down at the bench (:meth:`Randomiser.orbit`).
+        orbit_range: Distance from that camera to its aim point, metres.
+        orbit_elevation: Its elevation above the bench plane, degrees.
+        overhead: Share of orbit poses taken from :data:`OVERHEAD_ELEVATION_DEG`.
+        dark: Share of frames lit at :data:`DARK_LIGHT` of the scene's light.
+        patterns: Share of laid-out frames whose bench is a seeded pattern of
+            ``bottle_patterns`` (rows, crowds, up to 75 flasks) rather than
+            :func:`lay_out`'s own scatter or cluster.
+        catalogue: Whether those patterns are the catalogued ten the viewer
+            shows, frame ``k`` taking pattern ``k % 10``, not fresh seeds.
+        lab: Share of frames whose room is varied (:meth:`Randomiser.vary_lab`).
         degrade: Share of frames degraded as a real camera would; 1 for all.
         arm: Whether to pose the rail scene's arm in every frame.
         as_built: Share of frames that keep the scene's own bottle layout.
@@ -160,6 +223,14 @@ class Split:
     light: float = 0.0
     tint: float = 0.0
     camera_jitter: bool = False
+    orbit: bool = False
+    orbit_range: tuple[float, float] = ORBIT_RANGE_M
+    orbit_elevation: tuple[float, float] = ORBIT_ELEVATION_DEG
+    overhead: float = 0.0
+    dark: float = 0.0
+    patterns: float = 0.0
+    catalogue: bool = False
+    lab: float = 0.0
     degrade: float = 0.0
     arm: bool = False
     as_built: float = 0.0
@@ -170,6 +241,34 @@ class Split:
 RAIL = {"arm": True, "max_bottles": 34}
 """What every rail split shares: the arm in the picture and every movable
 bottle of the scene available, the twelve vessels and the extras."""
+PATTERN_SEEDS = (1_000, 1_000_000)
+"""Bench pattern seeds drawn for training, never one of the catalogued ten
+(:data:`bottle_patterns.CATALOGUE`), which the viewer shows and the
+``pattern_*`` tests keep for themselves."""
+LAB_TINT = (0.55, 1.08)
+"""Brightness a room material may be multiplied by in a varied lab."""
+LAB_FURNITURE = ("chair", "stool", "carton", "packing_tape", "shipping_label",
+                 "tape_end", "drum", "coat", "staff_coat", "bin", "carboy")  # fmt: skip
+"""Families of room geoms a varied lab may take away, all of a family at once."""
+LAB_INSTRUMENTS = (
+    "balance_1_balance",
+    "balance_2_balance",
+    "balance_3_balance",
+    "balance_4_balance",
+    "gc_ms_gc_ms",
+    "uv_vis_nir_uv_vis_nir",
+)
+"""Bodies a varied lab may slide along the bench or take away. Not the sink,
+which is plumbed in, nor the open balance, which the beaker stands on."""
+LOW_ELEVATION_DEG = (15.0, 30.0)
+"""Elevation of the ``low_*`` splits: a camera at eye height across the bench,
+under the orbit's :data:`ORBIT_ELEVATION_DEG`."""
+
+TRAIN = {"light": 0.45, "tint": 0.5, "degrade": 0.3, "as_built": 0.1,
+         "patterns": 0.5, "lab": 0.7}  # fmt: skip
+"""What every rail training and validation split draws: half its laid-out
+benches from seeded patterns, and the room varied in seven frames of ten, so
+three of ten keep the lab the robot works in."""
 
 SPLITS: dict[str, Split] = {
     "train": Split("gantry", 100_000, light=0.45, tint=0.5, camera_jitter=True,
@@ -180,13 +279,49 @@ SPLITS: dict[str, Split] = {
     "test_open": Split("open", 400_000, frames=100),
     "test_shift": Split("gantry", 500_000, light=0.6, tint=0.7, degrade=1.0,
                         frames=100),
-    "rail_train": Split("rail", 600_000, light=0.45, tint=0.5, camera_jitter=True,
-                        degrade=0.3, as_built=0.1, frames=1500, **RAIL),
-    "rail_val": Split("rail", 700_000, light=0.45, tint=0.5, camera_jitter=True,
-                      degrade=0.3, as_built=0.1, frames=150, **RAIL),
-    "rail_test": Split("rail", 800_000, as_built=0.2, frames=150, **RAIL),
+    "rail_train": Split("rail", 600_000, camera_jitter=True, frames=2500,
+                        **TRAIN, **RAIL),
+    "rail_val": Split("rail", 700_000, camera_jitter=True, frames=250,
+                      **TRAIN, **RAIL),
+    "rail_test": Split("rail", 800_000, as_built=0.2, patterns=0.5, frames=150,
+                       **RAIL),
     "rail_test_shift": Split("rail", 900_000, light=0.6, tint=0.7, degrade=1.0,
-                             frames=100, **RAIL),
+                             patterns=0.5, frames=100, **RAIL),
+    "orbit_train": Split("rail", 1_000_000, orbit=True, overhead=0.2, frames=3000,
+                         **TRAIN, **RAIL),
+    "orbit_val": Split("rail", 1_100_000, orbit=True, overhead=0.2, frames=300,
+                       **TRAIN, **RAIL),
+    "orbit_test": Split("rail", 1_200_000, orbit=True, as_built=0.2, patterns=0.5,
+                        frames=300, **RAIL),
+    "close_train": Split("rail", 1_300_000, orbit=True, overhead=0.2,
+                         orbit_range=CLOSE_RANGE_M, frames=1500, **TRAIN, **RAIL),
+    "close_val": Split("rail", 1_400_000, orbit=True, overhead=0.2,
+                       orbit_range=CLOSE_RANGE_M, frames=150, **TRAIN, **RAIL),
+    "close_test": Split("rail", 1_500_000, orbit=True, orbit_range=CLOSE_RANGE_M,
+                        as_built=0.2, patterns=0.5, frames=150, **RAIL),
+    "dark_test": Split("rail", 1_600_000, dark=1.0, as_built=0.2, patterns=0.5,
+                       frames=150, **RAIL),
+    "orbit_dark_test": Split("rail", 1_700_000, orbit=True, dark=1.0, as_built=0.2,
+                             patterns=0.5, frames=150, **RAIL),
+    "overhead_test": Split("rail", 1_800_000, orbit=True, overhead=1.0,
+                           as_built=0.2, patterns=0.5, frames=150, **RAIL),
+    "low_train": Split("rail", 2_100_000, orbit=True, orbit_range=(0.5, 3.5),
+                       orbit_elevation=LOW_ELEVATION_DEG, frames=800,
+                       **TRAIN, **RAIL),
+    "low_val": Split("rail", 2_200_000, orbit=True, orbit_range=(0.5, 3.5),
+                     orbit_elevation=LOW_ELEVATION_DEG, frames=100,
+                     **TRAIN, **RAIL),
+    "low_test": Split("rail", 2_300_000, orbit=True, orbit_range=(0.5, 3.5),
+                      orbit_elevation=LOW_ELEVATION_DEG, as_built=0.2, patterns=0.5,
+                      frames=100, **RAIL),
+    "pattern_test": Split("rail", 2_400_000, patterns=1.0, catalogue=True,
+                          frames=100, **RAIL),
+    "pattern_orbit_test": Split("rail", 2_500_000, orbit=True, patterns=1.0,
+                                catalogue=True, frames=100, **RAIL),
+    "lab_test": Split("rail", 2_600_000, orbit=True, as_built=0.2, patterns=0.5,
+                      lab=1.0, frames=150, **RAIL),
+    "lab_rail_test": Split("rail", 2_700_000, as_built=0.2, patterns=0.5, lab=1.0,
+                           frames=100, **RAIL),
 }  # fmt: skip
 
 
@@ -210,9 +345,11 @@ def extra_samples() -> tuple[str, ...]:
 def load_lab(scene: Scene) -> rp.Lab:
     """Build :class:`render_perfumery.Lab` on another scene file
 
-    ``Lab`` reads the scene path, the extra bottles and the bench bounds from
-    module globals of ``render_perfumery``; they are pointed at ``scene`` here
-    rather than editing that shared script.
+    ``Lab`` takes the scene path, but reads the extra bottles and the bench
+    bounds from module globals of ``render_perfumery``; they are pointed at
+    ``scene`` here rather than editing that shared script. The path must be
+    passed: ``Lab``'s default is bound when the class is defined, so setting
+    ``rp.SCENE`` alone renders the gantry scene whatever ``scene`` says.
     """
     rp.SCENE = scene.path
     rp.EXTRA_SAMPLES = extra_samples()
@@ -228,7 +365,7 @@ def load_lab(scene: Scene) -> rp.Lab:
         return "room"
 
     rp.where_is = where_is
-    return rp.Lab(WIDTH, HEIGHT)
+    return rp.Lab(WIDTH, HEIGHT, scene=scene.path)
 
 
 class Randomiser:
@@ -253,6 +390,25 @@ class Randomiser:
         self.geom_rgba = m.geom_rgba.copy()
         self.cam_pos = m.cam_pos[camera].copy()
         self.cam_quat = m.cam_quat[camera].copy()
+        self.cam_fovy = float(m.cam_fovy[camera])
+        self.light_pos = m.light_pos.copy()
+        self.light_active = m.light_active.copy()
+        self.body_pos = m.body_pos.copy()
+        self.geom_pos = m.geom_pos.copy()
+        room = [g for g, n in enumerate(names) if n.startswith("room_")]
+        keep = set(worktop) | {g for g in room if "barcode" in names[g]
+                               or "label" in names[g]}  # fmt: skip
+        self.room_geoms = [g for g in room if g not in keep]
+        self.room_mats = sorted({int(m.geom_matid[g]) for g in self.room_geoms}
+                                - {-1} - set(self.worktop_mats))  # fmt: skip
+        self.furniture = {
+            family: [g for g in room if names[g].startswith(f"room_{family}")]
+            for family in LAB_FURNITURE
+        }
+        self.instruments = {
+            name: m.body(name).id for name in LAB_INSTRUMENTS
+            if mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, name) >= 0
+        }  # fmt: skip
 
     def reset(self) -> None:
         """Put lights, worktop and camera back to the scene file's values"""
@@ -264,6 +420,65 @@ class Randomiser:
         m.geom_rgba[:] = self.geom_rgba
         m.cam_pos[self.camera] = self.cam_pos
         m.cam_quat[self.camera] = self.cam_quat
+        m.cam_fovy[self.camera] = self.cam_fovy
+        m.light_pos[:] = self.light_pos
+        m.light_active[:] = self.light_active
+        m.body_pos[:] = self.body_pos
+        m.geom_pos[:] = self.geom_pos
+
+    def vary_lab(self, rng: np.random.Generator, as_built: bool) -> dict:
+        """Make the room around the bench another lab, for one frame
+
+        Appearance: about half the room's materials and bare-coloured geoms are
+        tinted, brighter or darker and off-hue, the ceiling lights are shifted
+        and up to a third of them switched off. Arrangement: whole families of
+        furniture and clutter (:data:`LAB_FURNITURE`) are taken away, and, unless
+        the frame keeps the as-built bench, whose vessels stand round them, each
+        instrument of :data:`LAB_INSTRUMENTS` is slid along the bench or taken
+        away. The bench, the rail, the arm and the sample bottles are left
+        alone. Call it before the bottles are laid out, so they avoid the
+        instruments where they now stand. :meth:`reset` undoes all of it.
+
+        Returns:
+            What was changed.
+        """
+        m = self.lab.model
+
+        def tint() -> np.ndarray:
+            hue = np.clip(1 + rng.normal(0, 0.09, 3), 0.75, 1.25)
+            return np.clip(rng.uniform(*LAB_TINT) * hue, 0.0, 1.3)
+
+        tinted = 0
+        for mat in self.room_mats:
+            if rng.random() < 0.5:
+                m.mat_rgba[mat, :3] = np.clip(self.mat_rgba[mat, :3] * tint(), 0, 1)
+                tinted += 1
+        bare = [g for g in self.room_geoms if m.geom_matid[g] < 0]
+        shade = tint()  # one draw for every bare geom: they are walls and floor
+        if bare and rng.random() < 0.6:
+            m.geom_rgba[bare, :3] = np.clip(self.geom_rgba[bare, :3] * shade, 0, 1)
+            tinted += 1
+        m.light_pos[:, :2] = self.light_pos[:, :2] + rng.normal(0, 0.4, (m.nlight, 2))
+        off = rng.permutation(m.nlight)[: int(rng.integers(0, m.nlight // 3 + 1))]
+        m.light_active[off] = 0
+        hidden = [f for f, geoms in self.furniture.items()
+                  if geoms and rng.random() < 0.35]  # fmt: skip
+        for family in hidden:
+            m.geom_pos[self.furniture[family], 2] -= 20.0
+        moved: dict[str, list[float] | None] = {}
+        if not as_built:
+            for name, body in self.instruments.items():
+                roll = rng.random()
+                if roll < 0.2:
+                    m.body_pos[body, 2] -= 20.0
+                    moved[name] = None
+                elif roll < 0.7:
+                    shift = [float(v) for v in rng.uniform((-0.5, -0.12), (0.5, 0.12))]
+                    m.body_pos[body, :2] += shift
+                    moved[name] = [round(v, 3) for v in shift]
+        mujoco.mj_kinematics(m, self.lab.data)
+        return {"tinted": tinted, "lights_off": len(off), "hidden": hidden,
+                "instruments": moved}  # fmt: skip
 
     def draw(self, rng: np.random.Generator, split: Split) -> dict:
         """Apply one random draw for ``split`` and return what was drawn"""
@@ -279,6 +494,12 @@ class Randomiser:
             m.vis.headlight.ambient[:] = np.clip(self.head_ambient * head[1], 0, 1)
             drawn["light"] = [round(float(scale), 3), *np.round(colour, 3).tolist()]
             drawn["headlight"] = np.round(head, 3).tolist()
+        if split.dark > 0 and rng.random() < split.dark:
+            left = float(rng.uniform(*DARK_LIGHT))
+            m.light_diffuse[:] *= left
+            m.vis.headlight.diffuse[:] *= left
+            m.vis.headlight.ambient[:] *= left
+            drawn["dark"] = round(left, 3)
         if split.tint > 0 and rng.random() < split.tint:
             hue = np.clip(1 + rng.normal(0, 0.02, 3), 0.95, 1.05)
             shade = rng.uniform(0.78, 1.0) * hue
@@ -302,6 +523,91 @@ class Randomiser:
             drawn["camera_shift_m"] = np.round(shift, 3).tolist()
             drawn["camera_turn_deg"] = round(math.degrees(angle), 2)
         return drawn
+
+    def orbit(
+        self,
+        rng: np.random.Generator,
+        scene: Scene,
+        reach_m: tuple[float, float] = ORBIT_RANGE_M,
+        overhead: float = 0.0,
+        elevation_deg: tuple[float, float] = ORBIT_ELEVATION_DEG,
+    ) -> dict | None:
+        """Stand the camera anywhere in the room, looking down at the bench
+
+        The aim point is mostly near a bottle standing on the bench, otherwise
+        anywhere on it. The camera goes at a random bearing, elevation and
+        distance from it, inside :data:`ORBIT_ROOM`, and a pose is kept only if
+        nothing stands on the line of sight to the aim point short of its last
+        stretch and nothing wraps the lens: a camera inside a wall, the shelf
+        or the arm renders a flat colour with every bottle at zero pixels. Call
+        it once the bottles and the arm are in place.
+
+        Returns:
+            What was drawn, or None if no clear pose was found; the camera is
+            then left where :meth:`draw` put it.
+        """
+        lab, m, d = self.lab, self.lab.model, self.lab.data
+        on_bench = [
+            d.xpos[s["body"]].copy()
+            for s in lab.samples
+            if s["movable"] and rp.where_is(d.xpos[s["body"]]) == "bench"
+        ]
+        low, high = np.array(ORBIT_ROOM).T
+        geom = np.array([-1], np.int32)
+        # The aim wanders round the bottle in proportion to how far the camera
+        # stands, so a close camera still has the bottle in its frame.
+        spread = AIM_SPREAD_M * min(1.0, sum(reach_m) / sum(ORBIT_RANGE_M))
+        for _ in range(200):
+            if on_bench and rng.random() < 0.7:
+                aim = on_bench[int(rng.integers(len(on_bench)))].copy()
+                aim[:2] += rng.normal(0.0, spread, 2)
+            else:
+                lo, hi, _ = scene.y_ranges[int(rng.integers(len(scene.y_ranges)))]
+                aim = np.array([rng.uniform(*scene.x_range), rng.uniform(lo, hi), 0.0])
+            aim[2] = rp.WORKTOP_Z + rng.uniform(0.0, 0.1)
+            azimuth = rng.uniform(0.0, 2 * np.pi)
+            above = overhead > 0 and rng.random() < overhead
+            elevation = math.radians(
+                rng.uniform(*(OVERHEAD_ELEVATION_DEG if above else elevation_deg))
+            )
+            reach = rng.uniform(*reach_m)
+            sight = np.array(
+                [
+                    math.cos(elevation) * math.cos(azimuth),
+                    math.cos(elevation) * math.sin(azimuth),
+                    math.sin(elevation),
+                ]
+            )
+            position = aim + reach * sight
+            if np.any(position < low) or np.any(position > high):
+                continue
+            ahead = mujoco.mj_ray(
+                m, d, position, -sight, lab.ray_groups, 1, -1, geom
+            )  # fmt: skip
+            if 0 <= ahead < ORBIT_CLEAR * reach:
+                continue
+            # From outside in: a ray that starts inside a closed mesh or box
+            # can miss its walls, one that ends at the lens cannot.
+            start = aim + (1 - ORBIT_CLEAR) * reach * sight
+            if not lab.line_of_sight(start, position, -1):
+                continue
+            roll = float(np.clip(rng.normal(0.0, ORBIT_ROLL_DEG / 2), -ORBIT_ROLL_DEG,
+                                 ORBIT_ROLL_DEG))  # fmt: skip
+            fovy = float(rng.uniform(*ORBIT_FOVY_DEG))
+            m.cam_pos[self.camera] = position
+            m.cam_quat[self.camera] = rp.quat_mul(
+                rp.look_at_quat(position, aim), rp.yaw_quat(math.radians(roll))
+            )
+            m.cam_fovy[self.camera] = fovy
+            return {
+                "aim": np.round(aim, 3).tolist(),
+                "azimuth_deg": round(math.degrees(azimuth), 1),
+                "elevation_deg": round(math.degrees(elevation), 1),
+                "range_m": round(float(reach), 3),
+                "roll_deg": round(roll, 2),
+                "fovy_deg": round(fovy, 2),
+            }
+        return None
 
 
 def lay_out(
@@ -340,6 +646,59 @@ def lay_out(
                 placed += 1
                 break
     return placed, cluster
+
+
+def desk_origin(scene: Scene) -> np.ndarray:
+    """World position of the desk-local origin ``bottle_patterns`` places in
+
+    Read from the room model as ``view/backend/scene_patterns.py`` reads it: the
+    frame that holds the worktop's finish.
+    """
+    root = ET.parse(scene.path).getroot()
+    room = next(m.get("file") for m in root.find("asset").findall("model")
+                if m.get("name") == "lab_room")  # fmt: skip
+    frames = ET.parse(scene.path.parent / room).getroot().iter("frame")
+    desk = next(f for f in frames
+                if any(g.get("name") == "worktop_finish_0" for g in f.findall("geom")))
+    return np.array([float(v) for v in desk.get("pos").split()])
+
+
+def lay_out_pattern(
+    lab: rp.Lab, origin: np.ndarray, seed: int
+) -> tuple[int, dict]:
+    """Park every movable bottle, then stand them as a seeded bench pattern
+
+    The pattern is ``bottle_patterns``' for ``seed``: 10 to 75 flasks, scattered,
+    in clusters, in rack-like rows or crowded into one stretch, 4 to 60 mm
+    apart. Each of its flasks is stood in by a movable bottle of its radius, or
+    of the next smaller one left, so nothing overlaps; a flask is left out when
+    none is left or when something else stands on its spot (an instrument a
+    varied lab slid there).
+
+    Returns:
+        How many bottles were placed, and the pattern's seed, style, count and
+        spacing.
+    """
+    lab.park_all()
+    pattern = bottle_patterns.pattern_for(seed)
+    flasks, _ = open_desk.build_population(pattern)
+    pool = sorted((s for s in lab.samples if s["movable"]), key=lambda s: -s["radius"])
+    placed = 0
+    for flask in sorted(flasks, key=lambda f: -f["radius"]):
+        x, y = flask["x"] + origin[0], flask["y"] + origin[1]
+        fits = [s for s in pool if s["radius"] <= flask["radius"] + 5e-4]
+        geom = np.array([-1], np.int32)
+        down = np.array([0.0, 0.0, -1.0])
+        mujoco.mj_ray(lab.model, lab.data, np.array([x, y, 1.2]), down,
+                      lab.ray_groups, 1, -1, geom)  # fmt: skip
+        if not fits or int(geom[0]) not in lab.worktop:
+            continue
+        pool.remove(fits[0])
+        lab.place(fits[0], x, y, rp.WORKTOP_Z, math.radians(flask["yaw"]))
+        placed += 1
+    return placed, {"pattern": pattern.name, "pattern_seed": seed,
+                    "style": pattern.style, "count": len(flasks),
+                    "gap_m": round(pattern.gap, 4)}  # fmt: skip
 
 
 def pose_arm(lab: rp.Lab, rng: np.random.Generator, scene: Scene) -> dict:
@@ -422,6 +781,7 @@ def render_split(
     out = out_root / name
     out.mkdir(parents=True, exist_ok=True)
     lab = load_lab(scene)
+    origin = desk_origin(scene) if split.patterns > 0 else np.zeros(3)
     m = lab.model
     camera = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_CAMERA, CAMERA)
     randomiser = Randomiser(lab, camera)
@@ -439,6 +799,8 @@ def render_split(
         as_built = split.as_built > 0 and bool(rng.random() < split.as_built)
         if as_built:
             lab.reset()
+        if split.lab > 0 and rng.random() < split.lab:
+            drawn["lab"] = randomiser.vary_lab(rng, as_built)
         if split.arm:
             drawn["arm"] = pose_arm(lab, rng, scene)
         if as_built:
@@ -447,11 +809,38 @@ def render_split(
                 s["movable"] and lab.data.xpos[s["body"], 2] > 0 for s in lab.samples
             )
             cluster = False
+        elif split.patterns > 0 and rng.random() < split.patterns:
+            if split.catalogue:
+                seed_p = bottle_patterns.CATALOGUE[k % len(bottle_patterns.CATALOGUE)]
+            else:
+                seed_p = int(rng.integers(*PATTERN_SEEDS))
+                while seed_p in bottle_patterns.CATALOGUE:
+                    seed_p += 1
+            placed, drawn["layout"] = lay_out_pattern(lab, origin, seed_p)
+            cluster = drawn["layout"]["style"] in ("clusters", "crowd")
         else:
             count = int(rng.integers(8, split.max_bottles + 1))
             placed, cluster = lay_out(lab, rng, scene, count)
+            drawn["layout"] = {"style": "cluster" if cluster else "scatter",
+                               "count": int(placed)}  # fmt: skip
+        if as_built:
+            drawn["layout"] = {"style": "as built", "count": int(placed)}
         mujoco.mj_kinematics(m, lab.data)
+        if split.orbit:
+            drawn["orbit"] = randomiser.orbit(
+                rng, scene, split.orbit_range, split.overhead, split.orbit_elevation
+            )
+            if drawn["orbit"] is None:
+                print(f"[{name}] frame {k}: no clear orbit pose, wall mount kept")
         rgb, bottles, categories = lab.render(camera, WIDTH, HEIGHT)
+        # A pose that shows no vial teaches little: look again, twice at most.
+        for _ in range(2):
+            if not split.orbit or any(b["visible_frac"] >= 0.3 for b in bottles):
+                break
+            drawn["orbit"] = randomiser.orbit(
+                rng, scene, split.orbit_range, split.overhead, split.orbit_elevation
+            ) or drawn["orbit"]
+            rgb, bottles, categories = lab.render(camera, WIDTH, HEIGHT)
         bgr = rgb[:, :, ::-1]
         if split.degrade >= 1 or (
             split.degrade > 0 and rng.random() < split.degrade
