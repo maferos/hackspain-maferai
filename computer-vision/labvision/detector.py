@@ -132,7 +132,7 @@ BACKENDS: dict[str, Backend] = {
     "world-s": Backend("yolov8s-worldv2.pt", 0.17, prompts=PROMPTS),
     "world-bottles": Backend("yolov8l-worldv2.pt", 0.12, prompts=BOTTLE_PROMPTS),
     "coco26": Backend("yolo26s.pt", 0.13, keep=COCO_KEEP),
-    "fixedcam": Backend("runs/fixedcam/yolo26n_fixedcam.pt", 0.07),
+    "fixedcam": Backend("runs/fixedcam/yolo26n_fixedcam.pt", 0.22),
 }
 """The two backends chosen on real photographs, the small YOLO-World as a fast
 variant that loses distant vessels, and three chosen on the fixed camera's
@@ -141,12 +141,15 @@ YOLO26s on COCO, and ``fixedcam``, a YOLO26n fine-tuned on simulator-labelled
 crops whose classes are ``amber_bottle`` and ``hdpe_bottle``. Its weights are
 not in git; ``FIXEDCAM_HELP`` says how to make them.
 
-The three fixed-camera thresholds are the best-F1 points on the validation
-frames for the whole frame with no filter, which is what :class:`Detector`
-sees. On the fixed camera, pass the boxes through
+The ``world-bottles`` and ``coco26`` thresholds are the best-F1 points on the
+validation frames for the whole frame with no filter, which is what
+:class:`Detector` sees. ``fixedcam``'s is the best-F1 point with the worktop
+filter applied, because that model is only ever meant to run with it: the
+4-epoch weights score 0.97 AP50 on the test frames that way. On the fixed
+camera, pass the boxes through
 :func:`labvision.evaluation.on_worktop` as well: every sample bottle is a
 bottle, the gantry's included, and only the camera's geometry tells the bench
-from the shelf (0.64 to 0.80 AP50 for ``fixedcam`` on validation)."""
+from the shelf (0.92 to 0.97 AP50 for ``fixedcam`` on validation)."""
 
 FIXEDCAM_HELP = (
     "the fine-tuned fixed-camera weights are made by training, not downloaded: "

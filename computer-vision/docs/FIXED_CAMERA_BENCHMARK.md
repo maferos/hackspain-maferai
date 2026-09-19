@@ -10,12 +10,36 @@ i5-12450H, 8 cores, 16 GB, no GPU).
 
 ## Results
 
-**In one line:** a YOLO26n fine-tuned for a single epoch on the CPU, on
-simulator-labelled crops, finds bottles on the bench as well as the best
-detector that needs no training (YOLO-World L), finds more of the smallest
-ones, tells amber from HDPE, costs a fraction of the compute, and is the
-most robust to a degraded camera. On a scene it never saw, YOLO-World L holds
-up slightly better.
+**In one line:** a YOLO26n fine-tuned for four epochs on a laptop CPU, on
+simulator-labelled crops only, is the best detector on every split measured:
+0.97 AP50 on the main test against 0.87 for the best detector that needs no
+training (YOLO-World L), and it holds its lead on a scene it never saw, on a
+degraded camera and on the crowded open bench, in MuJoCo and in Isaac. It runs
+at 0.2 s per frame on the CPU, a thirtieth of YOLO-World L.
+
+### Four epochs: the fine-tuned model against the references
+
+AP50 on the same frames for every model (the first 30 of each split), worktop
+region and filter, each model at its own validation threshold. The one-epoch
+column is the checkpoint the tables further down were first written with.
+
+| split | YOLO26n, 4 epochs | YOLO26n, 1 epoch | YOLO-World L | YOLO26s COCO |
+| --- | --- | --- | --- | --- |
+| `test`: gantry scene | **0.968** [0.95-0.99] | 0.864 | 0.871 | 0.687 |
+| `test_open`: empty open desk, never trained on | **0.875** [0.84-0.90] | 0.675 | 0.715 | 0.500 |
+| `test_shift`: light and camera degraded | **0.942** [0.91-0.97] | 0.767 | 0.685 | 0.260 |
+| populated open bench, MuJoCo (labelled bottles) | **0.917** | 0.754 | 0.826 | 0.866 |
+| populated open bench, Isaac (same bottles) | **0.749** | 0.599 | 0.688 | 0.739 |
+
+- On the main test it finds 95 % of the bottles at 98 % precision, 0.2 false
+  boxes per frame, and names the kit right (kit AP50 0.96). The 10 ml amber
+  bottle, the hardest, goes from 76 % to 90 % found (62 of 69 over 60 frames).
+- On Isaac it has the best AP50 but not the best precision at its threshold
+  (0.40, 120 false boxes per frame): the threshold was chosen on sparse MuJoCo
+  frames, and Isaac's reflections draw boxes it never saw. AP50:95 (0.36 against
+  COCO's 0.53) says its boxes are also looser there. Training on Isaac frames is
+  the fix.
+- The three extra epochs took 20 minutes once the CPU was back at full speed.
 
 ### Main test
 
@@ -428,11 +452,14 @@ machine otherwise idle), so training was cut to what fits:
 
 - **YOLO26n**, COCO weights, 384 px crops, batch 16, AdamW (Ultralytics'
   automatic choice), random scale limited to +-25 % so 8 px bottles do not
-  shrink to nothing. **One epoch** was trained (11 min at full speed): the
-  next ones ran at 4 min per iteration, about five hours per epoch, and were
-  stopped. After that single epoch the model reached 0.92 mAP50 on the
-  validation crops (shelf bottles included) and is what the tables call
-  "YOLO26n fine-tuned". It is an early checkpoint, not a converged model.
+  shrink to nothing. **One epoch** was trained overnight (11 min at full speed):
+  the next ones ran at 4 min per iteration, about five hours per epoch, and
+  were stopped. Three more epochs from that checkpoint (batch 8, no warm-up,
+  mosaic off for the last) ran the next afternoon once the CPU recovered, in
+  20 minutes: 0.974 mAP50 on the validation crops. Those are the weights the
+  `fixedcam` backend loads. The first epoch alone reached 0.92 mAP50 on the
+  validation crops; the tables below the four-epoch one call that checkpoint
+  "YOLO26n fine-tuned" and were written before the extra epochs.
 - **RF-DETR Nano** could not be trained here. Unfrozen it took ~17 s per crop on
   three threads; with the DINOv2 encoder frozen (8.3 M of 30 M parameters
   trainable), ~5.6 s per crop while sharing the CPU, which is 40 min per epoch
