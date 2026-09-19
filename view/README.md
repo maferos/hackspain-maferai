@@ -75,7 +75,7 @@ above.
 - **Pipeline**, under the tasks: the modules from camera to mass check, each
   with its status and live figure, and the latest event.
 
-Every view (camera, inset camera, Robot, Balance, tasks, Pipeline) opens and closes from
+Every view (camera, Robot, Balance, tasks, Pipeline) opens and closes from
 the buttons in the header, and the edges between views drag to resize them
 (double-click an edge to reset it). The layout is remembered in the browser.
 

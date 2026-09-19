@@ -30,7 +30,6 @@ const STILL_CAMERAS = [
 // handles set. Both are remembered in this browser.
 const VIEWS = [
   { id: "camera", label: "Camera" },
-  { id: "inset", label: "Inset", title: "The second camera in the corner of the viewport" },
   { id: "robot", label: "Robot" },
   { id: "balance", label: "Balance" },
   { id: "tasks", label: "Tasks" },
@@ -256,7 +255,6 @@ export default function App() {
                 className={`view-toggle ${views[v.id] ? "view-toggle--on" : ""}`}
                 aria-pressed={views[v.id]}
                 title={v.title}
-                disabled={v.id === "inset" && !views.camera}
                 onClick={() => toggleView(v.id)}
               >
                 {v.label}
@@ -271,15 +269,13 @@ export default function App() {
             {views.camera && (
               <section className="viewport">
                 <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big still={mainStill} />
-                {views.inset && (
-                  <CameraStream
-                    cameraId={pipCameraId}
-                    label={pipLabel}
-                    className="camera-frame--pip"
-                    onClick={swapCameras}
-                    still={pipStill}
-                  />
-                )}
+                <CameraStream
+                  cameraId={pipCameraId}
+                  label={pipLabel}
+                  className="camera-frame--pip"
+                  onClick={swapCameras}
+                  still={pipStill}
+                />
               </section>
             )}
             {views.camera && showPanels && (
