@@ -68,7 +68,7 @@ run, regenerate it with `python -m labbridge.record_run` from `dashboard/bridge`
 In Real time the bottle detector's boxes are drawn over the general camera,
 wherever that camera is shown; the header's **Boxes** button turns them off and
 on, and the choice is remembered in this browser. The backend runs the
-detector only while a viewer has the boxes on, every 5 rendered camera frames
+detector while a viewer has Boxes or Pipeline open, every 5 rendered camera frames
 (`VIEW_DETECTOR_FRAME_STRIDE`), with `VIEW_DETECTOR_THREADS` (2) torch
 threads so the streams keep their frame rate; the boxes lag the picture by one
 inference (about 0.4 s on a laptop CPU).
@@ -78,6 +78,10 @@ frame instead of building a queue.
 YOLO runs in a separate Python subprocess, so its preprocessing and torch
 inference cannot hold the renderer's Python interpreter lock. Only the
 detector thread waits for results; camera rendering and streaming continue.
+The Pipeline's Object detection row uses the live detector's inference time,
+input size and detection count. Opening Pipeline keeps this feed active even
+with Boxes off or the viewport in Replay. It shows an offline/waiting state
+when no live measurement is available, rather than scripted timing figures.
 
 It needs `ultralytics` in the backend's venv and the weights: `VIEW_DETECTOR`
 names a `labvision.detector` backend or a weights path, and the default,

@@ -133,7 +133,10 @@ function useDetections(enabled) {
         }
       };
       ws.onclose = () => {
-        if (!cancelled) retryTimer = setTimeout(connect, 1500);
+        if (!cancelled) {
+          setDetections(null);
+          retryTimer = setTimeout(connect, 1500);
+        }
       };
       ws.onerror = () => ws.close();
     };
@@ -244,7 +247,11 @@ export default function App() {
     }
   });
   const [detector, setDetector] = useState(null);
-  const detections = useDetections(realtime && showBoxes && detector?.available === true);
+  // Pipeline metrics stay live independently of the viewport's source or boxes.
+  const liveDetections = useDetections(
+    detector?.available === true && ((realtime && showBoxes) || layout.views.pipeline),
+  );
+  const detections = realtime && showBoxes ? liveDetections : null;
 
   useEffect(() => {
     try {
@@ -255,7 +262,6 @@ export default function App() {
   }, [showBoxes]);
 
   useEffect(() => {
-    if (!realtime) return;
     let cancelled = false;
     let timer;
     const controller = new AbortController();
@@ -278,7 +284,7 @@ export default function App() {
       controller.abort();
       clearTimeout(timer);
     };
-  }, [realtime]);
+  }, []);
 
   useEffect(() => {
     try {
@@ -494,6 +500,8 @@ export default function App() {
               <PipelinePanel
                 state={lab.state}
                 connected={lab.connected}
+                detections={liveDetections}
+                detector={detector}
                 style={views.tasks ? { height: layout.pipelineHeight } : { flex: 1 }}
               />
             )}
