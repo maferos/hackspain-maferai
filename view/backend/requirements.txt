@@ -1,0 +1,8 @@
+# Additional dependencies on top of simulation/requirements.txt (mujoco,
+# numpy, pillow), which this backend also needs — install both into the same
+# venv, e.g. simulation/.venv:
+#   uv pip install --python simulation/.venv/bin/python -r simulation/requirements.txt -r view/backend/requirements.txt
+
+fastapi>=0.115
+uvicorn[standard]>=0.30
+opencv-python-headless>=4.9
