@@ -1,0 +1,404 @@
+"""Fly the wrist camera in front of sample bottles and scan what it sees
+
+The minihannover scene carries a ``wrist`` camera on a mocap body: a GoPro in
+Linear mode at 1080p, standing in for the camera on the arm. This script parks
+it square in front of one bottle's label after another, renders the frame,
+runs :func:`labvision.reader.decode_image` on the **whole frame** and checks
+the code against the lookup table. Nothing tells the reader where the label
+is or which sample to expect.
+
+A GoPro's fixed focus is sharp from about 0.30 m, so that is the first
+standoff tried. When the frame does not decode, the camera steps closer, the
+way an arm would, and the first standoff that reads is the one reported. If no
+level view reads, the same standoffs are tried again looking down at the label
+from a little above, gentlest angle first: the gantry shelves have a 20 mm lip,
+and from level it hides the bottom of the label on a small flask standing well
+back. Gentlest first because the labels are turned a quarter turn, so their
+bars are rings round the bottle, and from above a ring is an arc: at 25 degrees
+and 0.10 m the bars bend too far to rectify, at 8 degrees they still read. The
+render has no defocus, so reads closer than 0.30 m are optimistic for a real
+GoPro and the contact sheet says at which distance each one was made.
+
+By default the thirteen hand-placed bottles are scanned plus a seeded draw
+from the gantry shelves, so every bottle size is covered and so is the
+scattered library.
+
+    python scripts/wrist_scan.py                       # 13 placed + 7 shelved
+    python scripts/wrist_scan.py --shelf 0 --samples PWD-0012 SMP-0021
+    python scripts/wrist_scan.py --standoffs 0.30      # no stepping closer
+
+Output: ``<out>/<sample id>.png`` per frame, ``<out>/contact_sheet.png`` and
+``<out>/results.json``. Needs ``mujoco``, which the rest of the package does not.
+"""
+
+import argparse
+import json
+import math
+import sys
+from dataclasses import asdict, dataclass
+from pathlib import Path
+
+import cv2
+import mujoco
+import numpy as np
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from labvision import reader, registry  # noqa: E402
+
+REPO = Path(__file__).resolve().parents[2]
+SCENE = REPO / "simulation" / "models" / "minihannover_scene.xml"
+TABLE = REPO / "computer-vision" / "barcodes" / "lookup_table.json"
+DEFAULT_STANDOFFS_M = (0.30, 0.20, 0.15, 0.10)
+"""Label-to-lens distances tried in order; 0.30 m is a GoPro's near focus."""
+
+ELEVATIONS_DEG = (0.0, 8.0, 16.0, 25.0)
+"""Approach angles tried in order: level with the label, then from ever higher."""
+
+SETTLE_STEPS = 400
+"""Simulation steps before rendering, so the loose bottles have come to rest."""
+
+TILE_W, TILE_H = 640, 360
+INSET = 360
+"""Contact sheet: each frame shrunk to a tile, beside a full-resolution crop."""
+
+CAPTION_H = 84
+COLUMNS = 4
+GREEN, RED, AMBER, INK = (60, 150, 40), (40, 40, 210), (0, 130, 230), (30, 30, 30)
+
+
+@dataclass(frozen=True)
+class Target:
+    """One bottle's label, as found in the compiled scene.
+
+    Attributes:
+        sample_id: Catalogue id, which is also what the barcode must resolve to.
+        where: ``bench``, ``corner`` or ``shelf``.
+        centre: Label centre in world metres.
+        normal: Horizontal unit vector pointing out of the label.
+        label_height_m: Vertical extent of the sticker, the printed label's width.
+    """
+
+    sample_id: str
+    where: str
+    centre: np.ndarray
+    normal: np.ndarray
+    label_height_m: float
+
+
+@dataclass(frozen=True)
+class Scan:
+    """What one bottle's scan came to.
+
+    Attributes:
+        sample_id: The bottle the camera was parked in front of.
+        material: Its material, from the lookup table.
+        container_ml: Its container size.
+        where: ``bench``, ``corner`` or ``shelf``.
+        standoff_m: Distance of the frame that is reported.
+        elevation_deg: How far above the label's level the camera was.
+        px_per_module: Width of one barcode module in that frame.
+        tried_m: Every standoff tried, in order.
+        code: The code read for this bottle, or None.
+        read_as: The sample that code resolves to, or None.
+        others: Other samples decoded in the same frame.
+        verdict: ``ok``, ``wrong`` or ``no read``.
+    """
+
+    sample_id: str
+    material: str
+    container_ml: float
+    where: str
+    standoff_m: float
+    elevation_deg: float
+    px_per_module: float
+    tried_m: list[float]
+    code: str | None
+    read_as: str | None
+    others: list[str]
+    verdict: str
+
+
+def find_targets(model: mujoco.MjModel, data: mujoco.MjData) -> dict[str, Target]:
+    """Locate every label in the scene from its geom and its bottle's cap
+
+    A label geom sits at the centroid of its sticker and the bottle's cap geom
+    on the bottle's axis, so the horizontal direction from one to the other is
+    the way the label faces.
+
+    Args:
+        model: The compiled scene.
+        data: Its state, already forwarded.
+
+    Returns:
+        Targets keyed by sample id.
+    """
+    targets = {}
+    for geom in range(model.ngeom):
+        name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, geom) or ""
+        if not name.endswith("_label"):
+            continue
+        stem = name[: -len("_label")]
+        if stem.startswith("room_lib_"):
+            sample_id, where = stem[len("room_lib_") :], "shelf"
+        else:
+            body = mujoco.mj_id2name(
+                model, mujoco.mjtObj.mjOBJ_BODY, model.geom_bodyid[geom]
+            )
+            sample_id = body[len(stem) + 1 :]
+            where = "corner" if stem.startswith("corner_") else "bench"
+        # The cap, not the wall: powders call the wall "body" and liquids "glass",
+        # while every bottle has a cap and it sits on the axis.
+        cap = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_GEOM, f"{stem}_cap")
+        if cap < 0:
+            raise SystemExit(
+                f"{name}: no {stem}_cap geom to take the bottle's axis from"
+            )
+        axis = data.geom_xpos[cap]
+        centre = data.geom_xpos[geom].copy()
+        normal = np.array([*(centre[:2] - axis[:2]), 0.0])
+        mesh = model.geom_dataid[geom]
+        start, count = model.mesh_vertadr[mesh], model.mesh_vertnum[mesh]
+        vertices = (
+            model.mesh_vert[start : start + count]
+            @ data.geom_xmat[geom].reshape(3, 3).T
+        )
+        targets[sample_id] = Target(
+            sample_id,
+            where,
+            centre,
+            normal / np.linalg.norm(normal),
+            float(np.ptp(vertices[:, 2])),
+        )
+    return targets
+
+
+def park(
+    model: mujoco.MjModel,
+    data: mujoco.MjData,
+    camera: int,
+    target: Target,
+    standoff_m: float,
+    elevation_deg: float = 0.0,
+) -> None:
+    """Move the wrist mount so the camera looks at a label's centre
+
+    Args:
+        model: The compiled scene.
+        data: Its state; the mount's mocap pose is overwritten.
+        camera: Id of the wrist camera.
+        target: The label to face.
+        standoff_m: Distance from the label's centre to the camera.
+        elevation_deg: Angle of the camera above the label's level, seen from
+            the label. Zero faces it squarely.
+    """
+    tilt = math.radians(elevation_deg)
+    outward = math.cos(tilt) * target.normal + math.sin(tilt) * np.array(
+        [0.0, 0.0, 1.0]
+    )
+    forward = -outward
+    right = np.cross(forward, (0.0, 0.0, 1.0))
+    right /= np.linalg.norm(right)
+    up = np.cross(right, forward)
+    wanted = np.column_stack([right, up, -forward])  # MuJoCo looks down its -Z
+    local = np.zeros(9)
+    mujoco.mju_quat2Mat(local, model.cam_quat[camera])
+    mount = wanted @ local.reshape(3, 3).T
+    quat = np.zeros(4)
+    mujoco.mju_mat2Quat(quat, mount.flatten())
+    mocap = model.body_mocapid[model.cam_bodyid[camera]]
+    eye = target.centre + standoff_m * outward
+    data.mocap_pos[mocap] = eye - mount @ model.cam_pos[camera]
+    data.mocap_quat[mocap] = quat
+    mujoco.mj_forward(model, data)
+
+
+def annotate(frame: np.ndarray, found: list, expected: str) -> np.ndarray:
+    """Draw every decoded symbol's quad, green for the bottle being scanned"""
+    out = frame.copy()
+    for detection, row in found:
+        if detection.corners is None:
+            continue
+        hit = row is not None and row["sample_id"] == expected
+        quad = detection.corners.astype(np.int32).reshape(-1, 1, 2)
+        cv2.polylines(out, [quad], True, GREEN if hit else AMBER, 4, cv2.LINE_AA)
+    return out
+
+
+def tile(frame: np.ndarray, scan: Scan) -> np.ndarray:
+    """Compose one contact-sheet cell: the frame, a 1:1 crop and the result"""
+    height, width = frame.shape[:2]
+    cell = np.full((TILE_H + CAPTION_H, TILE_W + INSET, 3), 255, np.uint8)
+    cell[:TILE_H, :TILE_W] = cv2.resize(
+        frame, (TILE_W, TILE_H), interpolation=cv2.INTER_AREA
+    )
+    x0, y0 = (width - INSET) // 2, (height - INSET) // 2
+    cell[:INSET, TILE_W:] = frame[y0 : y0 + INSET, x0 : x0 + INSET]
+    cv2.rectangle(cell, (TILE_W, 0), (TILE_W + INSET - 1, INSET - 1), INK, 1)
+    colour = {"ok": GREEN, "wrong": RED, "no read": AMBER}[scan.verdict]
+    if scan.verdict == "ok":
+        result = f"READ {scan.code} -> {scan.read_as}  OK"
+    elif scan.verdict == "wrong":
+        result = f"READ {scan.code} -> {scan.read_as}  WRONG"
+    else:
+        result = "NO READ at " + ", ".join(f"{d:.2f}" for d in scan.tried_m) + " m"
+    size = f"{scan.container_ml:g} ml"
+    lines = [
+        (f"{scan.sample_id}  {scan.material}, {size}  ({scan.where})", INK),
+        (
+            f"standoff {scan.standoff_m:.2f} m"
+            + (f" from {scan.elevation_deg:g} deg above" if scan.elevation_deg else "")
+            + f"   {scan.px_per_module:.1f} px/module"
+            + (f"   also read: {', '.join(scan.others)}" if scan.others else ""),
+            INK,
+        ),
+        (result, colour),
+    ]
+    for row, (text, ink) in enumerate(lines):
+        cv2.putText(
+            cell,
+            text,
+            (8, TILE_H + 24 + 26 * row),
+            cv2.FONT_HERSHEY_SIMPLEX,
+            0.62,
+            ink,
+            2 if row == 2 else 1,
+            cv2.LINE_AA,
+        )
+    cv2.rectangle(cell, (0, 0), (cell.shape[1] - 1, cell.shape[0] - 1), colour, 3)
+    return cell
+
+
+def contact_sheet(cells: list[np.ndarray]) -> np.ndarray:
+    """Lay the cells out in rows of :data:`COLUMNS` on white"""
+    rows = math.ceil(len(cells) / COLUMNS)
+    cell_h, cell_w = cells[0].shape[:2]
+    sheet = np.full((rows * cell_h, COLUMNS * cell_w, 3), 255, np.uint8)
+    for i, cell in enumerate(cells):
+        r, c = divmod(i, COLUMNS)
+        sheet[r * cell_h : (r + 1) * cell_h, c * cell_w : (c + 1) * cell_w] = cell
+    return sheet
+
+
+def main() -> None:
+    """Scan the chosen bottles and write frames, contact sheet and results"""
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("--scene", type=Path, default=SCENE)
+    parser.add_argument(
+        "--samples",
+        nargs="*",
+        default=None,
+        help="sample ids to scan (default: every hand-placed bottle)",
+    )
+    parser.add_argument(
+        "--shelf",
+        type=int,
+        default=7,
+        help="how many shelved bottles to add, drawn by --seed",
+    )
+    parser.add_argument("--seed", type=int, default=3)
+    parser.add_argument(
+        "--standoffs", type=float, nargs="+", default=DEFAULT_STANDOFFS_M
+    )
+    parser.add_argument(
+        "--out", type=Path, default=REPO / "simulation" / "out" / "wrist_scan"
+    )
+    args = parser.parse_args()
+    args.out.mkdir(parents=True, exist_ok=True)
+
+    table = registry.load_table(TABLE)
+    by_id = {row["sample_id"]: row for row in table.values()}
+    entries = {
+        e.sample.sample_id: e
+        for e in registry.build_registry(registry.default_samples())
+    }
+
+    model = mujoco.MjModel.from_xml_path(str(args.scene))
+    data = mujoco.MjData(model)
+    for _ in range(SETTLE_STEPS):
+        mujoco.mj_step(model, data)
+    mujoco.mj_forward(model, data)
+    camera = mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, "wrist")
+    width, height = (int(v) for v in model.cam_resolution[camera])
+    focal_px = height / 2.0 / math.tan(math.radians(model.cam_fovy[camera]) / 2.0)
+    renderer = mujoco.Renderer(model, height=height, width=width)
+
+    targets = find_targets(model, data)
+    chosen = args.samples
+    if chosen is None:
+        chosen = sorted(t.sample_id for t in targets.values() if t.where != "shelf")
+    shelved = sorted(t.sample_id for t in targets.values() if t.where == "shelf")
+    rng = np.random.default_rng(args.seed)
+    chosen = list(chosen) + [
+        str(s) for s in rng.choice(shelved, args.shelf, replace=False)
+    ]
+
+    scans, cells = [], []
+    for sample_id in chosen:
+        target, row = targets[sample_id], by_id[sample_id]
+        modules = registry.render_label(entries[sample_id], module_px=2).shape[1] / 2
+        module_m = target.label_height_m / modules
+        tried = []
+        approaches = [(e, d) for e in ELEVATIONS_DEG for d in args.standoffs]
+        for elevation, standoff in approaches:
+            if elevation == 0.0:
+                tried.append(standoff)
+            park(model, data, camera, target, standoff, elevation)
+            renderer.update_scene(data, camera=camera)
+            frame = cv2.cvtColor(renderer.render(), cv2.COLOR_RGB2BGR)
+            found = reader.resolve(reader.decode_image(frame), table)
+            mine = [
+                d for d, r in found if r is not None and r["sample_id"] == sample_id
+            ]
+            if mine:
+                break
+        # A code that is in the table but is not this bottle's belongs to a neighbour
+        # in shot. A code that is in no table at all is a misread.
+        others = sorted(
+            {r["sample_id"] for _, r in found if r is not None} - {sample_id}
+        )
+        unknown = [d.code for d, r in found if r is None]
+        if mine:
+            code, read_as, verdict = mine[0].code, sample_id, "ok"
+            others += [f"unknown {c}" for c in unknown]
+        elif unknown:
+            code, read_as, verdict = unknown[0], "not in the table", "wrong"
+        else:
+            code, read_as, verdict = None, None, "no read"
+        scan = Scan(
+            sample_id,
+            row["material"],
+            row["container_ml"],
+            target.where,
+            standoff,
+            elevation,
+            focal_px * module_m / standoff,
+            tried,
+            code,
+            read_as,
+            others,
+            verdict,
+        )
+        scans.append(scan)
+        shown = annotate(frame, found, sample_id)
+        cv2.imwrite(str(args.out / f"{sample_id}.png"), shown)
+        cells.append(tile(shown, scan))
+        print(
+            f"{sample_id:9s} {row['material'][:22]:22s} {row['container_ml']:6g} ml "
+            f"{target.where:6s} {standoff:.2f} m {elevation:2g} deg "
+            f"{scan.px_per_module:4.1f} px/mod  "
+            f"{verdict}{'  also ' + ','.join(others) if others else ''}"
+        )
+
+    cv2.imwrite(str(args.out / "contact_sheet.png"), contact_sheet(cells))
+    (args.out / "results.json").write_text(
+        json.dumps([asdict(s) for s in scans], indent=1), encoding="utf-8"
+    )
+    ok = sum(s.verdict == "ok" for s in scans)
+    print(
+        f"\n{ok}/{len(scans)} read correctly, "
+        f"{sum(s.verdict == 'wrong' for s in scans)} misread -> {args.out}"
+    )
+
+
+if __name__ == "__main__":
+    main()

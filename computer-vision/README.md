@@ -296,6 +296,44 @@ partition is out of shot --- and intersecting rays with z = 0.95 would misplace 
 6 cm at this elevation. `TABLE_CENTRE` and `TABLE_TOP_Z` have to be settled
 against the simulation before `locate` is run on its frames.
 
+### What the wrist camera reads
+
+`scripts/wrist_scan.py` flies `wrist` in front of one bottle after another,
+decodes the **whole 1080p frame** --- nothing tells the reader where the label
+is or which sample to expect --- and writes every frame, a contact sheet of
+frame, 1:1 crop and result, and `results.json` to `simulation/out/wrist_scan/`.
+It starts 0.30 m from the label, a GoPro's near focus, and steps closer until
+the bottle's own code reads. The default run is the thirteen hand-placed
+bottles plus seven drawn from the gantry, so every size and the scattered
+library are both covered: **19 of 20 read, none misread**, and half the frames
+also read a neighbour that happened to be in shot.
+
+| Bottle | Reads from |
+| --- | --- |
+| Powder 2 L, 500 ml, 250 ml | 0.30 m |
+| Powder 1 L | 0.30 m once, 0.20 m three times |
+| Powder 100 ml | 0.20 m |
+| Liquid 100 ml | 0.30 m once, 0.20 m twice |
+| Liquid 50 and 20 ml | 0.15 m |
+| Liquid 30 ml | 0.15 m on the bench; 0.10 m from 8 degrees above on a shelf |
+| Liquid 10 ml | 0.10 m on the bench; **not at all** at the back of a shelf |
+
+Three things this measured that the flat tests could not:
+
+- **The small flasks need the arm closer than a GoPro focuses.** Their labels
+  are small because their walls are, so 2 px per module means 0.10 to 0.15 m.
+  The render has no defocus; a real GoPro at that range does. Either the wrist
+  camera gets a close-focus lens, or the 10 to 30 ml labels get a denser
+  symbology.
+- **A shelf lip hides a label's first digits.** From level, the 20 mm lip covers
+  the bottom of the label on a small flask standing well back, and for a
+  ladder label the bottom is where the code starts. Looking from 8 degrees
+  above clears it.
+- **Do not look from far above.** The bars of a ladder label are rings round
+  the bottle, and from above a ring is an arc. At 25 degrees and 0.10 m they
+  bend too far for the localiser to rectify; at 8 degrees they still read. So
+  the script raises the camera gently, gentlest angle first.
+
 What the frame actually contains, with a 92 x 60.4 degree lens aimed there:
 
 | Image row | What is there |
