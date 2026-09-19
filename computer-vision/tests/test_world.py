@@ -52,3 +52,11 @@ def test_the_bridge_accepts_the_records():
     perception = state.perception_state(vessels=to_dashboard(_bottles()))
     assert perception["detections"] == 3
     assert perception["vessels"][0]["id"] == "SMP-0005"
+
+
+def test_a_track_is_the_index_the_console_joins_on():
+    tracked = [
+        PerceivedBottle((0.0, 0.0, 0.9), 0.5, track=6),
+        PerceivedBottle((1, 1, 1), 0.4),
+    ]
+    assert [r["index"] for r in to_dashboard(tracked)] == [6, 1]

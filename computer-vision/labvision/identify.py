@@ -28,6 +28,7 @@ bottle in the gripper.
 
 import argparse
 import json
+import math
 from collections import Counter
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -68,6 +69,18 @@ class Marker:
         u, v = self.corners.mean(axis=0)
         return float(u), float(v)
 
+    @property
+    def area(self) -> float:
+        """Area of the marker's quad in pixels: largest for the one facing the camera"""
+        u, v = self.corners[:, 0], self.corners[:, 1]
+        return float(abs(np.dot(u, np.roll(v, -1)) - np.dot(v, np.roll(u, -1))) / 2)
+
+    @property
+    def side(self) -> float:
+        """Mean edge length of the quad in pixels"""
+        edges = np.roll(self.corners, -1, axis=0) - self.corners
+        return float(np.linalg.norm(edges, axis=1).mean())
+
 
 @dataclass
 class Identity:
@@ -81,6 +94,7 @@ class Identity:
         row: The lookup-table row of the winning id, or None if it has none.
         label: The detector's class name, if a detector gave the box.
         score: The detector's confidence, if a detector gave the box.
+        read: The winning id's markers themselves, in frame pixels.
     """
 
     bbox: BBox
@@ -90,6 +104,12 @@ class Identity:
     row: dict | None = None
     label: str | None = None
     score: float | None = None
+    read: tuple[Marker, ...] = ()
+
+    @property
+    def frontal(self) -> Marker | None:
+        """The winning marker seen most squarely: the one facing the camera"""
+        return max(self.read, key=lambda m: m.area, default=None)
 
     @property
     def sample_id(self) -> str | None:
@@ -150,7 +170,10 @@ class MarkerReader:
     ) -> list[Marker]:
         """Every marker in a box and its margin, in frame pixels
 
-        The crop is read at each of ``scales`` in turn until any marker reads.
+        The crop is read at each of ``scales`` in turn until a marker whose
+        centre lies inside the box itself reads; a neighbour's marker in the
+        margin does not stop the next enlargement from being tried. If none is
+        found inside at any scale, whatever the last read found is returned.
         """
         height, width = frame.shape[:2]
         dx, dy = margin * bbox.width, margin * bbox.height
@@ -161,6 +184,8 @@ class MarkerReader:
         if u1 <= u0 or v1 <= v0:
             return []
         crop = frame[v0:v1, u0:u1]
+        offset = np.array([u0, v0], np.float64)
+        last: list[Marker] = []
         for scale in scales:
             image = (
                 crop
@@ -169,11 +194,21 @@ class MarkerReader:
                     crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC
                 )
             )
-            found = self.read(image)
-            if found:
-                offset = np.array([u0, v0], np.float64)
-                return [Marker(m.marker_id, m.corners / scale + offset) for m in found]
-        return []
+            # A pixel centre q in the enlarged crop is (q + 0.5) / scale - 0.5 here.
+            found = [
+                Marker(m.marker_id, (m.corners + 0.5) / scale - 0.5 + offset)
+                for m in self.read(image)
+            ]
+            if any(_inside(m, bbox) for m in found):
+                return found
+            last = found or last
+        return last
+
+
+def _inside(marker: Marker, bbox: BBox) -> bool:
+    """Whether a marker's centre lies inside a box, margin excluded"""
+    u, v = marker.centre
+    return bbox.u_min <= u <= bbox.u_max and bbox.v_min <= v <= bbox.v_max
 
 
 def vote(markers: Iterable[Marker], bbox: BBox) -> tuple[int | None, int, int]:
@@ -183,12 +218,7 @@ def vote(markers: Iterable[Marker], bbox: BBox) -> tuple[int | None, int, int]:
         ``(marker_id or None, votes for it, markers inside the box)``. None when
         no marker lies inside or two ids tie for the most markers.
     """
-    inside = [
-        m
-        for m in markers
-        if bbox.u_min <= m.centre[0] <= bbox.u_max
-        and bbox.v_min <= m.centre[1] <= bbox.v_max
-    ]
+    inside = [m for m in markers if _inside(m, bbox)]
     if not inside:
         return None, 0, 0
     ranked = Counter(m.marker_id for m in inside).most_common()
@@ -227,6 +257,9 @@ def identify(
         bbox = getattr(box, "bbox", box)
         markers = reader.read_region(frame, bbox, margin=margin, scales=scales)
         marker_id, votes, total = vote(markers, bbox)
+        winners = tuple(
+            m for m in markers if m.marker_id == marker_id and _inside(m, bbox)
+        )
         found.append(
             Identity(
                 bbox=bbox,
@@ -236,18 +269,46 @@ def identify(
                 row=rows.get(marker_id) if marker_id is not None else None,
                 label=getattr(box, "label", None),
                 score=getattr(box, "score", None),
+                read=winners,
             )
         )
     return found
 
 
+def cluster(markers: list[Marker], reach: float = 3.0) -> list[list[Marker]]:
+    """Split one id's markers into the bottles they stand on
+
+    A ring shows its markers side by side, about one marker apart; two bottles
+    with the same id stand further apart than that. Markers join a group when
+    their centres are within ``reach`` times their mean side of a member.
+    """
+    groups: list[list[Marker]] = []
+    for marker in markers:
+        near = [
+            g
+            for g in groups
+            if any(
+                math.dist(marker.centre, m.centre) <= reach * (marker.side + m.side) / 2
+                for m in g
+            )
+        ]
+        merged = [marker]
+        for g in near:
+            merged += g
+            groups.remove(g)
+        groups.append(merged)
+    return groups
+
+
 def identify_frame(
     frame: np.ndarray, rows: dict[int, dict], *, reader: MarkerReader | None = None
 ) -> list[Identity]:
-    """Read the whole frame without a detector: one identity per marker id seen
+    """Read the whole frame without a detector: one identity per ring seen
 
-    Each identity's box is the bounds of that id's markers, which is the part
-    of the ring facing the camera, not the bottle.
+    Markers are grouped by id and then by :func:`cluster`, so two bottles
+    carrying the same id are two identities. Each identity's box is the bounds
+    of its markers, which is the part of the ring facing the camera, not the
+    bottle.
     """
     reader = reader or MarkerReader()
     by_id: dict[int, list[Marker]] = {}
@@ -255,17 +316,19 @@ def identify_frame(
         by_id.setdefault(marker.marker_id, []).append(marker)
     found = []
     for marker_id, markers in sorted(by_id.items()):
-        points = np.concatenate([m.corners for m in markers])
-        (u0, v0), (u1, v1) = points.min(axis=0), points.max(axis=0)
-        found.append(
-            Identity(
-                bbox=BBox(float(u0), float(v0), float(u1), float(v1)),
-                marker_id=marker_id,
-                votes=len(markers),
-                markers=len(markers),
-                row=rows.get(marker_id),
+        for group in cluster(markers):
+            points = np.concatenate([m.corners for m in group])
+            (u0, v0), (u1, v1) = points.min(axis=0), points.max(axis=0)
+            found.append(
+                Identity(
+                    bbox=BBox(float(u0), float(v0), float(u1), float(v1)),
+                    marker_id=marker_id,
+                    votes=len(group),
+                    markers=len(group),
+                    row=rows.get(marker_id),
+                    read=tuple(group),
+                )
             )
-        )
     return found
 
 

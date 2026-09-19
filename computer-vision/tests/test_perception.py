@@ -144,3 +144,64 @@ def test_perceived_prefers_the_refined_position():
     assert bottle.refined and bottle.cls == "amber bottle"
     unread = perceived(proposal, Confirmation())
     assert unread.position == (0.1, -0.4, BENCH_TOP_Z) and unread.sample_id is None
+
+
+ROWS[11] = {"sample_id": "NEIGHBOUR", "phase": "liquid", "vessel_class": "flask_50ml"}
+ROWS[12] = {"sample_id": "PWD-0004", "phase": "powder", "vessel_class": "bottle_1000ml"}
+
+
+def test_the_ring_whose_bottle_stands_on_the_proposal_beats_a_nearer_pixel():
+    # A 50 ml flask 4.5 cm behind the proposed 10 ml one: within the 5 cm
+    # limit, and its ring sits nearer the aim point in the image.
+    own = _ring_point("flask_10ml", (0.0, 0.0))
+    behind = _ring_point("flask_50ml", (0.0, 0.045))
+    expected = WRIST.project(np.asarray(TARGET, float))
+    assert math.dist(WRIST.project(np.asarray(behind)), expected) < math.dist(
+        WRIST.project(np.asarray(own)), expected
+    )
+    frame = _wrist_frame(WRIST, [(11, behind), (5, own)])
+    assert confirm(frame, WRIST, TARGET, ROWS).sample_id == "SMP-0006"
+
+
+def _ring_frame(camera, vessel, axis_xy, marker_id, angles_deg=(-45, 0, 45)):
+    """Markers of a ring drawn where they stand round a bottle, as a camera sees them"""
+    radius, height = ring_geometry(vessel)
+    side = 0.75 * radius * 2 * math.pi / 8
+    axis = np.array([*axis_xy, BENCH_TOP_Z + height])
+    toward = camera.position[:2] - axis[:2]
+    facing = math.atan2(toward[1], toward[0])
+    dictionary = cv2.aruco.getPredefinedDictionary(DICTIONARY)
+    image = cv2.aruco.generateImageMarker(dictionary, marker_id, 120)
+    image = cv2.copyMakeBorder(image, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255)
+    frame = np.full((1080, 1920, 3), 150, np.uint8)
+    up = np.array([0.0, 0.0, 1.0])
+    for angle in angles_deg:
+        a = facing + math.radians(angle)
+        normal = np.array([math.cos(a), math.sin(a), 0.0])
+        right = np.cross(up, normal)
+        centre = axis + radius * normal
+        half = side * 8 / 6 / 2  # the quiet zone widens the drawn square
+        corners = [
+            centre - half * right + half * up,
+            centre + half * right + half * up,
+            centre + half * right - half * up,
+            centre - half * right - half * up,
+        ]
+        dst = camera.project(np.array(corners)).astype(np.float32)
+        n = image.shape[0]
+        src = np.float32([[0, 0], [n, 0], [n, n], [0, n]])
+        warp = cv2.getPerspectiveTransform(src, dst)
+        drawn = cv2.warpPerspective(image, warp, (1920, 1080), borderValue=0)
+        mask = cv2.warpPerspective(np.full_like(image, 255), warp, (1920, 1080))
+        frame[mask > 0] = drawn[mask > 0][..., None]
+    return frame
+
+
+def test_refine_places_a_big_bottle_from_its_frontal_marker():
+    camera = Camera.look_at(
+        INTRINSICS, (0.0, -0.3, 1.0), (0.0, 0.0, BENCH_TOP_Z + 0.08)
+    )
+    frame = _ring_frame(camera, "bottle_1000ml", (0.0, 0.0), 12)
+    found = confirm(frame, camera, (0.0, 0.0, BENCH_TOP_Z + 0.05), ROWS)
+    assert found.sample_id == "PWD-0004"
+    assert math.dist(found.refined_xy, (0.0, 0.0)) < 0.004

@@ -60,7 +60,7 @@ def test_region_read_maps_corners_back_to_the_frame_at_any_scale():
     for scales in ((1.0,), (3.0,)):
         found = MarkerReader().read_region(frame, box, scales=scales)
         assert [m.marker_id for m in found] == [7]
-        assert found[0].corners == pytest.approx(direct.corners, abs=1.0)
+        assert found[0].corners == pytest.approx(direct.corners, abs=0.35)
 
 
 def test_region_read_sees_only_the_box_and_its_margin():
@@ -141,3 +141,37 @@ def test_identity_serialises():
         "label": "amber",
         "score": 0.912,
     }
+
+
+def test_twin_bottles_with_one_id_are_two_identities():
+    frame = _canvas([(5, 40, 40), (5, 400, 300)])
+    found = identify_frame(frame, ROWS)
+    assert [(f.marker_id, f.votes) for f in found] == [(5, 1), (5, 1)]
+
+
+def test_a_ring_s_neighbouring_markers_are_one_identity():
+    frame = _canvas([(5, 40, 40), (5, 120, 40)])
+    found = identify_frame(frame, ROWS)
+    assert [(f.marker_id, f.votes) for f in found] == [(5, 2)]
+    assert len(found[0].read) == 2
+
+
+def test_a_margin_marker_does_not_stop_the_enlargement():
+    class Fake(MarkerReader):
+        """Reads a neighbour in the margin at 1x and the boxed marker only at 2x"""
+
+        def read(self, image):
+            if image.shape[0] < 150:
+                return [_marker(9, 105, 40)]  # centre (110, 45): in the margin
+            return [_marker(5, 100, 100)]  # centre (105, 105) at 2x: (52, 52)
+
+    found = Fake().read_region(np.zeros((200, 200, 3), np.uint8), BBox(0, 0, 100, 100))
+    assert [m.marker_id for m in found] == [5]
+    assert found[0].centre == pytest.approx((52.25, 52.25))
+
+
+def test_the_frontal_marker_is_the_one_seen_largest():
+    small, large = _marker(5, 0, 0), Marker(5, 2.0 * _marker(5, 0, 0).corners)
+    identity = Identity(BBox(0, 0, 30, 30), 5, 2, 2, read=(small, large))
+    assert identity.frontal is large
+    assert Identity(BBox(0, 0, 1, 1), None, 0, 0).frontal is None

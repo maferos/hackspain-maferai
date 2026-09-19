@@ -10,12 +10,13 @@ console bridge that renders the scene's cameras itself, or real GoPros:
    rejects (the worktop test) are dropped, and proposals closer than
    :data:`MERGE_M` are one bottle.
 2. :func:`confirm` takes the wrist camera's frame, taken looking at a
-   proposal, reads every ArUco ring in it and keeps the marker group nearest
-   to where the proposal projects. That names the bottle; knowing it gives its
-   ring's radius and height, and :func:`refine` turns the ring's image into the
-   bottle's axis on the bench. A ring whose bottle would then stand more than
-   :data:`MAX_SHIFT_M` from the proposal belongs to a neighbour and is passed
-   over for the next nearest.
+   proposal, and reads every ArUco ring in it near where the proposal
+   projects. Each ring names a bottle, and knowing the bottle gives its ring's
+   radius and height, so :func:`refine` places it on the bench from the
+   ring's most frontal marker. The ring whose bottle then stands closest to
+   the proposal, and within :data:`MAX_SHIFT_M`, names it: a neighbour seen
+   past the proposed bottle projects close by in the image, but stands
+   elsewhere on the bench.
 
 Frames: the MuJoCo scene's world frame, metres, whose origin is under the
 centre of the minihannover bench; the bench top is at :data:`BENCH_TOP_Z`.
@@ -231,35 +232,38 @@ def confirm(
     expected = camera.project(target)
     if not np.all(np.isfinite(expected)):
         return Confirmation()
-    candidates = []
+    best = None
     for identity in identify_frame(frame, rows, reader=reader):
-        centre = (
-            (identity.bbox.u_min + identity.bbox.u_max) / 2,
-            (identity.bbox.v_min + identity.bbox.v_max) / 2,
-        )
-        distance = math.dist(centre, expected)
-        if distance < associate_px:
-            candidates.append((distance, centre, identity))
-    for distance, centre, identity in sorted(candidates, key=lambda c: c[0]):
-        row = identity.row or {}
-        refined = None
-        vessel = row.get("vessel_class")
-        if vessel and (kit / "meshes" / f"{vessel}_label.obj").exists():
-            radius, ring_height = ring_geometry(vessel, kit)
-            refined = refine(camera, centre, radius, ring_height, bench_z=bench_z)
-            # Placed as the bottle its ring names, it must stand where the
-            # proposal is; if not, the ring belongs to a neighbour seen past it.
-            if refined is None or math.dist(refined, target[:2]) > max_shift_m:
-                continue
-        return Confirmation(
-            sample_id=identity.sample_id,
-            marker_id=identity.marker_id,
-            votes=identity.votes,
-            phase=row.get("phase"),
-            offset_px=round(distance, 1),
-            refined_xy=refined,
-        )
-    return Confirmation()
+        row = identity.row
+        vessel = row.get("vessel_class") if row else None
+        if not vessel or not (kit / "meshes" / f"{vessel}_label.obj").exists():
+            continue  # not a catalogue bottle, or no geometry to check it against
+        facing = identity.frontal
+        uv = facing.centre if facing else identity.bbox.centre
+        offset = math.dist(uv, expected)
+        if offset >= associate_px:
+            continue
+        radius, ring_height = ring_geometry(vessel, kit)
+        refined = refine(camera, uv, radius, ring_height, bench_z=bench_z)
+        if refined is None:
+            continue
+        # Placed as the bottle its ring names, it must stand where the proposal
+        # is; a ring further off belongs to a neighbour seen past it. Of those
+        # that fit, the one whose bottle stands closest to the proposal wins.
+        shift = math.dist(refined, target[:2])
+        if shift <= max_shift_m and (best is None or shift < best[0]):
+            best = (shift, offset, identity, refined)
+    if best is None:
+        return Confirmation()
+    _, offset, identity, refined = best
+    return Confirmation(
+        sample_id=identity.sample_id,
+        marker_id=identity.marker_id,
+        votes=identity.votes,
+        phase=identity.row.get("phase"),
+        offset_px=round(offset, 1),
+        refined_xy=refined,
+    )
 
 
 def perceived(

@@ -37,6 +37,10 @@ class PerceivedBottle:
         refined: True if the position comes from the wrist camera's view of
             the ring rather than the fixed camera's box.
         stale: True if the estimate predates the last change to the scene.
+        track: A stable index for this bottle across frames, or None. The
+            console joins ``vessels`` to its scene by ``index``, so whoever
+            publishes them should associate each bottle with a scene vessel
+            (by position, which the bridge knows) and put its index here.
     """
 
     position: tuple[float, float, float]
@@ -46,6 +50,7 @@ class PerceivedBottle:
     phase: str | None = None
     refined: bool = False
     stale: bool = False
+    track: int | None = None
 
     @property
     def cls(self) -> str:
@@ -54,7 +59,11 @@ class PerceivedBottle:
 
 
 def to_dashboard(bottles: list[PerceivedBottle]) -> list[dict]:
-    """The console's ``PerceivedVessel`` records, indexed in the order given
+    """The console's ``PerceivedVessel`` records
+
+    ``index`` is each bottle's :attr:`PerceivedBottle.track`, or its place in
+    the list when it has none. Only a track joins a record to the console's
+    scene vessel; list order is just a number.
 
     Example:
         >>> to_dashboard([PerceivedBottle((0.1, -0.4, 0.9), 0.87, "SMP-0005",
@@ -63,7 +72,7 @@ def to_dashboard(bottles: list[PerceivedBottle]) -> list[dict]:
     """
     return [
         {
-            "index": index,
+            "index": index if bottle.track is None else bottle.track,
             "id": bottle.sample_id,
             "cls": bottle.cls,
             "confidence": round(float(bottle.confidence), 3),
