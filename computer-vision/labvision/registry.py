@@ -39,7 +39,7 @@ DIGITS_FROM_HASH = 9
 DEFAULT_SEED = 20260918
 """Seed fixing the default catalogue, so the table is reproducible."""
 
-REGISTRY_VERSION = 5
+REGISTRY_VERSION = 6
 """Schema version written into the lookup table.
 
 Version 2 introduced the liquid/powder split: ``flask_ml`` became
@@ -53,6 +53,11 @@ consumer keyed on the old class names reading a newer table as if nothing had
 moved.
 Version 5 adds ``marker_id``, the ArUco marker (``DICT_4X4_250``) that
 the bottles now carry as a ring; no barcode changes.
+Version 6 drops the powder phase: the catalogue is 40 liquid compounds x 5
+flask sizes = 200 liquid samples (``SMP-0001..SMP-0200``), so every bottle on
+the bench is a distinct liquid with its own marker (0..199, within
+``DICT_4X4_250``). ``SMP-0001..SMP-0100`` keep their v5 barcodes and markers;
+``SMP-0101..SMP-0200`` are the 20 added compounds.
 """
 
 # Nominal flask capacities in millilitres. 10, 20, 50 and 100 are standard
@@ -98,6 +103,26 @@ LIQUID_MATERIALS: tuple[tuple[str, str], ...] = (
     ("Methyl salicylate", "119-36-8"),
     ("Linalyl acetate", "115-95-7"),
     ("cis-3-Hexen-1-ol", "928-96-1"),
+    ("Dihydromyrcenol", "18479-58-8"),
+    ("Hedione", "24851-98-7"),
+    ("Ethyl butyrate", "105-54-4"),
+    ("Isoamyl acetate", "123-92-2"),
+    ("Benzyl benzoate", "120-51-4"),
+    ("Terpinolene", "586-62-9"),
+    ("beta-Pinene", "127-91-3"),
+    ("gamma-Terpinene", "99-85-4"),
+    ("Myrcene", "123-35-3"),
+    ("Citronellal", "106-23-0"),
+    ("Hydroxycitronellal", "107-75-5"),
+    ("Geranyl acetate", "105-87-3"),
+    ("Citronellyl acetate", "150-84-5"),
+    ("Allyl hexanoate", "123-68-2"),
+    ("Isobornyl acetate", "125-12-2"),
+    ("beta-Ionone", "14901-07-6"),
+    ("beta-Damascone", "23726-92-3"),
+    ("Phenylacetaldehyde dimethyl acetal", "101-48-4"),
+    ("Ethyl acetoacetate", "141-97-9"),
+    ("Tetrahydrolinalool", "78-69-3"),
 )
 
 # Raw materials that are SOLID at room temperature, handled as powders or
@@ -162,8 +187,13 @@ class PhaseSpec:
 LIQUID = PhaseSpec("liquid", "SMP", "flask", LIQUID_MATERIALS, FLASK_VOLUMES_ML)
 POWDER = PhaseSpec("powder", "PWD", "bottle", POWDER_MATERIALS, BOTTLE_VOLUMES_ML)
 
-PHASES: tuple[PhaseSpec, ...] = (LIQUID, POWDER)
-"""Every phase in the catalogue, in the order they are generated."""
+PHASES: tuple[PhaseSpec, ...] = (LIQUID,)
+"""Every phase in the catalogue, in the order they are generated.
+
+The powder phase (``POWDER``, still defined above) is intentionally out of the
+catalogue as of version 6: the bench is liquids only, so ``DICT_4X4_250`` has
+room to give all 200 samples a distinct marker.
+"""
 
 DEFAULT_SAMPLE_COUNT = sum(p.size for p in PHASES)
 """Size of the default catalogue: every compound in every container size.
@@ -223,7 +253,11 @@ class Sample:
             ...        "L1").vessel_class
             'bottle_1000ml'
         """
-        for spec in PHASES:
+        # Resolve against every physically-defined phase, not just the
+        # catalogued ones (PHASES): a sample's labware follows from its phase and
+        # size whether or not that phase is in the current catalogue, so a
+        # hand-made powder sample still labels correctly.
+        for spec in (LIQUID, POWDER):
             if spec.name == self.phase:
                 return f"{spec.vessel}_{self.container_ml:g}ml"
         raise RegistryError(f"unknown phase: {self.phase!r}")
@@ -374,10 +408,10 @@ def default_samples(
     """Build the reproducible default catalogue of samples
 
     For each phase the catalogue is the **full cross product** of its materials
-    and its container sizes — every compound in every size. Liquids come first
-    (20 compounds x 5 flasks), then powders (20 x 5 bottles), 200 rows in all.
-    Material varies slowest, so SMP-0001..0005 are the five flask sizes of the
-    first liquid.
+    and its container sizes — every compound in every size. As of version 6 the
+    only phase is liquid: 40 compounds x 5 flasks, 200 rows in all. Material
+    varies slowest, so SMP-0001..0005 are the five flask sizes of the first
+    liquid.
 
     Taking the cross product rather than cycling both lists in step matters:
     cycling 20 materials against 5 sizes locks each compound to one size, which
@@ -402,7 +436,7 @@ def default_samples(
         >>> s[0].material, s[0].container_ml, s[0].phase
         ('Limonene', 10.0, 'liquid')
         >>> s[100].sample_id, s[100].material, s[100].container_ml
-        ('PWD-0001', 'Vanillin', 100.0)
+        ('SMP-0101', 'Dihydromyrcenol', 10.0)
     """
     if count < 1:
         raise ValueError(f"count must be >= 1, got {count}")

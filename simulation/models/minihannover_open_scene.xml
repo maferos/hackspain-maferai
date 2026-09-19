@@ -14,12 +14,12 @@
     <model name="balance" file="../assets/balance/balance.xml" />
     <model name="gc_ms" file="../assets/gc_ms/gc_ms.xml" />
     <model name="uv_vis_nir" file="../assets/uv_vis_nir/uv_vis_nir.xml" />
-    <model name="pwd_0004" file="../assets/labelled_bottles/PWD-0004.xml" />
-    <model name="pwd_0008" file="../assets/labelled_bottles/PWD-0008.xml" />
-    <model name="pwd_0012" file="../assets/labelled_bottles/PWD-0012.xml" />
-    <model name="pwd_0020" file="../assets/labelled_bottles/PWD-0020.xml" />
-    <model name="pwd_0024" file="../assets/labelled_bottles/PWD-0024.xml" />
-    <model name="pwd_0026" file="../assets/labelled_bottles/PWD-0026.xml" />
+    <model name="smp_0105" file="../assets/labelled_bottles/SMP-0105.xml" />
+    <model name="smp_0110" file="../assets/labelled_bottles/SMP-0110.xml" />
+    <model name="smp_0115" file="../assets/labelled_bottles/SMP-0115.xml" />
+    <model name="smp_0120" file="../assets/labelled_bottles/SMP-0120.xml" />
+    <model name="smp_0125" file="../assets/labelled_bottles/SMP-0125.xml" />
+    <model name="smp_0130" file="../assets/labelled_bottles/SMP-0130.xml" />
     <model name="smp_0005" file="../assets/labelled_bottles/SMP-0005.xml" />
     <model name="smp_0009" file="../assets/labelled_bottles/SMP-0009.xml" />
     <model name="smp_0013" file="../assets/labelled_bottles/SMP-0013.xml" />
@@ -57,7 +57,7 @@
       <attach model="uv_vis_nir" body="uv_vis_nir" prefix="uv_vis_nir_" />
     </frame>
     <frame pos="-7.82 -2.36 0.9" euler="0 0 3.0020">
-      <attach model="pwd_0004" body="PWD-0004" prefix="corner_1_" />
+      <attach model="smp_0105" body="SMP-0105" prefix="corner_1_" />
     </frame>
     <frame pos="-7.68 -2.3 0.9" euler="0 0 3.5430">
       <attach model="smp_0005" body="SMP-0005" prefix="corner_2_" />
@@ -66,10 +66,10 @@
       <attach model="smp_0030" body="SMP-0030" prefix="corner_3_" />
     </frame>
     <frame pos="-8.3 -1.95 0.9" euler="0 0 1.7104">
-      <attach model="pwd_0020" body="PWD-0020" prefix="corner_4_" />
+      <attach model="smp_0110" body="SMP-0110" prefix="corner_4_" />
     </frame>
     <frame pos="-8.3 -1.75 0.9" euler="0 0 1.2217">
-      <attach model="pwd_0024" body="PWD-0024" prefix="corner_5_" />
+      <attach model="smp_0115" body="SMP-0115" prefix="corner_5_" />
     </frame>
     <frame pos="-8.05 -1.45 0.9" euler="0 0 2.0944">
       <attach model="smp_0034" body="SMP-0034" prefix="corner_6_" />
@@ -80,7 +80,7 @@
     </body>
     <body name="loose_2" pos="-3.83 -1.11 0.9" euler="0 0 -0.4014">
       <freejoint />
-      <attach model="pwd_0012" body="PWD-0012" prefix="loose_2_" />
+      <attach model="smp_0120" body="SMP-0120" prefix="loose_2_" />
     </body>
     <body name="loose_3" pos="-0.78 -1.27 0.9" euler="0 0 -0.1396">
       <freejoint />
@@ -88,7 +88,7 @@
     </body>
     <body name="loose_4" pos="-0.68 -1.15 0.9" euler="0 0 0.4363">
       <freejoint />
-      <attach model="pwd_0026" body="PWD-0026" prefix="loose_4_" />
+      <attach model="smp_0125" body="SMP-0125" prefix="loose_4_" />
     </body>
     <body name="loose_5" pos="-1.4 0.43 0.9" euler="0 0 2.9671">
       <freejoint />
@@ -96,7 +96,7 @@
     </body>
     <body name="loose_6" pos="-1.3 0.3 0.9" euler="0 0 3.4907">
       <freejoint />
-      <attach model="pwd_0008" body="PWD-0008" prefix="loose_6_" />
+      <attach model="smp_0130" body="SMP-0130" prefix="loose_6_" />
     </body>
     <body name="loose_7" pos="0.45 0.47 0.9" euler="0 0 3.2289">
       <freejoint />

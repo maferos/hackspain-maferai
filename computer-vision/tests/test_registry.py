@@ -13,8 +13,9 @@ def test_default_catalogue_has_the_expected_size_and_ids() -> None:
     assert len(samples) == registry.DEFAULT_SAMPLE_COUNT == 200
     assert samples[0].sample_id == "SMP-0001"
     assert samples[99].sample_id == "SMP-0100"
-    assert samples[100].sample_id == "PWD-0001"
-    assert samples[-1].sample_id == "PWD-0100"
+    assert samples[100].sample_id == "SMP-0101"
+    assert samples[-1].sample_id == "SMP-0200"
+    assert {s.phase for s in samples} == {"liquid"}
     assert len({s.sample_id for s in samples}) == 200
 
 
@@ -67,7 +68,7 @@ def test_cas_numbers_are_unique_across_the_catalogue() -> None:
 
 
 def test_each_phase_has_its_own_labware() -> None:
-    """Liquids live in flasks and powders in bottles, five sizes of each."""
+    """Liquids live in flasks, five sizes; the catalogue is liquids only (v6)."""
     samples = registry.default_samples()
     by_phase = {
         phase: {s.vessel_class for s in samples if s.phase == phase}
@@ -75,7 +76,6 @@ def test_each_phase_has_its_own_labware() -> None:
     }
     assert by_phase == {
         "liquid": {f"flask_{v:g}ml" for v in registry.FLASK_VOLUMES_ML},
-        "powder": {f"bottle_{v:g}ml" for v in registry.BOTTLE_VOLUMES_ML},
     }
 
 
@@ -88,15 +88,17 @@ def test_powder_sizes_match_the_bottle_kit() -> None:
         assert (glb_dir / f"bottle_{stems[volume]}_hdpe_white.glb").exists(), volume
 
 
-def test_there_are_ten_vessel_classes() -> None:
+def test_there_are_five_vessel_classes() -> None:
     classes = {s.vessel_class for s in registry.default_samples()}
-    assert len(classes) == 10
+    assert len(classes) == 5
     assert len([c for c in classes if c.startswith("flask_")]) == 5
-    assert len([c for c in classes if c.startswith("bottle_")]) == 5
+    assert len([c for c in classes if c.startswith("bottle_")]) == 0
 
 
 def test_vessel_class_follows_the_phase() -> None:
     liquid = registry.Sample("SMP-1", "Limonene", "5989-27-5", "liquid", 50.0, "L1")
+    # Powder is out of the catalogue (v6) but still a defined phase, so a
+    # hand-made powder sample resolves its labware.
     powder = registry.Sample("PWD-1", "Vanillin", "121-33-5", "powder", 1000.0, "L1")
     assert liquid.vessel_class == "flask_50ml"
     assert powder.vessel_class == "bottle_1000ml"
