@@ -54,14 +54,20 @@ STATE_LOOP_PAUSE_S = 15.0
 STATE_START_S = float(os.environ.get("LAB_STATE_START", "0"))
 STATE_SPEED = float(os.environ.get("LAB_STATE_SPEED", "1"))
 
-# Logical camera id -> MuJoCo camera name in the scene. These are the vision
-# system's own two cameras (see minihannover_scene.xml): `general`, the fixed
-# room GoPro, and `wrist`, the mocap-mounted stand-in for the arm's future
-# wrist camera. `hide_groups` lists geom groups to hide for that camera.
-CAMERAS = {
-    "robot": {"mj_name": "wrist", "label": "Robot camera (wrist)", "hide_groups": []},
-    "scene": {"mj_name": "general", "label": "General camera", "hide_groups": []},
-}
+# Logical camera id -> MuJoCo camera in the loaded scene. `scene` is the fixed
+# room GoPro (`general`). `robot` is the camera the robot actually carries: the
+# arm's eye-in-hand camera (`arm_eih`) when the scene has an arm, falling back
+# to the mocap-mounted `wrist` stand-in otherwise. `hide_groups` lists geom
+# groups to hide for that camera.
+def resolve_cameras(model: "mujoco.MjModel") -> dict:
+    names = {
+        mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_CAMERA, i) for i in range(model.ncam)
+    }
+    robot = "arm_eih" if "arm_eih" in names else "wrist"
+    return {
+        "robot": {"mj_name": robot, "label": "Robot camera", "hide_groups": []},
+        "scene": {"mj_name": "general", "label": "General camera", "hide_groups": []},
+    }
 
 FRAME_WIDTH = 1920
 FRAME_HEIGHT = 1080
@@ -162,8 +168,10 @@ class SceneRenderer:
             self.run = None
         self.state_server = StateServer(port=STATE_PORT)
 
+        # Which MuJoCo camera each logical view maps to depends on the scene.
+        self.cameras = resolve_cameras(self.model)
         self._scene_options: dict[str, mujoco.MjvOption] = {}
-        for info in CAMERAS.values():
+        for info in self.cameras.values():
             opt = mujoco.MjvOption()
             mujoco.mjv_defaultOption(opt)
             for group in info["hide_groups"]:
@@ -183,7 +191,7 @@ class SceneRenderer:
     def run_forever(self) -> None:
         renderer = mujoco.Renderer(self.model, height=FRAME_HEIGHT, width=FRAME_WIDTH)
         period = 1.0 / RENDER_FPS
-        mj_camera_names = [info["mj_name"] for info in CAMERAS.values()]
+        mj_camera_names = [info["mj_name"] for info in self.cameras.values()]
         while True:
             start = time.time()
             with self._data_lock:
@@ -249,7 +257,7 @@ app.add_middleware(
 
 @app.get("/api/cameras")
 def list_cameras():
-    return [{"id": cam_id, "label": info["label"]} for cam_id, info in CAMERAS.items()]
+    return [{"id": cam_id, "label": info["label"]} for cam_id, info in scene.cameras.items()]
 
 
 def mjpeg_generator(mj_camera_name: str):
@@ -264,9 +272,9 @@ def mjpeg_generator(mj_camera_name: str):
 
 @app.get("/stream/{camera_id}")
 def stream(camera_id: str):
-    if camera_id not in CAMERAS:
+    if camera_id not in scene.cameras:
         return {"error": f"unknown camera '{camera_id}'"}
-    mj_name = CAMERAS[camera_id]["mj_name"]
+    mj_name = scene.cameras[camera_id]["mj_name"]
     return StreamingResponse(
         mjpeg_generator(mj_name),
         media_type="multipart/x-mixed-replace; boundary=frame",
