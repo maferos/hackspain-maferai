@@ -273,7 +273,7 @@ export default function App() {
   const realtime = mode === "realtime";
   const [liveCameras, setLiveCameras] = useState(DEFAULT_CAMERAS);
   const cameras = realtime ? liveCameras : REPLAY_CAMERAS;
-  const [mainCameraId, setMainCameraId] = useState(realtime ? "robot" : "scene");
+  const [mainCameraId, setMainCameraId] = useState("scene");
   const [tasks, setTasks] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
@@ -341,9 +341,9 @@ export default function App() {
   const resize = (patch) => setLayout((l) => ({ ...l, ...patch }));
   const toggleView = (id) => setLayout((l) => ({ ...l, views: { ...l.views, [id]: !l.views[id] } }));
 
-  // Reset the main viewport to each source's primary camera when the mode flips.
+  // Start with the general camera when opening or switching viewport sources.
   useEffect(() => {
-    setMainCameraId(realtime ? "robot" : "scene");
+    setMainCameraId("scene");
   }, [realtime]);
 
   useEffect(() => {
