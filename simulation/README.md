@@ -61,6 +61,18 @@ python scripts/generate_minihannover_open.py
 mjpython scripts/view_model.py models/minihannover_open_scene.xml  # macOS
 ```
 
+What stands on that desk is a **seeded pattern**: one integer fixes how many
+flasks there are (10 to 75), how tightly they are packed, whether they sit
+scattered, in clusters, in rows or crowded into one end, and which sizes the
+crowd is made of. Ten are catalogued, `p01` (16 flasks, spread out) to `p10`
+(71 in rows); any other seed works too.
+
+```bash
+python scripts/bottle_patterns.py --list              # the ten, at a glance
+python scripts/generate_minihannover_open.py --pattern p06   # build that bench
+mjpython scripts/view_model.py models/minihannover_open_scene_p06.xml
+```
+
 ## Robot arm on a rail
 
 The open-desk scene gets a UR10e riding a 6 m linear rail over the bench. The arm
