@@ -146,6 +146,71 @@ bottles found, 9 false boxes, four of them on the scoop.*
    stopped.
 
 
+## The populated open bench: MuJoCo against Isaac
+
+Since commit 284a545 the open desk (`minihannover_open_scene.xml`) carries 407
+containers, and Eloi's Isaac Sim datasets (`simulation/renders/isaac/dataset_v1`,
+`_v2`, full data on Drive) render that bench with RTX. `scripts/fixedcam_twin.py`
+builds the same bench in MuJoCo from the scene files of that commit and renders
+it from the same camera, so the two renderers can be compared bottle for bottle.
+
+Three things had to be found out first:
+
+- **Isaac's camera.** The USD `general` camera sits at the MJCF pose but with a
+  31.45 degree vertical field of view, not 60.44 (measured: Isaac's boxes are the
+  twin's zoomed by 1.163 about the centre, 1.5 px residual). With it the twin's
+  boxes match Isaac's at a median IoU of 0.94.
+- **One box per part.** Isaac's COCO tags every mesh of a bottle (body, cap,
+  label) with its sample id, so it holds about three boxes per bottle, not one
+  as the dataset README says. The converter unions them per sample id; anyone
+  training on that COCO as is would teach a detector that caps and labels are
+  bottles.
+- **Unlabelled vials.** 220 of the 407 containers are `reserve` vials with blank
+  labels, which Isaac leaves without a box. They are added from the twin as
+  bottles that are not required, so a box on one is neither a hit nor a false.
+
+Same bench, same camera, the same labelled bottles required (reserve vials
+ignored), 20 frames each, worktop filter, each model at its `val` threshold.
+Both datasets vary only the light (Isaac v2's geometric randomisation did not
+apply, per its README), so this is one layout: the intervals only cover
+lighting and are omitted.
+
+| model | AP50 MuJoCo | AP50 Isaac | recall MuJoCo / Isaac | precision MuJoCo / Isaac | false boxes / frame |
+| --- | --- | --- | --- | --- | --- |
+| YOLO26s COCO | **0.866** | **0.739** | 0.82 / 0.88 | 0.80 / 0.62 | 23 / 47 |
+| YOLO-World L, bottle prompts | 0.826 | 0.688 | 0.97 / 0.93 | 0.44 / 0.34 | 140 / 158 |
+| YOLO26n fine-tuned (1 epoch) | 0.754 | 0.599 | 0.59 / 0.52 | 0.94 / 0.81 | 4 / 11 |
+
+- **Every model loses 0.13 to 0.16 AP50 going from MuJoCo to Isaac, and it is
+  precision that goes.** Isaac's glossy worktop mirrors every vial; detectors
+  draw tall boxes over a vial and its reflection, or over the reflection alone,
+  which miss the IoU and count as a false box and a miss at once. MuJoCo's
+  worktop is matte. Worktop reflectance belongs in the MuJoCo randomisation.
+- **On a crowded bench the ranking changes.** YOLO26s COCO leads on both
+  renderers; the fine-tuned YOLO26n, trained on benches of 8 to 28 loose
+  bottles, keeps its precision but misses clustered amber vials. Its recall
+  does not improve when the frame is shrunk to its training scale (0.59 to 0.35
+  AP50 on the twin with every bottle required), so it is the clutter, not the size.
+- **The thresholds chosen on the sparse bench do not transfer**: YOLO-World L
+  finds 97 % of the bottles but with 140 false boxes per frame.
+- Isaac counts 88 required bottles per frame against the twin's 113 for the same
+  bottles: its visibility comes from the body mesh's occlusion ratio, MuJoCo's
+  from the whole silhouette.
+
+With every container required, the MuJoCo twin scores 0.80 (World-L), 0.79
+(COCO) and 0.63 (fine-tuned) AP50; the latest liquids-only desk (commit
+efb5031, 20 frames, ~234 bottles to find) scores 0.86 (COCO), 0.75 (World-L)
+and 0.69 (fine-tuned).
+
+To rerun, from `computer-vision/`:
+
+```bash
+git archive 8464eee simulation/models simulation/assets | tar -x -C /tmp/sim_v2
+python scripts/fixedcam_twin.py render --scene-root /tmp/sim_v2/simulation --frames 20
+python scripts/fixedcam_twin.py isaac --coco ../simulation/out/isaac_v2   # images/general + annotations
+python scripts/fixedcam_bench.py run coco-yolo26s --splits twin_mujoco,twin_isaac --max-det 1000
+```
+
 ## The camera and why it is hard
 
 The fixed camera is the scene's `general` GoPro: Linear lens, 1920 x 1080,
