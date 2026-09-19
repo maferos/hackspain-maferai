@@ -330,8 +330,9 @@ def build_bench(keep: int) -> list[dict[str, str]]:
                  for child in parent}
     vessels: dict[str, list[ET.Element]] = {}
     for geom in list(tree.getroot().iter('geom')):
-        # Keep the wash-zone balance clear in the rail scene.
-        if geom.get('name') == 'funnel_0':
+        # Remove the wash-zone funnel and the unused rear balance mat.
+        if geom.get('name') in {'funnel_0', 'mat_1', 'mat_frame_4',
+                                'mat_frame_5', 'mat_frame_6', 'mat_frame_7'}:
             parent_of[geom].remove(geom)
             continue
         match = re.match(r'stock_(.+?)_(?:glass|cap|label|label_back|collision)',

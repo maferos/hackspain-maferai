@@ -813,11 +813,6 @@
         <geom name="mat_frame_1" type="box" size="0.17 0.008 0.0025" pos="-1.85 -0.945 0.9025" material="orange" contype="0" conaffinity="0" group="1" />
         <geom name="mat_frame_2" type="box" size="0.008 0.19 0.0025" pos="-1.685 -0.76 0.9025" material="orange" contype="0" conaffinity="0" group="1" />
         <geom name="mat_frame_3" type="box" size="0.008 0.19 0.0025" pos="-2.015 -0.76 0.9025" material="orange" contype="0" conaffinity="0" group="1" />
-        <geom name="mat_1" type="box" size="0.17 0.19 0.002" pos="0.75 0.76 0.902" material="dark" contype="0" conaffinity="0" group="1" />
-        <geom name="mat_frame_4" type="box" size="0.17 0.008 0.0025" pos="0.75 0.945 0.9025" material="orange" contype="0" conaffinity="0" group="1" />
-        <geom name="mat_frame_5" type="box" size="0.17 0.008 0.0025" pos="0.75 0.575 0.9025" material="orange" contype="0" conaffinity="0" group="1" />
-        <geom name="mat_frame_6" type="box" size="0.008 0.19 0.0025" pos="0.915 0.76 0.9025" material="orange" contype="0" conaffinity="0" group="1" />
-        <geom name="mat_frame_7" type="box" size="0.008 0.19 0.0025" pos="0.585 0.76 0.9025" material="orange" contype="0" conaffinity="0" group="1" />
         <geom type="box" pos="-2.72 -0.25 0.94" size="0.2 0.2 0.04" group="3" rgba="0 0 0 0" />
         <geom name="platform_base_0" type="mesh" mesh="bevel_17" pos="-2.72 -0.25 0.94" material="grey_device" contype="0" conaffinity="0" group="1" />
         <geom name="platform_pan_0" type="box" size="0.21 0.21 0.005" pos="-2.72 -0.25 0.985" material="steel" group="1" />
