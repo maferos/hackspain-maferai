@@ -1,0 +1,85 @@
+# Robot viewer
+
+Frontend to watch the mini-Hannover MuJoCo scene live: main viewport switchable
+between the robot's onboard camera and the fixed scene-overview camera, a
+picture-in-picture subwindow showing the other one (click it to swap), and a
+right-hand panel with the robot's running task log, updated in real time.
+
+- `backend/` — FastAPI server. Renders both cameras from
+  `simulation/models/minihannover_scene.xml` live with `mujoco.Renderer` and
+  serves them as MJPEG (`/stream/robot`, `/stream/scene`), plus a websocket
+  (`/ws/tasks`) with the task log. The task log is currently **mocked** — no
+  real task/planner system exists in `simulation/` yet, so it just cycles
+  through a scripted list of plausible lab actions. Swap in real data by
+  replacing `TaskLog` in `backend/server.py`.
+- `frontend/` — React + Vite app that renders the two streams and the task
+  panel.
+
+The two camera streams are the vision system's own cameras, defined at the
+end of `simulation/models/minihannover_scene.xml`: `general` (the fixed
+room GoPro) and `wrist` (a mocap-mounted stand-in for the future arm's wrist
+camera — it doesn't move on its own yet, see the comment there for how to
+fly it around).
+
+## Run it
+
+```sh
+# 1. Backend deps, into the same venv simulation/ already uses:
+uv pip install --python simulation/.venv/bin/python \
+  -r simulation/requirements.txt -r view/backend/requirements.txt
+
+# 2. Backend (serves streams + tasks on :8000):
+simulation/.venv/bin/python view/backend/server.py
+
+# 3. Frontend (:5173), in another terminal:
+cd view/frontend
+npm install
+npm run dev
+```
+
+Then open http://localhost:5173. Set `VITE_BACKEND_URL` if the backend runs
+somewhere other than `http://localhost:8000`.
+
+## Lab state panels
+
+The same backend also publishes the full `LabState` of the dashboard console
+(`dashboard/`, see its README for the schema) on `ws://localhost:8765/state`.
+It is driven by the scripted formulation in
+`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four containers,
+one recovery: the Eugenol flask is moved during the approach), which moves the
+free containers of the scene kinematically, so the camera streams show the
+bottles travelling to `balance_2`. It needs `websockets` in the venv (listed
+in `backend/requirements.txt`).
+
+When that state is connected, the frontend shows it (`src/LabTaskPanel.jsx`,
+`src/LabPanels.jsx`); without it, the task panel falls back to the mocked log
+above.
+
+- **Robot tasks**: run id, status and clock, a `SCRIPTED` badge while the
+  sequence is not the real planner, then the formula with each ingredient
+  crossed off once added (with its deviation from target, and a progress bar on
+  the one being dosed), then the plan around the current step, grouped by
+  ingredient: the last few steps done, the active one (amber while it is
+  recovering), and the next three.
+- **Robot** and **Balance** under the viewport.
+
+To rehearse a moment, start the backend part-way and slowed down:
+
+```sh
+LAB_STATE_START=100 LAB_STATE_SPEED=0.25 simulation/.venv/bin/python view/backend/server.py
+```
+
+The recovery starts at about 101 s and the recipe completes at about 172 s.
+
+To watch the same state with the dashboard console instead, run `npm run dev`
+in `dashboard/` and open:
+
+```
+http://localhost:5173/?mode=live&url=ws://localhost:8765/state
+    &sim=mjpeg:http://localhost:8000/stream/scene
+    &simRobot=mjpeg:http://localhost:8000/stream/scene
+    &simWrist=mjpeg:http://localhost:8000/stream/robot
+```
+
+Replace `ScriptedRun` with the real planner when it exists; the state contract
+stays the same.

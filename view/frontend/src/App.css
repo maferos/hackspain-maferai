@@ -1,0 +1,573 @@
+:root {
+  --bg: #0e1116;
+  --panel: #161b22;
+  --panel-border: #262d38;
+  --text: #e6edf3;
+  --text-dim: #8b949e;
+  --accent: #58a6ff;
+  --active: #3fb950;
+  --done: #484f58;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.app__header {
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.app__header h1 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: 0.01em;
+}
+
+.app__body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.viewport {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  background: #000;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+}
+
+.camera-frame {
+  position: relative;
+  overflow: hidden;
+  background: #000;
+}
+
+.camera-frame__img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-frame__label {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.6rem;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.5rem;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 5px;
+  letter-spacing: 0.02em;
+}
+
+.camera-frame__swap {
+  position: absolute;
+  bottom: 0.4rem;
+  right: 0.5rem;
+  font-size: 0.65rem;
+  padding: 0.1rem 0.4rem;
+  background: rgba(0, 0, 0, 0.55);
+  border-radius: 5px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.camera-frame--main {
+  width: 100%;
+  height: 100%;
+}
+
+.camera-frame--pip {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  width: 22%;
+  min-width: 180px;
+  aspect-ratio: 16 / 9;
+  border: 2px solid var(--panel-border);
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  transition: border-color 0.15s ease, transform 0.1s ease;
+}
+
+.camera-frame--pip:hover {
+  border-color: var(--accent);
+  transform: scale(1.02);
+}
+
+.camera-frame--pip:hover .camera-frame__swap {
+  opacity: 1;
+}
+
+.task-panel {
+  width: 320px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.task-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.task-panel__header h2 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-dot--live {
+  background: var(--active);
+  box-shadow: 0 0 6px var(--active);
+}
+
+.status-dot--off {
+  background: #6e7681;
+}
+
+.task-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.task-item {
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.55rem 1rem;
+  align-items: flex-start;
+}
+
+.task-item__marker {
+  margin-top: 0.35rem;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--done);
+}
+
+.task-item--active .task-item__marker {
+  background: var(--active);
+  box-shadow: 0 0 6px var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.task-item--active .task-item__label {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.task-item--done .task-item__label {
+  color: var(--text-dim);
+}
+
+.task-item__label {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.3;
+}
+
+.task-item__meta {
+  margin: 0.15rem 0 0;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.task-item--empty {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* --- Lab state panels ------------------------------------------------------ */
+
+:root {
+  --warn: #d29922;
+  --error: #f85149;
+}
+
+.main-column {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.panels {
+  flex-shrink: 0;
+  height: 230px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+/* Formula checklist heading the task panel */
+
+.formula {
+  padding: 0.7rem 1rem 0.6rem;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.formula__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.formula__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.formula-row {
+  display: grid;
+  grid-template-columns: 1rem 1fr auto;
+  gap: 0.4rem;
+  align-items: baseline;
+  font-size: 0.85rem;
+  line-height: 1.9;
+}
+
+.formula-row__check {
+  color: var(--text-dim);
+  font-size: 0.75rem;
+}
+
+.formula-row__mass {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.formula-row__meta {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+.formula-row--completed .formula-row__name {
+  text-decoration: line-through;
+  color: var(--text-dim);
+}
+
+.formula-row--completed .formula-row__mass {
+  color: var(--text-dim);
+}
+
+.formula-row__delta {
+  margin-left: 0.2rem;
+  font-size: 0.7rem;
+  color: var(--active);
+}
+
+.formula-row--completed .formula-row__check {
+  color: var(--active);
+}
+
+.formula-row--active {
+  font-weight: 600;
+}
+
+.formula-row--active .formula-row__check {
+  color: var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* Thin progress bar under the ingredient being added, spanning name + mass. */
+.formula-row__bar {
+  grid-column: 2 / 4;
+  display: block;
+  height: 3px;
+  margin: -0.15rem 0 0.25rem;
+  border-radius: 2px;
+  background: var(--panel-border);
+  overflow: hidden;
+}
+
+.formula-row__bar > span {
+  display: block;
+  height: 100%;
+  background: var(--active);
+  transition: width 0.2s ease;
+}
+
+.formula__total,
+.formula__summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px dashed var(--panel-border);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.formula__total .mono,
+.formula__summary .mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color: var(--text);
+}
+
+.formula__summary {
+  flex-direction: column;
+  gap: 0.15rem;
+  font-weight: 600;
+}
+
+.formula__summary--pass {
+  color: var(--active);
+}
+
+.formula__summary--fail {
+  color: var(--error);
+}
+
+/* Header of the lab task panel: run id, status, clock and the scripted badge */
+
+.task-panel__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.task-panel__run {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.task-panel__badges {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* Plan list around the current step */
+
+.plan-group {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1rem 0.1rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.plan-group::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--panel-border);
+}
+
+.plan-earlier {
+  padding: 0.3rem 1rem;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+.task-item--queued .task-item__marker {
+  background: transparent;
+  border: 1px solid var(--done);
+}
+
+.task-item--queued .task-item__label {
+  color: var(--text-dim);
+}
+
+.task-item--retrying .task-item__marker {
+  background: var(--warn);
+  box-shadow: 0 0 6px var(--warn);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.task-item--retrying .task-item__label,
+.task-item--retrying .task-item__meta {
+  color: var(--warn);
+  font-weight: 600;
+}
+
+.task-item--active .task-item__meta {
+  color: var(--text);
+}
+
+.task-item--failed .task-item__marker {
+  background: var(--error);
+}
+
+.chip--warn {
+  background: rgba(210, 153, 34, 0.15);
+  color: var(--warn);
+}
+
+.panels--empty {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: auto;
+  padding: 0.6rem 0.9rem;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.6rem 0.9rem;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.panel__body {
+  flex: 1;
+  min-height: 0;
+  padding: 0.55rem 0.9rem;
+  overflow: hidden;
+}
+
+.panel__footer {
+  padding: 0.45rem 0.9rem;
+  border-top: 1px solid var(--panel-border);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chip {
+  padding: 0.1rem 0.5rem;
+  border-radius: 5px;
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--accent);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.kv {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.65;
+}
+
+.kv span:first-child {
+  color: var(--text-dim);
+}
+
+.kv span:last-child {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  white-space: nowrap;
+}
+
+.big {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 2.2rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.big small {
+  margin-left: 0.3rem;
+  font-size: 1rem;
+  color: var(--text-dim);
+}
+
+.bar {
+  height: 6px;
+  margin: 0.45rem 0 0.35rem;
+  border-radius: 3px;
+  background: var(--panel-border);
+  overflow: hidden;
+}
+
+.bar > div {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.2s ease;
+}
+
