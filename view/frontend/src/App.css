@@ -149,6 +149,16 @@ body {
   pointer-events: none;
 }
 
+.camera-frame__connection {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 0.6rem;
+  padding: 0.2rem 0.5rem;
+  background: #000c;
+  color: #fff;
+  font-size: 0.75rem;
+}
+
 .camera-frame__boxes rect {
   fill: none;
   stroke: var(--accent);

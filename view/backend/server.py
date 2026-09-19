@@ -460,6 +460,29 @@ def detector_info():
     }
 
 
+@app.websocket("/ws/camera/{camera_id}")
+async def ws_camera(websocket: WebSocket, camera_id: str):
+    """Binary JPEG frames without occupying a browser's HTTP connection pool."""
+    if camera_id not in scene.cameras:
+        await websocket.close(code=1008)
+        return
+    await websocket.accept()
+    camera = scene.cameras[camera_id]["mj_name"]
+    last = None
+    try:
+        while True:
+            # Immutable bytes are published by one render thread. Do not take
+            # its lock here: rendering holds it across GL work, which would
+            # block FastAPI's event loop and all other camera connections.
+            jpeg = scene._latest_jpeg.get(camera)
+            if jpeg is not None and jpeg is not last:
+                await websocket.send_bytes(jpeg)
+                last = jpeg
+            await asyncio.sleep(1 / RENDER_FPS)
+    except WebSocketDisconnect:
+        pass
+
+
 @app.websocket("/ws/detections")
 async def ws_detections(websocket: WebSocket):
     """Streams the detector's newest boxes; the detector runs while anyone listens."""

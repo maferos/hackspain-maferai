@@ -148,12 +148,69 @@ function useDetections(enabled) {
   return enabled ? detections : null;
 }
 
+function LiveCameraImage({ cameraId, label }) {
+  const imageRef = useRef(null);
+  const [connected, setConnected] = useState(false);
+  useEffect(() => {
+    const img = imageRef.current;
+    let cancelled = false;
+    let socket;
+    let retry;
+    let currentUrl;
+    let pendingUrl;
+    const connect = () => {
+      socket = new WebSocket(`${BACKEND_URL.replace(/^http/, "ws")}/ws/camera/${cameraId}`);
+      socket.binaryType = "blob";
+      socket.onmessage = ({ data }) => {
+        // Keep only one image decoding at a time; slow clients skip frames.
+        if (cancelled || pendingUrl || !(data instanceof Blob)) return;
+        if (!img) return;
+        pendingUrl = URL.createObjectURL(new Blob([data], { type: "image/jpeg" }));
+        img.onload = () => {
+          if (currentUrl) URL.revokeObjectURL(currentUrl);
+          currentUrl = pendingUrl;
+          pendingUrl = null;
+          if (!cancelled) setConnected(true);
+        };
+        img.onerror = () => {
+          if (pendingUrl) URL.revokeObjectURL(pendingUrl);
+          pendingUrl = null;
+          if (!cancelled) setConnected(false);
+        };
+        img.src = pendingUrl;
+      };
+      socket.onclose = () => {
+        if (cancelled) return;
+        setConnected(false);
+        retry = setTimeout(connect, 1500);
+      };
+      socket.onerror = () => socket.close();
+    };
+    connect();
+    return () => {
+      cancelled = true;
+      clearTimeout(retry);
+      socket?.close();
+      if (img) {
+        img.onload = null;
+        img.onerror = null;
+      }
+      if (pendingUrl) URL.revokeObjectURL(pendingUrl);
+      if (currentUrl) URL.revokeObjectURL(currentUrl);
+    };
+  }, [cameraId]);
+  return <>
+    <img ref={imageRef} alt={label} className="camera-frame__img" />
+    {!connected && <span className="camera-frame__connection" role="status">Connecting camera…</span>}
+  </>;
+}
+
 function CameraStream({ cameraId, label, className, onClick, big, still, detections }) {
-  const src = still ?? `${BACKEND_URL}/stream/${cameraId}`;
   const boxes = detections && detections.camera === cameraId ? detections : null;
   return (
     <div className={`camera-frame ${className ?? ""}`} onClick={onClick}>
-      <img key={cameraId} src={src} alt={label} className="camera-frame__img" />
+      {still ? <img src={still} alt={label} className="camera-frame__img" />
+        : <LiveCameraImage key={cameraId} cameraId={cameraId} label={label} />}
       {boxes && <DetectionBoxes detections={boxes} />}
       <span className="camera-frame__label">
         {label}

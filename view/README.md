@@ -7,7 +7,8 @@ right-hand panel with the robot's running task log, updated in real time.
 
 - `backend/` — FastAPI server. Renders both cameras from
   `simulation/models/minihannover_scene.xml` live with `mujoco.Renderer` and
-  serves them as MJPEG (`/stream/robot`, `/stream/scene`), plus a websocket
+  serves binary JPEGs over WebSocket (`/ws/camera/robot`, `/ws/camera/scene`),
+  with legacy MJPEG endpoints (`/stream/robot`, `/stream/scene`), plus a websocket
   (`/ws/tasks`) with the task log. The task log is currently **mocked** — no
   real task/planner system exists in `simulation/` yet, so it just cycles
   through a scripted list of plausible lab actions. Swap in real data by
@@ -22,6 +23,10 @@ camera — it doesn't move on its own yet, see the comment there for how to
 fly it around).
 
 ## Run it
+
+The viewer uses camera WebSockets so multiple open tabs do not exhaust the
+browser's per-host HTTP connection limit. Cameras reconnect automatically
+after a backend restart and show “Connecting camera…” until a frame arrives.
 
 ```sh
 # 1. Backend deps, into the same venv simulation/ already uses:
