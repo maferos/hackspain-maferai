@@ -36,6 +36,24 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
+
+def load_env(path: Path) -> None:
+    """Read KEY=value lines from a local .env (gitignored) into the environment.
+
+    For ANTHROPIC_API_KEY, which turns on Claude in the formula chat. Anything
+    already set in the environment wins.
+    """
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        key, sep, value = line.strip().partition("=")
+        if sep and key and not key.startswith("#"):
+            os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
+
+load_env(Path(__file__).with_name(".env"))
+
 # VIEW_SCENE picks the MuJoCo model to render: a bare name resolves under
 # simulation/models/, or pass an absolute path. Defaults to the rail bench scan.
 # A scene without the scripted run's samples (e.g. minihannover_open_scene.xml)

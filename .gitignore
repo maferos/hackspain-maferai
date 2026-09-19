@@ -53,3 +53,6 @@ simulation/third_party/mujoco_menagerie
 # The gripper variant of the rail scene, built on demand by scripts/vision_pick.py
 simulation/models/minihannover_rail_gripper_scene.xml
 simulation/assets/ur10e_2f85_gripper/
+
+# Local secrets, e.g. ANTHROPIC_API_KEY for the viewer's formula chat
+.env
