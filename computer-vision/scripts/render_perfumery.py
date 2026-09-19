@@ -347,6 +347,11 @@ class Lab:
         self.wrist_mocap = int(m.body_mocapid[m.cam_bodyid[wrist]])
         self.wrist_local = (m.cam_pos[wrist].copy(), m.cam_quat[wrist].copy())
         self.renderers: dict[tuple[int, int], mujoco.Renderer] = {}
+        self.render_flags: dict[tuple[int, int], np.ndarray] = {}
+        """Each renderer's scene flags as created: shadows and reflections on.
+        The segmentation passes turn those two off on the same renderer, and
+        ``Renderer.render`` restores only what it changes itself, so every
+        colour frame puts these back first."""
 
     def reset(self) -> None:
         """Put every bottle back where the scene file has it, and park the extras"""
@@ -579,6 +584,24 @@ class Lab:
         m.geom_group[geoms] = SAMPLE_GROUP
         return area, low, high
 
+    def renderer(self, width: int, height: int) -> mujoco.Renderer:
+        """The renderer for a frame size, created once and kept"""
+        key = (width, height)
+        if key not in self.renderers:
+            self.renderers[key] = mujoco.Renderer(
+                self.model, height=height, width=width
+            )
+            self.render_flags[key] = self.renderers[key].scene.flags.copy()
+        return self.renderers[key]
+
+    def rgb(self, camera: int, width: int, height: int) -> np.ndarray:
+        """The RGB frame a camera sees, lit as the scene lights it, without truth"""
+        r = self.renderer(width, height)
+        mujoco.mj_camlight(self.model, self.data)
+        r.update_scene(self.data, camera=camera, scene_option=self.opt_rgb)
+        np.copyto(r.scene.flags, self.render_flags[(width, height)])
+        return r.render()
+
     def render(
         self, camera: int, width: int, height: int
     ) -> tuple[np.ndarray, list, np.ndarray]:
@@ -588,17 +611,9 @@ class Lab:
             The RGB frame, one record per bottle that has any pixel in view, and
             the per-pixel category map.
         """
-        key = (width, height)
-        if key not in self.renderers:
-            self.renderers[key] = mujoco.Renderer(
-                self.model, height=height, width=width
-            )
-        r = self.renderers[key]
+        rgb = self.rgb(camera, width, height)
+        r = self.renderer(width, height)
         d = self.data
-        mujoco.mj_camlight(self.model, d)
-
-        r.update_scene(d, camera=camera, scene_option=self.opt_rgb)
-        rgb = r.render()
         r.enable_segmentation_rendering()
 
         def segment(option: mujoco.MjvOption) -> np.ndarray:
