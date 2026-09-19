@@ -124,6 +124,7 @@ def run(model: mujoco.MjModel, data: mujoco.MjData, vessel: pip.Container,
     gt.hold(model, data, ids, station, q_clear, None, 3.0)
     gt.hold(model, data, ids, station, q_into, None, 1.2)
     gave = pip.dispense(model, data, beaker, pipette)
+    pip.show_mass(model, beaker.mass)
     record['moved'] = before - vessel.volume
     record['stage'] = 'TRANSFERRED' if gave else 'drew but could not deliver'
     return record
@@ -145,6 +146,7 @@ def main() -> None:
     if args.only:
         flasks = [v for v in flasks if v.name in args.only]
 
+    pip.show_mass(model, beaker.mass)
     print(f'{len(flasks)} open flasks holding '
           f'{sum(v.volume for v in flasks):.1f} ml between them; '
           f'tip radius {pip.tip_radius(model) * 1000:.1f} mm\n')
@@ -162,6 +164,7 @@ def main() -> None:
     print(f'\ntransferred: {won}/{len(results)}')
     print(f'beaker now holds {beaker.volume:.2f} ml = {beaker.mass:.2f} g '
           f'at {pip.DENSITY} g/ml')
+    print(f'the balance reads {pip.show_mass(model, beaker.mass)} g')
     print(f'pipette still holds {pipette.volume:.2f} ml')
     misses = [r['miss'] for r in results if not np.isnan(r.get('miss', np.nan))]
     if misses:

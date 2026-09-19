@@ -241,3 +241,69 @@ def dispense(model: mujoco.MjModel, data: mujoco.MjData, vessel: Container,
     pipette.events.append(f'{vessel.name}: delivered {given:.2f} ml')
     sync(model, {vessel.name: vessel}, pipette)
     return True
+
+
+# The balance's readout, as generate_open_balance.py builds it: five digits of
+# seven segments and a decimal point, all lit, waiting to be switched off.
+NUMERALS = {
+    '0': 'abcdef', '1': 'bc', '2': 'abdeg', '3': 'abcdg', '4': 'bcfg',
+    '5': 'acdfg', '6': 'acdefg', '7': 'abc', '8': 'abcdefg', '9': 'abcdfg',
+    ' ': '',
+}
+LIT = np.array([0.09, 0.11, 0.13, 1.0])
+DARK = np.array([0.55, 0.62, 0.68, 0.10])
+PLACES = 4
+
+
+def display_prefix(model: mujoco.MjModel) -> str | None:
+    """Attach prefix of the balance carrying the readout, or None if absent.
+
+    Args:
+        model: Compiled scene.
+
+    Returns:
+        The prefix, e.g. ``balance_5_``.
+    """
+    for i in range(model.ngeom):
+        name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, i) or ''
+        if name.endswith('seg_0_a'):
+            return name[:-len('seg_0_a')]
+    return None
+
+
+def show_mass(model: mujoco.MjModel, grams: float,
+              prefix: str | None = None) -> str:
+    """Write a mass onto the balance's display.
+
+    The original model's "0.0000" is extruded geometry, not a texture, so the
+    number is changed by switching segments rather than by redrawing a bitmap.
+    Writing `geom_rgba` is enough: both the interactive viewer and the
+    offscreen renderer read it every frame.
+
+    Args:
+        model: Compiled scene; its geom colours are written.
+        grams: Mass to show. More than the display holds reads as dashes, the
+            way a real balance shows an over-range.
+        prefix: Attach prefix of the balance in the scene; found when omitted.
+
+    Returns:
+        The string that was shown, or an empty string when the scene has no
+        readout to write to.
+    """
+    prefix = prefix or display_prefix(model)
+    if prefix is None:
+        return ''
+    text = f'{grams:.{PLACES}f}'
+    if grams < 0 or len(text.split('.')[0]) > 1:
+        text = '-' * (PLACES + 1)
+    digits = text.replace('.', '')
+
+    for index in range(PLACES + 1):
+        glyph = digits[index] if index < len(digits) else ' '
+        lit = NUMERALS.get(glyph, 'adg')       # anything odd reads as a dash
+        for segment in 'abcdefg':
+            name = f'{prefix}seg_{index}_{segment}'
+            model.geom_rgba[model.geom(name).id] = (
+                LIT if segment in lit else DARK)
+    model.geom_rgba[model.geom(f'{prefix}point').id] = LIT
+    return text

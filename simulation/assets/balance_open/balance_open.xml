@@ -6,7 +6,6 @@
     <mesh name="part_01" file="part_01.obj" inertia="shell"/>
     <mesh name="part_02" file="part_02.obj" inertia="shell"/>
     <mesh name="part_03" file="part_03.obj" inertia="shell"/>
-    <mesh name="part_04" file="part_04.obj" inertia="shell"/>
     <mesh name="part_06" file="part_06.obj" inertia="shell"/>
     <mesh name="part_07" file="part_07.obj" inertia="shell"/>
     <mesh name="part_08" file="part_08.obj" inertia="shell"/>
@@ -19,7 +18,6 @@
       <geom type="mesh" mesh="part_01" rgba="0.863 0.863 0.863 1" contype="0" conaffinity="0" density="0" group="1"/>
       <geom type="mesh" mesh="part_02" rgba="0.392 0.584 0.929 1" contype="0" conaffinity="0" density="0" group="1"/>
       <geom type="mesh" mesh="part_03" rgba="0.255 0.412 0.882 1" contype="0" conaffinity="0" density="0" group="1"/>
-      <geom type="mesh" mesh="part_04" rgba="0.227 0.227 0.227 1" contype="0" conaffinity="0" density="0" group="1"/>
       <geom type="mesh" mesh="part_06" rgba="0.667 0.667 0.667 1" contype="0" conaffinity="0" density="0" group="1"/>
       <geom type="mesh" mesh="part_07" rgba="1.000 0.600 0.196 1" contype="0" conaffinity="0" density="0" group="1"/>
       <geom type="mesh" mesh="part_08" rgba="0.882 0.882 0.784 1" contype="0" conaffinity="0" density="0" group="1"/>
@@ -39,6 +37,114 @@
             size="0.1000 0.0030 0.0710" rgba="0 0 0 0" mass="0" group="3"/>
       <geom name="shield_front" type="box" pos="0.0000 -0.0590 0.1290"
             size="0.1000 0.0030 0.0710" rgba="0 0 0 0" mass="0" group="3"/>
+      <geom name="seg_0_a" type="box" pos="-0.02143 -0.09731 0.04120"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_0_g" type="box" pos="-0.02141 -0.10265 0.03892"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_0_d" type="box" pos="-0.02139 -0.10798 0.03664"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_0_f" type="box" pos="-0.02502 -0.09999 0.04005"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_0_b" type="box" pos="-0.01782 -0.09997 0.04006"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_0_e" type="box" pos="-0.02500 -0.10532 0.03777"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_0_c" type="box" pos="-0.01780 -0.10530 0.03778"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_1_a" type="box" pos="-0.00963 -0.09727 0.04121"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_1_g" type="box" pos="-0.00961 -0.10261 0.03893"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_1_d" type="box" pos="-0.00959 -0.10794 0.03665"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_1_f" type="box" pos="-0.01322 -0.09995 0.04007"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_1_b" type="box" pos="-0.00602 -0.09993 0.04008"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_1_e" type="box" pos="-0.01320 -0.10529 0.03779"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_1_c" type="box" pos="-0.00600 -0.10526 0.03780"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_2_a" type="box" pos="0.00217 -0.09724 0.04123"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_2_g" type="box" pos="0.00219 -0.10257 0.03895"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_2_d" type="box" pos="0.00221 -0.10790 0.03667"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_2_f" type="box" pos="-0.00142 -0.09991 0.04008"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_2_b" type="box" pos="0.00578 -0.09989 0.04010"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_2_e" type="box" pos="-0.00140 -0.10525 0.03780"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_2_c" type="box" pos="0.00580 -0.10523 0.03782"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_3_a" type="box" pos="0.01397 -0.09720 0.04125"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_3_g" type="box" pos="0.01399 -0.10253 0.03897"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_3_d" type="box" pos="0.01401 -0.10787 0.03669"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_3_f" type="box" pos="0.01038 -0.09988 0.04010"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_3_b" type="box" pos="0.01758 -0.09985 0.04011"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_3_e" type="box" pos="0.01040 -0.10521 0.03782"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_3_c" type="box" pos="0.01760 -0.10519 0.03783"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_4_a" type="box" pos="0.02577 -0.09716 0.04126"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_4_g" type="box" pos="0.02579 -0.10249 0.03898"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_4_d" type="box" pos="0.02581 -0.10783 0.03670"
+            size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_4_f" type="box" pos="0.02218 -0.09984 0.04012"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_4_b" type="box" pos="0.02938 -0.09982 0.04013"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_4_e" type="box" pos="0.02220 -0.10517 0.03784"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="seg_4_c" type="box" pos="0.02940 -0.10515 0.03785"
+            size="0.00065 0.00290 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
+      <geom name="point" type="box" pos="-0.01549 -0.10796 0.03665"
+            size="0.00104 0.00104 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
+            rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>
       <site name="pan" pos="-0.0050 0.0310 0.0770"
             size="0.04 0.001" type="cylinder" rgba="0.2 0.7 0.9 0.2" group="4"/>
     </body>

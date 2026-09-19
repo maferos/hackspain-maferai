@@ -275,6 +275,7 @@ so a bad approach fails the way it would on a bench.
 12 open flasks holding 250.8 ml between them; tip radius 2.7 mm
 transferred: 12/12
 beaker now holds 6.08 ml = 5.53 g at 0.91 g/ml
+the balance reads 5.5341 g
 tip alignment: 1.1 mm mean, 1.5 mm worst
 ```
 
@@ -286,10 +287,17 @@ outside is still solid and the bore is genuinely open. A tip 12 mm off the axis
 strikes the glass; 8 mm goes down the bore. It costs about 37 collision geoms
 per vessel and the scene still runs at 12.8x realtime.
 
-**The beaker stands on a balance.** `scripts/generate_open_balance.py` trims
-every mesh of the balance above 200 mm, throwing away the draft shield's roof,
-and replaces the single collision box with a housing, a weighing pan and four
-shield walls. That balance is also moved out in front of the rail: left where
+**The beaker stands on a balance, and the balance reads out.**
+`scripts/generate_open_balance.py` trims every mesh of the balance above
+200 mm, throwing away the draft shield's roof, and replaces the single
+collision box with a housing, a weighing pan and four shield walls. It also
+throws away `part_04` --- the moulded "0.0000", which is extruded geometry and
+not a texture, because this model has no textures at all --- and builds five
+seven-segment digits in the plane of the original display. `pipetting.show_mass`
+switches the segments by writing `geom_rgba`, which both the interactive viewer
+and the offscreen renderer read every frame, so the number climbs as the
+pipette delivers. Over 9.9999 g it reads dashes, the way a real balance shows
+an over-range. That balance is also moved out in front of the rail: left where
 it stood on the back strip, the beaker's rim sat at 1.08 m, which put the
 pipette's flange at 1.34 --- 20 mm under the gantry beam with the whole wrist
 in the way.
@@ -340,6 +348,7 @@ use `scripts/view_autobio.py` instead.
 | `scripts/wrist_view.py` | Interactive scene plus a live browser stream of the wrist camera |
 | `scripts/generate_pipette.py` | Builds the micropipette that mounts on the flange |
 | `scripts/generate_open_vessels.py` | Opens catalogue flasks and puts liquid in them |
+| `scripts/generate_open_balance.py` | Cuts the roof off a balance, gives it a pan, and builds a readout that can change |
 | `scripts/generate_beaker.py` | Wraps the lab room's beaker mesh as the receiving container |
 | `scripts/pipetting.py` | Liquid levels, and the rules for drawing and delivering |
 | `scripts/pipette_test.py` | Runs the full transfer on every flask and scores it |

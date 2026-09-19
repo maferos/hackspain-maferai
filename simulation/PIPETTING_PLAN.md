@@ -211,9 +211,17 @@ And the arm has to come in over the beaker and drop into it. Driving straight
 at it sweeps the arm through the balance and knocks the beaker off the pan,
 which is exactly the kind of thing the simulation is for.
 
+The display reads out too. The moulded "0.0000" is extruded geometry --- there
+is not one texture in the balance model --- so it is deleted and replaced by
+five seven-segment digits laid into the plane of the original display, fitted
+to `part_04`'s own vertices. `pipetting.show_mass` writes `geom_rgba`, which
+every renderer reads each frame. Watch the axis it is laid along: the plane fit
+came out along -X, and built that way the digits read right to left with every
+glyph mirrored.
+
 ## Next, in order
 
 1. Tip racks and disposable tips, if the demo wants the full lab cycle.
 2. Unscrewing caps, which is independent of everything above.
-3. The balance reads 0.0000 on its own display; the dispensed mass is reported
-   in the viewer's panel instead.
+3. The wrist camera could read the ArUco ring on the flask it is drawing from,
+   which would tie the pipetting to the vision work.

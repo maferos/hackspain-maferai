@@ -56,8 +56,13 @@ PAGE = """<!doctype html>
   main { flex: 1; display: grid; grid-template-columns: 1fr 260px; gap: 18px;
           align-items: start; padding: 18px; }
   @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  .views { display: grid; gap: 12px; grid-template-columns: 1fr 1fr; }
+  @media (max-width: 1200px) { .views { grid-template-columns: 1fr; } }
+  figure { margin: 0; }
+  figcaption { font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+               color: #6f757d; margin: 0 0 6px; font-weight: 600; }
   img { width: 100%; border-radius: 6px; border: 1px solid #2a2e35;
-        background: #000; }
+        background: #000; display: block; }
   #caption { font-variant-numeric: tabular-nums; color: #e8e6e1; }
   dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px;
        font-size: 13px; font-variant-numeric: tabular-nums; }
@@ -71,11 +76,20 @@ PAGE = """<!doctype html>
 </style></head>
 <body>
   <header>
-    <h1>Eye-in-hand camera &middot; UR10e wrist</h1>
+    <h1>MiniHannover rail &middot; overview and wrist camera</h1>
     <p><span id="caption">&hellip;</span></p>
   </header>
   <main>
-    <img src="/stream.mjpg" alt="wrist camera">
+    <div class="views">
+      <figure>
+        <figcaption>Overview</figcaption>
+        <img src="/view/overview.mjpg" alt="overview">
+      </figure>
+      <figure>
+        <figcaption>Eye in hand</figcaption>
+        <img src="/view/wrist.mjpg" alt="wrist camera">
+      </figure>
+    </div>
     <aside>
       <h2>Liquid</h2>
       <dl>
@@ -119,19 +133,21 @@ class Feed:
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._jpeg: bytes | None = None
+        self._frames: dict[str, bytes] = {}
         self._state: dict[str, object] = {'caption': 'starting'}
         self._tick = 0
 
-    def publish(self, jpeg: bytes, state: dict[str, object]) -> None:
-        """Replace the current frame and the readings that go with it."""
+    def publish(self, frames: dict[str, bytes],
+                state: dict[str, object]) -> None:
+        """Replace the current frames and the readings that go with them."""
         with self._lock:
-            self._jpeg, self._state, self._tick = jpeg, state, self._tick + 1
+            self._frames, self._state = frames, state
+            self._tick += 1
 
-    def latest(self) -> tuple[bytes | None, int]:
-        """The current frame and a counter that changes when it does."""
+    def latest(self, view: str) -> tuple[bytes | None, int]:
+        """One view's current frame, and a counter that changes when it does."""
         with self._lock:
-            return self._jpeg, self._tick
+            return self._frames.get(view), self._tick
 
     @property
     def state(self) -> dict[str, object]:
@@ -146,8 +162,8 @@ class Handler(http.server.BaseHTTPRequestHandler):
     feed: Feed
 
     def do_GET(self) -> None:
-        if self.path.startswith('/stream'):
-            self._stream()
+        if self.path.startswith('/view/'):
+            self._stream(self.path[len('/view/'):].split('.')[0])
         elif self.path.startswith('/telemetry'):
             self._send(json.dumps(self.feed.state).encode(),
                        'application/json; charset=utf-8')
@@ -165,7 +181,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def _stream(self) -> None:
+    def _stream(self, view: str) -> None:
         self.send_response(200)
         self.send_header('Cache-Control', 'no-store')
         self.send_header('Content-Type',
@@ -174,7 +190,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         seen = -1
         try:
             while True:
-                jpeg, tick = self.feed.latest()
+                jpeg, tick = self.feed.latest(view)
                 if jpeg is None or tick == seen:
                     time.sleep(1 / 90)
                     continue
@@ -356,6 +372,7 @@ def pipette_programme(model: mujoco.MjModel, data: mujoco.MjData, count: int):
     tool = pip.Pipette()
     flasks = [v for k, v in sorted(vessels.items()) if k != 'beaker'][:count]
     pip.sync(model, vessels, tool)
+    pip.show_mass(model, beaker.mass)
 
     while True:
         for flask in flasks:
@@ -408,6 +425,7 @@ def pipette_programme(model: mujoco.MjModel, data: mujoco.MjData, count: int):
             yield from drive(station, q_clear, 3.0, 'carrying to the beaker')
             yield from drive(station, q_into, 1.2, 'lowering into the beaker')
             pip.dispense(model, data, beaker, tool)
+            pip.show_mass(model, beaker.mass)
             yield from drive(station, q_into, 1.0,
                              f'beaker now {beaker.volume:.2f} ml '
                              f'= {beaker.mass:.2f} g')
@@ -466,6 +484,9 @@ def main() -> None:
                         help='streamed frame size')
     parser.add_argument('--quality', type=int, default=80,
                         help='JPEG quality of the stream')
+    parser.add_argument('--overview', default='general',
+                        help='scene camera for the second view: general, '
+                             'carriage, or any camera in the scene')
     parser.add_argument('--no-browser', action='store_true',
                         help='do not open the tab automatically')
     args = parser.parse_args()
@@ -495,13 +516,15 @@ def main() -> None:
     feed = Feed()
     server = serve(feed, args.port)
     url = f'http://localhost:{args.port}'
-    print(f'wrist camera streaming at {url}  (ctrl-c or close the window to stop)')
+    print(f'overview and wrist camera streaming at {url}  '
+          '(ctrl-c or close the window to stop)')
     if not args.no_browser:
         webbrowser.open(url)
 
     if programme is None:
         mujoco.mj_resetData(model, data)
     renderer = mujoco.Renderer(model, height=height, width=width)
+    views = {'overview': args.overview, 'wrist': 'arm_eih'}
     steps_per_frame = max(round(1 / rd.FPS / model.opt.timestep), 1)
     try:
         with mujoco.viewer.launch_passive(model, data, show_left_ui=False,
@@ -519,15 +542,17 @@ def main() -> None:
                     row = rows[frame % len(rows)]
                     rd.apply(model, data, row, physics=False)
                     caption = labels[owners[frame % len(rows)]]
-                renderer.update_scene(data, camera='arm_eih')
-                buffer = io.BytesIO()
-                Image.fromarray(renderer.render()).save(
-                    buffer, format='JPEG', quality=args.quality)
+                frames = {}
+                for label, camera in views.items():
+                    renderer.update_scene(data, camera=camera)
+                    buffer = io.BytesIO()
+                    Image.fromarray(renderer.render()).save(
+                        buffer, format='JPEG', quality=args.quality)
+                    frames[label] = buffer.getvalue()
                 now = time.time()
                 speed = steps_per_frame * model.opt.timestep / max(now - clock, 1e-6)
                 clock = now
-                feed.publish(buffer.getvalue(),
-                             telemetry(model, data, caption, speed))
+                feed.publish(frames, telemetry(model, data, caption, speed))
                 viewer.sync()
                 frame += 1
                 remaining = 1 / rd.FPS - (time.time() - started)

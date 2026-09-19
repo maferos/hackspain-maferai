@@ -30,6 +30,30 @@ CHAMBER = 0.058     # floor of the weighing chamber
 SHIELD_X = 0.100    # inside half-width of the shield
 SHIELD_Y = (-0.059, 0.115)
 
+# The display. part_04 is the fixed "0.0000", extruded geometry rather than a
+# texture --- there is not a single texture in this model --- so the only way
+# to make the number change is to throw those digits away and build segments
+# that can be switched on and off. Plane fitted to part_04's own vertices.
+DIGITS_PART = 'part_04'
+DIGITS_CENTRE = (0.00219, -0.10257, 0.03895)
+# Flipped from the plane fit, which came out along -X: laid out that way the
+# digits read right to left and each glyph is mirrored.
+DIGITS_WIDTH_AXIS = (1.0, 0.0032, 0.0014)
+DIGITS_HEIGHT_AXIS = (-0.0035, 0.9195, 0.3931)
+CELL = 0.0118       # width of one digit cell
+DIGIT = (0.0072, 0.0116)    # segment span across and up
+SEGMENT = 0.0013    # segment thickness
+PLACES = 4          # decimals the balance reads
+ON = '0.09 0.11 0.13 1'
+OFF = '0.55 0.62 0.68 0.10'
+
+# Which segments each numeral lights, in the usual a-g order.
+NUMERALS = {
+    '0': 'abcdef', '1': 'bc', '2': 'abdeg', '3': 'abcdg', '4': 'bcfg',
+    '5': 'acdfg', '6': 'acdefg', '7': 'abc', '8': 'abcdefg', '9': 'abcdfg',
+    ' ': '',
+}
+
 
 def trim(path: Path, cut: float) -> tuple[Path, bool]:
     """Copy an .obj, dropping every face that reaches above `cut`.
@@ -74,11 +98,62 @@ def trim(path: Path, cut: float) -> tuple[Path, bool]:
     return target, bool(out_faces)
 
 
+def display() -> str:
+    """Seven-segment digits laid into the plane of the balance's own display.
+
+    Each segment is a thin box whose local axes are the display's width, height
+    and normal, so the whole thing sits flat on the sloping panel. They are
+    emitted lit; `pipetting.show_mass` turns them off again.
+
+    Returns:
+        MJCF geom elements, as text.
+    """
+    centre = np.array(DIGITS_CENTRE)
+    across = np.array(DIGITS_WIDTH_AXIS)
+    across /= np.linalg.norm(across)
+    up = np.array(DIGITS_HEIGHT_AXIS)
+    up /= np.linalg.norm(up)
+    wide, tall = DIGIT
+    axes = ' '.join(f'{v:.4f}' for v in (*across, *up))
+
+    def box(name, u, v, half_u, half_v):
+        pos = centre + across * u + up * v
+        return (f'      <geom name="{name}" type="box" '
+                f'pos="{pos[0]:.5f} {pos[1]:.5f} {pos[2]:.5f}"\n'
+                f'            size="{half_u:.5f} {half_v:.5f} 0.0004" '
+                f'xyaxes="{axes}"\n'
+                f'            rgba="{ON}" contype="0" conaffinity="0" '
+                f'group="1"/>')
+
+    out = []
+    # One digit, the decimal point, then the decimals; laid out right to left
+    # from the right-hand edge of the original digit block.
+    slots = [(0, 0.0)] + [(i + 1, 0.0) for i in range(PLACES)]
+    first = -(len(slots) - 1) / 2 * CELL
+    for index, _ in slots:
+        u0 = first + index * CELL
+        half, top = wide / 2, tall / 2
+        for seg, (u, v, hu, hv) in {
+                'a': (u0, top, half, SEGMENT / 2),
+                'g': (u0, 0.0, half, SEGMENT / 2),
+                'd': (u0, -top, half, SEGMENT / 2),
+                'f': (u0 - half, top / 2, SEGMENT / 2, tall / 4),
+                'b': (u0 + half, top / 2, SEGMENT / 2, tall / 4),
+                'e': (u0 - half, -top / 2, SEGMENT / 2, tall / 4),
+                'c': (u0 + half, -top / 2, SEGMENT / 2, tall / 4),
+        }.items():
+            out.append(box(f'seg_{index}_{seg}', u, v, hu, hv))
+    out.append(box('point', first + 0.5 * CELL, -tall / 2,
+                   SEGMENT * 0.8, SEGMENT * 0.8))
+    return '\n'.join(out)
+
+
 def main() -> None:
     parts = sorted(SOURCE.glob('part_*.obj'))
     kept = []
     for part in parts:
-        _, alive = trim(part, CUT)
+        # The fixed digits go; segments that can be switched replace them.
+        alive = part.stem != DIGITS_PART and trim(part, CUT)[1]
         kept.append((part.stem, alive))
     print(f'trimmed {len(parts)} parts at {CUT * 1000:.0f} mm; '
           f'{sum(a for _, a in kept)} still have geometry')
@@ -127,6 +202,7 @@ def main() -> None:
             size="0.0430 0.0430 0.0050" mass="0.05" group="3"
             rgba="0.75 0.76 0.78 1"/>
 {chr(10).join(walls)}
+{display()}
       <site name="pan" pos="{PAN[0]:.4f} {PAN[1]:.4f} {PAN_TOP:.4f}"
             size="0.04 0.001" type="cylinder" rgba="0.2 0.7 0.9 0.2" group="4"/>
     </body>
@@ -137,6 +213,8 @@ def main() -> None:
     print(f'wrote {(OUT / "balance_open.xml").relative_to(SIM)}')
     print(f'pan at {PAN_TOP * 1000:.0f} mm, shield now open above '
           f'{CUT * 1000:.0f} mm (was closed at 306 mm)')
+    print(f'display: {PLACES + 1} seven-segment digits replacing the moulded '
+          f'"0.0000"')
 
 
 if __name__ == '__main__':
