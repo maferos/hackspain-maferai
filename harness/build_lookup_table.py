@@ -4,8 +4,9 @@ by where its label sits in the world.
 Two methods:
 
 ``vision`` (default)
-    What a robot would see. Every fixed camera is rendered with depth, YOLO26s
-    proposes vessel boxes, ``labvision.markers`` soft-decodes the ArUco ring
+    What a robot would see. Every fixed camera is rendered with depth, the
+    YOLO26n trained on MuJoCo renders (``labvision.detector`` backend
+    ``mujoco``) proposes bottle boxes, ``labvision.markers`` soft-decodes the ArUco ring
     inside them into a posterior over sample ids, and the depth under the ring
     places the bottle in the world. Each entry carries that posterior as its
     ``probability``, with ``decision`` accept / rescan / reject. See
@@ -26,9 +27,15 @@ truth, two ways a sample label shows up in a compiled scene are recognised:
 Each label is matched to its registry row in computer-vision/barcodes/lookup_table.json
 (EAN-13, ArUco marker, material, ...).
 
+The ``mujoco`` weights are trained, not downloaded, and not in git: take the
+file from the team Drive and drop it in computer-vision/weights/ as
+``yolo_mujoco.pt`` (see the README there), or pass ``--weights``. Cameras the
+model was not trained on show up in ``metrics.per_camera``.
+
 Run with the venv that has mujoco, OpenCV and ultralytics, headless:
 
     MUJOCO_GL=egl simulation/.venv-act/bin/python harness/build_lookup_table.py
+    ... build_lookup_table.py --weights path/to/best.pt --device cuda:0
     ... build_lookup_table.py path/to/scene.xml --cameras general room_desk
     ... build_lookup_table.py --method gt          # only needs mujoco
     ... build_lookup_table.py --save-frames /tmp/frames   # annotated renders
@@ -48,7 +55,7 @@ OUT = Path(__file__).resolve().parent / "lookup_table.json"
 DEFAULT_SCENES = (
     "simulation/models/minihannover_scene.xml",
     "simulation/models/minihannover_open_scene.xml",
-    "simulation/models/minihannover_open_aloha_scene.xml",
+    "simulation/models/minihannover_rail_scene.xml",
 )
 
 SAMPLE_ID = re.compile(r"(SMP|PWD)-\d{4}")
@@ -263,7 +270,9 @@ def main():
                         help="keep only this phase (default: both)")
     parser.add_argument("--cameras", nargs="+",
                         help="cameras to render (default: every fixed camera in the scene)")
-    parser.add_argument("--backend", default="yolo26", help="labvision.detector backend")
+    parser.add_argument("--backend", default="mujoco", help="labvision.detector backend")
+    parser.add_argument("--weights", type=Path, help="override the backend's weights file")
+    parser.add_argument("--device", help="torch device, e.g. cuda:0 (default: a GPU if any)")
     parser.add_argument("--score", type=float, help="override the detector threshold")
     parser.add_argument("--ean", action="store_true", help="also read EAN-13 inside boxes")
     parser.add_argument("--save-frames", type=Path, help="write annotated frames here")
@@ -278,7 +287,9 @@ def main():
         manifest = json.loads((ROOT / "simulation/assets/labelled_bottles/manifest.json").read_text())
         diameters = {k: v["diameter_m"] for k, v in manifest["vessels"].items()}
         table = json.loads(REGISTRY.read_text())["entries"]
-        scanner = VisionScanner(table, backend=args.backend, score=args.score,
+        scanner = VisionScanner(table, backend=args.backend,
+                                weights=str(args.weights) if args.weights else None,
+                                score=args.score, device=args.device,
                                 read_ean=args.ean, frames_dir=args.save_frames)
 
     def keep(entries):
@@ -317,9 +328,15 @@ def main():
         header["position"] = "centre of the label mesh's world bounding box, at the initial state"
     else:
         from labvision import markers
+        from labvision.detector import BACKENDS
 
+        weights = Path(scanner.detector.model.ckpt_path or args.weights
+                       or BACKENDS[args.backend].weights)
+        if weights.is_absolute() and weights.is_relative_to(ROOT):
+            weights = weights.relative_to(ROOT)
         header.update(
-            detector=f"labvision.detector backend {args.backend!r}",
+            detector=f"labvision.detector backend {args.backend!r}, weights {weights}, "
+                     f"score >= {scanner.detector.score}",
             decoder=(f"labvision.markers: soft ArUco posterior over the catalogue, every copy "
                      f"of the ring fused across cameras (TEMPER={markers.TEMPER}); "
                      f"accept >= {markers.ACCEPT_P}, rescan >= {markers.REJECT_P}, else reject"),
