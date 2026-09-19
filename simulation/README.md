@@ -61,6 +61,49 @@ python scripts/generate_minihannover_open.py
 mjpython scripts/view_model.py models/minihannover_open_scene.xml  # macOS
 ```
 
+## Robot arm on a rail
+
+The open-desk scene gets a UR10e riding a 6 m linear rail over the bench. The arm
+is [Menagerie's](https://github.com/google-deepmind/mujoco_menagerie) UR10e with a
+Robotiq 2F-85 on the flange and an eye-in-hand camera beside it.
+
+```bash
+bash scripts/fetch_menagerie.sh              # UR10e + 2F-85 only, ~47 MB, gitignored
+python scripts/generate_rail_scene.py        # writes the arm model and the scene
+mjpython scripts/rail_demo.py --viewer       # watch it run the bench (macOS)
+python scripts/rail_reach.py                 # what it can actually reach, in numbers
+```
+
+**Why a rail.** The UR10e reaches 1.30 m, the longest arm in Menagerie, and the
+desk is 6 x 2 m. Bolted down it covers a 1.30 m disc; on a rail it covers the lot.
+`scripts/rail_reach.py` solves top-down IK for the pinch point 20 mm over every
+cap on the bench and counts:
+
+| Mounting | Vessels reachable |
+| --- | --- |
+| Rail, free to stand anywhere along the travel | **93/93** |
+| Rail, but the carriage must stand over the cap | 85/93 |
+| Best single fixed station (scanned over the travel) | 52/93 |
+
+The middle row is the arm's own inner dead zone rather than a reach limit: it
+cannot fold onto a point directly under its shoulder, so the carriage stands off
+along the rail --- 26 mm on average, 300 mm at worst --- and the misses vanish.
+
+**Where the rail sits.** The beam runs along y = 0.30, the desk's back edge strip,
+with its underside at 1.36 m: 60 mm over the two balances that stand there. The
+`general` wall camera looks at the bench from -Y, so a gantry behind the glassware
+shadows the back edge instead of the samples. The arm base ends up 0.55 m over the
+worktop, roughly the height its own gripper works at, which is what keeps the full
+1.30 m available horizontally instead of spending it on the drop to the bench.
+
+**Motion.** `scripts/rail_demo.py --mode sweep` runs the carriage end to end in a
+hand-down scan pose; `--mode visit` picks vessels along the bench and drops the
+gripper over each cap in turn. Playback is kinematic by default so it is
+deterministic and cannot knock the glassware over; `--physics` drives the position
+actuators and steps the simulator instead, where the arm sags up to 4 degrees at
+the shoulder under Menagerie's stock gains. Render with `--video out/rail.mp4`
+(needs `ffmpeg`) or `--frames <dir>`, from `--camera general`, `carriage` or `eih`.
+
 ## AutoBio lab scenes
 
 [AutoBio](https://github.com/autobio-bench/AutoBio) ([paper](https://arxiv.org/abs/2505.14030)) provides
@@ -94,6 +137,12 @@ use `scripts/view_autobio.py` instead.
 | `install.sh` | One-shot environment setup + verification |
 | `models/hello.xml` | Demo scene: floor + falling box, sphere, capsule |
 | `models/minihannover_scene.xml` | Demo scene: a perfumery lab (14 x 5 x 3 m) around the `minihannover` bench: a shelving library of 187 barcoded sample bottles, one sink, five balances, GC-MS and UV-Vis-NIR, and thirteen hand-placed barcoded sample bottles, powders and liquids mixed: six in the entrance corner, seven loose and movable on the bench. Nothing is sorted, on purpose: where a bottle stands says nothing about what it is. Two cameras belong to the vision system, both a GoPro in Linear mode at 1080p (`fovy` 60.44, `resolution` 1920 x 1080): `general`, fixed on the right wall at ceiling height at (-1.5, -2.9, 3), which is (7, 0, 3) in `computer-vision`'s room frame, and `wrist`, on a mocap body 0.30 m in front of a bottle on the bench, standing in for the arm's wrist camera |
+| `scripts/fetch_menagerie.sh` | Sparse-fetches the UR10e and Robotiq 2F-85 from MuJoCo Menagerie into `third_party/` |
+| `scripts/generate_rail_scene.py` | Builds `assets/ur10e_2f85/` and `models/minihannover_rail_scene.xml` (open desk + gantry + arm) |
+| `scripts/rail_kinematics.py` | Bench-vessel lookup and top-down damped-least-squares IK, shared by the two rail scripts |
+| `scripts/rail_demo.py` | Drives the carriage along the rail: sweep or per-vessel visit, viewer or offscreen render |
+| `scripts/rail_reach.py` | Reachability report: rail vs one fixed station, over every vessel on the bench |
+| `models/minihannover_rail_scene.xml` | The open-desk scene plus a 6 m gantry carrying a UR10e + Robotiq 2F-85 with an eye-in-hand camera |
 | `scripts/check_install.py` | Headless check that loads and steps the model |
 | `requirements-autobio.txt` | Pinned MuJoCo 3.3.0 env for AutoBio |
 | `third_party/AutoBio` | AutoBio git submodule (models, meshes, plugin) |

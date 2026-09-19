@@ -18,3 +18,6 @@ weights/
 *.onnx
 *.mp4
 mobileclip*.ts
+
+# Menagerie models fetched by simulation/scripts/fetch_menagerie.sh
+simulation/third_party/mujoco_menagerie/
