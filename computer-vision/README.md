@@ -334,6 +334,52 @@ Three things this measured that the flat tests could not:
   bend too far for the localiser to rectify; at 8 degrees they still read. So
   the script raises the camera gently, gentlest angle first.
 
+### ArUco against EAN-13: far reach, but not on a turned bottle
+
+EAN-13 spends 113 modules along one axis to carry far more than the 200 ids
+needed, so on a 10 ml flask a module is 0.21 mm. `scripts/aruco_experiment.py`
+puts a `DICT_4X4_250` ArUco marker, 8 modules a side with its quiet zone, where
+the EAN-13 label is --- as large a square as the wall height and 90 degrees of
+arc allow --- and measures both through the same 1080p GoPro pinhole in MuJoCo.
+Nothing committed is touched; output goes to `simulation/out/aruco_experiment/`.
+
+| Vessel | EAN module | ArUco module | EAN reads to | ArUco reads to | EAN max turn | ArUco max turn |
+| --- | --- | --- | --- | --- | --- | --- |
+| flask_10ml | 0.21 mm | 2.20 mm | 0.15 m | 1.0 m | 80 deg | 20 deg |
+| flask_20ml | 0.30 mm | 2.76 mm | 0.2 m | 1.0 m | 80 deg | 10 deg |
+| flask_30ml | 0.36 mm | 3.16 mm | 0.2 m | 1.5 m | 80 deg | 10 deg |
+| flask_50ml | 0.43 mm | 3.73 mm | 0.3 m | 1.5 m | 80 deg | 10 deg |
+| flask_100ml | 0.58 mm | 4.70 mm | 0.5 m | 2.0 m | 80 deg | 10 deg |
+| bottle_100ml | 0.32 mm | 4.56 mm | 0.2 m | 2.0 m | 70 deg | 20 deg |
+| bottle_250ml | 0.48 mm | 5.93 mm | 0.2 m | 2.5 m | 70 deg | 10 deg |
+| bottle_500ml | 0.65 mm | 7.30 mm | 0.5 m | 3.0 m | 50 deg | 10 deg |
+| bottle_1000ml | 0.66 mm | 8.68 mm | 0.5 m | 4.0 m | 40 deg | 20 deg |
+| bottle_2000ml | 0.66 mm | 9.98 mm | 0.5 m | 4.0 m | 50 deg | 20 deg |
+
+Reach is square on, in a plainly lit scene with nothing else in shot, so the
+EAN-13 column is a little kinder than `wrist_scan.py` found in the room. Turn is
+the bottle turned about its own axis, measured at half the reach so that it is
+angle and not resolution that fails. No id was ever read as another.
+
+- **ArUco reads from 4 to 12 times farther**, because its modules are about ten
+  times larger. The smallest flask reads from 1 m, past a GoPro's 0.30 m near
+  focus, and the large powder bottles from the fixed camera's range.
+- **Rolling the camera does not matter** to either code: all seven rolls read.
+- **Turning the bottle is what ArUco cannot take**: it is lost 10 to 20 degrees
+  off square, where the ladder EAN-13 holds to 40 to 80. A turned cylinder
+  squeezes the near and far halves of a square marker by different amounts,
+  which is not a perspective distortion, so the detector samples the bits in
+  the wrong places. The EAN-13's bars are rings, and a turn only shortens them.
+- Narrower markers trade reach for turn (`--arc`): 30 degrees of arc holds to
+  30 to 40 degrees of turn, and reads 10 ml / 100 ml / 2 L from 0.3 / 0.75 /
+  1.5 m, still about twice the EAN-13.
+
+So a single ArUco on the wall is not a replacement. What would work is a ring
+of about eight narrow markers, one every 45 degrees, read from any side at two
+to three times the EAN-13's reach; or the marker on the flat cap top, where
+there is no curvature and the bottle's turn is irrelevant, at the price that a
+cap can end up on the wrong bottle. Neither is built yet.
+
 What the frame actually contains, with a 92 x 60.4 degree lens aimed there:
 
 | Image row | What is there |
