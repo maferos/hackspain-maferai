@@ -1,0 +1,77 @@
+<mujoco model="micropipette">
+  <compiler angle="radian" meshdir="meshes" autolimits="true"/>
+  <option gravity="0 0 -9.81"/>
+  <default>
+    <default class="pipette_visual"><geom type="mesh" contype="0" conaffinity="0" group="2" mass="0"/></default>
+    <default class="pipette_collision"><geom group="3" condim="4" friction="0.9 0.005 0.0001" solref="0.005 1" rgba="0.8 0.3 0.3 0.3"/></default>
+  </default>
+  <asset>
+    <material name="pip_white" rgba="0.93000 0.93000 0.92000 1.00000" specular="0.3" shininess="0.55"/>
+    <material name="pip_blue" rgba="0.41000 0.58000 0.87000 1.00000" specular="0.3" shininess="0.60"/>
+    <material name="pip_dark" rgba="0.06000 0.06000 0.07000 1.00000" specular="0.3" shininess="0.65"/>
+    <material name="pip_display" rgba="0.02000 0.02000 0.02000 1.00000" specular="0.3" shininess="0.85"/>
+    <mesh name="pip_tip_cone" file="tip_cone.stl"/>
+    <mesh name="pip_shaft" file="shaft.stl"/>
+    <mesh name="pip_collar" file="collar.stl"/>
+    <mesh name="pip_body" file="body.stl"/>
+    <mesh name="pip_finger_hook" file="finger_hook.stl"/>
+    <mesh name="pip_display" file="display.stl"/>
+    <mesh name="pip_label_ridge" file="label_ridge.stl"/>
+    <mesh name="pip_plunger_shaft" file="plunger_shaft.stl"/>
+    <mesh name="pip_plunger_button" file="plunger_button.stl"/>
+    <mesh name="pip_ejector_rod" file="ejector_rod.stl"/>
+    <mesh name="pip_ejector_guide" file="ejector_guide.stl"/>
+    <mesh name="pip_ejector_button" file="ejector_button.stl"/>
+    <mesh name="pip_ejector_sleeve" file="ejector_sleeve.stl"/>
+    <mesh name="pip_ejector_arm" file="ejector_arm.stl"/>
+  </asset>
+  <worldbody>
+    <body name="micropipette" pos="0 0 0.05">
+      <freejoint name="micropipette_free"/>
+      <site name="pipette_grip" pos="0 0 0.1685" size="0.004" rgba="0 1 0 0.5"/>
+      <site name="pipette_tip" pos="0 0 0" size="0.002" rgba="1 0 0 0.5"/>
+      <inertial pos="-0.00092 0.00000 0.11946" mass="0.1" diaginertia="4.681e-04 4.828e-04 2.430e-05"/>
+      <geom class="pipette_visual" mesh="pip_tip_cone" material="pip_dark" name="vis_tip_cone"/>
+      <geom class="pipette_visual" mesh="pip_shaft" material="pip_blue" name="vis_shaft"/>
+      <geom class="pipette_visual" mesh="pip_collar" material="pip_blue" name="vis_collar"/>
+      <geom class="pipette_visual" mesh="pip_body" material="pip_white" name="vis_body"/>
+      <geom class="pipette_visual" mesh="pip_finger_hook" material="pip_white" name="vis_finger_hook"/>
+      <geom class="pipette_visual" mesh="pip_display" material="pip_display" name="vis_display"/>
+      <geom class="pipette_visual" mesh="pip_label_ridge" material="pip_white" name="vis_label_ridge"/>
+      <geom class="pipette_visual" mesh="pip_ejector_guide" material="pip_white" name="vis_ejector_guide"/>
+      <geom class="pipette_collision" type="box" pos="0.00000 0.00000 0.16850" size="0.01350 0.01100 0.05250" name="col_body_0"/>
+      <geom class="pipette_collision" type="capsule" fromto="0.00000 0.00000 0.01200 0.00000 0.00000 0.11600" size="0.00580" name="col_body_1"/>
+      <geom class="pipette_collision" type="capsule" fromto="0.00000 0.00000 0.00050 0.00000 0.00000 0.01400" size="0.00360" name="col_body_2"/>
+      <geom class="pipette_collision" type="cylinder" pos="0.00000 0.00000 0.11000" size="0.01120 0.00600" name="col_body_3"/>
+      <geom class="pipette_collision" type="box" pos="-0.02100 0.00000 0.21300" size="0.00900 0.00800 0.01200" name="col_body_4"/>
+      <geom class="pipette_collision" type="box" pos="0.01550 0.00000 0.15400" size="0.00350 0.00500 0.02800" name="col_body_5"/>
+      <body name="pipette_plunger" pos="0 0 0">
+        <joint name="pipette_plunger_slide" type="slide" axis="0 0 1" range="-0.014 0.0" stiffness="350.0" damping="0.4" springref="0" armature="0.0005"/>
+        <inertial pos="0.00300 0.00000 0.24962" mass="0.01" diaginertia="2.366e-06 2.366e-06 4.817e-07"/>
+        <geom class="pipette_visual" mesh="pip_plunger_shaft" material="pip_white" name="vis_plunger_shaft"/>
+        <geom class="pipette_visual" mesh="pip_plunger_button" material="pip_blue" name="vis_plunger_button"/>
+        <geom class="pipette_collision" type="cylinder" pos="0.00300 0.00000 0.25925" size="0.00850 0.00425" name="col_plunger_0"/>
+        <geom class="pipette_collision" type="cylinder" pos="0.00300 0.00000 0.24000" size="0.00400 0.02100" name="col_plunger_1"/>
+      </body>
+      <body name="pipette_ejector" pos="0 0 0">
+        <joint name="pipette_ejector_slide" type="slide" axis="0 0 1" range="-0.008 0.0" stiffness="500.0" damping="0.4" springref="0" armature="0.0005"/>
+        <inertial pos="0.00950 0.00000 0.15750" mass="0.005" diaginertia="1.242e-05 1.279e-05 5.558e-07"/>
+        <geom class="pipette_visual" mesh="pip_ejector_rod" material="pip_blue" name="vis_ejector_rod"/>
+        <geom class="pipette_visual" mesh="pip_ejector_button" material="pip_blue" name="vis_ejector_button"/>
+        <geom class="pipette_visual" mesh="pip_ejector_sleeve" material="pip_blue" name="vis_ejector_sleeve"/>
+        <geom class="pipette_visual" mesh="pip_ejector_arm" material="pip_blue" name="vis_ejector_arm"/>
+        <geom class="pipette_collision" type="cylinder" pos="0.01900 0.00000 0.23500" size="0.00750 0.00300" name="col_ejector_0"/>
+        <geom class="pipette_collision" type="cylinder" pos="0.00000 0.00000 0.08000" size="0.00680 0.01400" name="col_ejector_1"/>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="pipette_plunger_act" joint="pipette_plunger_slide" kp="600" ctrlrange="-0.014 0"/>
+    <position name="pipette_ejector_act" joint="pipette_ejector_slide" kp="800" ctrlrange="-0.008 0"/>
+  </actuator>
+  <contact>
+    <exclude body1="micropipette" body2="pipette_plunger"/>
+    <exclude body1="micropipette" body2="pipette_ejector"/>
+    <exclude body1="pipette_plunger" body2="pipette_ejector"/>
+  </contact>
+</mujoco>

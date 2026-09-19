@@ -1,0 +1,178 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>armlab console</title>
+<!--
+  One file, no build step. The colour tokens and type are copied from
+  dashboard/src/index.css so the two consoles read as one system; they are
+  copied rather than imported because armlab does not depend on the dashboard.
+-->
+<style>
+  :root {
+    --bg: #0a0c0f; --panel: #0f1215; --line: #1c2127; --fg: #d6dce4;
+    --dim: #7d8794; --active: #3dc4de; --ok: #3fb950; --warn: #d29922; --err: #f0563f;
+    font-size: clamp(12px, 0.78vw, 15px);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { background: var(--bg); color: var(--fg); height: 100vh; overflow: hidden; }
+  .grid {
+    display: grid; height: 100vh; gap: 1px; background: var(--line);
+    grid-template-columns: 1fr 22rem;
+    grid-template-rows: minmax(0, 1fr) 15rem;
+    grid-template-areas: "view model" "console side";
+  }
+  section { background: var(--panel); padding: .75rem .9rem; overflow: auto; min-height: 0; }
+  h2 { font: 600 .65rem/1 Inter, sans-serif; letter-spacing: .14em; text-transform: uppercase;
+       color: var(--dim); margin-bottom: .6rem; }
+  .num, code, input { font-family: "JetBrains Mono", ui-monospace, monospace; }
+
+  #view { grid-area: view; position: relative; padding: 0; background: #000; }
+  #top { width: 100%; height: 100%; object-fit: contain; display: block; }
+  #wrist { position: absolute; right: .75rem; bottom: .75rem; width: 15rem;
+           border: 1px solid var(--line); background: #000; cursor: pointer; }
+  #badge { position: absolute; left: .75rem; top: .75rem; font: 600 .62rem/1 Inter, sans-serif;
+           letter-spacing: .12em; text-transform: uppercase; color: var(--dim);
+           background: #0a0c0fcc; padding: .35rem .5rem; border: 1px solid var(--line); }
+
+  #model { grid-area: model; }
+  #side { grid-area: side; }
+  #console { grid-area: console; display: flex; flex-direction: column; gap: .5rem; }
+
+  select, input, button {
+    background: #0a0c0f; color: var(--fg); border: 1px solid var(--line);
+    padding: .4rem .5rem; font-size: .8rem; width: 100%;
+  }
+  input:focus, select:focus { outline: 1px solid var(--active); }
+  button { cursor: pointer; width: auto; padding: .4rem .8rem; }
+  button:hover { border-color: var(--active); color: var(--active); }
+  .row { display: flex; gap: .4rem; align-items: center; margin-bottom: .45rem; }
+  .kv { display: flex; justify-content: space-between; gap: .5rem; font-size: .72rem;
+        padding: .12rem 0; }
+  .kv span:first-child { color: var(--dim); }
+  .dot { width: .5rem; height: .5rem; border-radius: 50%; flex: 0 0 auto; background: var(--dim); }
+  .dot.loaded { background: var(--ok); } .dot.loading { background: var(--warn); }
+  .dot.error { background: var(--err); } .dot.none { background: var(--dim); }
+
+  #prompt { flex: 1; }
+  ol { list-style: none; font-size: .78rem; }
+  li { padding: .18rem 0; display: flex; gap: .5rem; }
+  .mark { width: 1rem; color: var(--dim); }
+  .done .mark { color: var(--ok); } .active .mark { color: var(--active); }
+  .failed .mark, .failed { color: var(--err); }
+  .detail { color: var(--dim); font-size: .72rem; }
+  #events div { font-size: .72rem; padding: .1rem 0; color: var(--dim); }
+  #events .ok { color: var(--ok); } #events .warn { color: var(--warn); }
+  #events .error { color: var(--err); }
+  #joints { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 .8rem; }
+  .hint { color: var(--dim); font-size: .7rem; }
+</style>
+
+<div class="grid">
+  <section id="view">
+    <img id="top" alt="top camera">
+    <img id="wrist" alt="wrist camera" title="click to swap">
+    <div id="badge">wrist · ur10e rail</div>
+  </section>
+
+  <section id="model">
+    <h2>Model</h2>
+    <div class="row"><select id="pick"></select></div>
+    <div class="row">
+      <input id="repo" placeholder="or any Hugging Face repo id">
+      <button id="load">Load</button>
+    </div>
+    <div class="row"><span class="dot none" id="dot"></span><span id="state" class="num">no policy loaded</span></div>
+    <div id="spec"></div>
+    <p class="hint" id="hint">Pick a checkpoint. Anything whose action shape does not
+      match the robot's 8 actuators is rejected before it moves.</p>
+  </section>
+
+  <section id="console">
+    <h2>Prompt</h2>
+    <div class="row">
+      <input id="prompt" placeholder="pick up SMP-0044 and bring it to balance 2" autofocus>
+      <button id="send">Run</button>
+      <button id="reset">Reset</button>
+    </div>
+    <div class="hint" id="planner"></div>
+    <ol id="plan"></ol>
+  </section>
+
+  <section id="side">
+    <h2>Telemetry</h2>
+    <div id="joints"></div>
+    <h2 style="margin-top:.7rem">Events</h2>
+    <div id="events"></div>
+  </section>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+const fmt = n => (n >= 0 ? ' ' : '') + n.toFixed(3);
+
+// Cameras are MJPEG <img> sources; the browser holds the connection open.
+let main = 'wrist', pip = 'carriage';
+const setCameras = () => {
+  $('top').src = `/stream/${main}`;
+  $('wrist').src = `/stream/${pip}`;
+  $('badge').textContent = `${main} · ur10e rail`;
+};
+$('wrist').onclick = () => { [main, pip] = [pip, main]; setCameras(); };
+setCameras();
+
+fetch('/catalogue').then(r => r.json()).then(({policies}) => {
+  $('pick').innerHTML = '<option value="">— choose a checkpoint —</option>' +
+    policies.map(p => `<option value="${p.key}">${p.label}</option>`).join('');
+});
+
+const ws = new WebSocket(`ws://${location.host}/ws`);
+const send = msg => ws.readyState === 1 && ws.send(JSON.stringify(msg));
+
+$('send').onclick = () => {
+  const text = $('prompt').value.trim();
+  if (text) { send({type: 'prompt', text}); $('prompt').value = ''; }
+};
+$('prompt').onkeydown = e => { if (e.key === 'Enter') $('send').onclick(); };
+$('reset').onclick = () => send({type: 'reset'});
+$('load').onclick = () => {
+  const name = $('repo').value.trim() || $('pick').value;
+  if (name) send({type: 'set_policy', name});
+};
+$('pick').onchange = () => { if ($('pick').value) send({type: 'set_policy', name: $('pick').value}); };
+
+ws.onmessage = ({data}) => {
+  const t = JSON.parse(data);
+
+  // Model panel: rendered straight from the loaded checkpoint's own feature
+  // declaration, so what it expects is visible before you judge its behaviour.
+  const p = t.policy || {};
+  $('dot').className = `dot ${p.state || 'none'}`;
+  $('state').textContent = {
+    loaded: `${p.type} · ${p.action_dim}-dim`,
+    loading: `loading ${p.name || ''}`,
+    error: 'rejected — previous policy still running',
+  }[p.state] || 'no policy loaded';
+  $('spec').innerHTML = p.state === 'loaded' ? [
+    ...Object.entries(p.features || {}).map(([k, s]) =>
+      `<div class="kv"><span>${k.replace('observation.', '')}</span><span class="num">${s.join('×')}</span></div>`),
+    `<div class="kv"><span>language input</span><span class="num">${p.language ? 'yes — prompt reaches the model' : 'no — prompt selects a skill'}</span></div>`,
+    `<div class="kv"><span>chunk / rate</span><span class="num">${p.chunk_size ?? '—'} @ ${p.control_hz} Hz</span></div>`,
+    `<div class="kv"><span>inference</span><span class="num">${p.latency_ms ?? 0} ms</span></div>`,
+    `<div class="kv"><span>repo</span><span class="num">${p.repo_id || ''}</span></div>`,
+  ].join('') : (p.error ? `<div class="kv failed"><span>${p.error}</span></div>` : '');
+
+  const note = t.planner || {};
+  $('planner').textContent = note.reason ? `${note.source}: ${note.reason}` : '';
+
+  $('plan').innerHTML = (t.plan || []).map(s =>
+    `<li class="${s.status}"><span class="mark">${
+      {done: '✓', active: '▸', failed: '✗'}[s.status] || '·'
+    }</span><span>${s.label}</span><span class="detail">${s.detail || ''}</span></li>`).join('');
+
+  $('joints').innerHTML = (t.actuators || []).map((name, i) =>
+    `<div class="kv"><span>${name.replace('left/', '')}</span><span class="num">${fmt(t.state[i])}</span></div>`).join('');
+
+  $('events').innerHTML = (t.events || []).slice(-14).reverse().map(e =>
+    `<div class="${e.level}">${e.time.toFixed(1)}s · ${e.message}</div>`).join('');
+};
+</script>
