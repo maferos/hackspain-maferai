@@ -1,0 +1,38 @@
+<mujoco model="pasteur_pipette_3ml">
+  <!-- 3 ml graduated LDPE transfer pipette. Units: m, kg. Origin at the tip, +Z towards the bulb.
+       Include with:  <include file="pasteur_pipette.xml"/>  (or copy the <asset>/<default>/<body> blocks) -->
+  <compiler angle="radian" meshdir="meshes" autolimits="true"/>
+  <option timestep="0.002"/>
+
+  <asset>
+    <mesh name="pipette_visual"     file="pipette_visual.obj"/>
+    <mesh name="pipette_col_bulb"   file="pipette_col_bulb.obj"/>
+    <mesh name="pipette_col_upper"  file="pipette_col_stem_upper.obj"/>
+    <mesh name="pipette_col_lower"  file="pipette_col_stem_lower.obj"/>
+    <material name="ldpe_translucent" rgba="0.90 0.92 0.95 0.55" specular="0.4" shininess="0.5" reflectance="0.05"/>
+  </asset>
+
+  <default>
+    <default class="pipette_visual">
+      <geom type="mesh" contype="0" conaffinity="0" group="2" material="ldpe_translucent" mass="0"/>
+    </default>
+    <default class="pipette_collision">
+      <!-- soft, light plastic: friction tuned for gripper fingers -->
+      <geom type="mesh" group="3" condim="4" friction="0.7 0.01 0.0002"
+            solref="0.004 1" solimp="0.95 0.99 0.001" rgba="0.3 0.7 1 0.4"/>
+    </default>
+  </default>
+
+  <worldbody>
+    <body name="pasteur_pipette" pos="0 0 0.01" quat="0.7071068 0 0.7071068 0">
+      <freejoint name="pasteur_pipette_free"/>
+      <geom class="pipette_visual"    mesh="pipette_visual"/>
+      <geom class="pipette_collision" mesh="pipette_col_bulb"  name="pipette_bulb"  mass="0.0006"/>
+      <geom class="pipette_collision" mesh="pipette_col_upper" name="pipette_upper" mass="0.0004"/>
+      <geom class="pipette_collision" mesh="pipette_col_lower" name="pipette_lower" mass="0.0002"/>
+      <site name="pipette_tip"  pos="0 0 0"     size="0.002" rgba="1 0 0 0.5"/>
+      <site name="pipette_bulb" pos="0 0 0.135" size="0.004" rgba="0 1 0 0.5"/>
+      <site name="pipette_grasp" pos="0 0 0.125" size="0.003" rgba="0 0 1 0.5"/>
+    </body>
+  </worldbody>
+</mujoco>
