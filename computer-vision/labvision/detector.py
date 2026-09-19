@@ -132,14 +132,20 @@ BACKENDS: dict[str, Backend] = {
     "world-s": Backend("yolov8s-worldv2.pt", 0.17, prompts=PROMPTS),
     "world-bottles": Backend("yolov8l-worldv2.pt", 0.12, prompts=BOTTLE_PROMPTS),
     "coco26": Backend("yolo26s.pt", 0.13, keep=COCO_KEEP),
-    "fixedcam": Backend("runs/fixedcam/yolo26n_fixedcam.pt", 0.07),
+    "fixedcam": Backend("yolo26n_fixedcam.pt", 0.07),
+    "mujoco": Backend("yolo_mujoco.pt", 0.10),
 }
 """The two backends chosen on real photographs, the small YOLO-World as a fast
 variant that loses distant vessels, and three chosen on the fixed camera's
 renders (``docs/FIXED_CAMERA_BENCHMARK.md``): YOLO-World L with bottle prompts,
 YOLO26s on COCO, and ``fixedcam``, a YOLO26n fine-tuned on simulator-labelled
-crops whose classes are ``amber_bottle`` and ``hdpe_bottle``. Its weights are
-not in git; ``FIXEDCAM_HELP`` says how to make them.
+crops whose classes are ``amber_bottle`` and ``hdpe_bottle``.
+
+``mujoco`` is the one trained on renders of this scene. Neither trained
+backend's weights are in git: drop the file in ``computer-vision/weights/``
+and the name works. Adding another model is one entry here, and every script
+that takes ``--weights`` accepts a backend name as well as a path, so nothing
+else has to change.
 
 The three fixed-camera thresholds are the best-F1 points on the validation
 frames for the whole frame with no filter, which is what :class:`Detector`
@@ -200,19 +206,64 @@ class Box:
         }
 
 
+WEIGHTS_DIR = Path(__file__).resolve().parents[1] / "weights"
+"""Where trained weights are kept. Nothing in it is in git except its README;
+dropping a ``.pt`` there is all it takes to make a backend usable."""
+
+
 def _find_weights(name: str) -> str:
     """Return a local path for the weights if one exists, else the bare name
 
-    Ultralytics downloads a bare name into the working directory. The benchmark
-    left its weights at the repository root, so that is checked before
-    downloading 100 MB again.
+    Looks in the weights folder first, then the places a download or an older
+    benchmark run may have left a file, and finally hands the bare name back to
+    Ultralytics, which downloads its own published models.
+
+    Args:
+        name: File name or path.
+
+    Returns:
+        A path that exists, or the name unchanged.
     """
     here = Path(__file__).resolve()
-    for folder in (Path.cwd(), here.parents[1], here.parents[2]):
+    if Path(name).is_absolute() and Path(name).exists():
+        return name
+    for folder in (WEIGHTS_DIR, Path.cwd(), here.parents[1], here.parents[2],
+                   here.parents[1] / "runs/fixedcam"):
         candidate = folder / name
         if candidate.exists():
             return str(candidate)
     return name
+
+
+def resolve(weights: str | None) -> tuple[str, float | None]:
+    """Turn what a caller typed into a weights path and a threshold.
+
+    ``--weights`` takes a backend name or a path, so a new model is usable the
+    moment its file is in the weights folder and its name is in BACKENDS ---
+    no script has to change.
+
+    Args:
+        weights: A key of BACKENDS, a path, or None.
+
+    Returns:
+        The weights path and the backend's own threshold, or None for a path
+        with no backend behind it.
+
+    Raises:
+        FileNotFoundError: If a named backend's file is not on disk.
+    """
+    if weights is None:
+        return "", None
+    spec = BACKENDS.get(weights)
+    if spec is None:
+        return _find_weights(weights), None
+    path = _find_weights(spec.weights)
+    if not Path(path).exists():
+        raise FileNotFoundError(
+            f"backend {weights!r} wants {spec.weights}, which is not in "
+            f"{WEIGHTS_DIR}. Trained weights are not in git --- see "
+            f"{WEIGHTS_DIR / 'README.md'}.")
+    return path, spec.score
 
 
 class Detector:
@@ -251,8 +302,11 @@ class Detector:
         self.device = device
         self.keep = spec.keep
         path = _find_weights(weights or spec.weights)
-        if backend == "fixedcam" and not Path(path).exists():
-            raise FileNotFoundError(f"{path}: {FIXEDCAM_HELP}")
+        if spec.prompts is None and not Path(path).exists():
+            raise FileNotFoundError(
+                f"{path} is not on disk. Trained weights are not in git; put "
+                f"the file in {WEIGHTS_DIR} --- see its README. "
+                + (FIXEDCAM_HELP if backend == "fixedcam" else ""))
         if spec.prompts is not None:
             self.model = YOLOWorld(path)
             self.model.set_classes(list(spec.prompts))  # downloads CLIP the first time

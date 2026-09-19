@@ -15,7 +15,11 @@ data/
 **/runs/**
 !**/runs/**/
 !**/runs/**/*.py
-weights/
+# Weights live in computer-vision/weights/ and never in git. The contents are
+# ignored rather than the folder, because git does not descend into an ignored
+# directory and the README would go with it.
+**/weights/*
+!**/weights/README.md
 *.pt
 *.torchscript
 *.onnx

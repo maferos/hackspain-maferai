@@ -21,7 +21,7 @@ The truth --- where every bottle really is and which one it is --- is read
 from the simulator only to score, never by the pipeline.
 
     python scripts/propose_confirm.py --layouts 12
-    python scripts/propose_confirm.py --layouts 12 --weights runs/fixedcam/best.pt
+    python scripts/propose_confirm.py --layouts 12 --weights mujoco
     python scripts/propose_confirm.py --as-built --save-frames   # the scene as built
 
 Writes ``propose_confirm.json`` and ``propose_confirm.md`` in ``--out``. Per
@@ -49,6 +49,7 @@ from perfumery_eval import WORKTOP_HALF, base_on_worktop, on_worktop  # noqa: E4
 from render_perfumery import BENCH_X, SCENE, WORKTOP_Z, Lab, where_is  # noqa: E402
 from world_prompts import BOTTLES  # noqa: E402
 
+from labvision import detector as detector_module  # noqa: E402
 from labvision import registry  # noqa: E402
 from labvision.camera import Camera  # noqa: E402
 from labvision.detector import _find_weights, input_size_for  # noqa: E402
@@ -81,13 +82,20 @@ class GeneralDetector:
     """
 
     def __init__(self, weights: str | None = None, threshold: float | None = None):
-        """Load the model"""
+        """Load the model
+
+        ``weights`` is a backend name from :data:`labvision.detector.BACKENDS`
+        or a path, so a newly trained model is usable by name the moment its
+        file is in ``computer-vision/weights/``.
+        """
         from ultralytics import YOLO, YOLOWorld
 
         if weights:
-            self.model = YOLO(weights)
-            self.threshold = 0.25 if threshold is None else threshold
-            self.name = Path(weights).name
+            path, measured = detector_module.resolve(weights)
+            self.model = YOLO(path)
+            self.threshold = (threshold if threshold is not None
+                              else measured if measured is not None else 0.25)
+            self.name = Path(path).name
         else:
             self.model = YOLOWorld(_find_weights("yolov8l-worldv2.pt"))
             self.model.set_classes(list(BOTTLES))
@@ -302,8 +310,9 @@ def main() -> None:
         "--bottles", type=int, nargs=2, default=(6, 10), metavar=("MIN", "MAX")
     )
     parser.add_argument(
-        "--weights", default=None, help="Ultralytics weights for the general camera"
-    )
+        "--weights", default=None,
+        help=f"a backend name ({', '.join(sorted(detector_module.BACKENDS))}) "
+             "or a path to weights; zero-shot YOLO-World when omitted")
     parser.add_argument("--threshold", type=float, default=None)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument(
