@@ -60,3 +60,16 @@ def test_a_track_is_the_index_the_console_joins_on():
         PerceivedBottle((1, 1, 1), 0.4),
     ]
     assert [r["index"] for r in to_dashboard(tracked)] == [6, 1]
+
+
+def test_tracks_go_to_the_nearest_free_anchor_within_reach():
+    from labvision.world import assign_tracks
+
+    found = [
+        PerceivedBottle((0.0, 0.0, 0.9), 0.9),
+        PerceivedBottle((0.03, 0.0, 0.9), 0.8),
+        PerceivedBottle((2.0, 0.0, 0.9), 0.7, track=9),
+    ]
+    tracked = assign_tracks(found, {1: (0.01, 0.0), 2: (0.04, 0.0), 3: (1.0, 0.0)})
+    assert [b.track for b in tracked] == [1, 2, 9]
+    assert found[0].track is None  # the input is not changed

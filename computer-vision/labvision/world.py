@@ -16,7 +16,8 @@ in place of its mock:
     S.perception_state(active_camera="overview", vessels=to_dashboard(found))
 """
 
-from dataclasses import dataclass
+import math
+from dataclasses import dataclass, replace
 
 CLASS_NAMES = {"liquid": "amber bottle", "powder": "hdpe bottle"}
 """The console's class name for each phase's bottle kit."""
@@ -85,3 +86,46 @@ def to_dashboard(bottles: list[PerceivedBottle]) -> list[dict]:
         }
         for index, bottle in enumerate(bottles)
     ]
+
+
+def assign_tracks(
+    bottles: list[PerceivedBottle],
+    anchors: dict[int, tuple[float, float]],
+    *,
+    max_m: float = 0.08,
+) -> list[PerceivedBottle]:
+    """Give each bottle the index of the anchor it stands on, nearest pairs first
+
+    The console draws its scene vessels by index and joins ``vessels`` to them
+    on it, so a publisher that knows where those vessels are (the bridge knows
+    its scene, for display) can hand them in as anchors. Pairs are made one to
+    one, the closest first; a bottle with no anchor within ``max_m`` keeps its
+    track as it was.
+
+    Args:
+        bottles: What the vision system found.
+        anchors: Index to (x, y) of each vessel the console knows.
+        max_m: Farthest a bottle may stand from its anchor.
+
+    Returns:
+        The same bottles, in the same order, with ``track`` set where matched.
+
+    Example:
+        >>> found = [PerceivedBottle((0.51, 0.0, 0.9), 0.8)]
+        >>> assign_tracks(found, {3: (0.5, 0.0), 4: (0.0, 0.0)})[0].track
+        3
+    """
+    pairs = sorted(
+        (math.dist(bottle.position[:2], xy), i, index)
+        for i, bottle in enumerate(bottles)
+        for index, xy in anchors.items()
+    )
+    taken_bottles, taken_anchors = set(), set()
+    tracked = list(bottles)
+    for distance, i, index in pairs:
+        if distance > max_m or i in taken_bottles or index in taken_anchors:
+            continue
+        tracked[i] = replace(bottles[i], track=index)
+        taken_bottles.add(i)
+        taken_anchors.add(index)
+    return tracked
