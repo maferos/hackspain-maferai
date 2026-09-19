@@ -6,3 +6,15 @@ MUJOCO_LOG.TXT
 .venv-autobio/
 MJDATA.TXT
 MJMODEL.TXT
+
+# Detector weights, datasets and outputs written by the computer-vision scripts
+/third_party/
+results/
+data/
+runs/
+weights/
+*.pt
+*.torchscript
+*.onnx
+*.mp4
+mobileclip*.ts
