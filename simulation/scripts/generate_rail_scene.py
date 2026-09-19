@@ -291,6 +291,39 @@ def build_arm() -> Path:
     return out
 
 
+def relocate_wash_station(root: ET.Element) -> None:
+    """Swap the rack and carboy; turn the rack along the bench's end edge."""
+    if root.find(".//frame[@name='rail_drying_rack']") is not None:
+        return
+    groups = (
+        ('rail_drying_rack', ('drip_tray_', 'rack_wire_', 'rack_foot_', 'peg_', 'drying_'),
+         (2.52, 0.24), (2.8, -0.35), 90),
+        ('rail_carboy', ('carboy_',), (2.8, -0.35), (2.52, 0.24), 0),
+    )
+    for name, prefixes, origin, destination, angle in groups:
+        parents = {child: parent for parent in root.iter() for child in parent}
+        geoms = [g for g in root.iter('geom') if g.get('name', '').startswith(prefixes)]
+        if not geoms:
+            raise ValueError(f'Missing wash-station geometry: {name}')
+        parent = parents[geoms[0]]
+        assert all(parents[g] is parent for g in geoms)
+        frame = ET.Element('frame', name=name,
+                           pos=f'{destination[0]:g} {destination[1]:g} 0',
+                           euler=f'0 0 {angle}')
+        parent.insert(list(parent).index(geoms[0]), frame)
+        for geom in geoms:
+            for attr in ('pos', 'fromto'):
+                if attr not in geom.attrib:
+                    continue
+                values = [float(v) for v in geom.get(attr).split()]
+                for i in range(0, len(values), 3):
+                    values[i] -= origin[0]
+                    values[i + 1] -= origin[1]
+                geom.set(attr, ' '.join(f'{v:.6g}' for v in values))
+            parent.remove(geom)
+            frame.append(geom)
+
+
 def build_bench(keep: int) -> list[dict[str, str]]:
     """Clear the bench down to `keep` vessels, and hand them to the scene.
 
@@ -323,6 +356,7 @@ def build_bench(keep: int) -> list[dict[str, str]]:
         One dict per lifted vessel with its sample id, world position and yaw.
     """
     tree = ET.parse(ROOM)
+    relocate_wash_station(tree.getroot())
     # The population is nested inside the room's sub-bodies, so walk the whole
     # tree and keep a parent map: ElementTree has no parent pointers and the
     # geoms have to be removed from wherever they actually live.
