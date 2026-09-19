@@ -643,7 +643,10 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
 | `labvision/bottles.py` | Sticks each label onto the bottle of its phase and size |
-| `tests/` | 309 tests, plus 27 doctests |
+| `labvision/identify.py` | Reads the ArUco ring inside a detector box, or the whole frame, and names the sample |
+| `labvision/perception.py` | The fixed camera proposes, the wrist camera confirms and places the bottle |
+| `labvision/world.py` | The bottles the vision system found, in the console's vessel shape |
+| `tests/` | 371 tests, plus 30 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage
@@ -1108,7 +1111,7 @@ is almost all geometry; the exact box gives 5 to 17.
 `scripts/render_perfumery.py` renders Eki's `minihannover_scene.xml` as it is,
 from its walkthrough cameras and from the vision system's two GoPros: the fixed
 `general` one over the bench, and the `wrist` one flown to a random bench
-bottle at 0.25 to 0.6 m. Bench layouts are random. The truth is written for
+bottle at 0.25 to 0.6 m (`--wrist-range` sets it). Bench layouts are random. The truth is written for
 every one of the 200 catalogue bottles with a pixel in view, the loose ones,
 the entrance corner and the 187 on the gantry alike: its visible box, its
 whole silhouette drawn with nothing in front of it, how much of it is visible,
@@ -1135,3 +1138,157 @@ bench plane from the calibrated camera, cut them from 65 to 3.9 per frame on
 the walkthrough cameras without losing a bottle, and from 17.5 to 1.8 on the
 fixed GoPro, precision 33 % to 82 %. On a CPU, World takes about 7 s per 1080p
 frame and COCO 1.3 s.
+
+## From a box to a named bottle: the ring, the wrist and the world state
+
+The fixed camera cannot read a ring: at 3 to 4 m even a 2 L bottle's markers
+are a few pixels across. So the vision system works in two passes, and three
+modules carry them.
+
+**`labvision/identify.py` --- which sample is in this box.** It reads the
+`DICT_4X4_250` markers inside a detector box and a 15 % margin round it, with
+the parameters `scripts/wrist_scan.py` measured the ring with, and lets them
+vote. Only markers whose centre lies inside the box itself vote, so a
+neighbour's ring in the margin does not; the id with the most markers wins and
+a tie names nobody, because a guess is a wrong bottle in the gripper. A crop
+that reads nothing is read again enlarged (2x, then 3x), but always first at
+its own size: on blurred synthetic markers, starting enlarged lost reads it
+would have made (11 of 20 against 19 of 20 at 18 px a side).
+A crop stops enlarging only when a marker inside the box reads, so a
+neighbour's marker in the margin does not end the search. `identify_frame`
+reads the whole frame without a detector and groups each id's markers by
+distance in the image, so two bottles carrying the same id stay two
+identities.
+
+```bash
+python -m labvision.identify frame.png                  # whole frame
+python -m labvision.identify frames/ --backend world    # detector boxes, then rings
+```
+
+**`labvision/perception.py` --- the fixed camera proposes, the wrist confirms.**
+Pure functions of frames, boxes and calibrated cameras, so the same code runs
+in a render loop, in the console bridge that renders the scene's cameras
+itself, or on real GoPros:
+
+1. `propose` places each fixed-camera box on the bench: `scene.locate`'s base
+   anchor on the plane z = 0.90 (the scene frame, origin under the bench
+   centre), a 25 mm radius because the bottle is not known yet, the caller's
+   filter (the worktop test) applied, and boxes within 3 cm merged.
+2. `confirm` takes the wrist frame taken looking at a proposal and reads
+   every ring near where the proposal projects. Each ring names a bottle, and
+   the bottle gives its ring's radius and height (`ring_geometry`, read from
+   the label mesh), so `refine_marker` places it on the bench from the ring's
+   most frontal marker: the ray through the marker's centre (where its
+   diagonals cross) meets the ring's height on the surface, the midpoints of
+   its two upright edges span a chord of the ring there, and the axis is one
+   radius back along the chord's normal. Going one radius along the view
+   instead, as `refine` does when the corners are unusable, left the 1 L
+   bottle 17 mm off: with eight markers 45 degrees apart, the most frontal
+   one can face up to 22.5 degrees away from the camera. The centre of all
+   the ring's markers would not do either: the ones at 45 degrees pull it off
+   the facing point, 6.8 mm on a 1 L bottle against 1.5 mm.
+3. The ring whose bottle then stands closest to the proposal, within 5 cm,
+   names it. Nearness in the image is not enough: from the aisle a bottle
+   behind projects right next to the one proposed, and a 50 ml flask 4.5 cm
+   behind a 10 ml one shows its ring nearer the aim point than the 10 ml's
+   own. When the proposed bottle is hidden from the wrist and only a
+   neighbour within 5 cm reads, the record names the neighbour at the
+   neighbour's own place, taken from its ring: still a true pair of sample
+   and position. The hidden bottle is missed, and `world.one_per_sample`
+   drops the neighbour's second sighting.
+
+**`labvision/world.py` --- what the rest of the lab gets.** A
+`PerceivedBottle` holds the bench position, the fixed camera's score and the
+sample, marker and phase the wrist read. `to_dashboard` turns a list of them
+into the console's `PerceivedVessel` records, and a test feeds them to the
+bridge's own `perception_state`. The console joins those records to the
+vessels it draws by index, so `assign_tracks` pairs each bottle with the
+nearest vessel the publisher knows (within 8 cm, one to one) and the record
+carries that index:
+
+```python
+from labbridge import state as S
+from labvision.perception import confirm, perceived, propose
+from labvision.world import assign_tracks, to_dashboard
+
+proposals = propose(boxes, general_camera, keep=on_the_worktop)
+found = [perceived(p, confirm(wrist_frame_at(p), wrist_camera, target_of(p), rows))
+         for p in proposals]
+found = assign_tracks(found, {i: xy for i, xy in scene_vessels})
+S.perception_state(active_camera="overview", vessels=to_dashboard(found))
+```
+
+### Measured end to end in the scene
+
+`scripts/propose_confirm.py` runs the whole chain on rendered layouts: 6 to 10
+bottles of both kits at random on the aisle half of a 1.6 m stretch of bench,
+the general camera's frame through YOLO-World L with the bottle prompts
+(threshold 0.11, native 1080p), the worktop filter, `propose`, then the wrist
+GoPro flown to each proposal. The wrist looks from the aisle, 0.30 m away and
+15 degrees above the ring; if it reads no ring it tries again from 25 and then
+50 degrees to either side. Nothing the pipeline decides reads the simulator:
+the wrist is aimed at the proposal, not at the bottle, and only the scoring
+pairs each real bench bottle with the nearest proposal within 6 cm.
+
+```
+python scripts/propose_confirm.py --layouts 12 --seed 1 --save-frames --out ../simulation/out/propose_confirm_r10
+```
+
+12 layouts, 77 bench bottles visible from the general camera:
+
+| | |
+| --- | --- |
+| proposed | 96 % (74/77) |
+| named correctly | 96 % (74/77) |
+| named wrongly | 0 |
+| stray proposals (no bottle within 6 cm) | 11, none read a ring |
+| position from the general camera alone, median / p90 | 10 / 27 mm |
+| position after the wrist, median / p90 | 0.1 / 0.5 mm |
+
+Every proposed bottle was named, 2 more of the 12 that were less than half
+visible from the general camera among them (76 of 89 bench bottles in all).
+Of those 76, 70 read from the first view, 5 from the second and 1 from the
+third; the 11 strays tried all five views and came back with nothing, which is
+the answer wanted: nothing to pick. The refined position is off by 2.1 mm at
+worst (one 500 ml bottle) and under 0.5 mm nine times in ten. It was 5 / 16 mm
+before `refine_marker`, 17 mm on the 1 L bottle, and a full radius instead of
+the chord's offset left another 0.5 to 2.5 mm. Both errors are measured on the
+bottles named right. On this CPU a layout takes about 1.5 s to render, 6.5 s
+for the general camera's detector and 8 s for the wrist views.
+
+**How the wrist has to look.** `scripts/wrist_identify_bench.py` asks the
+same question of the wrist camera alone, over 100 frames taken at random
+poses 0.25 to 1 m from a bench bottle: of the 381 bench bottles at least half
+visible and not clipped, which does each way of reading name?
+
+```
+python scripts/render_perfumery.py --walkthrough 0 --general 0 --wrist 100 --wrist-range 0.25 1.0 --seed 99 --out ../simulation/out/wrist_v2
+python scripts/wrist_identify_bench.py ../simulation/out/wrist_v2 --backends world-b
+```
+
+| read | named | wrong ids | ids of no bottle in view |
+| --- | --- | --- | --- |
+| whole frame, no detector | 48 % (184) | 0 | 2 |
+| YOLO-World boxes (bottle prompts), then the ring | 55 % (211) | 3 | 0 |
+| true boxes (a perfect detector) | 57 % (217) | 2 | 0 |
+| true boxes, crops never enlarged | 49 % (185) | 2 | 0 |
+
+What decides a read is how high the camera stands over the ring, not how far
+it is. With the detector's boxes:
+
+| camera elevation over the ring | < 15 deg | 15-30 | 30-45 | 45-60 | >= 60 |
+| --- | --- | --- | --- | --- | --- |
+| named | 90 % | 87 % | 79 % | 10 % | 0 % |
+
+From above, the ring's markers are foreshortened into slivers. So the wrist
+looks at a bottle from the aisle, 15 degrees up, as `propose_confirm.py` flies
+it, and that is why it reads 70 of 76 bottles at the first view there. Boxes
+matter mostly because the crop is enlarged: reading the true boxes at their
+own size names no more than the whole frame does. The wrong ids are a
+neighbour's marker inside the box, which `confirm` rejects when that
+neighbour stands more than 5 cm from the proposal. The ids of no bottle in
+view were markers seen nearly edge-on from 54 and 63 degrees, squashed until
+their cells merged into another valid code. Lowering OpenCV's error
+correction did not change them (they decode exactly), so `MarkerReader` drops
+any marker whose shortest side is under half its longest. That removed both,
+at the cost of 3 of 220 right reads, all from as high up.
