@@ -4,7 +4,7 @@ import { chooseScene } from "./sceneSession";
 import "./App.css";
 import useReplayDetections from "./useReplayDetections";
 import FormulaChat from "./FormulaChat";
-import LabPanels from "./LabPanels";
+import BalancePanel from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
 import PipelinePanel from "./PipelinePanel";
 import Splitter from "./Splitter";
@@ -42,11 +42,11 @@ const REPLAY_CAMERAS = [
 
 // Views that can be opened and closed from the header, and the sizes the drag
 // handles set. Both are remembered in this browser.
-const VIEWS = [
-  { id: "robot", label: "Robot" },
-  { id: "balance", label: "Balance" },
-];
-const DEFAULT_SIZES = { tasksWidth: 320, panelsHeight: 230, robotShare: 0.5, chatHeight: 240, pipelineHeight: 290 };
+const VIEWS = [{ id: "balance", label: "Balance" }];
+// The chat owns the right column; the dock under the viewport carries the
+// balance, the tasks and the pipeline. The balance only reads out a mass, so
+// its width is fixed in the stylesheet and the other two split what is left.
+const DEFAULT_SIZES = { chatWidth: 380, dockHeight: 240 };
 const DEFAULT_LAYOUT = {
   ...DEFAULT_SIZES,
   views: Object.fromEntries(VIEWS.map((v) => [v.id, true])),
@@ -437,34 +437,18 @@ export default function App() {
   const live = lab.connected ? lab.state : null;
 
   const { views } = layout;
-  const showPanels = views.robot || views.balance;
 
   // Each handle measures its parent when the drag starts and keeps every view
   // at a usable minimum size.
-  const dragTasks = (bar) => {
-    const start = layout.tasksWidth;
+  const dragChatWidth = (bar) => {
+    const start = layout.chatWidth;
     const max = start + bar.previousElementSibling.getBoundingClientRect().width - 480;
-    return (d) => resize({ tasksWidth: clamp(start - d, 220, max) });
+    return (d) => resize({ chatWidth: clamp(start - d, 280, max) });
   };
-  const dragPanels = (bar) => {
-    const start = layout.panelsHeight;
+  const dragDock = (bar) => {
+    const start = layout.dockHeight;
     const max = bar.parentElement.clientHeight - SPLITTER_PX - 150;
-    return (d) => resize({ panelsHeight: clamp(start - d, 120, max) });
-  };
-  const dragChat = (bar) => {
-    const start = layout.chatHeight;
-    const max = bar.parentElement.clientHeight - layout.pipelineHeight - 2 * SPLITTER_PX - 160;
-    return (d) => resize({ chatHeight: clamp(start - d, 160, max) });
-  };
-  const dragPipeline = (bar) => {
-    const start = layout.pipelineHeight;
-    const max = bar.parentElement.clientHeight - layout.chatHeight - 2 * SPLITTER_PX - 160;
-    return (d) => resize({ pipelineHeight: clamp(start - d, 140, max) });
-  };
-  const dragShare = (bar) => {
-    const start = layout.robotShare;
-    const width = bar.parentElement.clientWidth - SPLITTER_PX;
-    return (d) => resize({ robotShare: clamp(start + d / width, 0.2, 0.8) });
+    return (d) => resize({ dockHeight: clamp(start - d, 150, max) });
   };
 
   return (
@@ -553,33 +537,21 @@ export default function App() {
                 {scenePattern ? `Replay unavailable for seed ${scenePattern.seed}` : "Waiting for the current seed… Connect the backend to select a layout."}
               </span></div>}
           </section>
-          {showPanels && (
-            <Splitter direction="row" onStart={dragPanels} onReset={() => resize({ panelsHeight: DEFAULT_SIZES.panelsHeight })} />
-          )}
-          {showPanels && (
-            <LabPanels
+          <Splitter direction="row" onStart={dragDock} onReset={() => resize({ dockHeight: DEFAULT_SIZES.dockHeight })} />
+          <div className="dock" style={{ height: layout.dockHeight }}>
+            {views.balance && <BalancePanel state={lab.state} connected={lab.connected} />}
+            <LabTaskPanel state={lab.state} connected={lab.connected} />
+            <PipelinePanel
               state={lab.state}
               connected={lab.connected}
-              show={views}
-              style={{ height: layout.panelsHeight }}
-              robotShare={layout.robotShare}
-              divider={<Splitter direction="col" onStart={dragShare} onReset={() => resize({ robotShare: DEFAULT_SIZES.robotShare })} />}
+              detections={liveDetections}
+              detector={detector}
             />
-          )}
+          </div>
         </div>
-        <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
-        <div className="side" style={{ width: layout.tasksWidth }}>
-          <LabTaskPanel state={lab.state} connected={lab.connected} />
-          <Splitter direction="row" onStart={dragChat} onReset={() => resize({ chatHeight: DEFAULT_SIZES.chatHeight })} />
-          <FormulaChat backendUrl={BACKEND_URL} lab={live} style={{ height: layout.chatHeight }} />
-          <Splitter direction="row" onStart={dragPipeline} onReset={() => resize({ pipelineHeight: DEFAULT_SIZES.pipelineHeight })} />
-          <PipelinePanel
-            state={lab.state}
-            connected={lab.connected}
-            detections={liveDetections}
-            detector={detector}
-            style={{ height: layout.pipelineHeight }}
-          />
+        <Splitter direction="col" onStart={dragChatWidth} onReset={() => resize({ chatWidth: DEFAULT_SIZES.chatWidth })} />
+        <div className="side" style={{ width: layout.chatWidth }}>
+          <FormulaChat backendUrl={BACKEND_URL} lab={live} />
         </div>
       </main>
     </div>

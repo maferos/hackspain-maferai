@@ -4,6 +4,10 @@
 // first order; and below, the plan around the current step (a few done and
 // crossed off, the active one, the next ones), grouped by ingredient.
 //
+// It shares the dock under the viewport with the balance and the pipeline, so
+// everything below the header scrolls as one: the box is a few hundred pixels
+// tall and the plan alone can outgrow it.
+//
 // Without a backend the viewer plays the recorded scripted run, which has no
 // workflow or order: the formula checklist shows it as before.
 
@@ -313,15 +317,17 @@ export default function LabTaskPanel({ state, connected }) {
           <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
         </div>
       </header>
-      {state.workflow ? <WorkflowBar stages={state.workflow.stages} /> : null}
-      {state.order ? (
-        <OrderCard order={state.order} />
-      ) : state.scan ? (
-        <ScanSummary scan={state.scan} />
-      ) : (
-        <FormulaChecklist state={state} />
-      )}
-      <PlanList state={state} />
+      <div className="task-panel__scroll">
+        {state.workflow ? <WorkflowBar stages={state.workflow.stages} /> : null}
+        {state.order ? (
+          <OrderCard order={state.order} />
+        ) : state.scan ? (
+          <ScanSummary scan={state.scan} />
+        ) : (
+          <FormulaChecklist state={state} />
+        )}
+        <PlanList state={state} />
+      </div>
     </aside>
   );
 }

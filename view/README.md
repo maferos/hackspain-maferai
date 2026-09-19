@@ -3,8 +3,8 @@
 Frontend to watch the mini-Hannover MuJoCo scene live: main viewport switchable
 between the robot's onboard camera and the fixed scene-overview camera, a
 picture-in-picture subwindow showing the other one (click it to swap), and
-side panels that follow the bench scan live, with a chat to check a formula
-against what the scan found.
+panels under it that follow the bench scan live, and a chat down the right-hand
+side to check a formula against what the scan found.
 
 - `backend/` — FastAPI server. The default rail scene runs the initial bench
   scan from `simulation/scripts/vision_pick.py` with the Robotiq gripper.
@@ -23,7 +23,7 @@ controller are shown in the viewport; they do not fall back to a scripted sweep.
 The scan runs independently of the Boxes toggle and the selected viewport mode.
 Its speed depends on local physics, rendering and inference performance.
 
-The Tasks, Robot, Balance and Pipeline panels show this scan, in both modes
+The Balance, Robot tasks and Pipeline panels show this scan, in both modes
 (see Lab state panels below).
 
 ## Run it
@@ -157,18 +157,16 @@ scan still replay the scripted formulation of
   the current step: park, survey, each track's ring (named, not a sample, out
   of reach, or next), and the bench map. A `SCRIPTED` badge marks the recorded
   run, which plays when no backend is running.
-- **Robot** under the viewport: the controller's state and caption, the track
-  or sample it is working on, the ring it read, the gripper (open or holding),
-  and the carriage on the rail.
-- **Balance**: `balance_2`, with the mass the executor reports for the
-  ingredient being dosed, against its target; 0.000 g when nothing is.
-- **Pipeline**, under the chat: camera cycle, live YOLO time, tracks on the
-  bench and how many a ring placed, rings named, the controller, the rail, and
-  the bench map. The footer is the scan's latest log line.
+- **Balance**, the narrow panel at the left of the dock: `balance_2` and the
+  mass on its pan, nothing else; 0.000 g when nothing is being dosed.
+- **Pipeline**, the third panel in the dock: camera cycle, live YOLO time,
+  tracks on the bench and how many a ring placed, rings named, the controller,
+  the rail, and the bench map, as a chain running left to right. The footer is
+  the scan's latest log line.
 
 ## Formula chat
 
-The **Formula** panel between the tasks and the Pipeline checks a formula
+The **Formula** panel, which is the whole right-hand column, checks a formula
 against the flasks the scan has named by their rings, never against the
 simulator's list, and shows it as the JSON the robot will receive (the `{ }`
 button on the proposal, with copy):
@@ -236,10 +234,12 @@ the real executor exists) has the arm fetch each flask through the scan
 controller's own pick, locate → pick → return, and says it was fetched, not
 dosed; `external` leaves the order to an executor that reports.
 
-The camera, tasks and Pipeline are always shown. Robot and Balance
-open and close from the buttons in the header, and the edges between views
-drag to resize them (double-click an edge to reset it). The layout is
-remembered in the browser.
+The camera fills the top of the left column and the dock sits under it, the
+Balance first and then Robot tasks and Pipeline splitting the rest half each;
+the Formula chat is the right-hand column, full height. Camera, tasks, chat and
+Pipeline are always shown; Balance opens and closes from the button in the
+header. The edges between views drag to resize them (double-click an edge to
+reset it), and the layout is remembered in the browser.
 
 To rehearse a moment of the scripted run (scenes without the scan), start the
 backend part-way and slowed down:

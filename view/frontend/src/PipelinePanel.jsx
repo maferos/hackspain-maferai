@@ -1,6 +1,7 @@
-// The autonomy pipeline as a chain of modules, from the camera at the top to
-// the mass check at the bottom, each lit by its status in the LabState. The
-// footer shows the latest event.
+// The autonomy pipeline as a chain of modules, from the camera on the left to
+// the mass check on the right, each lit by its status in the LabState. The
+// footer shows the latest event. It sits in the dock under the viewport, so the
+// chain runs across rather than down and each node stacks its own metric.
 import { Panel } from "./LabPanels";
 
 const STATUS = { idle: "idle", active: "working", ok: "ready", warn: "warning", error: "error" };
@@ -64,8 +65,10 @@ export default function PipelinePanel({ state, connected, style, detections, det
             title={`${n.title} (${n.model}): ${STATUS[n.status] ?? n.status}\n${n.lines.join(" · ")}`}
           >
             <span className="chain__dot" />
-            <span className="chain__title">{n.title}</span>
-            <span className="chain__metric">{n.lines[0]}</span>
+            <span className="chain__label">
+              <span className="chain__title">{n.title}</span>
+              <span className="chain__metric">{n.lines[0]}</span>
+            </span>
           </li>
         ))}
       </ol>
