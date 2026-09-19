@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import LabPanels from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
+import PipelinePanel from "./PipelinePanel";
 import Splitter from "./Splitter";
 import { useLabState } from "./labState";
 
@@ -31,8 +32,9 @@ const VIEWS = [
   { id: "robot", label: "Robot" },
   { id: "balance", label: "Balance" },
   { id: "tasks", label: "Tasks" },
+  { id: "pipeline", label: "Pipeline" },
 ];
-const DEFAULT_SIZES = { tasksWidth: 320, panelsHeight: 230, robotShare: 0.5 };
+const DEFAULT_SIZES = { tasksWidth: 320, panelsHeight: 230, robotShare: 0.5, pipelineHeight: 300 };
 const DEFAULT_LAYOUT = {
   ...DEFAULT_SIZES,
   views: Object.fromEntries(VIEWS.map((v) => [v.id, true])),
@@ -181,6 +183,7 @@ export default function App() {
   const { views } = layout;
   const showPanels = views.robot || views.balance;
   const showMain = views.camera || showPanels;
+  const showSide = views.tasks || views.pipeline;
 
   // Each handle measures its parent when the drag starts and keeps every view
   // at a usable minimum size.
@@ -193,6 +196,11 @@ export default function App() {
     const start = layout.panelsHeight;
     const max = bar.parentElement.clientHeight - SPLITTER_PX - 150;
     return (d) => resize({ panelsHeight: clamp(start - d, 120, max) });
+  };
+  const dragPipeline = (bar) => {
+    const start = layout.pipelineHeight;
+    const max = bar.parentElement.clientHeight - SPLITTER_PX - 200;
+    return (d) => resize({ pipelineHeight: clamp(start - d, 140, max) });
   };
   const dragShare = (bar) => {
     const start = layout.robotShare;
@@ -252,15 +260,26 @@ export default function App() {
             )}
           </div>
         )}
-        {showMain && views.tasks && (
+        {showMain && showSide && (
           <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
         )}
-        {views.tasks && (
+        {showSide && (
           <div className="side" style={showMain ? { width: layout.tasksWidth } : { flex: 1 }}>
-            {labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />}
+            {views.tasks &&
+              (labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />)}
+            {views.tasks && views.pipeline && (
+              <Splitter direction="row" onStart={dragPipeline} onReset={() => resize({ pipelineHeight: DEFAULT_SIZES.pipelineHeight })} />
+            )}
+            {views.pipeline && (
+              <PipelinePanel
+                state={lab.state}
+                connected={lab.connected}
+                style={views.tasks ? { height: layout.pipelineHeight } : { flex: 1 }}
+              />
+            )}
           </div>
         )}
-        {!showMain && !views.tasks && <p className="app__empty">All views are closed. Open one from the header.</p>}
+        {!showMain && !showSide && <p className="app__empty">All views are closed. Open one from the header.</p>}
       </main>
     </div>
   );

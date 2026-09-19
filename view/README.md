@@ -69,9 +69,13 @@ above.
   the one being dosed), then the plan around the current step, grouped by
   ingredient: the last few steps done, the active one (amber while it is
   recovering), and the next three.
-- **Robot** and **Balance** under the viewport.
+- **Robot** and **Balance** under the viewport: the rail with the balances and
+  the carriage, and the current dose's net mass rising towards its target. A
+  panel lights its top edge while its module is working.
+- **Pipeline**, under the tasks: the modules from camera to mass check, each
+  with its status and live figure, and the latest event.
 
-Every view (camera, inset camera, Robot, Balance, tasks) opens and closes from
+Every view (camera, inset camera, Robot, Balance, tasks, Pipeline) opens and closes from
 the buttons in the header, and the edges between views drag to resize them
 (double-click an edge to reset it). The layout is remembered in the browser.
 

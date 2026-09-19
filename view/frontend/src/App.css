@@ -464,7 +464,7 @@ body {
   background: var(--error);
 }
 
-.chip--warn {
+.chip.chip--warn {
   background: rgba(210, 153, 34, 0.15);
   color: var(--warn);
 }
@@ -612,6 +612,7 @@ body {
 
 .side {
   display: flex;
+  flex-direction: column;
   flex-shrink: 0;
   min-width: 0;
   min-height: 0;
@@ -620,6 +621,11 @@ body {
 .side > .task-panel {
   flex: 1;
   width: auto;
+  min-height: 0;
+}
+
+.side > .panel {
+  flex-shrink: 0;
 }
 
 .app__empty {
@@ -691,4 +697,316 @@ body.resizing-row,
 body.resizing-row * {
   cursor: row-resize !important;
   user-select: none;
+}
+
+/* --- Instrument details ------------------------------------------------------
+   Green means a module is working right now, blue is data, amber is recovery. */
+
+.panel {
+  position: relative;
+}
+
+/* A panel whose module is working lights its top edge. */
+.panel--live {
+  border-color: rgba(63, 185, 80, 0.35);
+  box-shadow: 0 12px 32px -20px rgba(63, 185, 80, 0.55);
+}
+
+.panel--live::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--active), transparent);
+}
+
+/* Robot: the rail with the balances along it and the carriage */
+
+.rail {
+  margin-top: 0.15rem;
+}
+
+.rail__track {
+  position: relative;
+  height: 14px;
+  margin: 0.1rem 0.35rem 0;
+}
+
+.rail__track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  border-radius: 1px;
+  background: repeating-linear-gradient(90deg, var(--panel-border) 0 6px, transparent 6px 9px);
+}
+
+.rail__balance {
+  position: absolute;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  border: 1px solid var(--text-dim);
+  border-radius: 1px;
+  background: var(--panel);
+}
+
+.rail__balance--active {
+  border-color: var(--accent);
+  background: rgba(88, 166, 255, 0.35);
+}
+
+.rail__carriage {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 10px;
+  margin: -5px 0 0 -7px;
+  border-radius: 3px;
+  background: var(--text);
+  box-shadow: 0 0 8px rgba(230, 237, 243, 0.45);
+  transition: left 0.2s linear;
+}
+
+/* Balance: reading and trace side by side, the details under them */
+
+.panel--balance .panel__body {
+  display: flex;
+  flex-direction: column;
+}
+
+.balance__readout {
+  flex: 1;
+  min-height: 3rem;
+  display: flex;
+  align-items: stretch;
+  gap: 0.9rem;
+}
+
+.balance__readout .big {
+  align-self: center;
+}
+
+.trace {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  overflow: visible;
+}
+
+.trace__line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 3px rgba(88, 166, 255, 0.7));
+}
+
+.trace__area {
+  fill: rgba(88, 166, 255, 0.1);
+}
+
+.trace--past .trace__line {
+  stroke: var(--text-dim);
+  filter: none;
+}
+
+.trace--past .trace__area {
+  fill: rgba(139, 148, 158, 0.08);
+}
+
+.trace__target {
+  stroke: var(--text-dim);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.panel--live .big {
+  text-shadow: 0 0 14px rgba(88, 166, 255, 0.45);
+}
+
+.kv-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 1.2rem;
+  margin-top: 0.4rem;
+}
+
+/* Pipeline: the modules as a chain, a signal running down the wire */
+
+.panel--pipeline .panel__body {
+  padding: 0;
+  overflow-y: auto;
+}
+
+.pipeline__empty {
+  padding: 0.8rem 1rem;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+}
+
+.chain {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem 0;
+}
+
+.chain::before {
+  content: "";
+  position: absolute;
+  left: calc(1rem + 4px);
+  top: 1.2rem;
+  bottom: 1.2rem;
+  width: 1px;
+  background: var(--panel-border);
+}
+
+.chain--running::after {
+  content: "";
+  position: absolute;
+  left: calc(1rem + 3px);
+  top: 1.2rem;
+  width: 3px;
+  height: 18px;
+  border-radius: 2px;
+  background: linear-gradient(transparent, var(--accent));
+  box-shadow: 0 2px 8px var(--accent);
+  animation: signal 3.2s linear infinite;
+}
+
+@keyframes signal {
+  0% {
+    top: 1.2rem;
+    opacity: 0;
+  }
+  8%,
+  88% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% - 1.2rem - 18px);
+    opacity: 0;
+  }
+}
+
+.chain__node {
+  display: grid;
+  grid-template-columns: 9px auto 1fr;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.28rem 1rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.chain__dot {
+  position: relative;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border: 1px solid var(--done);
+  border-radius: 50%;
+  background: var(--panel);
+}
+
+.chain__node--ok .chain__dot {
+  border-color: transparent;
+  background: rgba(63, 185, 80, 0.5);
+}
+
+.chain__node--active .chain__dot {
+  border-color: transparent;
+  background: var(--active);
+  box-shadow: 0 0 0 3px rgba(63, 185, 80, 0.18), 0 0 8px var(--active);
+}
+
+.chain__node--warn .chain__dot {
+  border-color: transparent;
+  background: var(--warn);
+  box-shadow: 0 0 0 3px rgba(210, 153, 34, 0.2), 0 0 8px var(--warn);
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.chain__node--error .chain__dot {
+  border-color: transparent;
+  background: var(--error);
+  box-shadow: 0 0 8px var(--error);
+}
+
+.chain__node--active {
+  background: linear-gradient(90deg, rgba(63, 185, 80, 0.09), transparent 75%);
+}
+
+.chain__node--warn {
+  background: linear-gradient(90deg, rgba(210, 153, 34, 0.1), transparent 75%);
+}
+
+.chain__title {
+  color: var(--text-dim);
+}
+
+.chain__node--active .chain__title,
+.chain__node--warn .chain__title {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.chain__metric {
+  min-width: 0;
+  overflow: hidden;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+}
+
+.chain__node--active .chain__metric {
+  color: var(--active);
+}
+
+.chain__node--warn .chain__metric {
+  color: var(--warn);
+}
+
+.event__time {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.event--ok {
+  color: var(--active);
+}
+
+.event--warn {
+  color: var(--warn);
+}
+
+.event--error {
+  color: var(--error);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chain--running::after {
+    animation: none;
+    opacity: 0;
+  }
+
+  .chain__node--warn .chain__dot,
+  .task-item--active .task-item__marker,
+  .task-item--retrying .task-item__marker,
+  .formula-row--active .formula-row__check {
+    animation: none;
+  }
 }
