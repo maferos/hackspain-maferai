@@ -874,6 +874,15 @@ two were kept. The full write-up is [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 | `world` | YOLO-World large, everyday prompts | best quality; reliable down to 24 px of vessel side | 1.9 s/frame |
 | `coco` | YOLO11 small, COCO classes filtered to bottle/cup/glass/vase/bowl | no prompts; most robust on small empty vessels; a laptop | 0.7 s/frame |
 
+For the fixed room camera on the perfumery renders, three more backends came
+out of a second benchmark with exact simulator truth, a frozen test split and
+an out-of-distribution scene
+([`docs/FIXED_CAMERA_BENCHMARK.md`](docs/FIXED_CAMERA_BENCHMARK.md)):
+`world-bottles` (YOLO-World large prompted with names of the sample bottles),
+`coco26` (YOLO26 small on the same COCO classes, which on these renders finds
+twice what YOLO11 small does) and `fixedcam` (YOLO26 nano fine-tuned on
+simulator-labelled crops; its weights are made by training, see the write-up).
+
 The network input defaults to the frame's own size, not the usual 640 or 960,
 because at this scene's range downscaling pushes the whole bottle kit under
 the size floor (next section). A 1080p frame therefore costs about four times
