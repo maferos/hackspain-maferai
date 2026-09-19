@@ -9,7 +9,7 @@ Put the file in this folder and give it the name the backend expects:
 
 | Backend | File | What it is |
 | --- | --- | --- |
-| `mujoco` | `yolo_mujoco.pt` | Trained on MuJoCo renders of this scene. The one to use. |
+| `rail` | `yolo26n_rail_general.pt` | YOLO26n trained on the rail scene's own general-camera renders. The one to use. |
 | `fixedcam` | `yolo26n_fixedcam.pt` | YOLO26n fine-tuned on simulator-labelled crops of the fixed camera. |
 
 Anything else Ultralytics can load works too — pass its path to `--weights`
@@ -21,7 +21,7 @@ Every script that detects takes `--weights`, and it accepts either a backend
 name from `labvision.detector.BACKENDS` or a path:
 
 ```bash
-python scripts/propose_confirm.py --weights mujoco      # this folder's yolo_mujoco.pt
+python scripts/propose_confirm.py --weights rail        # this folder's yolo26n_rail_general.pt
 python scripts/propose_confirm.py --weights weights/something_else.pt
 python scripts/propose_confirm.py                       # zero-shot YOLO-World
 ```
@@ -35,7 +35,7 @@ does not, so pass `--threshold` with it or take the 0.25 default.
 One line in `BACKENDS` in `labvision/detector.py`:
 
 ```python
-"mujoco": Backend("yolo_mujoco.pt", 0.10),
+"rail": Backend("yolo26n_rail_general.pt", 0.10),
 ```
 
 `weights` is looked up in this folder first, then the repository root, then the

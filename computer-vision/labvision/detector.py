@@ -133,7 +133,7 @@ BACKENDS: dict[str, Backend] = {
     "world-bottles": Backend("yolov8l-worldv2.pt", 0.12, prompts=BOTTLE_PROMPTS),
     "coco26": Backend("yolo26s.pt", 0.13, keep=COCO_KEEP),
     "fixedcam": Backend("yolo26n_fixedcam.pt", 0.07),
-    "mujoco": Backend("yolo_mujoco.pt", 0.10),
+    "rail": Backend("yolo26n_rail_general.pt", 0.10),
 }
 """The two backends chosen on real photographs, the small YOLO-World as a fast
 variant that loses distant vessels, and three chosen on the fixed camera's
@@ -141,7 +141,8 @@ renders (``docs/FIXED_CAMERA_BENCHMARK.md``): YOLO-World L with bottle prompts,
 YOLO26s on COCO, and ``fixedcam``, a YOLO26n fine-tuned on simulator-labelled
 crops whose classes are ``amber_bottle`` and ``hdpe_bottle``.
 
-``mujoco`` is the one trained on renders of this scene. Neither trained
+``rail`` is the one trained on the rail scene's own general-camera
+renders. Neither trained
 backend's weights are in git: drop the file in ``computer-vision/weights/``
 and the name works. Adding another model is one entry here, and every script
 that takes ``--weights`` accepts a backend name as well as a path, so nothing
