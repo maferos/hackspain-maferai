@@ -128,6 +128,35 @@ body {
   border: 1px solid var(--panel-border);
 }
 
+.scan-status {
+  position: absolute;
+  z-index: 5;
+  left: 16px;
+  bottom: 16px;
+  max-width: calc(100% - 32px);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 10px 14px;
+  border: 1px solid #ffffff26;
+  border-radius: 8px;
+  background: #111820e8;
+  color: #edf3f7;
+  font-size: 12px;
+  pointer-events: none;
+}
+.scan-status strong { color: #f5c65d; }
+.scan-status--error strong { color: #ff9292; }
+.camera-frame__boxes text {
+  fill: #f5c65d;
+  font-size: 18px;
+  paint-order: stroke;
+  stroke: #111;
+  stroke-width: 3px;
+}
+.camera-frame__boxes .scan-identified rect { stroke: #70d695; }
+.camera-frame__boxes .scan-identified text { fill: #70d695; }
+
 .camera-frame {
   position: relative;
   overflow: hidden;

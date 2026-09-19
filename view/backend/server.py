@@ -1,9 +1,8 @@
 """Backend for the robot viewer frontend.
 
-Serves two MJPEG camera streams rendered live from the `minihannover_scene`
-MuJoCo model (the onboard robot camera and the fixed scene-overview camera),
-plus a websocket feed of a mock task log standing in for the robot's real
-task planner (none exists in the repo yet).
+Serves the rail bench's live MuJoCo cameras while vision_pick scans its samples.
+The original YOLO / ArUco perception and robot controller drive the viewport;
+the scan's progress and sample identities accompany the camera streams.
 
 It also publishes the full `LabState` that the lab state panels render, on
 `ws://localhost:8765/state`, driven by the scripted
@@ -25,6 +24,7 @@ import os
 import sys
 import threading
 import time
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -38,13 +38,20 @@ from fastapi.responses import StreamingResponse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 # VIEW_SCENE picks the MuJoCo model to render: a bare name resolves under
-# simulation/models/, or pass an absolute path. Defaults to the full bench.
+# simulation/models/, or pass an absolute path. Defaults to the rail bench scan.
 # A scene without the scripted run's samples (e.g. minihannover_open_scene.xml)
 # still streams live; only the LabState/task feed is skipped for it.
-_scene_env = os.environ.get("VIEW_SCENE", "minihannover_scene.xml")
+_scene_env = os.environ.get("VIEW_SCENE", "minihannover_rail_scene.xml")
 SCENE_PATH = Path(_scene_env)
 if not SCENE_PATH.is_absolute():
     SCENE_PATH = REPO_ROOT / "simulation" / "models" / SCENE_PATH
+
+SCAN_ENABLED = SCENE_PATH.name in {
+    "minihannover_rail_scene.xml", "minihannover_rail_gripper_scene.xml",
+}
+if SCAN_ENABLED:
+    from live_scan import LiveScan, scan_scene
+    SCENE_PATH = scan_scene()
 
 sys.path.insert(0, str(REPO_ROOT / "dashboard" / "bridge"))
 sys.path.insert(0, str(REPO_ROOT / "computer-vision"))
@@ -53,7 +60,7 @@ from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
 from labvision.detector import resolve as resolve_detector
 
-STATE_PORT = 8765
+STATE_PORT = int(os.environ.get("VIEW_STATE_PORT", "8765"))
 STATE_RATE_HZ = 10
 STATE_LOOP_PAUSE_S = 15.0
 # Rehearsal knobs: where the scripted run starts (seconds) and how fast it plays.
@@ -175,6 +182,7 @@ class SceneRenderer:
     """
 
     def __init__(self, xml_path: Path) -> None:
+        self.stop = threading.Event()
         self.model = mujoco.MjModel.from_xml_path(str(xml_path))
         self.data = mujoco.MjData(self.model)
         self.panel_model = self.model
@@ -221,7 +229,8 @@ class SceneRenderer:
 
         # Optional scripted viewport motion (the rail sweep for the railed scene;
         # None for scenes that just step physics as before).
-        self._motion = self._build_rail_sweep()
+        self.scan = None
+        self._motion = None if SCAN_ENABLED else self._build_rail_sweep()
 
     def _build_rail_sweep(self) -> dict | None:
         """Precompute rail_demo's `sweep` for the railed scene, else return None.
@@ -277,12 +286,16 @@ class SceneRenderer:
         names = [info["mj_name"] for info in self.cameras.values()]
         due = dict.fromkeys(names, 0.0)
         was_main = dict.fromkeys(names, False)
-        while True:
+        if SCAN_ENABLED:
+            self.scan = LiveScan(self.model, self.data, self._data_lock, self.generation)
+        while not self.stop.is_set():
             start = time.monotonic()
             if self.pending_pattern is not None:
                 model, info, finished = self.pending_pattern
                 self.pending_pattern = None
                 try:
+                    if self.scan:
+                        self.scan.close()
                     new_context = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_150.value)
                     mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, new_context)
                     new_scene = mujoco.MjvScene(model, maxgeom=10000)
@@ -290,20 +303,24 @@ class SceneRenderer:
                         self.model = model
                         self.data = mujoco.MjData(model)
                         mujoco.mj_forward(model, self.data)
-                        self._motion = self._build_rail_sweep()
+                        self._motion = None if SCAN_ENABLED else self._build_rail_sweep()
                         self.pattern = info
                     context.free()
                     context, render_scene = new_context, new_scene
                     with self._condition:
                         self._latest_rgb.clear()
                         self.generation += 1
+                    if SCAN_ENABLED:
+                        self.scan = LiveScan(self.model, self.data, self._data_lock, self.generation)
                     due = dict.fromkeys(names, 0.0)
                 except Exception as exc:
                     info['error'] = str(exc)
                 finally:
                     finished.set()
             with self._data_lock:
-                if self._motion is not None:
+                if self.scan is not None:
+                    self.scan.advance(period)
+                elif self._motion is not None:
                     self._advance_motion()
                 else:
                     mujoco.mj_step(self.model, self.data)
@@ -381,7 +398,8 @@ class SceneRenderer:
 
 
 scene = SceneRenderer(SCENE_PATH)
-threading.Thread(target=scene.run_forever, daemon=True).start()
+renderer_thread = threading.Thread(target=scene.run_forever, daemon=True)
+renderer_thread.start()
 threading.Thread(target=scene.publish_state_forever, daemon=True).start()
 
 
@@ -420,6 +438,16 @@ class Detector:
             self.watchers += delta
 
     def run_forever(self) -> None:
+        if SCAN_ENABLED:
+            # The scan owns perception even when no client displays boxes.
+            while not self.renderer.stop.is_set():
+                scan = self.renderer.scan
+                if scan:
+                    self.error = scan.error
+                    self.weights, self.conf = scan.weights, scan.conf
+                    self.latest = scan.detections()
+                time.sleep(0.1)
+            return
         if not self.available:
             return
         worker = None
@@ -479,7 +507,16 @@ threading.Thread(target=detector.run_forever, daemon=True).start()
 
 # --- FastAPI app -----------------------------------------------------------
 
-app = FastAPI(title="Robot viewer backend")
+@asynccontextmanager
+async def viewer_lifespan(app):
+    yield
+    scene.stop.set()
+    await asyncio.to_thread(renderer_thread.join, 30)
+    if scene.scan:
+        await asyncio.to_thread(scene.scan.close)
+
+
+app = FastAPI(title="Robot viewer backend", lifespan=viewer_lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -500,7 +537,7 @@ pattern_requests = {}
 @app.post("/api/scene/randomize")
 async def randomize_scene(session: str = Query(min_length=1, max_length=100)):
     """Choose once per page load, including React StrictMode and HTTP retries."""
-    if SCENE_PATH.name != "minihannover_rail_scene.xml":
+    if not SCAN_ENABLED:
         raise HTTPException(409, "Seeded layouts require the rail scene")
     async with pattern_lock:
         if session in pattern_requests:
@@ -552,6 +589,15 @@ def detector_info():
         "pattern": scene.pattern,
         "error": detector.error,
     }
+
+
+@app.get("/api/scan")
+def scan_info():
+    if not SCAN_ENABLED:
+        return {"status": "disabled"}
+    if scene.scan is None:
+        return {"status": "starting", "caption": "Preparing the scan", "named": 0, "tracked": 0}
+    return scene.scan.snapshot()
 
 
 @app.websocket("/ws/replay-detections")

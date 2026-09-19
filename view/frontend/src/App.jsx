@@ -115,10 +115,39 @@ function DetectionBoxes({ detections }) {
       aria-hidden="true"
     >
       {detections.boxes.map(([x0, y0, x1, y1], i) => (
-        <rect key={i} x={x0 - 3} y={y0 - 3} width={x1 - x0 + 6} height={y1 - y0 + 6} />
+        <g key={i} className={detections.labels?.[i]?.startsWith("SMP-") ? "scan-identified" : ""}>
+          <rect x={x0 - 3} y={y0 - 3} width={x1 - x0 + 6} height={y1 - y0 + 6} />
+          {detections.labels?.[i] && <text x={x0 - 3} y={y0 - 10}>{detections.labels[i]}</text>}
+        </g>
       ))}
     </svg>
   );
+}
+
+function ScanStatus() {
+  const [scan, setScan] = useState(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    let timer;
+    const update = async () => {
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/scan`, { signal: controller.signal });
+        if (!response.ok) throw new Error("Scan unavailable");
+        setScan(await response.json());
+      } catch {
+        if (!controller.signal.aborted) setScan({ status: "error", error: "Scan connection lost" });
+      }
+      if (!controller.signal.aborted) timer = setTimeout(update, 1000);
+    };
+    update();
+    return () => { controller.abort(); clearTimeout(timer); };
+  }, []);
+  if (scan?.status === "disabled") return null;
+  return <div className={`scan-status ${scan?.status === "error" ? "scan-status--error" : ""}`} role="status">
+    <strong>{scan?.status === "complete" ? "Scan complete" : "Live scan"}</strong>
+    <span>{scan?.error || scan?.caption || "Connecting to scan…"}</span>
+    {scan?.tracked > 0 && <span>{scan.named} / {scan.tracked} identified</span>}
+  </div>;
 }
 
 // Live boxes from the backend's detector, while `enabled`; the backend runs the
@@ -539,6 +568,7 @@ export default function App() {
         <div className="main-column">
           <section className="viewport">
             {realtime ? <>
+              <ScanStatus />
               <CameraStream
                 cameraId={mainCameraId}
                 label={mainLabel}

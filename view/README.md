@@ -5,22 +5,25 @@ between the robot's onboard camera and the fixed scene-overview camera, a
 picture-in-picture subwindow showing the other one (click it to swap), and a
 right-hand panel with the robot's running task log, updated in real time.
 
-- `backend/` — FastAPI server. Renders both cameras from
-  `simulation/models/minihannover_scene.xml` live with `mujoco.Renderer` and
-  serves binary JPEGs over WebSocket (`/ws/camera/robot`, `/ws/camera/scene`),
-  with legacy MJPEG endpoints (`/stream/robot`, `/stream/scene`), plus a websocket
-  (`/ws/tasks`) with the task log. The task log is currently **mocked** — no
-  real task/planner system exists in `simulation/` yet, so it just cycles
-  through a scripted list of plausible lab actions. Swap in real data by
-  replacing `TaskLog` in `backend/server.py`.
-- `frontend/` — React + Vite app that renders the two streams and the task
-  panel.
+- `backend/` — FastAPI server. The default rail scene runs the initial bench
+  scan from `simulation/scripts/vision_pick.py` with the Robotiq gripper.
+  The fixed `general` camera proposes bottles with YOLO; the arm moves its
+  `arm_eih` camera to read their ArUco rings. Both live views stream through
+  `/ws/camera/robot` and `/ws/camera/scene` (legacy MJPEG is also available).
+- `frontend/` — React + Vite app. Real time shows the scan's cameras, current
+  action and identified count. Boxes turn green and gain a sample ID after a
+  ring is read. Replay continues to show the recorded Isaac videos.
 
-The two camera streams are the vision system's own cameras, defined at the
-end of `simulation/models/minihannover_scene.xml`: `general` (the fixed
-room GoPro) and `wrist` (a mocap-mounted stand-in for the future arm's wrist
-camera — it doesn't move on its own yet, see the comment there for how to
-fly it around).
+The scan reuses the original perception and physics controller, in manual mode:
+there is no automatic picking after the initial scan. It keeps watching the
+bench, and saves its map to `simulation/out/view_bench_map.json`. `/api/scan`
+reports startup, progress, completion and errors. Missing weights or a failed
+controller are shown in the viewport; they do not fall back to a scripted sweep.
+The scan runs independently of the Boxes toggle and the selected viewport mode.
+Its speed depends on local physics, rendering and inference performance.
+
+The Tasks, Robot, Balance and Pipeline panels still consume the shared lab state
+in both modes. Their scripted formulation is independent of the scan.
 
 ## Run it
 
@@ -35,20 +38,22 @@ but drops to 5 FPS when no main view subscribes. The robot preview renders
 directly at 640×360. JPEG compression runs in a separate worker with at most
 one waiting frame per camera; rendering never waits for compression.
 
-Live YOLO processes only the table band (30–75% of image height, full width),
-using the same crop as Replay. It retains the live input's pixel scale and
-translates detections back to full-frame coordinates. The camera stream stays
-uncropped. Recheck `view/backend/table_crop.py` when camera framing changes.
+Live scanning uses the original detector's full camera image and proposal
+threshold (0.10 for the rail weights), including its arm mask and flask-size
+filter. YOLO runs in a subprocess; ring reading runs on the perception thread.
+Replay retains its existing table crop and detection settings.
 
-With `VIEW_SCENE=minihannover_rail_scene.xml`, each frontend page load requests
+The default scene (`VIEW_SCENE=minihannover_rail_scene.xml`) uses a generated
+gripper copy of the rail bench. Each frontend page load requests
 a random bench layout from the ten shared `minihannover_open/patterns` seeds.
 The next choice excludes the current pattern. The backend replaces the rail
 scene's loose and dynamic bench samples with that catalogue population in
 memory; it never rewrites generated scene files. All connected tabs share the
 new layout, and the viewport label shows its seed and sample count. Requests
 are deduplicated per page load, including React StrictMode and network retries.
-The render thread installs the new MuJoCo model and graphics context; YOLO
-discards in-flight detections from the previous model. Replay selects the recording for that same seed; switching modes does not
+The render thread stops the previous scan and detector worker, installs the new
+MuJoCo model and graphics context, and starts a fresh scan. Tracks and identities
+from the old layout are discarded. Replay selects the recording for that same seed; switching modes does not
 request a new layout. The panel demo retains its original model, samples and `RECIPE`, so
 the shared scripted-run recording continues to match the panel state.
 
@@ -57,10 +62,14 @@ the shared scripted-run recording continues to match the panel state.
 uv pip install --python simulation/.venv/bin/python \
   -r simulation/requirements.txt -r view/backend/requirements.txt
 
-# 2. Backend (serves streams + tasks on :8000):
+# 2. Fetch the robot assets once, and copy the trained detector weights:
+(cd simulation && bash scripts/fetch_menagerie.sh)
+# computer-vision/weights/yolo26n_rail_general.pt (see that folder's README)
+
+# 3. Backend (serves streams + scan status + tasks on :8000):
 simulation/.venv/bin/python view/backend/server.py
 
-# 3. Frontend (:5173), in another terminal:
+# 4. Frontend (:5173), in another terminal:
 cd view/frontend
 npm install
 npm run dev
@@ -90,23 +99,17 @@ run, regenerate it with `python -m labbridge.record_run` from `dashboard/bridge`
 
 ## Bottle boxes
 
-In Real time the bottle detector's boxes are drawn over the general camera,
-wherever that camera is shown; the header's **Boxes** button turns them off and
-on, and the choice is remembered in this browser. The backend runs the
-detector while a viewer has Boxes or Pipeline open, every 5 rendered camera frames
-(`VIEW_DETECTOR_FRAME_STRIDE`), with `VIEW_DETECTOR_THREADS` (2) torch
-threads so the streams keep their frame rate; the boxes lag the picture by one
-inference (about 0.4 s on a laptop CPU).
-The first detection runs immediately. Between detections the last boxes stay
-visible. If inference takes longer than 5 frames, it skips ahead to the newest
-frame instead of building a queue.
-YOLO runs in a separate Python subprocess, so its preprocessing and torch
-inference cannot hold the renderer's Python interpreter lock. Only the
-detector thread waits for results; camera rendering and streaming continue.
-The Pipeline's Object detection row uses the live detector's inference time,
-input size and detection count. Opening Pipeline keeps this feed active even
-with Boxes off or the viewport in Replay. It shows an offline/waiting state
-when no live measurement is available, rather than scripted timing figures.
+In Real time, the scan's tracked bottles are drawn over the general camera.
+The header's **Boxes** button toggles the overlay; its setting is remembered.
+Unidentified tracks show a number; confirmed samples show their catalogue ID in
+green. Bottles found only by the wrist camera get a projected box as well.
+Perception continues with boxes hidden and while Replay is selected. The
+Pipeline retains live inference time, image size and track count from the scan.
+
+For explicitly selected non-scan scenes, the optional detector runs while a
+viewer subscribes, every `VIEW_DETECTOR_FRAME_STRIDE` rendered frames (default 5),
+using `VIEW_DETECTOR_THREADS` torch threads (default 2). It uses the table crop
+and discards intermediate frames rather than queuing inference.
 
 It needs `ultralytics` in the backend's venv and the weights: `VIEW_DETECTOR`
 names a `labvision.detector` backend or a weights path, and the default,
@@ -128,7 +131,7 @@ It is driven by the scripted formulation in
 `dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four liquids,
 one recovery: the Eugenol flask is displaced in the demo state). This script
 uses separate MuJoCo data for the panels; it never moves bottles in the
-camera scene. The rail sweep remains independent. It needs `websockets` in the venv (listed
+camera scene. The live scan remains independent. It needs `websockets` in the venv (listed
 in `backend/requirements.txt`).
 
 When that state is connected, the frontend shows it (`src/LabTaskPanel.jsx`,
