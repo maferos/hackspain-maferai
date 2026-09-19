@@ -23,9 +23,18 @@ const DEFAULT_CAMERAS = [
 // The viewport has two sources, switchable from the header:
 //   realtime — the backend's live MuJoCo streams of the scene.
 //   replay   — synchronized Isaac Lab rail videos for the backend-selected seed.
-// Start in Real time on the live MuJoCo streams; ?replay=1 opens in Replay
-// (static video files, with the current seed supplied by the backend).
-const INITIAL_MODE = new URLSearchParams(window.location.search).get("replay") === "1" ? "replay" : "realtime";
+// Explicit links override the saved mode; new browsers start in Real time.
+const MODE_KEY = "robot-viewer.mode";
+function loadMode() {
+  const replay = new URLSearchParams(window.location.search).get("replay");
+  if (replay === "1") return "replay";
+  if (replay === "0") return "realtime";
+  try {
+    return localStorage.getItem(MODE_KEY) === "replay" ? "replay" : "realtime";
+  } catch {
+    return "realtime";
+  }
+}
 const REPLAY_CAMERAS = [
   { id: "scene", label: "General camera" },
   { id: "robot", label: "Robot camera" },
@@ -290,7 +299,17 @@ export default function App() {
     return () => { cancelled = true; clearTimeout(retry); };
   }, []);
   const replayPattern = replayPatterns.find((entry) => entry.seed === scenePattern?.seed);
-  const [mode, setMode] = useState(INITIAL_MODE);
+  const [mode, setMode] = useState(loadMode);
+  useEffect(() => {
+    try {
+      localStorage.setItem(MODE_KEY, mode);
+    } catch {
+      /* The URL still preserves this tab's selection without storage. */
+    }
+    const url = new URL(window.location.href);
+    url.searchParams.set("replay", mode === "replay" ? "1" : "0");
+    window.history.replaceState(window.history.state, "", url);
+  }, [mode]);
   const realtime = mode === "realtime";
   const [liveCameras, setLiveCameras] = useState(DEFAULT_CAMERAS);
   const cameras = realtime ? liveCameras : REPLAY_CAMERAS;
