@@ -105,11 +105,18 @@ TEMPLATES = {
 
 
 def load_formula(name: str) -> dict:
-    """Read a formula by id, filename or path."""
-    for candidate in (Path(name), FORMULAS / name, FORMULAS / f"{name}.json"):
-        if candidate.is_file():
-            return json.loads(candidate.read_text())
-    known = ", ".join(sorted(p.stem for p in FORMULAS.glob("FRG-*.json")))
+    """Read a formula by id, filename or path.
+
+    The held-out set in formulas/validation/ answers to a bare id like the other
+    five do. Keeping it in a subdirectory is about not reading it by accident,
+    not about making it awkward to ask for: a run on unseen input should cost the
+    same keystrokes as a run on tuned input, or it will not be made.
+    """
+    for directory in (FORMULAS, FORMULAS / "validation"):
+        for candidate in (Path(name), directory / name, directory / f"{name}.json"):
+            if candidate.is_file():
+                return json.loads(candidate.read_text())
+    known = ", ".join(sorted(p.stem for p in FORMULAS.glob("**/FRG-*.json")))
     raise SystemExit(f"no formula {name!r} in {FORMULAS.relative_to(ROOT)} (have: {known})")
 
 

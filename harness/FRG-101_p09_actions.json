@@ -1,0 +1,3713 @@
+{
+ "formula": "FRG-101",
+ "name": "Orange Blossom Water",
+ "product": "Eau de Cologne",
+ "scene": "minihannover_rail_p09",
+ "scene_file": "simulation/out/minihannover_rail_p09.xml",
+ "balance": "balance_2",
+ "batch_g": 10.0,
+ "solvent": "Ethanol 96 % (perfumer's alcohol)",
+ "ethanol_g": 190.0,
+ "summary": {
+  "ingredients": 18,
+  "resolved": 18,
+  "unliftable": 0,
+  "missing": 0,
+  "liftable_in_scene": 65,
+  "labelled_in_scene": 71
+ },
+ "ingredients": [
+  {
+   "i": 0,
+   "compound": "Limonene",
+   "cas": "5989-27-5",
+   "grams": 2.54,
+   "concentrate_pct": 25.4,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0001",
+   "container_ml": 10.0,
+   "ean13": "2006943906698",
+   "aruco_marker_id": 0,
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "rail_x": -2.486,
+   "probability": null,
+   "prompt": "pick up SMP-0001 and bring it to balance 2"
+  },
+  {
+   "i": 1,
+   "compound": "Linalyl acetate",
+   "cas": "115-95-7",
+   "grams": 1.6,
+   "concentrate_pct": 16.0,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0091",
+   "container_ml": 10.0,
+   "ean13": "2003700752048",
+   "aruco_marker_id": 90,
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "rail_x": -1.043,
+   "probability": null,
+   "prompt": "pick up SMP-0091 and bring it to balance 2"
+  },
+  {
+   "i": 2,
+   "compound": "Linalool",
+   "cas": "78-70-6",
+   "grams": 1.2,
+   "concentrate_pct": 12.0,
+   "note": "top-heart",
+   "status": "resolved",
+   "sample": "SMP-0006",
+   "container_ml": 10.0,
+   "ean13": "2005173561004",
+   "aruco_marker_id": 5,
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "rail_x": -1.3364,
+   "probability": null,
+   "prompt": "pick up SMP-0006 and bring it to balance 2"
+  },
+  {
+   "i": 3,
+   "compound": "Dihydromyrcenol",
+   "cas": "18479-58-8",
+   "grams": 1.0,
+   "concentrate_pct": 10.0,
+   "note": "top-heart",
+   "status": "resolved",
+   "sample": "SMP-0101",
+   "container_ml": 10.0,
+   "ean13": "2007183547252",
+   "aruco_marker_id": 100,
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "rail_x": -0.7272,
+   "probability": null,
+   "prompt": "pick up SMP-0101 and bring it to balance 2"
+  },
+  {
+   "i": 4,
+   "compound": "Hedione",
+   "cas": "24851-98-7",
+   "grams": 0.8,
+   "concentrate_pct": 8.0,
+   "note": "heart",
+   "status": "resolved",
+   "sample": "SMP-0106",
+   "container_ml": 10.0,
+   "ean13": "2001480681923",
+   "aruco_marker_id": 105,
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "rail_x": -0.2395,
+   "probability": null,
+   "prompt": "pick up SMP-0106 and bring it to balance 2"
+  },
+  {
+   "i": 5,
+   "compound": "Benzyl benzoate",
+   "cas": "120-51-4",
+   "grams": 0.5,
+   "concentrate_pct": 5.0,
+   "note": "base",
+   "status": "resolved",
+   "sample": "SMP-0121",
+   "container_ml": 10.0,
+   "ean13": "2003224267363",
+   "aruco_marker_id": 120,
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "rail_x": -1.1538,
+   "probability": null,
+   "prompt": "pick up SMP-0121 and bring it to balance 2"
+  },
+  {
+   "i": 6,
+   "compound": "gamma-Terpinene",
+   "cas": "99-85-4",
+   "grams": 0.4,
+   "concentrate_pct": 4.0,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0136",
+   "container_ml": 10.0,
+   "ean13": "2007668407385",
+   "aruco_marker_id": 135,
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "rail_x": -2.6596,
+   "probability": null,
+   "prompt": "pick up SMP-0136 and bring it to balance 2"
+  },
+  {
+   "i": 7,
+   "compound": "Tetrahydrolinalool",
+   "cas": "78-69-3",
+   "grams": 0.4,
+   "concentrate_pct": 4.0,
+   "note": "top-heart",
+   "status": "resolved",
+   "sample": "SMP-0196",
+   "container_ml": 10.0,
+   "ean13": "2006651760162",
+   "aruco_marker_id": 195,
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "rail_x": -1.539,
+   "probability": null,
+   "prompt": "pick up SMP-0196 and bring it to balance 2"
+  },
+  {
+   "i": 8,
+   "compound": "Nerol",
+   "cas": "106-25-2",
+   "grams": 0.3,
+   "concentrate_pct": 3.0,
+   "note": "heart",
+   "status": "resolved",
+   "sample": "SMP-0039",
+   "container_ml": 50.0,
+   "ean13": "2002111210598",
+   "aruco_marker_id": 38,
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "rail_x": -0.4027,
+   "probability": null,
+   "prompt": "pick up SMP-0039 and bring it to balance 2"
+  },
+  {
+   "i": 9,
+   "compound": "Terpinolene",
+   "cas": "586-62-9",
+   "grams": 0.2,
+   "concentrate_pct": 2.0,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0126",
+   "container_ml": 10.0,
+   "ean13": "2000730681836",
+   "aruco_marker_id": 125,
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "rail_x": -1.3306,
+   "probability": null,
+   "prompt": "pick up SMP-0126 and bring it to balance 2"
+  },
+  {
+   "i": 10,
+   "compound": "Citral",
+   "cas": "5392-40-5",
+   "grams": 0.2,
+   "concentrate_pct": 2.0,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0020",
+   "container_ml": 100.0,
+   "ean13": "2008543423209",
+   "aruco_marker_id": 19,
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "rail_x": -1.2285,
+   "probability": null,
+   "prompt": "pick up SMP-0020 and bring it to balance 2"
+  },
+  {
+   "i": 11,
+   "compound": "Geranyl acetate",
+   "cas": "105-87-3",
+   "grams": 0.2,
+   "concentrate_pct": 2.0,
+   "note": "heart",
+   "status": "resolved",
+   "sample": "SMP-0156",
+   "container_ml": 10.0,
+   "ean13": "2001948776154",
+   "aruco_marker_id": 155,
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "rail_x": -1.1713,
+   "probability": null,
+   "prompt": "pick up SMP-0156 and bring it to balance 2"
+  },
+  {
+   "i": 12,
+   "compound": "alpha-Terpineol",
+   "cas": "98-55-5",
+   "grams": 0.2,
+   "concentrate_pct": 2.0,
+   "note": "heart",
+   "status": "resolved",
+   "sample": "SMP-0065",
+   "container_ml": 100.0,
+   "ean13": "2008463324686",
+   "aruco_marker_id": 64,
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "rail_x": -1.3947,
+   "probability": null,
+   "prompt": "pick up SMP-0065 and bring it to balance 2"
+  },
+  {
+   "i": 13,
+   "compound": "Isobornyl acetate",
+   "cas": "125-12-2",
+   "grams": 0.2,
+   "concentrate_pct": 2.0,
+   "note": "top-heart",
+   "status": "resolved",
+   "sample": "SMP-0171",
+   "container_ml": 10.0,
+   "ean13": "2003352792003",
+   "aruco_marker_id": 170,
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "rail_x": -0.4055,
+   "probability": null,
+   "prompt": "pick up SMP-0171 and bring it to balance 2"
+  },
+  {
+   "i": 14,
+   "compound": "alpha-Pinene",
+   "cas": "80-56-8",
+   "grams": 0.15,
+   "concentrate_pct": 1.5,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0056",
+   "container_ml": 10.0,
+   "ean13": "2007803255772",
+   "aruco_marker_id": 55,
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "rail_x": -1.1429,
+   "probability": null,
+   "prompt": "pick up SMP-0056 and bring it to balance 2"
+  },
+  {
+   "i": 15,
+   "compound": "Myrcene",
+   "cas": "123-35-3",
+   "grams": 0.05,
+   "concentrate_pct": 0.5,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0144",
+   "container_ml": 50.0,
+   "ean13": "2009933739283",
+   "aruco_marker_id": 143,
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "rail_x": -1.6931,
+   "probability": null,
+   "prompt": "pick up SMP-0144 and bring it to balance 2"
+  },
+  {
+   "i": 16,
+   "compound": "Carvone",
+   "cas": "99-49-0",
+   "grams": 0.03,
+   "concentrate_pct": 0.3,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0051",
+   "container_ml": 10.0,
+   "ean13": "2007724806114",
+   "aruco_marker_id": 50,
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "rail_x": -1.0355,
+   "probability": null,
+   "prompt": "pick up SMP-0051 and bring it to balance 2"
+  },
+  {
+   "i": 17,
+   "compound": "Citronellal",
+   "cas": "106-23-0",
+   "grams": 0.03,
+   "concentrate_pct": 0.3,
+   "note": "top",
+   "status": "resolved",
+   "sample": "SMP-0146",
+   "container_ml": 10.0,
+   "ean13": "2004118802615",
+   "aruco_marker_id": 145,
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "rail_x": -2.5193,
+   "probability": null,
+   "prompt": "pick up SMP-0146 and bring it to balance 2"
+  }
+ ],
+ "actions": [
+  {
+   "i": 0,
+   "leg": 0,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "find the flask of limonene on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 1,
+   "leg": 0,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of limonene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 2,
+   "leg": 0,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0001",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 3,
+   "leg": 0,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0001 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 4,
+   "leg": 0,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "check that SMP-0001 is the flask of limonene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 5,
+   "leg": 0,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0001, the flask of limonene",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0001"
+   },
+   "executable": true
+  },
+  {
+   "i": 6,
+   "leg": 0,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 7,
+   "leg": 0,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "dose 2.540 g of limonene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 8,
+   "leg": 0,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "check the balance reads 2.540 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 9,
+   "leg": 0,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Limonene",
+   "grams": 2.54,
+   "sample": "SMP-0001",
+   "xyz": [
+    -2.486,
+    -0.2383,
+    0.9173
+   ],
+   "instruction": "put the flask of limonene back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 10,
+   "leg": 1,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "find the flask of linalyl acetate on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 11,
+   "leg": 1,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of linalyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 12,
+   "leg": 1,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0091",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 13,
+   "leg": 1,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0091 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 14,
+   "leg": 1,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "check that SMP-0091 is the flask of linalyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 15,
+   "leg": 1,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0091, the flask of linalyl acetate",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0091"
+   },
+   "executable": true
+  },
+  {
+   "i": 16,
+   "leg": 1,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 17,
+   "leg": 1,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "dose 1.600 g of linalyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 18,
+   "leg": 1,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "check the balance reads 1.600 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 19,
+   "leg": 1,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Linalyl acetate",
+   "grams": 1.6,
+   "sample": "SMP-0091",
+   "xyz": [
+    -1.043,
+    -0.5225,
+    0.9173
+   ],
+   "instruction": "put the flask of linalyl acetate back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 20,
+   "leg": 2,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "find the flask of linalool on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 21,
+   "leg": 2,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of linalool",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 22,
+   "leg": 2,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0006",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 23,
+   "leg": 2,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0006 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 24,
+   "leg": 2,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "check that SMP-0006 is the flask of linalool",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 25,
+   "leg": 2,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0006, the flask of linalool",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0006"
+   },
+   "executable": true
+  },
+  {
+   "i": 26,
+   "leg": 2,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 27,
+   "leg": 2,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "dose 1.200 g of linalool",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 28,
+   "leg": 2,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "check the balance reads 1.200 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 29,
+   "leg": 2,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Linalool",
+   "grams": 1.2,
+   "sample": "SMP-0006",
+   "xyz": [
+    -1.3364,
+    -0.6912,
+    0.9173
+   ],
+   "instruction": "put the flask of linalool back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 30,
+   "leg": 3,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "find the flask of dihydromyrcenol on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 31,
+   "leg": 3,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of dihydromyrcenol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 32,
+   "leg": 3,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0101",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 33,
+   "leg": 3,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0101 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 34,
+   "leg": 3,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "check that SMP-0101 is the flask of dihydromyrcenol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 35,
+   "leg": 3,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0101, the flask of dihydromyrcenol",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0101"
+   },
+   "executable": true
+  },
+  {
+   "i": 36,
+   "leg": 3,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 37,
+   "leg": 3,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "dose 1.000 g of dihydromyrcenol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 38,
+   "leg": 3,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "check the balance reads 1.000 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 39,
+   "leg": 3,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Dihydromyrcenol",
+   "grams": 1.0,
+   "sample": "SMP-0101",
+   "xyz": [
+    -0.7272,
+    -0.2238,
+    0.9173
+   ],
+   "instruction": "put the flask of dihydromyrcenol back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 40,
+   "leg": 4,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "find the flask of hedione on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 41,
+   "leg": 4,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of hedione",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 42,
+   "leg": 4,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0106",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 43,
+   "leg": 4,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0106 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 44,
+   "leg": 4,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "check that SMP-0106 is the flask of hedione",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 45,
+   "leg": 4,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0106, the flask of hedione",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0106"
+   },
+   "executable": true
+  },
+  {
+   "i": 46,
+   "leg": 4,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 47,
+   "leg": 4,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "dose 0.800 g of hedione",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 48,
+   "leg": 4,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.800 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 49,
+   "leg": 4,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Hedione",
+   "grams": 0.8,
+   "sample": "SMP-0106",
+   "xyz": [
+    -0.2395,
+    -0.1756,
+    0.9173
+   ],
+   "instruction": "put the flask of hedione back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 50,
+   "leg": 5,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "find the flask of benzyl benzoate on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 51,
+   "leg": 5,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of benzyl benzoate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 52,
+   "leg": 5,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0121",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 53,
+   "leg": 5,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0121 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 54,
+   "leg": 5,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "check that SMP-0121 is the flask of benzyl benzoate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 55,
+   "leg": 5,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0121, the flask of benzyl benzoate",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0121"
+   },
+   "executable": true
+  },
+  {
+   "i": 56,
+   "leg": 5,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 57,
+   "leg": 5,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "dose 0.500 g of benzyl benzoate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 58,
+   "leg": 5,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.500 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 59,
+   "leg": 5,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Benzyl benzoate",
+   "grams": 0.5,
+   "sample": "SMP-0121",
+   "xyz": [
+    -1.1538,
+    -0.6356,
+    0.9173
+   ],
+   "instruction": "put the flask of benzyl benzoate back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 60,
+   "leg": 6,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "find the flask of gamma-terpinene on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 61,
+   "leg": 6,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of gamma-terpinene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 62,
+   "leg": 6,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0136",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 63,
+   "leg": 6,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0136 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 64,
+   "leg": 6,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "check that SMP-0136 is the flask of gamma-terpinene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 65,
+   "leg": 6,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0136, the flask of gamma-terpinene",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0136"
+   },
+   "executable": true
+  },
+  {
+   "i": 66,
+   "leg": 6,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 67,
+   "leg": 6,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "dose 0.400 g of gamma-terpinene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 68,
+   "leg": 6,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.400 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 69,
+   "leg": 6,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "gamma-Terpinene",
+   "grams": 0.4,
+   "sample": "SMP-0136",
+   "xyz": [
+    -2.6596,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "put the flask of gamma-terpinene back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 70,
+   "leg": 7,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "find the flask of tetrahydrolinalool on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 71,
+   "leg": 7,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of tetrahydrolinalool",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 72,
+   "leg": 7,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0196",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 73,
+   "leg": 7,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0196 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 74,
+   "leg": 7,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "check that SMP-0196 is the flask of tetrahydrolinalool",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 75,
+   "leg": 7,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0196, the flask of tetrahydrolinalool",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0196"
+   },
+   "executable": true
+  },
+  {
+   "i": 76,
+   "leg": 7,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 77,
+   "leg": 7,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "dose 0.400 g of tetrahydrolinalool",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 78,
+   "leg": 7,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.400 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 79,
+   "leg": 7,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Tetrahydrolinalool",
+   "grams": 0.4,
+   "sample": "SMP-0196",
+   "xyz": [
+    -1.539,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "put the flask of tetrahydrolinalool back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 80,
+   "leg": 8,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "find the flask of nerol on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 81,
+   "leg": 8,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "move along the rail to the flask of nerol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 82,
+   "leg": 8,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "bring the wrist camera up to SMP-0039",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 83,
+   "leg": 8,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "read the barcode on SMP-0039 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 84,
+   "leg": 8,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "check that SMP-0039 is the flask of nerol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 85,
+   "leg": 8,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "pick up SMP-0039, the flask of nerol",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0039"
+   },
+   "executable": true
+  },
+  {
+   "i": 86,
+   "leg": 8,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 87,
+   "leg": 8,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "dose 0.300 g of nerol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 88,
+   "leg": 8,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "check the balance reads 0.300 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 89,
+   "leg": 8,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Nerol",
+   "grams": 0.3,
+   "sample": "SMP-0039",
+   "xyz": [
+    -0.4027,
+    0.0028,
+    0.9318
+   ],
+   "instruction": "put the flask of nerol back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 90,
+   "leg": 9,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "find the flask of terpinolene on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 91,
+   "leg": 9,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of terpinolene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 92,
+   "leg": 9,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0126",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 93,
+   "leg": 9,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0126 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 94,
+   "leg": 9,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "check that SMP-0126 is the flask of terpinolene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 95,
+   "leg": 9,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0126, the flask of terpinolene",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0126"
+   },
+   "executable": true
+  },
+  {
+   "i": 96,
+   "leg": 9,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 97,
+   "leg": 9,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "dose 0.200 g of terpinolene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 98,
+   "leg": 9,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.200 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 99,
+   "leg": 9,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Terpinolene",
+   "grams": 0.2,
+   "sample": "SMP-0126",
+   "xyz": [
+    -1.3306,
+    -0.7491,
+    0.9173
+   ],
+   "instruction": "put the flask of terpinolene back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 100,
+   "leg": 10,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "find the flask of citral on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 101,
+   "leg": 10,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "move along the rail to the flask of citral",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 102,
+   "leg": 10,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "bring the wrist camera up to SMP-0020",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 103,
+   "leg": 10,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "read the barcode on SMP-0020 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 104,
+   "leg": 10,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "check that SMP-0020 is the flask of citral",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 105,
+   "leg": 10,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "pick up SMP-0020, the flask of citral",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0020"
+   },
+   "executable": true
+  },
+  {
+   "i": 106,
+   "leg": 10,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 107,
+   "leg": 10,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "dose 0.200 g of citral",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 108,
+   "leg": 10,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "check the balance reads 0.200 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 109,
+   "leg": 10,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Citral",
+   "grams": 0.2,
+   "sample": "SMP-0020",
+   "xyz": [
+    -1.2285,
+    -0.6087,
+    0.9414
+   ],
+   "instruction": "put the flask of citral back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 110,
+   "leg": 11,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "find the flask of geranyl acetate on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 111,
+   "leg": 11,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of geranyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 112,
+   "leg": 11,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0156",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 113,
+   "leg": 11,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0156 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 114,
+   "leg": 11,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "check that SMP-0156 is the flask of geranyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 115,
+   "leg": 11,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0156, the flask of geranyl acetate",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0156"
+   },
+   "executable": true
+  },
+  {
+   "i": 116,
+   "leg": 11,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 117,
+   "leg": 11,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "dose 0.200 g of geranyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 118,
+   "leg": 11,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.200 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 119,
+   "leg": 11,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Geranyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0156",
+   "xyz": [
+    -1.1713,
+    -0.8188,
+    0.9173
+   ],
+   "instruction": "put the flask of geranyl acetate back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 120,
+   "leg": 12,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "find the flask of alpha-terpineol on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 121,
+   "leg": 12,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "move along the rail to the flask of alpha-terpineol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 122,
+   "leg": 12,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "bring the wrist camera up to SMP-0065",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 123,
+   "leg": 12,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "read the barcode on SMP-0065 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 124,
+   "leg": 12,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "check that SMP-0065 is the flask of alpha-terpineol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 125,
+   "leg": 12,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "pick up SMP-0065, the flask of alpha-terpineol",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0065"
+   },
+   "executable": true
+  },
+  {
+   "i": 126,
+   "leg": 12,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 127,
+   "leg": 12,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "dose 0.200 g of alpha-terpineol",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 128,
+   "leg": 12,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "check the balance reads 0.200 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 129,
+   "leg": 12,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "alpha-Terpineol",
+   "grams": 0.2,
+   "sample": "SMP-0065",
+   "xyz": [
+    -1.3947,
+    -0.7104,
+    0.9414
+   ],
+   "instruction": "put the flask of alpha-terpineol back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 130,
+   "leg": 13,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "find the flask of isobornyl acetate on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 131,
+   "leg": 13,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of isobornyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 132,
+   "leg": 13,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0171",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 133,
+   "leg": 13,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0171 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 134,
+   "leg": 13,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "check that SMP-0171 is the flask of isobornyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 135,
+   "leg": 13,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0171, the flask of isobornyl acetate",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0171"
+   },
+   "executable": true
+  },
+  {
+   "i": 136,
+   "leg": 13,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 137,
+   "leg": 13,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "dose 0.200 g of isobornyl acetate",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 138,
+   "leg": 13,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.200 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 139,
+   "leg": 13,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Isobornyl acetate",
+   "grams": 0.2,
+   "sample": "SMP-0171",
+   "xyz": [
+    -0.4055,
+    -0.0493,
+    0.9173
+   ],
+   "instruction": "put the flask of isobornyl acetate back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 140,
+   "leg": 14,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "find the flask of alpha-pinene on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 141,
+   "leg": 14,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of alpha-pinene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 142,
+   "leg": 14,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0056",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 143,
+   "leg": 14,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0056 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 144,
+   "leg": 14,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "check that SMP-0056 is the flask of alpha-pinene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 145,
+   "leg": 14,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0056, the flask of alpha-pinene",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0056"
+   },
+   "executable": true
+  },
+  {
+   "i": 146,
+   "leg": 14,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 147,
+   "leg": 14,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "dose 0.150 g of alpha-pinene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 148,
+   "leg": 14,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.150 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 149,
+   "leg": 14,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "alpha-Pinene",
+   "grams": 0.15,
+   "sample": "SMP-0056",
+   "xyz": [
+    -1.1429,
+    -0.4888,
+    0.9173
+   ],
+   "instruction": "put the flask of alpha-pinene back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 150,
+   "leg": 15,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "find the flask of myrcene on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 151,
+   "leg": 15,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "move along the rail to the flask of myrcene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 152,
+   "leg": 15,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "bring the wrist camera up to SMP-0144",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 153,
+   "leg": 15,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "read the barcode on SMP-0144 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 154,
+   "leg": 15,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "check that SMP-0144 is the flask of myrcene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 155,
+   "leg": 15,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "pick up SMP-0144, the flask of myrcene",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0144"
+   },
+   "executable": true
+  },
+  {
+   "i": 156,
+   "leg": 15,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 157,
+   "leg": 15,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "dose 0.050 g of myrcene",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 158,
+   "leg": 15,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "check the balance reads 0.050 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 159,
+   "leg": 15,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Myrcene",
+   "grams": 0.05,
+   "sample": "SMP-0144",
+   "xyz": [
+    -1.6931,
+    -0.6562,
+    0.9318
+   ],
+   "instruction": "put the flask of myrcene back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 160,
+   "leg": 16,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "find the flask of carvone on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 161,
+   "leg": 16,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of carvone",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 162,
+   "leg": 16,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0051",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 163,
+   "leg": 16,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0051 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 164,
+   "leg": 16,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "check that SMP-0051 is the flask of carvone",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 165,
+   "leg": 16,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0051, the flask of carvone",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0051"
+   },
+   "executable": true
+  },
+  {
+   "i": 166,
+   "leg": 16,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 167,
+   "leg": 16,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "dose 0.030 g of carvone",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 168,
+   "leg": 16,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.030 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 169,
+   "leg": 16,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Carvone",
+   "grams": 0.03,
+   "sample": "SMP-0051",
+   "xyz": [
+    -1.0355,
+    -0.4761,
+    0.9173
+   ],
+   "instruction": "put the flask of carvone back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 170,
+   "leg": 17,
+   "verb": "locate",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "find the flask of citronellal on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 171,
+   "leg": 17,
+   "verb": "traverse",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "move along the rail to the flask of citronellal",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 172,
+   "leg": 17,
+   "verb": "approach",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "bring the wrist camera up to SMP-0146",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 173,
+   "leg": 17,
+   "verb": "read_barcode",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "read the barcode on SMP-0146 with the wrist camera",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 174,
+   "leg": 17,
+   "verb": "verify_id",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "check that SMP-0146 is the flask of citronellal",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 175,
+   "leg": 17,
+   "verb": "pick",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "pick up SMP-0146, the flask of citronellal",
+   "skill": "pick",
+   "args": {
+    "sample_id": "SMP-0146"
+   },
+   "executable": true
+  },
+  {
+   "i": 176,
+   "leg": 17,
+   "verb": "move_to_balance",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "put it down at balance 2",
+   "skill": "place",
+   "args": {
+    "target_id": "balance_2"
+   },
+   "executable": true
+  },
+  {
+   "i": 177,
+   "leg": 17,
+   "verb": "dose",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "dose 0.030 g of citronellal",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 178,
+   "leg": 17,
+   "verb": "verify_mass",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "check the balance reads 0.030 g",
+   "skill": null,
+   "args": {},
+   "executable": false
+  },
+  {
+   "i": 179,
+   "leg": 17,
+   "verb": "return",
+   "status": "resolved",
+   "compound": "Citronellal",
+   "grams": 0.03,
+   "sample": "SMP-0146",
+   "xyz": [
+    -2.5193,
+    -0.7508,
+    0.9173
+   ],
+   "instruction": "put the flask of citronellal back on the bench",
+   "skill": null,
+   "args": {},
+   "executable": false
+  }
+ ]
+}
