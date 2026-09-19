@@ -56,16 +56,13 @@
       <attach model="balance" body="balance" prefix="balance_1_" />
     </frame>
     <frame pos="-1.7 -1.16 0.9">
-      <attach model="balance" body="balance" prefix="balance_2_" />
+      <attach model="balance_open" body="balance" prefix="balance_2_" />
     </frame>
     <frame pos="-0.2 -1.16 0.9">
       <attach model="balance" body="balance" prefix="balance_3_" />
     </frame>
     <frame pos="-2.5 0.36 0.9" euler="0 0 3.1416">
       <attach model="balance" body="balance" prefix="balance_4_" />
-    </frame>
-    <frame pos="0.6 -0.45 0.9">
-      <attach model="balance_open" body="balance" prefix="balance_5_" />
     </frame>
     <frame pos="-5.85 1.78 0.9">
       <attach model="gc_ms" body="gc_ms" prefix="gc_ms_" />
@@ -171,7 +168,7 @@
       <freejoint />
       <attach model="dyn_SMP-0051" body="SMP-0051" prefix="dyn_SMP-0051_" />
     </body>
-    <body name="beaker" pos="0.595 -0.419 0.977">
+    <body name="beaker" pos="-1.705 -1.129 0.977">
       <freejoint />
       <attach model="beaker" body="beaker" prefix="beaker_" />
     </body>

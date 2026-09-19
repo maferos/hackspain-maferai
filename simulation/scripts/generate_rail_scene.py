@@ -96,15 +96,11 @@ BENCH_VESSELS = 12
 # puts the Robotiq back for scripts/grasp_test.py.
 TOOL = 'pipette'
 
-# Which of the scene's five balances gets its roof cut off and takes the beaker.
-# balance_5 stands at x = -0.75 on the back strip, the closest one to the rail.
-OPEN_BALANCE = 'balance_5_'
+# The open balance replaces the middle covered balance in the front row.
+# The former balance_5 station is removed, leaving four balances in total.
+OPEN_BALANCE = 'balance_2_'
 BALANCE_PAN = (-0.005, 0.031, 0.077)    # pan centre in the balance's own frame
-# and it moves here. Left where it stood on the back strip, the beaker's rim
-# sits at 1.08 m, which puts the pipette's flange at 1.34 --- 20 mm under the
-# gantry beam, with the whole wrist in the way. Out in front of the rail there
-# is nothing overhead.
-BALANCE_POS = (0.60, -0.45, BENCH_TOP)
+BALANCE_POS = (-1.70, -1.16, BENCH_TOP)
 
 # Eye-in-hand camera, in the tool frame (+Z is the approach direction).
 EIH_OFFSET = 0.09   # to the side of the tool axis, clear of the fingers
@@ -441,6 +437,9 @@ def build_scene() -> Path:
                       body=vessel['sample'], prefix=f'dyn_{vessel["sample"]}_')
     if TOOL == 'pipette':
         # One balance loses its roof and gains a pan; the beaker stands on it.
+        for old in list(world.findall('frame')):
+            if any(a.get('prefix') == 'balance_5_' for a in old.findall('attach')):
+                world.remove(old)
         frame = next(f for f in world.iter('frame')
                      if any(a.get('prefix') == OPEN_BALANCE
                             for a in f.findall('attach')))
