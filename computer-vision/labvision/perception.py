@@ -162,6 +162,23 @@ def ring_geometry(vessel: str, kit: Path = KIT) -> tuple[float, float]:
     return radius, float((vertices[:, 2].min() + vertices[:, 2].max()) / 2)
 
 
+@functools.lru_cache(maxsize=32)
+def vessel_height(vessel: str, kit: Path = KIT) -> float:
+    """Height of a vessel from its base to the top of its cap, in metres
+
+    Read from the glass and cap meshes, like :func:`ring_geometry`. It is what
+    a gripper needs once the ring has named the bottle: how far up the wall to
+    close, without asking the simulator how tall the thing is.
+    """
+    top = 0.0
+    for part in ("glass", "cap"):
+        mesh = kit / "meshes" / f"{vessel}_{part}.obj"
+        for line in mesh.read_text().splitlines():
+            if line.startswith("v "):
+                top = max(top, float(line.split()[3]))
+    return top
+
+
 def refine(
     camera: Camera,
     uv: tuple[float, float],

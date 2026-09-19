@@ -32,3 +32,7 @@ mobileclip*.ts
 # directory into a gitlink with no .gitmodules entry behind it, and everyone
 # who clones gets an empty directory git then reports as modified for ever.
 simulation/third_party/mujoco_menagerie
+
+# The gripper variant of the rail scene, built on demand by scripts/vision_pick.py
+simulation/models/minihannover_rail_gripper_scene.xml
+simulation/assets/ur10e_2f85_gripper/
