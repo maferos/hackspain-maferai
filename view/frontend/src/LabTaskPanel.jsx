@@ -141,6 +141,21 @@ function PlanList({ state }) {
 }
 
 export default function LabTaskPanel({ state, connected }) {
+  if (!state || state.run.status === "idle") {
+    return (
+      <aside className="task-panel">
+        <header className="task-panel__header">
+          <h2>Robot tasks</h2>
+          <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
+        </header>
+        <ol className="task-list">
+          <li className="task-item task-item--empty">
+            {connected ? "No formulation yet. Type one in the chat below." : "Lab state offline"}
+          </li>
+        </ol>
+      </aside>
+    );
+  }
   const { run } = state;
   return (
     <aside className="task-panel">
@@ -149,6 +164,7 @@ export default function LabTaskPanel({ state, connected }) {
           <h2>Robot tasks</h2>
           <span className="task-panel__run">
             {run.id} · {run.status.toUpperCase()} · {fmtClock(run.elapsedSeconds)}
+            {run.status === "running" && run.progress > 0 ? ` · ${Math.round(run.progress * 100)} %` : ""}
           </span>
         </div>
         <div className="task-panel__badges">

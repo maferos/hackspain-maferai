@@ -2,19 +2,17 @@
 
 Frontend to watch the mini-Hannover MuJoCo scene live: main viewport switchable
 between the robot's onboard camera and the fixed scene-overview camera, a
-picture-in-picture subwindow showing the other one (click it to swap), and a
-right-hand panel with the robot's running task log, updated in real time.
+picture-in-picture subwindow showing the other one (click it to swap), and
+side panels that follow the formulation typed in the **Formula** chat, which the
+arm carries out on camera.
 
 - `backend/` — FastAPI server. Renders both cameras from
   `simulation/models/minihannover_scene.xml` live with `mujoco.Renderer` and
   serves binary JPEGs over WebSocket (`/ws/camera/robot`, `/ws/camera/scene`),
-  with legacy MJPEG endpoints (`/stream/robot`, `/stream/scene`), plus a websocket
-  (`/ws/tasks`) with the task log. The task log is currently **mocked** — no
-  real task/planner system exists in `simulation/` yet, so it just cycles
-  through a scripted list of plausible lab actions. Swap in real data by
-  replacing `TaskLog` in `backend/server.py`.
-- `frontend/` — React + Vite app that renders the two streams and the task
-  panel.
+  with legacy MJPEG endpoints (`/stream/robot`, `/stream/scene`), the formula
+  chat (`/api/chat`) and the lab state the side panels read (`:8765`).
+- `frontend/` — React + Vite app that renders the two streams, the chat and the
+  side panels.
 
 The two camera streams are the vision system's own cameras, defined at the
 end of `simulation/models/minihannover_scene.xml`: `general` (the fixed
@@ -119,23 +117,60 @@ greyed out and says why. On the rail scene's test frames the model finds 99 %
 of the bottles on the bench at 99.6 % precision
 (`computer-vision/scripts/fixedcam_bench.py`, splits `rail_*`).
 
+## Formula chat
+
+With `VIEW_SCENE=minihannover_rail_scene.xml` the arm carries a pipette, and
+the **Formula** panel under the tasks takes a formula in plain text:
+
+| Type | And |
+| --- | --- |
+| `What's on the bench?` | the compounds in the open flasks of this layout, and how much of each can be drawn |
+| `1.2 g geraniol, 0.5 g nerol` (either order, `1,2 g`, Spanish names) | a proposal: each line with the flask it would come from, or why it can't be dosed |
+| `40 % geraniol, 60 % nerol, total 2 g` | the same from percentages |
+| `FRG-101`, `5 g of FRG-103` | one of the five formulas in `harness/formulas`, scaled (3 g by default), with the ingredients this bench lacks struck out |
+| **Run**, or `run` / `dale` | the arm doses it; the side panels follow it |
+| **Stop**, or `stop` / `para` | the arm stops, parks and goes back to its sweep |
+
+Without `ANTHROPIC_API_KEY` a small parser (`backend/formula_chat.py`) reads
+these forms; the panel says `OFFLINE PARSER`. With the key and `anthropic`
+installed in the venv, Claude (`VIEW_CHAT_MODEL`, default `claude-opus-5`)
+reads free-form requests ("something fresh and citrusy, 3 g") and proposes a
+formula from the bench. Either way a proposal is checked against the bench, so
+nothing unknown or out of stock reaches the arm.
+
+The run (`backend/formulation.py`) is the real scene, not a recording: for each
+ingredient the arm finds the flask, lowers the pipette into it, draws, carries
+it to the beaker on `balance_2` and delivers, with the rail scene's own IK
+(`simulation/scripts/rail_kinematics.py`) and liquid rules
+(`simulation/scripts/pipetting.py`, which refuses a draw unless the tip is in
+the bore and under the surface). The balance reads the beaker, on its display in
+the camera too, and each ingredient is dosed against that reading: full 1 ml
+tips while the target is far, one aimed 2 % short, then a top-up until it is
+within 4 mg (pass: ±10 mg). Each draw scatters 1 %, so the loop has something
+to correct. A 2 g, three-ingredient formula takes about 80 s.
+
+What is simplified, and the panels say so: the arm is posed kinematically (like
+the idle sweep, so it cannot knock anything over), the liquid is a level and a
+number, and the flasks' identities and positions come from the scene model, not
+from the cameras (the Pipeline's 3D localization reads "from the sim model").
+The seeded layouts use the open, part-filled flasks of
+`simulation/assets/open_vessels/` (`scripts/generate_open_vessels.py`) so the
+pipette has something to draw from. While a formulation runs, a newly loaded
+page joins the current layout instead of rebuilding the bench under the arm.
+`FORMULATION_SPEED=4` plays runs faster, for rehearsals.
+
 ## Lab state panels
 
 The same backend also publishes the full `LabState` (see
 `dashboard/bridge/README.md` for the protocol) on `ws://localhost:8765/state`.
-It is driven by the scripted formulation in
-`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four liquids,
-one recovery: the Eugenol flask is displaced in the demo state). This script
-uses separate MuJoCo data for the panels; it never moves bottles in the
-camera scene. The rail sweep remains independent. It needs `websockets` in the venv (listed
-in `backend/requirements.txt`).
+In the rail scene that is the chat's formulation above; before the first one
+the panels say they are idle. Other scenes, which have no pipette, replay the
+scripted formulation in `dashboard/bridge/labbridge/mock_run.py` (recipe
+FRG-031) on separate MuJoCo data. It needs `websockets` in the venv (listed in
+`backend/requirements.txt`).
 
-When that state is connected, the frontend shows it (`src/LabTaskPanel.jsx`,
-`src/LabPanels.jsx`); without it, the task panel falls back to the mocked log
-above.
-
-- **Robot tasks**: run id, status and clock, a `SCRIPTED` badge while the
-  sequence is not the real planner, then the formula with each ingredient
+- **Robot tasks**: run id, status and clock, a `SCRIPTED` badge when the
+  sequence is the recorded one, then the formula with each ingredient
   crossed off once added (with its deviation from target, and a progress bar on
   the one being dosed), then the plan around the current step, grouped by
   ingredient: the last few steps done, the active one (amber while it is
@@ -151,16 +186,12 @@ open and close from the buttons in the header, and the edges between views
 drag to resize them (double-click an edge to reset it). The layout is
 remembered in the browser.
 
-To rehearse a moment, start the backend part-way and slowed down:
+To rehearse a moment of the scripted run (scenes without a pipette), start
+the backend part-way and slowed down:
 
 ```sh
 LAB_STATE_START=100 LAB_STATE_SPEED=0.25 simulation/.venv/bin/python view/backend/server.py
 ```
-
-The recovery starts at about 101 s and the recipe completes at about 172 s.
-
-Replace `ScriptedRun` with the real planner when it exists; the state contract
-stays the same.
 
 Replay also supports **Boxes** on the general camera. With the backend running,
 `/ws/replay-detections` performs one inference at a time on the video's current

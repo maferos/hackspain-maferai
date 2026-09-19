@@ -1091,3 +1091,196 @@ body.resizing-row * {
     animation: none;
   }
 }
+
+/* --- Formula chat -------------------------------------------------------------- */
+
+.panel--chat .panel__body {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.chat__log {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chat__hint {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.chat__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0 0.9rem 0.55rem;
+}
+
+.chat-msg {
+  max-width: 100%;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.chat-msg__text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-msg--user {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px 8px 2px 8px;
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--text);
+}
+
+.chat-msg--assistant {
+  align-self: stretch;
+  color: var(--text-dim);
+}
+
+.chat-msg--error .chat-msg__text {
+  color: var(--warn);
+}
+
+.chat-msg--pending {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.proposal {
+  margin-top: 0.4rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+}
+
+.proposal__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--panel-border);
+  font-weight: 600;
+}
+
+.proposal__list {
+  margin: 0;
+  padding: 0.25rem 0.6rem;
+  list-style: none;
+}
+
+.proposal-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.5rem;
+  padding: 0.15rem 0;
+}
+
+.proposal-row__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proposal-row__mass {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+.proposal-row__meta {
+  grid-column: 1;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proposal-row--off {
+  opacity: 0.45;
+}
+
+.proposal-row--off .proposal-row__name {
+  text-decoration: line-through;
+}
+
+.proposal__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-top: 1px solid var(--panel-border);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.chat__composer {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid var(--panel-border);
+}
+
+.chat__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.chat__input:focus {
+  outline: none;
+  border-color: rgba(88, 166, 255, 0.6);
+}
+
+.chat-button {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid rgba(88, 166, 255, 0.4);
+  border-radius: 5px;
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.chat-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.chat-button--run {
+  border-color: rgba(63, 185, 80, 0.45);
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--active);
+}
+
+.chat-button--stop {
+  padding: 0.1rem 0.5rem;
+  border-color: rgba(248, 81, 73, 0.45);
+  background: rgba(248, 81, 73, 0.12);
+  color: var(--error);
+  font-size: 0.7rem;
+}

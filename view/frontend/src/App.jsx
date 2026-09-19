@@ -3,6 +3,7 @@ import replayPatterns from "./replayPatterns.json";
 import { chooseScene } from "./sceneSession";
 import "./App.css";
 import useReplayDetections from "./useReplayDetections";
+import FormulaChat from "./FormulaChat";
 import LabPanels from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
 import PipelinePanel from "./PipelinePanel";
@@ -10,7 +11,6 @@ import Splitter from "./Splitter";
 import { useLabState } from "./labState";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8000";
-const WS_URL = BACKEND_URL.replace(/^http/, "ws") + "/ws/tasks";
 const DETECTIONS_URL = BACKEND_URL.replace(/^http/, "ws") + "/ws/detections";
 const BOXES_KEY = "robot-viewer.boxes";
 const STATE_URL = import.meta.env.VITE_STATE_URL ?? "ws://localhost:8765/state";
@@ -46,7 +46,7 @@ const VIEWS = [
   { id: "robot", label: "Robot" },
   { id: "balance", label: "Balance" },
 ];
-const DEFAULT_SIZES = { tasksWidth: 320, panelsHeight: 230, robotShare: 0.5, pipelineHeight: 300 };
+const DEFAULT_SIZES = { tasksWidth: 320, panelsHeight: 230, robotShare: 0.5, chatHeight: 240, pipelineHeight: 290 };
 const DEFAULT_LAYOUT = {
   ...DEFAULT_SIZES,
   views: Object.fromEntries(VIEWS.map((v) => [v.id, true])),
@@ -65,44 +65,6 @@ function loadLayout() {
 }
 
 const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), Math.max(lo, hi));
-
-function statusLabel(status) {
-  return status === "active" ? "In progress" : "Done";
-}
-
-function formatTime(iso) {
-  try {
-    return new Date(iso).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  } catch {
-    return "";
-  }
-}
-
-function TaskPanel({ tasks, connected }) {
-  const ordered = [...tasks].reverse();
-  return (
-    <aside className="task-panel">
-      <header className="task-panel__header">
-        <h2>Robot tasks</h2>
-        <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
-      </header>
-      <ol className="task-list">
-        {ordered.map((task) => (
-          <li key={task.id} className={`task-item task-item--${task.status}`}>
-            <span className="task-item__marker" />
-            <div className="task-item__body">
-              <p className="task-item__label">{task.label}</p>
-              <p className="task-item__meta">
-                {statusLabel(task.status)} · {formatTime(task.started_at)}
-              </p>
-            </div>
-          </li>
-        ))}
-        {ordered.length === 0 && <li className="task-item task-item--empty">Waiting for tasks…</li>}
-      </ol>
-    </aside>
-  );
-}
 
 // The detector's boxes over a camera, in the frame's own pixels: the viewBox is
 // the frame and "slice" crops it exactly as the image's object-fit: cover does.
@@ -312,9 +274,6 @@ export default function App() {
   const [liveCameras, setLiveCameras] = useState(DEFAULT_CAMERAS);
   const cameras = realtime ? liveCameras : REPLAY_CAMERAS;
   const [mainCameraId, setMainCameraId] = useState("scene");
-  const [tasks, setTasks] = useState([]);
-  const [wsConnected, setWsConnected] = useState(false);
-  const wsRef = useRef(null);
   // The lab state feeds the side panels in both modes: the mode only picks the
   // viewport's source. Without a publisher on :8765 the panels play the
   // recorded scripted run (see labState.js).
@@ -399,54 +358,12 @@ export default function App() {
       });
   }, [realtime]);
 
-  useEffect(() => {
-    if (!realtime) {
-      setTasks([]);
-      setWsConnected(false);
-      return;
-    }
-    let cancelled = false;
-    let retryTimer;
-
-    const connect = () => {
-      const ws = new WebSocket(WS_URL);
-      wsRef.current = ws;
-      ws.onopen = () => !cancelled && setWsConnected(true);
-      ws.onmessage = (event) => {
-        if (cancelled) return;
-        try {
-          const payload = JSON.parse(event.data);
-          if (Array.isArray(payload.tasks)) setTasks(payload.tasks);
-        } catch {
-          /* ignore malformed frame */
-        }
-      };
-      ws.onclose = () => {
-        if (cancelled) return;
-        setWsConnected(false);
-        retryTimer = setTimeout(connect, 1500);
-      };
-      ws.onerror = () => ws.close();
-    };
-
-    connect();
-    return () => {
-      cancelled = true;
-      clearTimeout(retryTimer);
-      wsRef.current?.close();
-    };
-  }, [realtime]);
-
   const pipCameraId = cameras.find((c) => c.id !== mainCameraId)?.id ?? mainCameraId;
   const cameraLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
   const mainLabel = cameraLabel;
   const pipLabel = cameras.find((c) => c.id === pipCameraId)?.label ?? pipCameraId;
 
   const swapCameras = useCallback(() => setMainCameraId(pipCameraId), [pipCameraId]);
-
-  // With the lab state connected, the task panel shows the formula and the
-  // plan; without it, the backend's mocked task log as before.
-  const labRunning = lab.state && lab.state.run.status !== "idle" ? lab.state : null;
 
   const { views } = layout;
   const showPanels = views.robot || views.balance;
@@ -463,9 +380,14 @@ export default function App() {
     const max = bar.parentElement.clientHeight - SPLITTER_PX - 150;
     return (d) => resize({ panelsHeight: clamp(start - d, 120, max) });
   };
+  const dragChat = (bar) => {
+    const start = layout.chatHeight;
+    const max = bar.parentElement.clientHeight - layout.pipelineHeight - 2 * SPLITTER_PX - 160;
+    return (d) => resize({ chatHeight: clamp(start - d, 160, max) });
+  };
   const dragPipeline = (bar) => {
     const start = layout.pipelineHeight;
-    const max = bar.parentElement.clientHeight - SPLITTER_PX - 200;
+    const max = bar.parentElement.clientHeight - layout.chatHeight - 2 * SPLITTER_PX - 160;
     return (d) => resize({ pipelineHeight: clamp(start - d, 140, max) });
   };
   const dragShare = (bar) => {
@@ -574,7 +496,9 @@ export default function App() {
         </div>
         <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
         <div className="side" style={{ width: layout.tasksWidth }}>
-          {labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />}
+          <LabTaskPanel state={lab.state} connected={lab.connected} />
+          <Splitter direction="row" onStart={dragChat} onReset={() => resize({ chatHeight: DEFAULT_SIZES.chatHeight })} />
+          <FormulaChat backendUrl={BACKEND_URL} run={lab.connected ? lab.state?.run : null} style={{ height: layout.chatHeight }} />
           <Splitter direction="row" onStart={dragPipeline} onReset={() => resize({ pipelineHeight: DEFAULT_SIZES.pipelineHeight })} />
           <PipelinePanel
             state={lab.state}

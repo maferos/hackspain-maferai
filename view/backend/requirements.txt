@@ -8,3 +8,5 @@ uvicorn[standard]>=0.30
 opencv-python-headless>=4.9
 # The LabState publisher (dashboard/bridge/labbridge) serves its websocket with:
 websockets>=13
+# Optional: with ANTHROPIC_API_KEY set, the formula chat reads free-form requests.
+anthropic>=0.40

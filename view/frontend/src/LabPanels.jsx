@@ -67,7 +67,11 @@ function RobotPanel({ state }) {
       <Row label="Target" value={r.targetObject ?? "—"} />
       <Row label="Compound" value={r.compound ?? "—"} />
       <Row label="Barcode" value={p.barcode ?? "—"} />
-      <Row label="Gripper" value={`${r.gripper.toUpperCase()} · tilt ${g(r.tiltDeg, 1)}°`} />
+      {r.endEffector === "PIPETTE" ? (
+        <Row label="Pipette" value={`${g(r.tipVolumeMl ?? 0, 2)} ml`} />
+      ) : (
+        <Row label="Gripper" value={`${r.gripper.toUpperCase()} · tilt ${g(r.tiltDeg, 1)}°`} />
+      )}
       <RailTrack state={state} />
     </Panel>
   );
@@ -141,7 +145,7 @@ export default function LabPanels({ state, connected, show, style, robotShare, d
     return (
       <div className="panels panels--empty">
         <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
-        <span>{connected ? "Waiting for lab state…" : "Lab state offline"}</span>
+        <span>{connected ? "Idle · the robot and balance panels follow the next formulation" : "Lab state offline"}</span>
       </div>
     );
   }

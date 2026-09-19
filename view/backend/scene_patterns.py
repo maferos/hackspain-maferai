@@ -35,8 +35,11 @@ def build_pattern(scene_path, name):
     for item in population['containers']:
         sample = item['sample_id']
         name = f'dyn_{sample}'
-        ET.SubElement(asset, 'model', name=name,
-                      file=str(SIM / 'assets/labelled_bottles' / f'{sample}.xml'))
+        # The open, part-filled copy when there is one, so the pipette can draw
+        # from it; scripts/generate_open_vessels.py writes them.
+        opened = SIM / 'assets/open_vessels' / f'{sample}.xml'
+        ET.SubElement(asset, 'model', name=name, file=str(
+            opened if opened.exists() else SIM / 'assets/labelled_bottles' / f'{sample}.xml'))
         body = ET.SubElement(world, 'body', name=name,
                              pos=f"{item['x'] + origin[0]} {item['y'] + origin[1]} {0.9 + origin[2]}",
                              euler=f"0 0 {item['yaw']}")

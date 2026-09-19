@@ -1,14 +1,14 @@
 """Backend for the robot viewer frontend.
 
 Serves two MJPEG camera streams rendered live from the `minihannover_scene`
-MuJoCo model (the onboard robot camera and the fixed scene-overview camera),
-plus a websocket feed of a mock task log standing in for the robot's real
-task planner (none exists in the repo yet).
+MuJoCo model (the onboard robot camera and the fixed scene-overview camera).
 
 It also publishes the full `LabState` that the lab state panels render, on
-`ws://localhost:8765/state`, driven by the scripted
-formulation of `labbridge.mock_run` on separate simulation data. The panel demo
-never moves containers in the camera scene.
+`ws://localhost:8765/state`. In the rail scene, whose arm carries a pipette,
+that state is the formulation typed in the chat (`/api/chat`), carried out by
+the arm on camera (formulation.py). Other scenes replay the scripted
+formulation of `labbridge.mock_run` on separate simulation data, which never
+moves containers in the camera scene.
 
 Usage:
     .venv/bin/python view/backend/server.py
@@ -17,7 +17,6 @@ Then open view/frontend (see its README) against this server's port (8000).
 from __future__ import annotations
 
 import asyncio
-import itertools
 import json
 import random
 import subprocess
@@ -25,13 +24,12 @@ import os
 import sys
 import threading
 import time
-from datetime import datetime, timezone
 from pathlib import Path
 
 import mujoco
 import numpy as np
 from jpeg_encoder import JpegEncoder, PREVIEW_SIZE
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import Body, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from scene_patterns import CATALOGUE, build_pattern
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -52,6 +50,8 @@ from labbridge.mock_run import ACTIVE_BALANCE, RAIL, ScriptedRun  # noqa: E402
 from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
 from labvision.detector import resolve as resolve_detector
+from formulation import Catalogue, FormulationRun, bench, idle_state, resolve  # noqa: E402
+from formula_chat import FormulaChat  # noqa: E402
 
 STATE_PORT = 8765
 STATE_RATE_HZ = 10
@@ -60,6 +60,8 @@ STATE_LOOP_PAUSE_S = 15.0
 # LAB_STATE_START=100 LAB_STATE_SPEED=0.25 shows the recovery in slow motion.
 STATE_START_S = float(os.environ.get("LAB_STATE_START", "0"))
 STATE_SPEED = float(os.environ.get("LAB_STATE_SPEED", "1"))
+# Time scale of the chat's formulation runs; 1 is real time.
+FORMULATION_SPEED = float(os.environ.get("FORMULATION_SPEED", "1"))
 
 # Logical camera id -> MuJoCo camera in the loaded scene. `scene` is the fixed
 # room GoPro (`general`). `robot` is the camera the robot actually carries: the
@@ -103,63 +105,6 @@ DETECTOR_THREADS = int(os.environ.get("VIEW_DETECTOR_THREADS", "2"))
 # the carriage runs the length of the bench holding a hand-down scan pose. Posed
 # kinematically per frame so it stays smooth and can't knock the glassware over.
 RAIL_SWEEP_SPEED = 0.8  # carriage speed, m/s
-
-# --- Mock task log --------------------------------------------------------
-# Stands in for a real task/planner system (none exists in simulation/ yet).
-TASK_SCRIPT = [
-    "Locating amber bottle on the shelving",
-    "Picking up bottle amber_loose_3",
-    "Carrying bottle to balance 2",
-    "Weighing sample on balance 2",
-    "Reading the bottle's barcode",
-    "Logging weight to inventory",
-    "Returning bottle to the shelf",
-    "Moving to the standby position",
-]
-TASK_DURATION_S = 3.5
-MAX_TASK_LOG = 15
-
-
-class TaskLog:
-    """Cycles through TASK_SCRIPT, one task 'active' at a time, mock in real time."""
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self._entries: list[dict] = []
-        self._script = itertools.cycle(enumerate(TASK_SCRIPT))
-        self._next_id = 0
-        self._advance()
-
-    def _advance(self) -> None:
-        with self._lock:
-            for entry in self._entries:
-                if entry["status"] == "active":
-                    entry["status"] = "done"
-            _, label = next(self._script)
-            self._next_id += 1
-            self._entries.append(
-                {
-                    "id": self._next_id,
-                    "label": label,
-                    "status": "active",
-                    "started_at": datetime.now(timezone.utc).isoformat(),
-                }
-            )
-            if len(self._entries) > MAX_TASK_LOG:
-                self._entries.pop(0)
-
-    def snapshot(self) -> list[dict]:
-        with self._lock:
-            return [dict(e) for e in self._entries]
-
-    def run_forever(self) -> None:
-        while True:
-            time.sleep(TASK_DURATION_S)
-            self._advance()
-
-
-task_log = TaskLog()
-threading.Thread(target=task_log.run_forever, daemon=True).start()
 
 # --- MuJoCo scene, stepped continuously in a background thread -----------
 
@@ -208,6 +153,13 @@ class SceneRenderer:
             )
             self.run = None
         self.state_server = StateServer(port=STATE_PORT)
+        # The chat's formulation owns the arm while it runs; `control` makes
+        # starting one and rebuilding the bench exclude each other.
+        self.formulation: FormulationRun | None = None
+        self.rebuilding = False
+        self.control = threading.Lock()
+        self.pipette = "arm_pip_tip" in {
+            mujoco.mj_id2name(self.model, mujoco.mjtObj.mjOBJ_SITE, i) for i in range(self.model.nsite)}
 
         # Which MuJoCo camera each logical view maps to depends on the scene.
         self.cameras = resolve_cameras(self.model)
@@ -298,12 +250,16 @@ class SceneRenderer:
                         self._latest_rgb.clear()
                         self.generation += 1
                     due = dict.fromkeys(names, 0.0)
+                    if self.pipette:
+                        self.state_server.snapshot(idle_state(self.model, self.data))
                 except Exception as exc:
                     info['error'] = str(exc)
                 finally:
                     finished.set()
             with self._data_lock:
-                if self._motion is not None:
+                if self.formulation is not None:
+                    pass  # the run poses the arm from its own thread
+                elif self._motion is not None:
                     self._advance_motion()
                 else:
                     mujoco.mj_step(self.model, self.data)
@@ -355,11 +311,33 @@ class SceneRenderer:
         finally:
             self.watch_main(mj_camera_name, -1)
 
+    def resume_pose(self) -> tuple[float, np.ndarray] | None:
+        """Where the sweep will carry on from, for a run to leave the arm there."""
+        if self._motion is None:
+            return None
+        rows = self._motion["rows"]
+        row = rows[self._motion["i"] % len(rows)]
+        return float(row[0]), np.asarray(row[1:], dtype=float)
+
+    def formulation_finished(self, run: FormulationRun) -> None:
+        with self.control:
+            if self.formulation is run:
+                self.formulation = None
+
     def _snapshot_state(self) -> None:
         self.state_server.snapshot(self.run.initial_state(workcell(self.panel_model, self.panel_data, ACTIVE_BALANCE, RAIL)))
 
     def publish_state_forever(self) -> None:
-        """Replays the scripted formulation and publishes LabState patches at STATE_RATE_HZ."""
+        """Replays the scripted formulation and publishes LabState patches at STATE_RATE_HZ.
+
+        The pipette scene publishes the chat's runs instead: only the idle
+        state here, and each FormulationRun from its own thread.
+        """
+        if self.pipette:
+            self.state_server.start()
+            with self._data_lock:
+                self.state_server.snapshot(idle_state(self.model, self.data))
+            return
         if self.run is None:
             return  # scene has no compatible scripted run; cameras still stream
         self.state_server.start()
@@ -505,13 +483,22 @@ async def randomize_scene(session: str = Query(min_length=1, max_length=100)):
     async with pattern_lock:
         if session in pattern_requests:
             return pattern_requests[session]
-        current = (scene.pattern or {}).get('pattern')
-        choice = random.choice([p for p in CATALOGUE if p['pattern'] != current])
-        model, info = await asyncio.to_thread(build_pattern, SCENE_PATH, choice['pattern'])
-        finished = threading.Event()
-        scene.pending_pattern = (model, info, finished)
-        if not await asyncio.to_thread(finished.wait, 60):
-            raise HTTPException(504, "Timed out loading the layout")
+        # While a formulation runs the bench stays as it is: a page loaded then
+        # joins the running layout instead of rebuilding it under the arm.
+        with scene.control:
+            if scene.formulation is not None and scene.pattern is not None:
+                return scene.pattern
+            scene.rebuilding = True
+        try:
+            current = (scene.pattern or {}).get('pattern')
+            choice = random.choice([p for p in CATALOGUE if p['pattern'] != current])
+            model, info = await asyncio.to_thread(build_pattern, SCENE_PATH, choice['pattern'])
+            finished = threading.Event()
+            scene.pending_pattern = (model, info, finished)
+            if not await asyncio.to_thread(finished.wait, 60):
+                raise HTTPException(504, "Timed out loading the layout")
+        finally:
+            scene.rebuilding = False
         if 'error' in info:
             raise HTTPException(500, info['error'])
         detector.latest = None
@@ -519,6 +506,99 @@ async def randomize_scene(session: str = Query(min_length=1, max_length=100)):
         if len(pattern_requests) > 100:
             del pattern_requests[next(iter(pattern_requests))]
         return info
+
+
+# --- Formulation from the chat -----------------------------------------------
+
+catalogue = Catalogue()
+run_numbers = iter(range(1, 10_000))
+
+
+def current_bench() -> list[dict]:
+    with scene._data_lock:
+        return bench(scene.model, scene.data, catalogue)
+
+
+chat = FormulaChat(catalogue, current_bench)
+
+
+def start_formulation(formula: dict | None) -> FormulationRun:
+    """Resolve a proposed formula against the bench as it is now and run it."""
+    if not formula:
+        raise HTTPException(409, "There is no formula to run yet: type one first.")
+    with scene.control:
+        if not scene.pipette:
+            raise HTTPException(409, f"{SCENE_PATH.name} has no pipette; run the rail scene.")
+        if scene.formulation is not None:
+            raise HTTPException(409, "A formulation is already running; stop it first.")
+        if scene.rebuilding or scene.pending_pattern is not None:
+            raise HTTPException(409, "The bench is being rebuilt; try again in a few seconds.")
+        lines = [{"compound": i.get("cas") or i.get("compound"), "grams": i.get("grams")}
+                 for i in formula.get("ingredients", [])]
+        resolved = resolve(lines, current_bench(), catalogue,
+                           str(formula.get("id") or "CHAT"), str(formula.get("name") or "Chat formula"))
+        if not resolved["runnable"]:
+            raise HTTPException(409, "Nothing in this formula can be dosed on this bench.")
+        run = FormulationRun(scene, resolved, scene.state_server, catalogue,
+                             f"RUN-{next(run_numbers):03d}", speed=FORMULATION_SPEED)
+        scene.formulation = run
+    run.start()
+    return run
+
+
+@app.get("/api/formulation")
+def formulation_info():
+    run = scene.formulation
+    return {
+        "available": scene.pipette,
+        "running": run is not None,
+        "run": run.run_id if run else None,
+        "chat": chat.mode,
+        "bench": current_bench() if scene.pipette else [],
+    }
+
+
+@app.post("/api/chat")
+def chat_message(payload: dict = Body(...)):
+    """One chat message: the reply, the formula it proposes and what was done."""
+    message = str(payload.get("message") or "").strip()
+    if not message:
+        raise HTTPException(400, "Empty message")
+    if not scene.pipette:
+        return {"reply": f"{SCENE_PATH.name} has no pipette on the arm; start the backend with "
+                         "VIEW_SCENE=minihannover_rail_scene.xml to run formulas.",
+                "formula": None, "action": None}
+    answer = chat.reply(message, payload.get("history") or [])
+    if answer["action"] == "start":
+        try:
+            run = start_formulation(answer["formula"])
+            answer["reply"] = f"{run.run_id} started: {run.formula['name']}, {run.target:.3f} g."
+            answer["run"] = run.run_id
+        except HTTPException as exc:
+            answer["reply"], answer["action"] = exc.detail, None
+    elif answer["action"] == "stop":
+        run = scene.formulation
+        if run is None:
+            answer["reply"], answer["action"] = "Nothing is running.", None
+        else:
+            run.stop()
+            answer["reply"] = f"Stopping {run.run_id}; the arm goes back to its sweep."
+    return answer
+
+
+@app.post("/api/formulation/start")
+def formulation_start(payload: dict = Body(default={})):
+    run = start_formulation(payload.get("formula") or chat.last)
+    return {"run": run.run_id, "reply": f"{run.run_id} started: {run.formula['name']}, {run.target:.3f} g."}
+
+
+@app.post("/api/formulation/stop")
+def formulation_stop():
+    run = scene.formulation
+    if run is None:
+        raise HTTPException(409, "Nothing is running.")
+    run.stop()
+    return {"run": run.run_id}
 
 
 def mjpeg_generator(mj_camera_name: str):
@@ -662,21 +742,6 @@ async def ws_detections(websocket: WebSocket):
         pass
     finally:
         detector.watch(-1)
-
-
-@app.websocket("/ws/tasks")
-async def ws_tasks(websocket: WebSocket):
-    await websocket.accept()
-    last_sent = None
-    try:
-        while True:
-            current = task_log.snapshot()
-            if current != last_sent:
-                await websocket.send_json({"tasks": current})
-                last_sent = current
-            await asyncio.sleep(0.3)
-    except WebSocketDisconnect:
-        pass
 
 
 if __name__ == "__main__":
