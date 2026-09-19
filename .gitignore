@@ -11,12 +11,16 @@ MJMODEL.TXT
 /third_party/
 results/
 data/
-runs/
+# training runs: keep only the scripts, never weights, logs or plots
+**/runs/**
+!**/runs/**/
+!**/runs/**/*.py
 weights/
 *.pt
 *.torchscript
 *.onnx
 *.mp4
+*.log
 mobileclip*.ts
 
 # Menagerie models fetched by simulation/scripts/fetch_menagerie.sh
