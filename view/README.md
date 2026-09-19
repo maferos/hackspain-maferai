@@ -61,10 +61,13 @@ run, regenerate it with `python -m labbridge.record_run` from `dashboard/bridge`
 In Real time the bottle detector's boxes are drawn over the general camera,
 wherever that camera is shown; the header's **Boxes** button turns them off and
 on, and the choice is remembered in this browser. The backend runs the
-detector only while a viewer has the boxes on, on the newest frame, at most
-`VIEW_DETECTOR_HZ` (4) times a second, with `VIEW_DETECTOR_THREADS` (2) torch
+detector only while a viewer has the boxes on, every 5 rendered camera frames
+(`VIEW_DETECTOR_FRAME_STRIDE`), with `VIEW_DETECTOR_THREADS` (2) torch
 threads so the streams keep their frame rate; the boxes lag the picture by one
 inference (about 0.4 s on a laptop CPU).
+The first detection runs immediately. Between detections the last boxes stay
+visible. If inference takes longer than 5 frames, it skips ahead to the newest
+frame instead of building a queue.
 
 It needs `ultralytics` in the backend's venv and the weights: `VIEW_DETECTOR`
 names a `labvision.detector` backend or a weights path, and the default,

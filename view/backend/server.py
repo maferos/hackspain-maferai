@@ -87,7 +87,9 @@ JPEG_QUALITY = 80
 DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "rail")
 DETECTOR_CONF = float(os.environ.get("VIEW_DETECTOR_CONF", "0.47"))
 DETECTOR_CAMERA = "scene"  # logical id; the model only knows the fixed camera
-DETECTOR_MAX_HZ = float(os.environ.get("VIEW_DETECTOR_HZ", "4"))
+DETECTOR_FRAME_STRIDE = int(os.environ.get("VIEW_DETECTOR_FRAME_STRIDE", "5"))
+if DETECTOR_FRAME_STRIDE < 1:
+    raise ValueError("VIEW_DETECTOR_FRAME_STRIDE must be at least 1")
 # Torch threads: few enough that the renderer keeps its frame rate.
 DETECTOR_THREADS = int(os.environ.get("VIEW_DETECTOR_THREADS", "2"))
 
@@ -329,7 +331,7 @@ class Detector:
     """Finds the bottles in the general camera's live frames while anyone watches.
 
     The model loads on first use and runs only while a /ws/detections client is
-    connected, at most DETECTOR_MAX_HZ, on the newest frame the render loop has
+    connected, every DETECTOR_FRAME_STRIDE rendered frames, on the newest frame it has
     made; the boxes lag the picture by one inference, which the static bottles
     do not show. Without ultralytics or the weights, the viewer just offers no
     boxes.
@@ -372,13 +374,13 @@ class Detector:
             self.error = f"detector failed to load: {exc!r}"
             print(f"[view] {self.error}", file=sys.stderr)
             return
-        last_seq = -1
+        last_seq = None
         while True:
             if self.watchers == 0:
                 time.sleep(0.2)
                 continue
             frame, seq = self.renderer.latest_rgb(self.mj_camera)
-            if frame is None or seq == last_seq:
+            if frame is None or (last_seq is not None and seq - last_seq < DETECTOR_FRAME_STRIDE):
                 time.sleep(0.02)
                 continue
             start = time.time()
@@ -404,9 +406,6 @@ class Detector:
                 "inference_ms": round(took * 1000),
             }
             last_seq = seq
-            remaining = 1.0 / DETECTOR_MAX_HZ - (time.time() - start)
-            if remaining > 0:
-                time.sleep(remaining)
 
 
 detector = Detector(scene, DETECTOR_SPEC)
