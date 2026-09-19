@@ -227,7 +227,10 @@ export default function App() {
   return (
     <div className="app">
       <header className="app__header">
-        <h1>Robot monitor — mini-Hannover</h1>
+        <div className="app__brand">
+          <img src="/mafer-logo.svg" alt="Mafer" className="app__logo" />
+          <h1>Robot monitor — mini-Hannover</h1>
+        </div>
         <div className="header-controls">
           <div className="mode-toggle" role="group" aria-label="Source">
             <button
