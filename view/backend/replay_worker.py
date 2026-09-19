@@ -35,7 +35,7 @@ def main():
             ok, frame = video.read()
             if not ok:
                 raise RuntimeError("Cannot decode replay frame")
-            result = model.predict(frame, imgsz=1920, conf=0.47, verbose=False)[0]
+            result = model.predict(frame, imgsz=1280, conf=0.47, verbose=False)[0]
             boxes = [[round(float(v), 1) for v in xyxy] + [round(float(score), 3)]
                      for xyxy, score in zip(result.boxes.xyxy.cpu().numpy(),
                                            result.boxes.conf.cpu().numpy(), strict=True)]
