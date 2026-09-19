@@ -899,7 +899,6 @@
         <geom name="wash_bottle_2" type="mesh" mesh="wash_bottle" pos="2.48 -0.14 0.9" material="hdpe_white" contype="0" conaffinity="0" group="1" />
         <geom name="wash_cap_2" type="cylinder" pos="2.48 -0.14 1.1" size="0.018 0.012" material="red_cap" contype="0" conaffinity="0" group="1" />
         <geom name="wash_nozzle_2" type="capsule" fromto="2.48 -0.14 1.11 2.43 -0.14 1.15" size="0.003" material="hdpe_white" contype="0" conaffinity="0" group="1" />
-        <geom name="funnel_0" type="mesh" mesh="funnel" pos="2.05 -0.2 0.9" material="hdpe_white" contype="0" conaffinity="0" group="1" />
         <geom name="drip_tray_0" type="mesh" mesh="bevel_19" pos="2.52 0.24 0.912" material="white_matte" contype="0" conaffinity="0" group="1" />
         <geom name="rack_wire_0" type="cylinder" fromto="2.12 0.12 0.92 2.12 0.12 1.68" size="0.004" material="white" contype="0" conaffinity="0" group="1" />
         <geom name="rack_wire_1" type="cylinder" fromto="2.22 0.12 0.92 2.22 0.12 1.68" size="0.004" material="white" contype="0" conaffinity="0" group="1" />

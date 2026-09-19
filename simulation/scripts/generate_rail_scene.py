@@ -333,7 +333,11 @@ def build_bench(keep: int) -> list[dict[str, str]]:
     parent_of = {child: parent for parent in tree.getroot().iter()
                  for child in parent}
     vessels: dict[str, list[ET.Element]] = {}
-    for geom in tree.getroot().iter('geom'):
+    for geom in list(tree.getroot().iter('geom')):
+        # Keep the wash-zone balance clear in the rail scene.
+        if geom.get('name') == 'funnel_0':
+            parent_of[geom].remove(geom)
+            continue
         match = re.match(r'stock_(.+?)_(?:glass|cap|label|label_back|collision)',
                          geom.get('name', ''))
         if match:
