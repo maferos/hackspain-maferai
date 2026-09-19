@@ -457,11 +457,10 @@ def build_scene() -> Path:
     for vessel in lifted:
         ET.SubElement(asset, 'model', name=f'dyn_{vessel["sample"]}',
                       file=f'../assets/open_vessels/{vessel["sample"]}.xml')
-    if TOOL == 'pipette':
-        ET.SubElement(asset, 'model', name='beaker',
-                      file='../assets/beaker/beaker.xml')
-        ET.SubElement(asset, 'model', name='balance_open',
-                      file='../assets/balance_open/balance_open.xml')
+    ET.SubElement(asset, 'model', name='beaker',
+                  file='../assets/beaker/beaker.xml')
+    ET.SubElement(asset, 'model', name='balance_open',
+                  file='../assets/balance_open/balance_open.xml')
 
     world = root.find('worldbody')
     for vessel in lifted:
@@ -470,24 +469,25 @@ def build_scene() -> Path:
         ET.SubElement(body, 'freejoint')
         ET.SubElement(body, 'attach', model=f'dyn_{vessel["sample"]}',
                       body=vessel['sample'], prefix=f'dyn_{vessel["sample"]}_')
-    if TOOL == 'pipette':
-        # One balance loses its roof and gains a pan; the beaker stands on it.
-        for old in list(world.findall('frame')):
-            if any(a.get('prefix') == 'balance_5_' for a in old.findall('attach')):
-                world.remove(old)
-        frame = next(f for f in world.iter('frame')
-                     if any(a.get('prefix') == OPEN_BALANCE
-                            for a in f.findall('attach')))
-        frame.find('attach').set('model', 'balance_open')
-        frame.set('pos', ' '.join(f'{v:g}' for v in BALANCE_POS))
-        frame.attrib.pop('euler', None)
-        base = list(BALANCE_POS)
-        beaker = ET.SubElement(
-            world, 'body', name='beaker',
-            pos=' '.join(f'{base[i] + BALANCE_PAN[i]:.5g}' for i in range(3)))
-        ET.SubElement(beaker, 'freejoint')
-        ET.SubElement(beaker, 'attach', model='beaker', body='beaker',
-                      prefix='beaker_')
+    # One balance loses its roof and gains a pan; the beaker stands on it. The
+    # station belongs to the bench, not to the tool on the flange: the gripper
+    # scene weighs there too, once the pipette has dosed each compound.
+    for old in list(world.findall('frame')):
+        if any(a.get('prefix') == 'balance_5_' for a in old.findall('attach')):
+            world.remove(old)
+    frame = next(f for f in world.iter('frame')
+                 if any(a.get('prefix') == OPEN_BALANCE
+                        for a in f.findall('attach')))
+    frame.find('attach').set('model', 'balance_open')
+    frame.set('pos', ' '.join(f'{v:g}' for v in BALANCE_POS))
+    frame.attrib.pop('euler', None)
+    base = list(BALANCE_POS)
+    beaker = ET.SubElement(
+        world, 'body', name='beaker',
+        pos=' '.join(f'{base[i] + BALANCE_PAN[i]:.5g}' for i in range(3)))
+    ET.SubElement(beaker, 'freejoint')
+    ET.SubElement(beaker, 'attach', model='beaker', body='beaker',
+                  prefix='beaker_')
 
     post_z = BEAM_BOTTOM / 2
     rail = ET.SubElement(world, 'body', name='rail')

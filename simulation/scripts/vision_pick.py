@@ -535,15 +535,23 @@ GRIPPER_ARM = rk.SIM / 'assets/ur10e_2f85_gripper'
 
 
 def gripper_scene() -> Path:
-    """The rail scene with the Robotiq on the flange, built if it is not there.
+    """The rail scene with the Robotiq on the flange, built if it is out of date.
 
     The scene as shipped carries the pipette, and a pipette cannot pick a bottle
     up. generate_rail_scene.py builds either tool but writes both to the same
     files, so this runs it with the tool switched and its outputs pointed
     elsewhere, leaving the pipetting scene as it was. Both outputs are
     gitignored: they are one command away and would only go stale.
+
+    Which is exactly what they did. A build older than the generator or than the
+    scene it is built from is rebuilt: editing the generator and seeing the old
+    bench is a long way to debug, because the file is there and looks current.
     """
-    if GRIPPER_SCENE.exists() and (GRIPPER_ARM / 'ur10e_2f85.xml').exists():
+    sources = [Path(__file__).resolve(), rk.SIM / 'scripts/generate_rail_scene.py',
+               rk.SCENE]
+    if (GRIPPER_SCENE.exists() and (GRIPPER_ARM / 'ur10e_2f85.xml').exists()
+            and all(s.exists() and s.stat().st_mtime <= GRIPPER_SCENE.stat().st_mtime
+                    for s in sources)):
         return GRIPPER_SCENE
     import generate_rail_scene as gen
     shipped = f'../{gen.ARM_DIR.relative_to(rk.SIM).as_posix()}/'
