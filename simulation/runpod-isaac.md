@@ -223,9 +223,37 @@ empty USD.
   generated name to `[A-Za-z0-9_]`. The shelf-free `open` scene lacked those
   assets, so it exported fine while `full` didn't until sanitised.
 
+## Robot arm eye-in-hand (`arm_pose_render.py`)
+
+The MuJoCo scene has no arm, so candidate manipulators are added at render time
+by referencing the Isaac cloud USDs directly onto the exported lab stage — no
+change to the MuJoCo scene, no arm in MJCF. Renders in `renders/isaac/arms/`.
+
+- **Reference under a clean parent Xform.** Some arm USDs (ur10e) already carry
+  `xformOp:translate/orient/scale` on their root prim, so `AddTranslateOp` on the
+  referencing prim throws "xformOp already exists". Fix: place a parent `Xform`
+  you control at the base pose and put `AddReference` on a `robot` child.
+- **Pose via the articulation, gravity off.** `SingleArticulation.set_joint_positions`
+  + `apply_action(joint_positions=q)` on a `SimulationContext` with the physics
+  scene's gravity set to 0 — the hand-picked "hand-down" pose then holds across
+  the render steps without drives fighting it. Joint/EE names come from
+  `arm_introspect.py` (Franka `panda_hand`, UR10e `wrist_3_link/flange`, Kinova
+  `end_effector_link`; all +Z approach).
+- **Place the camera from the measured hand pose, not by parenting.** Read the EE
+  link's world pose with `SingleRigidPrim.get_world_pose()` after stepping, then
+  author a world camera just below the hand looking straight down, clamped to
+  ~0.7 m above the bench. This frames a cluster of bottles regardless of the exact
+  wrist tilt and avoids self-occlusion maths.
+- **Aim over bottles, not fixtures.** The bench's balances sit at `y≈-1.16` and
+  `y≈0.36`; the `y≈-0.55` centre line has an aisle gap. The dense labelled-bottle
+  field is `x∈[-4,-0.5]` around `y≈-0.35` — aim hand targets there.
+
+Verdict: Franka Panda and Kinova Gen3 give clean top-down eye-in-hand views;
+UR10e's bulky wrist occludes ~40 % of its frame.
+
 ## Next (toward the real dataset)
 
 This de-risks the cloud path. To turn it into a labelled CV dataset, extend
-`render_isaac.py` with Replicator writers for **segmentation + depth + bbox**,
-domain-randomise camera/lighting, and swap the trivial scene for the lab bench
-(`minihannover` URDF→USD). See the `todo.md` "Not yet specified" items.
+`arm_pose_render.py` with Replicator writers for **segmentation + depth + bbox**,
+tag each bottle prim with its barcode ID as the semantic label, domain-randomise
+camera/lighting/bottle layout, and generate in bulk. See `todo.md`.
