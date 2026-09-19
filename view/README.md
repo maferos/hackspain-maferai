@@ -63,7 +63,10 @@ laptop CPU). It needs `ultralytics` in the backend's venv and the weights at
 `computer-vision/runs/rail/yolo26n_rail_general.pt` (YOLO26n trained on this
 camera in the rail scene; the team Drive has them, and the path is gitignored)
 or wherever `VIEW_DETECTOR_WEIGHTS` points. Without them the button is greyed
-out and says why. `VIEW_DETECTOR_CONF` sets the score threshold (0.25).
+out and says why. `VIEW_DETECTOR_CONF` sets the score threshold (0.45, near
+the model's best-F1 threshold on the rail scene's validation frames). On the
+rail scene's test frames it finds 99 % of the bottles on the bench at 99.5 %
+precision (`computer-vision/scripts/fixedcam_bench.py`, splits `rail_*`).
 
 ## Lab state panels
 

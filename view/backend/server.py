@@ -85,7 +85,8 @@ DETECTOR_WEIGHTS = Path(
     )
 )
 DETECTOR_CAMERA = "scene"  # logical id; the model only knows the fixed camera
-DETECTOR_CONF = float(os.environ.get("VIEW_DETECTOR_CONF", "0.25"))
+# The best-F1 threshold on the rail scene's validation frames was 0.47.
+DETECTOR_CONF = float(os.environ.get("VIEW_DETECTOR_CONF", "0.45"))
 DETECTOR_MAX_HZ = float(os.environ.get("VIEW_DETECTOR_HZ", "4"))
 # Torch threads: few enough that the renderer keeps its frame rate.
 DETECTOR_THREADS = int(os.environ.get("VIEW_DETECTOR_THREADS", "2"))
