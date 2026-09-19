@@ -22,10 +22,9 @@ view, and:
     twin as a bottle that is not required, so a box on it is ignored rather
     than false. The camera pose and field of view are the twin's.
 
-Isaac's USD camera took MuJoCo's ``fovy`` as its horizontal field of view, so
-the Isaac view is narrower than the MuJoCo scene's own camera; ``--fovy`` sets
-the vertical field of view used here (the default is what that conversion
-gives at 16:9, checked by overlaying the two renders).
+Isaac's USD camera sits where the MJCF puts ``general`` but with a narrower
+lens; ``--fovy`` sets the vertical field of view used here, and the default,
+:data:`ISAAC_FOVY`, was measured against Isaac's own boxes.
 
     python scripts/fixedcam_twin.py render --scene-root <extracted simulation/>
     python scripts/fixedcam_twin.py isaac --coco <lab_dataset_v2> --twin twin_mujoco
@@ -33,7 +32,6 @@ gives at 16:9, checked by overlaying the two renders).
 
 import argparse
 import json
-import math
 import re
 import sys
 import time
@@ -54,12 +52,12 @@ from labvision import registry  # noqa: E402
 REPO = Path(__file__).resolve().parents[2]
 DATA = REPO / "simulation" / "out" / "fixedcam"
 WIDTH, HEIGHT = 1600, 900
-MUJOCO_FOVY = 60.44
-ISAAC_FOVY = math.degrees(
-    2 * math.atan(math.tan(math.radians(MUJOCO_FOVY) / 2) * HEIGHT / WIDTH)
-)
-"""Vertical field of view of Isaac's ``general`` camera: MuJoCo's 60.44 degrees
-read as horizontal, at 1600 x 900."""
+ISAAC_FOVY = 31.45
+"""Vertical field of view of Isaac's ``general`` camera, in degrees, measured:
+the boxes of the 88 well-visible labelled bottles in Isaac frame 0 are the
+MuJoCo twin's boxes zoomed by 1.163 about the image centre (1.5 px median
+residual) when the twin uses 36.28 degrees. The USD camera is at the same pose
+as the MJCF one, with a narrower lens than the scene's 60.44 degrees."""
 
 STOCK_GEOM = re.compile(
     r"^room_stock_((?:SMP|PWD)-\d{4}|reserve_\d+)_(body|glass|cap|label|label_back)_0$"
@@ -225,23 +223,36 @@ def isaac(args: argparse.Namespace) -> None:
         if not target.exists():
             target.write_bytes(source.read_bytes())
         bottles = []
+        # Isaac tags every mesh of a bottle (body, cap, label) with the bottle's
+        # sample id, so its COCO holds one box per part. The id is unique per
+        # bottle: the union of a class's boxes is the bottle's visible box, and
+        # the largest part (the body) says how hidden the bottle is.
+        parts: dict[int, list] = {}
         for a in by_image.get(image["id"], []):
-            sample_id = names[a["category_id"]]
+            parts.setdefault(a["category_id"], []).append(a)
+        for category, group in parts.items():
+            sample_id = names[category]
             sample = samples.get(sample_id)
             if sample is None:
                 continue
-            x, y, w, h = a["bbox"]
-            box = [x, y, x + w, y + h]
+            x0 = min(a["bbox"][0] for a in group)
+            y0 = min(a["bbox"][1] for a in group)
+            x1 = max(a["bbox"][0] + a["bbox"][2] for a in group)
+            y1 = max(a["bbox"][1] + a["bbox"][3] for a in group)
+            body = max(group, key=lambda a: a["bbox"][2] * a["bbox"][3])
+            visible = 1.0 - float(body.get("occlusion", 0.0))
+            box = [x0, y0, x1, y1]
             partner = twin_by_id.get(sample_id)
             bottles.append({
                 "sample_id": sample_id, "phase": sample.phase,
                 "container_ml": sample.container_ml,
                 "where": partner["where"] if partner else "bench",
                 "xyxy": box, "full_xyxy": box,
-                "pixels": int(w * h * (1 - a.get("occlusion", 0.0))),
-                "visible_frac": round(1.0 - float(a.get("occlusion", 0.0)), 3),
-                "clipped": bool(x <= 0 or y <= 0 or x + w >= image["width"] - 1
-                                or y + h >= image["height"] - 1),
+                "pixels": int((x1 - x0) * (y1 - y0) * visible),
+                "visible_frac": round(visible, 3),
+                "parts": len(group),
+                "clipped": bool(x0 <= 0 or y0 <= 0 or x1 >= image["width"] - 1
+                                or y1 >= image["height"] - 1),
                 "source": "isaac",
             })  # fmt: skip
         for r in reserves:
