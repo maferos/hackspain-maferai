@@ -144,7 +144,11 @@ class ScanState:
     def __init__(self, scene, server, catalogue: Catalogue, executor: str | None = None) -> None:
         self.scene, self.server, self.catalogue = scene, server, catalogue
         kwargs = {"executor": executor} if executor else {}
-        self.workflow = Workflow(catalogue, self.shelf, on_mass=self._mass, **kwargs)
+        # The action plan needs the compiled scene to tell a bottle the gripper
+        # can lift from the welded stock that looks just like it.
+        self.workflow = Workflow(catalogue, self.shelf, on_mass=self._mass,
+                                 scene_model=lambda: (self.scene.model, self.scene.data),
+                                 scene_name=self._scene_name(), **kwargs)
         self.executor: FetchExecutor | None = None
         self._scan = None
         self._sent: list[str] = []
@@ -152,6 +156,12 @@ class ScanState:
         self._started: dict[int, float] = {}
         self._phase = "init"
         self._mapped_at: float | None = None
+
+    def _scene_name(self) -> str:
+        """The bench a plan could not place an ingredient on, by its seed."""
+        pattern = getattr(self.scene, "pattern", None)
+        name = pattern.get("pattern") if isinstance(pattern, dict) else pattern
+        return f"the {name} bench" if name else "this bench"
 
     def shelf(self) -> list[dict]:
         """The flasks the current scan has named."""

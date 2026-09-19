@@ -208,6 +208,28 @@ narration.
 formula stops at Check with the rest of the bar skipped, a dose that failed
 marks Fetch, and Done never fails on someone else's behalf.
 
+### The plan under each ingredient
+
+An order that passes the check is planned by `harness/formula_to_actions`, the
+same planner `harness/run_formula.py` runs offline, but against the bench this
+scan is looking at rather than a lookup table from another machine.
+`backend/actions.py` is the bridge: it turns the scan's shelf into the entries
+the planner reads, asks the compiled scene which bottles have a free joint, and
+maps each of the planner's ten verbs onto the executor step that crosses it off.
+
+Each ingredient therefore shows its ten primitives — locate, traverse,
+approach, read barcode, verify id, pick, to balance, dose, weigh, return — with
+the line of English a VLA would be given and, where a skill exists behind it
+(`pick`, `place`), a chip naming it. The five before the pick all belong to
+`locate`, because travelling to a flask, approaching it and reading its ring is
+one act for this scan and they finish together. Dosing and weighing are shown
+dimmed: `armlab` has no skill for either, and the plan says so rather than
+inventing one.
+
+The plan is read-only. The six steps still run the order; the heap is the same
+order spelled out the way the robot would be told. It is planned once, when the
+order is made, and an order the planner cannot handle simply has none.
+
 ### The check, and what a flask still holds
 
 The check is where a formula is accepted or refused, and it refuses whole. A

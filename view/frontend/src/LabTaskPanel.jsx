@@ -15,6 +15,37 @@ const KEEP_DONE = 4;
 const SHOW_NEXT = 3;
 const DONE = new Set(["completed", "failed", "skipped"]);
 const STEP_NAMES = { locate: "Locate", pick: "Pick", carry: "Carry", dose: "Dose", verify: "Verify", return: "Return" };
+// The ten primitives harness/formula_to_actions plans, in the order it emits
+// them. Each one is crossed off by the executor step that owns it (`step`), so
+// the five before the pick finish together when the scan names the flask.
+const VERB_NAMES = {
+  locate: "Locate", traverse: "Traverse", approach: "Approach",
+  read_barcode: "Read barcode", verify_id: "Verify id", pick: "Pick",
+  move_to_balance: "To balance", dose: "Dose", verify_mass: "Weigh", return: "Return",
+};
+const MARK = { completed: "✓", failed: "✗", skipped: "–", active: "●" };
+
+// One ingredient's primitives, with the English the robot is told and whether
+// a skill exists behind each. A verb with no skill is shown all the same: the
+// plan is what the robot would do, not only what it can do today.
+function ActionLegs({ actions, steps }) {
+  const status = Object.fromEntries((steps ?? []).map((s) => [s.id, s.status]));
+  return (
+    <ol className="legs">
+      {actions.map((a) => {
+        const state = status[a.step] ?? "queued";
+        return (
+          <li key={a.i} className={`leg leg--${state} ${a.executable ? "" : "leg--unimplemented"}`}>
+            <span className="leg__mark">{MARK[state] ?? "○"}</span>
+            <span className="leg__verb">{VERB_NAMES[a.verb] ?? a.verb}</span>
+            <span className="leg__say" title={a.instruction}>{a.instruction}</span>
+            {a.executable ? <span className="leg__skill" title={`runs armlab skill ${a.skill}`}>{a.skill}</span> : null}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
 
 const g = (x, digits = 3) => (typeof x === "number" ? x.toFixed(digits) : "—");
 const signed = (x, digits = 3) => `${x < 0 ? "−" : "+"}${Math.abs(x).toFixed(digits)}`;
@@ -71,6 +102,11 @@ function OrderCard({ order }) {
   const current = (ing) => ing.steps.find((s) => s.status === "active");
   const remaining = Math.max(0, order.estimateSeconds - order.elapsedSeconds);
   const qc = order.qc;
+  // The plan the harness made for this order, by ingredient. Orders from before
+  // the planner, or ones it could not run, simply have none.
+  const byLeg = {};
+  for (const action of order.heap?.actions ?? []) (byLeg[action.leg] ??= []).push(action);
+  const legOf = Object.fromEntries((order.heap?.legs ?? []).map((l) => [l.compound, l.i]));
   return (
     <div className="formula">
       <div className="formula__title">
@@ -120,6 +156,9 @@ function OrderCard({ order }) {
                   <span style={{ width: `${Math.min(1, ing.mass / ing.grams) * 100}%` }} />
                 </span>
               ) : null}
+              {byLeg[legOf[ing.compound]] ? (
+                <ActionLegs actions={byLeg[legOf[ing.compound]]} steps={ing.steps} />
+              ) : null}
             </li>
           );
         })}
@@ -137,6 +176,11 @@ function OrderCard({ order }) {
         <div className="formula__total">
           <span>
             {order.status === "aborted" ? "Stopped" : `${order.done}/${order.total} done`}
+            {order.heap ? (
+              <span className="formula-row__meta">
+                {" · "}{order.heap.summary.actions} actions, {order.heap.summary.executable} runnable
+              </span>
+            ) : null}
           </span>
           <span className="mono">
             {order.status === "queued" ? "waiting for the arm" : `${fmtClock(order.elapsedSeconds)} · ETA ~${fmtClock(remaining)}`}

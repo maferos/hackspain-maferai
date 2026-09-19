@@ -131,6 +131,7 @@ class Order:
         self.finished: float | None = None
         self.status = "queued"
         self.check: dict | None = None
+        self.heap: dict | None = None       # the harness's plan, see actions.py
         self.qc: dict | None = None
         self.doc: dict = {}
         self.log: list[dict] = []
@@ -158,13 +159,21 @@ class Workflow:
         on_mass: Called with (grams) for every mass the executor reports, for
             the balance chart.
         executor: ``fetch`` or ``external``, see the module docstring.
+        scene_model: Returns ``(model, data)`` of the compiled scene, for the
+            action plan: it is the only thing that knows which bottles have a
+            free joint. Without it the plan still builds, calling none of them
+            liftable.
+        scene_name: Named in the reason an ingredient could not be placed.
     """
 
     def __init__(self, catalogue: Catalogue, shelf, on_mass=None, executor: str = EXECUTOR,
-                 order_file: Path | None = ORDER_FILE) -> None:
+                 order_file: Path | None = ORDER_FILE, scene_model=None,
+                 scene_name: str = "the bench") -> None:
         self.catalogue, self.shelf, self.on_mass = catalogue, shelf, on_mass
         self.executor = executor if executor in STEPS else "fetch"
         self.order_file = order_file
+        self.scene_model = scene_model or (lambda: (None, None))
+        self.scene_name = scene_name
         self.order: Order | None = None
         self.lock = threading.RLock()
         self._numbers = iter(range(1, 10_000))
@@ -245,10 +254,30 @@ class Workflow:
                 self._write()
                 return order
             order.check = {"passed": True, "problems": [], "seconds": 0.0}
+            order.heap = self._plan(order)
             self._log(f"{order.id} passed the check: {len(order.active_items())} ingredients on the bench",
                       "info")
+            if order.heap:
+                got = order.heap["summary"]
+                self._log(f"{order.id} planned: {got['actions']} actions over {got['ingredients']} "
+                          f"ingredients, {got['executable']} of them a skill that exists", "info")
             self._write()
             return order
+
+    def _plan(self, order: Order) -> dict | None:
+        """Every primitive this order implies, against the bench as it is now.
+
+        The six steps run the order; this is the same order spelled out the way
+        a VLA is told, and it is only ever read. A planner that cannot run
+        leaves the order without one rather than stopping it.
+        """
+        try:
+            import actions as act
+            return act.heap(order.doc, self.shelf(), *self.scene_model(),
+                            scene=self.scene_name, balance=int(BALANCE.rsplit("_", 1)[-1]))
+        except Exception as exc:                        # never fail an order over the plan
+            self._log(f"{order.id}: no action plan ({exc})", "warn")
+            return None
 
     def start(self) -> None:
         """The executor has taken the order."""
@@ -474,6 +503,7 @@ class Workflow:
                 "source": order.source, "formula": order.doc,
                 "elapsedSeconds": order.elapsed(), "estimateSeconds": order.formula["estimate"]["seconds"],
                 "stages": self._stages(order, scan_done), "qc": order.qc, "check": order.check,
+                "heap": order.heap,
                 "done": done, "total": len(items),
                 "ingredients": [{
                     "id": i["id"], "compound": i["compound"], "cas": i["cas"], "grams": i["grams"],
