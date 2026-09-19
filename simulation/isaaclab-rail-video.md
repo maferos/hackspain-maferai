@@ -90,3 +90,27 @@ material with white diffuse color, metallic 0, roughness 0.45 and IOR 1.5.
 This correction runs in both the exporter and renderer, including cached USD
 exports. The helper is idempotent. `--quality draft --subframes 2` renders
 three Kit updates per frame for the corrected seed replays.
+
+## Record the viewer's vision-driven initial scan
+
+`record_view_scan.py` runs the actual `view/backend/live_scan.py` perception and
+controller on a separate model, without starting a dashboard or changing the
+running viewer. It stops when the initial scan completes and stores the model,
+full joint states, captions and the scan's bench map. The model snapshot embeds
+geometry and textures; recording and export must use the same MuJoCo version.
+
+```sh
+simulation/.venv/bin/python simulation/scripts/record_view_scan.py \
+  --pattern p01 --fps 10 --out simulation/out/scan-p01
+# In the separate MuJoCo + USD export environment:
+python simulation/scripts/export_rail_animation.py \
+  --recording simulation/out/scan-p01 --out out/scan-p01-usd
+# In Isaac Lab, keep normal lighting and three render updates per frame:
+python simulation/scripts/render_rail_isaaclab.py --export out/scan-p01-usd \
+  --out out/scan-p01-videos --quality draft --subframes 2 --headless --enable_cameras
+```
+
+Perception and physical motion run during recording; Isaac Lab renders the
+resulting states offline. The video therefore reproduces the controller's real
+scan, while no new perception or control decisions are made by Isaac Lab.
+The bench map reports what the scan actually identified, including misses.
