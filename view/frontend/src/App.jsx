@@ -45,8 +45,6 @@ const REPLAY_CAMERAS = [
 const VIEWS = [
   { id: "robot", label: "Robot" },
   { id: "balance", label: "Balance" },
-  { id: "tasks", label: "Tasks" },
-  { id: "pipeline", label: "Pipeline" },
 ];
 const DEFAULT_SIZES = { tasksWidth: 320, panelsHeight: 230, robotShare: 0.5, pipelineHeight: 300 };
 const DEFAULT_LAYOUT = {
@@ -333,7 +331,7 @@ export default function App() {
   const [detector, setDetector] = useState(null);
   // Pipeline metrics stay live independently of the viewport's source or boxes.
   const liveDetections = useDetections(
-    detector?.available === true && ((realtime && showBoxes) || layout.views.pipeline),
+    detector?.available === true,
   );
   const detections = realtime && showBoxes ? liveDetections : null;
 
@@ -452,7 +450,6 @@ export default function App() {
 
   const { views } = layout;
   const showPanels = views.robot || views.balance;
-  const showSide = views.tasks || views.pipeline;
 
   // Each handle measures its parent when the drag starts and keeps every view
   // at a usable minimum size.
@@ -575,27 +572,18 @@ export default function App() {
             />
           )}
         </div>
-        {showSide && (
-          <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
-        )}
-        {showSide && (
-          <div className="side" style={{ width: layout.tasksWidth }}>
-            {views.tasks &&
-              (labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />)}
-            {views.tasks && views.pipeline && (
-              <Splitter direction="row" onStart={dragPipeline} onReset={() => resize({ pipelineHeight: DEFAULT_SIZES.pipelineHeight })} />
-            )}
-            {views.pipeline && (
-              <PipelinePanel
-                state={lab.state}
-                connected={lab.connected}
-                detections={liveDetections}
-                detector={detector}
-                style={views.tasks ? { height: layout.pipelineHeight } : { flex: 1 }}
-              />
-            )}
-          </div>
-        )}
+        <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
+        <div className="side" style={{ width: layout.tasksWidth }}>
+          {labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />}
+          <Splitter direction="row" onStart={dragPipeline} onReset={() => resize({ pipelineHeight: DEFAULT_SIZES.pipelineHeight })} />
+          <PipelinePanel
+            state={lab.state}
+            connected={lab.connected}
+            detections={liveDetections}
+            detector={detector}
+            style={{ height: layout.pipelineHeight }}
+          />
+        </div>
       </main>
     </div>
   );

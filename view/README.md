@@ -146,7 +146,7 @@ above.
 - **Pipeline**, under the tasks: the modules from camera to mass check, each
   with its status and live figure, and the latest event.
 
-The camera is always shown; the other views (Robot, Balance, tasks, Pipeline)
+The camera, tasks and Pipeline are always shown. Robot and Balance
 open and close from the buttons in the header, and the edges between views
 drag to resize them (double-click an edge to reset it). The layout is
 remembered in the browser.
