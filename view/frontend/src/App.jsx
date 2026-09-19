@@ -50,10 +50,11 @@ const VIEWS = [
   { id: "info", label: "Info", title: "What the viewer is running: models, scene and build" },
 ];
 // Three columns. The formulas drawer down the left — what has been asked over
-// the one in hand — the camera in the middle with the dock under it, and the
-// chat down the right. The drawer and the dock take space from the camera
-// rather than covering it, and both close from the header.
-const DEFAULT_SIZES = { formulasWidth: 340, askedHeight: 210, chatWidth: 380, dockHeight: 215 };
+// the one in hand — the camera in the middle, and the right column: the two
+// readouts side by side, half the column each, over the chat. Both side
+// columns take their space from the camera rather than covering it, and each
+// closes from the header.
+const DEFAULT_SIZES = { formulasWidth: 340, askedHeight: 210, chatWidth: 440, metersHeight: 190 };
 const DEFAULT_LAYOUT = {
   ...DEFAULT_SIZES,
   views: Object.fromEntries(VIEWS.map((v) => [v.id, true])),
@@ -487,10 +488,10 @@ export default function App() {
     const max = start + bar.previousElementSibling.getBoundingClientRect().width - 480;
     return (d) => resize({ chatWidth: clamp(start - d, 280, max) });
   };
-  const dragDock = (bar) => {
-    const start = layout.dockHeight;
-    const max = bar.parentElement.clientHeight - SPLITTER_PX - 150;
-    return (d) => resize({ dockHeight: clamp(start - d, 120, max) });
+  const dragMeters = (bar) => {
+    const start = layout.metersHeight;
+    const max = bar.parentElement.clientHeight - SPLITTER_PX - 200;
+    return (d) => resize({ metersHeight: clamp(start + d, 120, max) });
   };
   // This handle sits after the drawer, so dragging right widens it.
   const dragDrawer = (bar) => {
@@ -503,8 +504,8 @@ export default function App() {
     const max = bar.parentElement.clientHeight - SPLITTER_PX - 160;
     return (d) => resize({ askedHeight: clamp(start + d, 90, max) });
   };
-  // An empty bar under the camera is worse than no bar.
-  const showDock = views.balance || views.info;
+  // With both readouts closed the chat has the column to itself.
+  const showMeters = views.balance || views.info;
 
   return (
     <div className="app">
@@ -611,18 +612,22 @@ export default function App() {
               </span></div>}
             <Toast toast={toast} onDismiss={dismissToast} />
           </section>
-          {showDock && (
-            <Splitter direction="row" onStart={dragDock} onReset={() => resize({ dockHeight: DEFAULT_SIZES.dockHeight })} />
-          )}
-          {showDock && (
-            <div className="dock" style={{ height: layout.dockHeight }}>
-              {views.balance && <BalancePanel state={lab.state} connected={lab.connected} />}
-              {views.info && <InfoPanel backendUrl={BACKEND_URL} detections={liveDetections} />}
-            </div>
-          )}
         </div>
         <Splitter direction="col" onStart={dragChatWidth} onReset={() => resize({ chatWidth: DEFAULT_SIZES.chatWidth })} />
         <div className="side" style={{ width: layout.chatWidth }}>
+          {showMeters && (
+            <>
+              <div className="meters" style={{ height: layout.metersHeight }}>
+                {views.balance && <BalancePanel state={lab.state} connected={lab.connected} />}
+                {views.info && <InfoPanel backendUrl={BACKEND_URL} detections={liveDetections} />}
+              </div>
+              <Splitter
+                direction="row"
+                onStart={dragMeters}
+                onReset={() => resize({ metersHeight: DEFAULT_SIZES.metersHeight })}
+              />
+            </>
+          )}
           <FormulaChat backendUrl={BACKEND_URL} lab={live} onAsked={recordAsked} onToast={setToast} />
         </div>
       </main>

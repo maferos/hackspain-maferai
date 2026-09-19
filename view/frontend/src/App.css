@@ -397,19 +397,20 @@ body {
   min-height: 0;
 }
 
-/* The dock under the camera: the balance, and Info when it is open. Neither
-   stretches — a mass readout across the whole width reads as a mistake. */
+/* The two readouts at the top of the right column, half of it each, over the
+   chat. They are the lab's instruments: what the pan says and what the viewer
+   is running. */
 
-.dock {
+.meters {
   flex-shrink: 0;
-  height: 215px;
   min-height: 0;
   display: flex;
   gap: 0.75rem;
 }
 
-.dock > .panel--balance {
-  flex: 0 0 9.5rem;
+.meters > .panel {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 /* Formula checklist heading the task panel */
@@ -1388,10 +1389,6 @@ textarea.chat__input {
 }
 
 /* The Info panel: what the viewer is running, at the end of the dock. */
-
-.dock > .panel--info {
-  flex: 0 0 13rem;
-}
 
 .panel--info .panel__body {
   display: flex;
