@@ -63,13 +63,11 @@ BOTTLES = OUT.parent / "labelled_bottles"
 PLACED_BY_SCENE = ("PWD-0004", "PWD-0008", "PWD-0012", "PWD-0020", "PWD-0024", "PWD-0026",
                    "SMP-0005", "SMP-0009", "SMP-0013", "SMP-0017", "SMP-0021", "SMP-0030",
                    "SMP-0034")
-# Which bottle sizes stand on which shelf, bottom shelf first: heavy powder bottles
-# low, the small liquid flasks above them. The top shelf, at 2.14 m, stays empty.
-SHELF_STOCK = (("bottle_2000ml", "bottle_1000ml"),
-               ("bottle_500ml", "bottle_250ml", "bottle_100ml"),
-               ("flask_100ml", "flask_50ml", "flask_30ml", "flask_20ml", "flask_10ml"))
 SHELF_FACE_HALF_WIDTH = MODULE / 2 - 0.045   # clear of the uprights
-SHELF_SETBACK = 0.03                         # bottle front, behind the shelf lip
+SHELF_SETBACK = 0.03                         # nearest a bottle front comes to the shelf lip
+SHELF_DEPTH_SCATTER = 0.10                   # and how much further back it may stand
+SHELF_MIN_GAP = 0.012                        # least air between two bottles on a shelf
+SHELF_YAW_SCATTER = 25.0                     # degrees a label may be turned off the aisle
 
 
 # =============================================================================
@@ -411,57 +409,72 @@ def gantry(m):
 
 
 def library(m):
-    """Stock the gantry with the barcode catalogue: one bottle per sample.
+    """Scatter the barcode catalogue over the gantry: one bottle per sample.
 
-    Every sample the scene does not place by hand stands here once. Powders are in
-    their white HDPE bottles on the two lower shelves, liquids in amber flasks on the
-    third, a compound's sizes side by side, labels facing the aisle. The bottles are
-    the light stand-ins from assets/labelled_bottles (a kit bottle is 14 000 to 50 000
-    triangles, a stand-in about 1 500), but the sticker is the real one, at half the
-    texture resolution. Geoms are named lib_<sample id>_<part>, so a render's
-    segmentation says which sample it is looking at.
+    Every sample the scene does not place by hand stands here once, and deliberately
+    in no order at all. Powder bottles and liquid flasks, large and small, are dealt
+    at random over all four shelves and both faces; along a shelf the gaps are
+    uneven, some bottles are pushed further back than others, and every label is
+    turned a little off the aisle. The point is a library a detector cannot learn by
+    position: nothing about where a bottle stands says what it is.
+
+    Bottles never overlap along a shelf, so none hides another's label outright.
+    They are the light stand-ins from assets/labelled_bottles (a kit bottle is
+    14 000 to 50 000 triangles, a stand-in about 1 500), but the sticker is the real
+    one, at half the texture resolution. Geoms are named lib_<sample id>_<part>, so
+    a render's segmentation says which sample it is looking at.
     """
     manifest = json.loads((BOTTLES / "manifest.json").read_text())
     vessels = manifest["vessels"]
     samples = {k: v for k, v in manifest["samples"].items() if k not in PLACED_BY_SCENE}
+    width_of = {k: vessels[v["vessel_class"]]["diameter_m"] for k, v in samples.items()}
     part_material = {"body": "sample_hdpe", "cap": "sample_cap", "glass": "amber"}
-    spread = np.random.default_rng(11)
+    scatter = np.random.default_rng(11)
+
+    # Deal the samples out: each goes to a face drawn at random from those that
+    # still have room for it, so some faces end up crowded and some nearly bare.
+    faces = [(z, i, side) for z in SHELF_Z for side in (-1, 1) for i in range(MODULES)]
+    stock = {face: [] for face in faces}
+    room = {face: 2 * SHELF_FACE_HALF_WIDTH - SHELF_MIN_GAP for face in faces}
+    for sample_id in scatter.permutation(sorted(samples)):
+        need = width_of[sample_id] + SHELF_MIN_GAP
+        open_faces = [face for face in faces if room[face] >= need]
+        face = open_faces[scatter.integers(len(open_faces))]
+        stock[face].append(str(sample_id))
+        room[face] -= need
 
     m.comment(f"Sample library: {len(samples)} barcoded bottles, one per catalogue sample that "
-              "the scene does not place itself. Powders (white HDPE) on the two lower shelves, "
-              "liquids (amber glass) on the third; the top shelf is empty.")
+              "the scene does not place itself, scattered over the gantry in no order: powders "
+              "(white HDPE) and liquids (amber glass) mixed on every shelf.")
     used_meshes = set()
-    for z, stock in zip(SHELF_Z, SHELF_STOCK):
-        # Sample ids run compound by compound, so sorting keeps a compound together.
-        row = sorted(k for k, v in samples.items() if v["vessel_class"] in stock)
-        faces = [(i, side) for side in (-1, 1) for i in range(MODULES)]
-        for (i, side), chunk in zip(faces, np.array_split(row, len(faces))):
-            xc = GANTRY_X0 + (i + 0.5) * MODULE
-            widths = [vessels[samples[k]["vessel_class"]]["diameter_m"] for k in chunk]
-            gap = (2 * SHELF_FACE_HALF_WIDTH - sum(widths)) / (len(chunk) + 1)
-            x = -SHELF_FACE_HALF_WIDTH
-            for sample_id, width in zip(chunk, widths):
-                vessel = samples[sample_id]["vessel_class"]
-                x += gap + width / 2
-                # Walking along the +Y face the shelf reads the other way round.
-                px = xc - side * (x + spread.uniform(-0.2, 0.2) * gap)
-                py = side * (GANTRY_HY - SHELF_SETBACK - width / 2 - spread.uniform(0, 0.02))
-                yaw = (0 if side < 0 else 180) + spread.uniform(-14, 14)
-                x += width / 2
-                for part in vessels[vessel]["parts"]:
-                    if part == "label_back":
-                        continue   # nobody sees a shelved bottle from behind: the divider
-                    sticker = part == "label"
-                    mesh = f"{vessel}_label" if sticker else f"{vessel}_shelf_{part}"
-                    used_meshes.add(mesh)
-                    material = f"lbl_{sample_id}" if sticker else part_material[part]
-                    m.add(f'<geom name="lib_{sample_id}_{part}" type="mesh" mesh="{mesh}" '
-                          f'pos="{fmt((px, py, z))}" euler="0 0 {yaw:.1f}" material="{material}" '
-                          f'contype="0" conaffinity="0" group="1"/>')
-                m.assets.append(f'<texture name="lbl_{sample_id}" type="2d" '
-                                f'file="../labelled_bottles/textures/shelf/{sample_id}.png"/>')
-                m.assets.append(f'<material name="lbl_{sample_id}" texture="lbl_{sample_id}" '
-                                f'specular="0.05" shininess="0.1"/>')
+    for (z, i, side), chunk in stock.items():
+        xc = GANTRY_X0 + (i + 0.5) * MODULE
+        # Split the slack at random between the gaps, ends included.
+        slack = room[(z, i, side)] * scatter.dirichlet(np.ones(len(chunk) + 1))
+        x = -SHELF_FACE_HALF_WIDTH
+        for sample_id, before in zip(chunk, slack):
+            vessel, width = samples[sample_id]["vessel_class"], width_of[sample_id]
+            x += before + SHELF_MIN_GAP + width / 2
+            # Walking along the +Y face the shelf reads the other way round.
+            px = xc - side * x
+            py = side * (GANTRY_HY - SHELF_SETBACK - width / 2
+                         - scatter.uniform(0, SHELF_DEPTH_SCATTER))
+            yaw = (0 if side < 0 else 180) + scatter.uniform(-SHELF_YAW_SCATTER, SHELF_YAW_SCATTER)
+            x += width / 2
+            for part in vessels[vessel]["parts"]:
+                if part == "label_back":
+                    continue   # nobody sees a shelved bottle from behind: the divider
+                sticker = part == "label"
+                mesh = f"{vessel}_label" if sticker else f"{vessel}_shelf_{part}"
+                used_meshes.add(mesh)
+                material = f"lbl_{sample_id}" if sticker else part_material[part]
+                m.add(f'<geom name="lib_{sample_id}_{part}" type="mesh" mesh="{mesh}" '
+                      f'pos="{fmt((px, py, z))}" euler="0 0 {yaw:.1f}" material="{material}" '
+                      f'contype="0" conaffinity="0" group="1"/>')
+            m.assets.append(f'<texture name="lbl_{sample_id}" type="2d" '
+                            f'file="../labelled_bottles/textures/shelf/{sample_id}.png"/>')
+            m.assets.append(f'<material name="lbl_{sample_id}" texture="lbl_{sample_id}" '
+                            f'specular="0.05" shininess="0.1"/>')
     for mesh in sorted(used_meshes):
         m.assets.append(f'<mesh name="{mesh}" file="../labelled_bottles/meshes/{mesh}.obj" '
                         f'inertia="shell"/>')

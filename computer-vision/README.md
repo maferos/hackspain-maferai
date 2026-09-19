@@ -721,13 +721,22 @@ same labels are about one pixel per module and do not read, which is the
 resolution floor above and not something new.
 
 The shelving library is the catalogue too. `simulation/scripts/generate_lab_room.py`
-stands every sample the scene does not place by hand on the gantry, once: 94
-powders on the two lower shelves, 93 liquids on the third, so **all 200 samples
-are in the room, each exactly once**. Shelved bottles are light stand-in meshes
+stands every sample the scene does not place by hand on the gantry, once, so
+**all 200 samples are in the room, each exactly once**. They are scattered on
+purpose: 94 powders and 93 liquids dealt at random over all four shelves, uneven
+gaps, varying depth, labels turned up to 25 degrees off the aisle, and the
+thirteen hand-placed ones mix powders and liquids too. Where a bottle stands
+says nothing about what it is, so a detector cannot learn the room by position. Shelved bottles are light stand-in meshes
 with the real sticker at half texture resolution (4 px/module). A 1280 x 720
-render from 0.42 m shows four shelved powder bottles, turned by hand-like
-amounts and seen in perspective, and all four decode to the right sample; from
-0.9 m none do, the resolution floor again. Geoms are named
+render from about 0.4 m shows six scattered bottles, turned and seen in
+perspective. Decoding the whole frame finds two of them; decoding a crop per
+bottle, which is what a detector's boxes give and what the reader is built for,
+finds four. The two it misses are a bottle at the edge of the frame turned well
+away, and a 50 ml flask whose modules are about 1.3 px wide. From 0.6 m and
+beyond nothing decodes, the resolution floor again. One thing the scene adds
+that the flat tests never had: the shelves have a 20 mm lip, and from a camera
+at or below shelf height it hides the bottom of the label on a bottle standing
+well back, which for a ladder barcode is its first digits. Geoms are named
 `lib_<sample id>_<part>`, so a segmentation render is ground truth for which
 sample is where.
 

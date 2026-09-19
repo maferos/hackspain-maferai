@@ -85,7 +85,7 @@ use `scripts/view_autobio.py` instead.
 | `requirements.txt` | Python dependencies (`mujoco`, `numpy`) |
 | `install.sh` | One-shot environment setup + verification |
 | `models/hello.xml` | Demo scene: floor + falling box, sphere, capsule |
-| `models/minihannover_scene.xml` | Demo scene: a perfumery lab (14 x 5 x 3 m) around the `minihannover` bench: a shelving library of 187 barcoded sample bottles, one sink, five balances, GC-MS and UV-Vis-NIR, and the barcoded sample bottles: six powders in white HDPE in the entrance corner, seven loose movable amber bottles of liquid on the bench |
+| `models/minihannover_scene.xml` | Demo scene: a perfumery lab (14 x 5 x 3 m) around the `minihannover` bench: a shelving library of 187 barcoded sample bottles, one sink, five balances, GC-MS and UV-Vis-NIR, and thirteen hand-placed barcoded sample bottles, powders and liquids mixed: six in the entrance corner, seven loose and movable on the bench. Nothing is sorted, on purpose: where a bottle stands says nothing about what it is |
 | `scripts/check_install.py` | Headless check that loads and steps the model |
 | `requirements-autobio.txt` | Pinned MuJoCo 3.3.0 env for AutoBio |
 | `third_party/AutoBio` | AutoBio git submodule (models, meshes, plugin) |
