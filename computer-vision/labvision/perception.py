@@ -12,11 +12,11 @@ console bridge that renders the scene's cameras itself, or real GoPros:
 2. :func:`confirm` takes the wrist camera's frame, taken looking at a
    proposal, and reads every ArUco ring in it near where the proposal
    projects. Each ring names a bottle, and knowing the bottle gives its ring's
-   radius and height, so :func:`refine` places it on the bench from the
-   ring's most frontal marker. The ring whose bottle then stands closest to
-   the proposal, and within :data:`MAX_SHIFT_M`, names it: a neighbour seen
-   past the proposed bottle projects close by in the image, but stands
-   elsewhere on the bench.
+   radius and height, so :func:`refine_marker` places it on the bench from
+   the ring's most frontal marker and the way that marker faces. The ring
+   whose bottle then stands closest to the proposal, and within
+   :data:`MAX_SHIFT_M`, names it: a neighbour seen past the proposed bottle
+   projects close by in the image, but stands elsewhere on the bench.
 
 Frames: the MuJoCo scene's world frame, metres, whose origin is under the
 centre of the minihannover bench; the bench top is at :data:`BENCH_TOP_Z`.
@@ -199,6 +199,93 @@ def refine(
     return float(axis[0]), float(axis[1])
 
 
+def _on_height(camera: Camera, uv: object, height: float) -> np.ndarray | None:
+    """Where the ray through a pixel meets the horizontal plane at ``height``"""
+    ray = camera.pixel_ray(np.asarray(uv, dtype=float))
+    if abs(ray[2]) < 1e-6:
+        return None
+    t = (height - camera.position[2]) / ray[2]
+    return camera.position + t * ray if t > 0 else None
+
+
+def _quad_centre(corners: np.ndarray) -> np.ndarray:
+    """Where a quad's diagonals cross: the image of a square's centre
+
+    The mean of the four corners is not, under perspective; on a marker 0.3 m
+    away that difference is about a millimetre on the bench.
+    """
+    p0, p1, p2, p3 = corners
+    d1, d2 = p2 - p0, p3 - p1
+    denominator = d1[0] * d2[1] - d1[1] * d2[0]
+    if abs(denominator) < 1e-9:
+        return corners.mean(axis=0)
+    s = ((p1[0] - p0[0]) * d2[1] - (p1[1] - p0[1]) * d2[0]) / denominator
+    return p0 + s * d1
+
+
+def refine_marker(
+    camera: Camera,
+    corners: np.ndarray,
+    radius: float,
+    ring_height: float,
+    *,
+    bench_z: float = BENCH_TOP_Z,
+) -> tuple[float, float] | None:
+    """The axis of a bottle standing on the bench from one marker of its ring
+
+    The ring carries a marker every 45 degrees, so the one seen most squarely
+    can face up to 22.5 degrees away from the camera, and pushing one radius
+    along the view, as :func:`refine` does, then lands up to
+    ``radius * sin(22.5 deg)`` beside the axis: 17 mm on a 1 L bottle. The
+    marker says which way it faces instead. The midpoints of its two edges
+    that run up the bottle sit on the ring, at the ring's height, so the chord
+    between them is perpendicular to the radius through the marker: the axis
+    is one radius behind the marker's centre along that normal.
+
+    Args:
+        camera: The camera the marker was seen by.
+        corners: (4, 2) the marker's corners in that camera's pixels, in
+            order round the quad, whichever way the marker is turned.
+        radius: The ring's radius.
+        ring_height: Height of the ring's centre above the bottle's base.
+        bench_z: Height of the bench plane.
+
+    Returns:
+        The axis (x, y), or None if the geometry cannot be read, such as a
+        camera level with the ring.
+    """
+    corners = np.asarray(corners, dtype=float)
+    height = bench_z + ring_height
+    centre = _on_height(camera, _quad_centre(corners), height)
+    if centre is None:
+        return None
+    edges = [(corners[i], corners[(i + 1) % 4]) for i in range(4)]
+
+    def upright(edge: tuple[np.ndarray, np.ndarray]) -> float:
+        du, dv = edge[1] - edge[0]
+        return abs(dv) / (math.hypot(du, dv) + 1e-9)
+
+    first, second = max(
+        ((0, 2), (1, 3)),
+        key=lambda pair: upright(edges[pair[0]]) + upright(edges[pair[1]]),
+    )
+    ends = [
+        _on_height(camera, (edges[i][0] + edges[i][1]) / 2, height)
+        for i in (first, second)
+    ]
+    if ends[0] is None or ends[1] is None:
+        return None
+    chord = ends[1][:2] - ends[0][:2]
+    length = float(np.linalg.norm(chord))
+    if length < 1e-6:
+        return None
+    normal = np.array([-chord[1], chord[0]]) / length
+    if np.dot(normal, camera.position[:2] - centre[:2]) < 0:
+        normal = -normal  # the marker faces the camera that saw it
+    axis = centre[:2] - radius * normal
+    return float(axis[0]), float(axis[1])
+
+
 def confirm(
     frame: np.ndarray,
     camera: Camera,
@@ -244,7 +331,13 @@ def confirm(
         if offset >= associate_px:
             continue
         radius, ring_height = ring_geometry(vessel, kit)
-        refined = refine(camera, uv, radius, ring_height, bench_z=bench_z)
+        refined = None
+        if facing is not None:
+            refined = refine_marker(
+                camera, facing.corners, radius, ring_height, bench_z=bench_z
+            )
+        if refined is None:
+            refined = refine(camera, uv, radius, ring_height, bench_z=bench_z)
         if refined is None:
             continue
         # Placed as the bottle its ring names, it must stand where the proposal

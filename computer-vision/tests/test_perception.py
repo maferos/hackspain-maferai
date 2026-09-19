@@ -205,3 +205,45 @@ def test_refine_places_a_big_bottle_from_its_frontal_marker():
     found = confirm(frame, camera, (0.0, 0.0, BENCH_TOP_Z + 0.05), ROWS)
     assert found.sample_id == "PWD-0004"
     assert math.dist(found.refined_xy, (0.0, 0.0)) < 0.004
+
+
+def _marker_corners(camera, axis_xy, radius, height, angle, side=0.03, turn=0):
+    """A marker's corners in the image, tangent to the ring at ``angle``"""
+    normal = np.array([math.cos(angle), math.sin(angle), 0.0])
+    up = np.array([0.0, 0.0, 1.0])
+    right = np.cross(up, normal)
+    centre = np.array([*axis_xy, BENCH_TOP_Z + height]) + radius * normal
+    h = side / 2
+    quad = [
+        centre - h * right + h * up,
+        centre + h * right + h * up,
+        centre + h * right - h * up,
+        centre - h * right - h * up,
+    ]
+    return np.roll(camera.project(np.array(quad)), turn, axis=0)
+
+
+@pytest.mark.parametrize("turn", [0, 1])
+def test_refine_marker_places_the_axis_from_a_marker_facing_away(turn):
+    from labvision.perception import refine_marker
+
+    camera = Camera.look_at(INTRINSICS, (0.0, -0.3, 1.1), (0.0, 0.0, BENCH_TOP_Z))
+    radius, height = 0.044, 0.1
+    facing = math.atan2(-0.3, 0.0)  # towards the camera, from the axis
+    corners = _marker_corners(
+        camera, (0.0, 0.0), radius, height, facing + math.radians(20), turn=turn
+    )
+    axis = refine_marker(camera, corners, radius, height)
+    assert math.dist(axis, (0.0, 0.0)) < 0.0005
+    along_view = refine(camera, tuple(corners.mean(axis=0)), radius, height)
+    assert math.dist(along_view, (0.0, 0.0)) > 0.01  # what this replaces
+
+
+def test_confirm_places_a_turned_ring_by_the_way_its_marker_faces():
+    camera = Camera.look_at(
+        INTRINSICS, (0.0, -0.3, 1.0), (0.0, 0.0, BENCH_TOP_Z + 0.08)
+    )
+    frame = _ring_frame(camera, "bottle_1000ml", (0.0, 0.0), 12, (-25, 20, 65))
+    found = confirm(frame, camera, (0.0, 0.0, BENCH_TOP_Z + 0.05), ROWS)
+    assert found.sample_id == "PWD-0004"
+    assert math.dist(found.refined_xy, (0.0, 0.0)) < 0.003
