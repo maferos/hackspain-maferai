@@ -60,6 +60,11 @@ def hold(model: mujoco.MjModel, data: mujoco.MjData, ids: list[int],
     home = model.body('rail_carriage').pos[0]
     start = np.array([data.ctrl[i] for i in ids])
     goal = np.concatenate([[station - home], pose])
+    # Give a long move long enough to arrive. A fixed ramp is fine for the
+    # short hops and leaves the arm still flying after a 4 m run down the rail,
+    # which reads downstream as a miss that is really just lateness.
+    move = np.abs(goal - start)
+    seconds = max(seconds, float(move[0]) / 0.6, float(move[1:].max()) / 0.9)
     ramp = max(int(seconds / model.opt.timestep), 1)
     for step in range(ramp + int(settle / model.opt.timestep)):
         alpha = 0.5 - 0.5 * np.cos(np.pi * min(step + 1, ramp) / ramp)

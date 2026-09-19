@@ -97,18 +97,32 @@ def run(model: mujoco.MjModel, data: mujoco.MjData, vessel: pip.Container,
         record['stage'] = 'aspiration refused'
         return record
 
-    # Over the beaker and deliver.
+    # Over the beaker and deliver. solve_ik writes its iterates into qpos and
+    # reach moves the rail, so the running state has to be put back before the
+    # arm is driven anywhere --- otherwise it starts from the solution rather
+    # than from where it actually is.
     mouth = data.site(beaker.mouth).xpos
-    above = np.array([float(mouth[0]), float(mouth[1]),
-                      float(mouth[2]) - 0.01])
-    station = rk.reach(model, data, above)
-    if station is None:
+    into = np.array([float(mouth[0]), float(mouth[1]),
+                     float(mouth[2]) - 0.01])
+    clear = into + np.array([0.0, 0.0, CLEARANCE + 0.05])
+    saved = (data.qpos.copy(), data.qvel.copy())
+    station = rk.reach(model, data, clear)
+    q_clear = data.qpos[rk.arm_qpos(model)].copy()
+    q_into = None
+    if station is not None:
+        rk.set_rail(model, data, station)
+        if rk.solve_any(model, data, into):
+            q_into = data.qpos[rk.arm_qpos(model)].copy()
+    data.qpos[:], data.qvel[:] = saved
+    mujoco.mj_forward(model, data)
+    if station is None or q_into is None:
         record['stage'] = 'drew but cannot reach the beaker'
         return record
-    q_beaker = data.qpos[rk.arm_qpos(model)].copy()
-    data.qpos[rk.arm_qpos(model)] = q_over
-    mujoco.mj_forward(model, data)
-    gt.hold(model, data, ids, station, q_beaker, None, 2.0)
+    # Come in over the beaker and drop into it, rather than swinging straight
+    # at it: a direct move sweeps the arm through the balance and knocks the
+    # beaker off its pan.
+    gt.hold(model, data, ids, station, q_clear, None, 3.0)
+    gt.hold(model, data, ids, station, q_into, None, 1.2)
     gave = pip.dispense(model, data, beaker, pipette)
     record['moved'] = before - vessel.volume
     record['stage'] = 'TRANSFERRED' if gave else 'drew but could not deliver'

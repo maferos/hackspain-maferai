@@ -43,6 +43,7 @@
     <model name="dyn_SMP-0082" file="../assets/open_vessels/SMP-0082.xml" />
     <model name="dyn_SMP-0051" file="../assets/open_vessels/SMP-0051.xml" />
     <model name="beaker" file="../assets/beaker/beaker.xml" />
+    <model name="balance_open" file="../assets/balance_open/balance_open.xml" />
   </asset>
   <include file="../assets/minihannover_open/bench.xml" />
   <worldbody>
@@ -63,8 +64,8 @@
     <frame pos="-2.5 0.36 0.9" euler="0 0 3.1416">
       <attach model="balance" body="balance" prefix="balance_4_" />
     </frame>
-    <frame pos="-0.75 0.36 0.904" euler="0 0 3.1416">
-      <attach model="balance" body="balance" prefix="balance_5_" />
+    <frame pos="0.6 -0.45 0.9">
+      <attach model="balance_open" body="balance" prefix="balance_5_" />
     </frame>
     <frame pos="-5.85 1.78 0.9">
       <attach model="gc_ms" body="gc_ms" prefix="gc_ms_" />
@@ -170,7 +171,7 @@
       <freejoint />
       <attach model="dyn_SMP-0051" body="SMP-0051" prefix="dyn_SMP-0051_" />
     </body>
-    <body name="beaker" pos="-0.75 -0.1 0.9">
+    <body name="beaker" pos="0.595 -0.419 0.977">
       <freejoint />
       <attach model="beaker" body="beaker" prefix="beaker_" />
     </body>
@@ -189,21 +190,6 @@
     </body>
   </worldbody>
   <option integrator="implicitfast" impratio="10" cone="elliptic" />
-  <contact>
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0084_SMP-0084" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0044_SMP-0044" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0199_SMP-0199" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0041_SMP-0041" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0048_SMP-0048" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0109_SMP-0109" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0093_SMP-0093" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0011_SMP-0011" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0190_SMP-0190" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0174_SMP-0174" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0082_SMP-0082" />
-    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0051_SMP-0051" />
-    <exclude body1="arm_pip_pipette_tip" body2="beaker_beaker" />
-  </contact>
   <actuator>
     <position name="rail_x" joint="rail_x" kp="60000" kv="6000" forcerange="-4000 4000" ctrlrange="-3.040 3.040" />
   </actuator>

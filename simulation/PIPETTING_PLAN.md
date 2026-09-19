@@ -1,9 +1,8 @@
 # Pipetting on the rail bench — plan
 
-> **Status, 2026-09-19: the MVP runs.** Steps 1, 3, 4, 5 and 7 are done and
-> `scripts/pipette_test.py` transfers 12 of 12. Step 2 was deliberately skipped
-> in favour of contact exclusions --- see *What the MVP does instead* below.
-> Step 6 is the beaker-on-the-bench version.
+> **Status, 2026-09-19: all seven steps are done.** `scripts/pipette_test.py`
+> transfers 12 of 12, the flasks are hollow for collision, and the beaker
+> stands on a balance whose roof has been cut off.
 
 Target: **the arm draws liquid from an open flask on the bench and dispenses it
 into a container that is weighed.** Written 2026-09-19 against
@@ -156,18 +155,26 @@ Recommendation: **1 to get the cycle working end to end, then 2**. The pan is
 independent of everything in steps 1 to 5 and should not block them.
 
 
-## What the MVP does instead of step 2
+## Step 2, done properly
 
-Hollow collision shells were not built. The tip body is excluded from contact
-with the vessels and the beaker instead, so it travels down a bore while the
-barrel above it still collides with everything. It costs no geometry and no
-step rate, and the alignment it gives up is measured and reported by
-`pipetting.entry()` rather than enforced by contact.
+The contact exclusions are gone. Each vessel carries three rings of twelve
+overlapping boxes --- body, shoulder and neck --- and a base disc, so the
+outside is solid and the bore is open. Measured in the scene: a tip 12 mm off
+the axis makes six contacts with the glass, 8 mm and less goes down the bore.
 
-The consequence to know: **a badly aimed tip passes through the glass instead
-of striking the rim.** The refusal to aspirate still fires, so a miss is
-visible, but it is a number rather than a collision. Hollowing is the fix when
-fidelity matters more than speed.
+Two things that went wrong on the way:
+
+* **The staves were a picket fence.** Sized at 0.62 of the arc they cover, the
+  gaps between them were 3.6 mm and a 2.7 mm tip went straight between two.
+  They have to be *wider* than their spacing; geoms in one body do not collide
+  with each other, so overlapping costs nothing.
+* **The neck ring landed 3 mm too far out**, because the neck radius was
+  measured over everything above the shoulder, which catches the widest part of
+  the taper. The top tenth of the mesh is the neck.
+
+A drop test is no use for checking this: a 2.7 mm sphere falling from 200 mm
+moves 5.8 mm per step and tunnels through a 2 mm wall. Pose the tip and count
+contacts instead.
 
 ## What the MVP measures
 
@@ -189,9 +196,24 @@ Two geometry problems that only showed up once it ran, both fixed:
   surface". Aiming a quarter of the way down the column removes the failure
   mode and costs nothing.
 
+## Step 6, done properly
+
+`scripts/generate_open_balance.py` trims every balance mesh above 200 mm and
+gives it a housing, a pan and four shield walls for collision. The beaker
+stands on the pan.
+
+The balance had to move. On the back strip where it stood, the beaker's rim was
+at 1.08 m, so the pipette's flange would have been at 1.34 --- 20 mm under the
+gantry beam, wrist and all. It is out in front of the rail now, where nothing
+is overhead.
+
+And the arm has to come in over the beaker and drop into it. Driving straight
+at it sweeps the arm through the balance and knocks the beaker off the pan,
+which is exactly the kind of thing the simulation is for.
+
 ## Next, in order
 
-1. Hollow the vessels properly, so a miss is a collision rather than a number.
-2. Give a balance a real pan and stand the beaker on it.
-3. Tip racks and disposable tips, if the demo wants the full lab cycle.
-4. Unscrewing caps, which is independent of all of the above.
+1. Tip racks and disposable tips, if the demo wants the full lab cycle.
+2. Unscrewing caps, which is independent of everything above.
+3. The balance reads 0.0000 on its own display; the dispensed mass is reported
+   in the viewer's panel instead.

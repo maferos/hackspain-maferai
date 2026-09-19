@@ -41,6 +41,8 @@ class Bore:
         shoulder: Height where the body starts tapering into the neck.
         mouth: Height of the rim.
         mouth_radius: Radius of the opening at the rim.
+        outer_radius: Outside radius of the body, in metres.
+        neck_radius: Outside radius of the neck, in metres.
     """
 
     inner_radius: float
@@ -48,6 +50,8 @@ class Bore:
     shoulder: float
     mouth: float
     mouth_radius: float
+    outer_radius: float = 0.0
+    neck_radius: float = 0.0
 
     @property
     def capacity(self) -> float:
@@ -64,6 +68,7 @@ class Bore:
 WALL = 0.002        # glass wall thickness, m
 SHOULDER = 0.72     # where the body starts tapering, as a fraction of height
 FLOOR = 0.003       # thickness of the base, m
+STAVES = 12         # convex pieces per ring of the collision shell
 
 
 def measure(mesh: Path, diameter: float, height: float) -> Bore:
@@ -92,12 +97,17 @@ def measure(mesh: Path, diameter: float, height: float) -> Bore:
                        for line in mesh.read_text().splitlines()
                        if line.startswith('v ')])
     radius = np.hypot(points[:, 0], points[:, 1])
-    above = points[:, 2] - points[:, 2].min() > height * SHOULDER
+    # The neck is the top tenth. Taking everything above the shoulder instead
+    # catches the widest part of the taper, and puts the neck ring 3 mm too far
+    # out --- wide enough for a tip to drop past it.
+    above = points[:, 2] - points[:, 2].min() > height * 0.92
     return Bore(inner_radius=diameter / 2 - WALL,
                 floor=FLOOR,
                 shoulder=height * SHOULDER,
                 mouth=height,
-                mouth_radius=float(radius[above].min()))
+                mouth_radius=float(radius[above].min()),
+                outer_radius=diameter / 2,
+                neck_radius=float(radius[above].max()))
 
 
 def bores() -> dict[str, Bore]:
@@ -145,15 +155,34 @@ def build(sample: str, bore: Bore, millilitres: float) -> Path:
     Returns:
         Path of the generated MJCF.
     """
+    import mujoco
+
+    original = mujoco.MjModel.from_xml_path(str(CATALOGUE / f'{sample}.xml'))
+    mass = float(original.body_subtreemass[1])
+    inertia = original.body_inertia[1]
+    centre_of_mass = original.body_ipos[1]
+
     xml = (CATALOGUE / f'{sample}.xml').read_text()
     xml = xml.replace('file="meshes/', 'file="../labelled_bottles/meshes/')
     xml = xml.replace('file="textures/', 'file="../labelled_bottles/textures/')
     # Open it: the cap is a geom of its own, so the flask opens by deleting a
     # line. Unscrewing it is a different job and needs it to be its own body.
     xml = re.sub(r'\n\s*<geom name="cap".*?/>', '', xml)
+    # The glass keeps its looks and gives up its collision to the shell below.
+    xml = re.sub(r'(<geom name="glass"[^/]*?)density="\d+"',
+                 r'\1contype="0" conaffinity="0" mass="0"', xml)
+    # Mass came from the glass geom's density, so it has to be restated.
+    xml = xml.replace(f'<body name="{sample}">',
+                      f'<body name="{sample}">\n'
+                      f'      <inertial pos="{centre_of_mass[0]:.5f} '
+                      f'{centre_of_mass[1]:.5f} {centre_of_mass[2]:.5f}" '
+                      f'mass="{mass:.5f}"\n'
+                      f'                diaginertia="{inertia[0]:.3e} '
+                      f'{inertia[1]:.3e} {inertia[2]:.3e}"/>')
 
     centre, half = bore.column(millilitres)
     xml = xml.replace('    </body>',
+                      shell(bore) + '\n'
                       f'      <geom name="liquid" type="cylinder" '
                       f'pos="0 0 {centre:.5f}"\n'
                       f'            size="{bore.inner_radius:.5f} {half:.5f}" '
@@ -196,8 +225,6 @@ def main() -> None:
         print(f'  {sample}  {classes[sample]:14s} {volumes[sample]:6.2f} ml')
 
 
-if __name__ == '__main__':
-    main()
 
 
 def main_for(samples: list[str]) -> dict[str, float]:
@@ -218,3 +245,56 @@ def main_for(samples: list[str]) -> dict[str, float]:
     for sample in samples:
         build(sample, shapes[classes[sample]], volumes[sample])
     return volumes
+
+
+def shell(bore: Bore) -> str:
+    """Collision geometry that leaves the inside of a flask open.
+
+    MuJoCo collides a mesh as its convex hull, so the glass mesh is a solid
+    slug and nothing can be put inside it. Replacing it with rings of boxes ---
+    a barrel's staves --- keeps the outside solid, so the arm still cannot
+    reach through a flask and still knocks it over, while the bore stays open
+    for a pipette tip.
+
+    Three rings, because the flasks are not straight: the body, the shoulder
+    where it tapers, and the neck. Plus a disc for the base.
+
+    Args:
+        bore: The measured flask.
+
+    Returns:
+        MJCF geom elements, as text.
+    """
+    neck_start = bore.shoulder + (bore.mouth - bore.shoulder) * 0.35
+    rings = (
+        ('body', bore.outer_radius, bore.floor, bore.shoulder),
+        ('shoulder', (bore.outer_radius + bore.neck_radius) / 2,
+         bore.shoulder, neck_start),
+        ('neck', bore.neck_radius, neck_start, bore.mouth),
+    )
+    out = []
+    for name, radius, lo, hi in rings:
+        mid = radius - WALL / 2
+        # Each stave has to be wider than the arc it covers, or the ring is a
+        # picket fence: at 0.62 of the spacing the gaps were 3.6 mm and a
+        # 2.7 mm tip went straight between two of them. Geoms in one body do
+        # not collide with each other, so overlapping them costs nothing.
+        width = 2 * np.pi * mid / STAVES * 1.25
+        for i in range(STAVES):
+            angle = 2 * np.pi * i / STAVES
+            out.append(
+                f'      <geom name="{name}_{i:02d}" type="box" '
+                f'pos="{mid * np.cos(angle):.5f} {mid * np.sin(angle):.5f} '
+                f'{(lo + hi) / 2:.5f}"\n'
+                f'            size="{WALL / 2:.5f} {width / 2:.5f} '
+                f'{(hi - lo) / 2:.5f}" euler="0 0 {np.degrees(angle):.3f}"\n'
+                f'            rgba="0 0 0 0" mass="0" group="3"/>')
+    out.append(
+        f'      <geom name="base" type="cylinder" pos="0 0 {bore.floor / 2:.5f}"\n'
+        f'            size="{bore.outer_radius:.5f} {bore.floor / 2:.5f}"\n'
+        f'            rgba="0 0 0 0" mass="0" group="3"/>')
+    return '\n'.join(out)
+
+
+if __name__ == '__main__':
+    main()

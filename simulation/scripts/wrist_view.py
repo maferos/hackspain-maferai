@@ -388,20 +388,30 @@ def pipette_programme(model: mujoco.MjModel, data: mujoco.MjData, count: int):
                 continue
 
             mouth = data.site(beaker.mouth).xpos
-            above = np.array([float(mouth[0]), float(mouth[1]),
-                              float(mouth[2]) - 0.01])
+            into = np.array([float(mouth[0]), float(mouth[1]),
+                             float(mouth[2]) - 0.01])
+            clear = into + np.array([0.0, 0.0, pt.CLEARANCE + 0.05])
             saved = (data.qpos.copy(), data.qvel.copy())
-            station = rk.reach(model, data, above)
-            q_beaker = data.qpos[rk.arm_qpos(model)].copy()
+            station = rk.reach(model, data, clear)
+            q_clear = data.qpos[rk.arm_qpos(model)].copy()
+            q_into = None
+            if station is not None:
+                rk.set_rail(model, data, station)
+                if rk.solve_any(model, data, into):
+                    q_into = data.qpos[rk.arm_qpos(model)].copy()
             data.qpos[:], data.qvel[:] = saved
             mujoco.mj_forward(model, data)
-            if station is None:
+            if station is None or q_into is None:
                 continue
-            yield from drive(station, q_beaker, 3.0, 'carrying to the beaker')
+            # Over the beaker first, then down into it: going straight at it
+            # sweeps the arm through the balance and knocks it off the pan.
+            yield from drive(station, q_clear, 3.0, 'carrying to the beaker')
+            yield from drive(station, q_into, 1.2, 'lowering into the beaker')
             pip.dispense(model, data, beaker, tool)
-            yield from drive(station, q_beaker, 1.0,
+            yield from drive(station, q_into, 1.0,
                              f'beaker now {beaker.volume:.2f} ml '
                              f'= {beaker.mass:.2f} g')
+            yield from drive(station, q_clear, 1.2, 'clear of the beaker')
 
 
 def telemetry(model: mujoco.MjModel, data: mujoco.MjData, caption: str,

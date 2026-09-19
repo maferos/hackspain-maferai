@@ -278,11 +278,26 @@ beaker now holds 6.08 ml = 5.53 g at 0.91 g/ml
 tip alignment: 1.1 mm mean, 1.5 mm worst
 ```
 
-Two things it is worth knowing the MVP does not do, both in PIPETTING_PLAN.md:
-the vessels are still convex for collision and the tip is let through them by a
-contact exclusion rather than by a hollow shell, and the beaker stands on the
-bench beside a balance rather than on one, because the balances collide as a
-single solid box with no pan.
+**The flasks are hollow for collision, not just for looks.** MuJoCo collides a
+mesh as its convex hull, so the glass was a solid slug and a tip could only be
+put inside it by excluding the contact. Each vessel now carries three rings of
+overlapping boxes --- body, shoulder and neck --- plus a base disc, so the
+outside is still solid and the bore is genuinely open. A tip 12 mm off the axis
+strikes the glass; 8 mm goes down the bore. It costs about 37 collision geoms
+per vessel and the scene still runs at 12.8x realtime.
+
+**The beaker stands on a balance.** `scripts/generate_open_balance.py` trims
+every mesh of the balance above 200 mm, throwing away the draft shield's roof,
+and replaces the single collision box with a housing, a weighing pan and four
+shield walls. That balance is also moved out in front of the rail: left where
+it stood on the back strip, the beaker's rim sat at 1.08 m, which put the
+pipette's flange at 1.34 --- 20 mm under the gantry beam with the whole wrist
+in the way.
+
+One regression worth knowing: with the flasks hollow, `grasp_test.py` scores 11
+of 12 rather than 12. The staves give the pads a slightly different surface
+than a smooth convex hull, and one grasp is now marginal. The gripper's own
+sensors still agree with reality on all twelve.
 
 ## AutoBio lab scenes
 

@@ -201,7 +201,7 @@ def set_rail(model: mujoco.MjModel, data: mujoco.MjData, x: float) -> float:
 
 def solve_ik(model: mujoco.MjModel, data: mujoco.MjData, target: np.ndarray,
              *, approach: tuple[float, float, float] = (0.0, 0.0, -1.0),
-             site_name: str = TCP_SITE, image_up: tuple[float, float, float] | None = None,
+             site_name: str | None = None, image_up: tuple[float, float, float] | None = None,
              seed: np.ndarray | None = None, iterations: int = 400,
              tol: float = 1.5e-3, damping: float = 0.12) -> bool:
     """Drive the tool centre point onto a target with a fixed approach axis.
@@ -215,8 +215,9 @@ def solve_ik(model: mujoco.MjModel, data: mujoco.MjData, target: np.ndarray,
         data: Data to solve in; its arm joints are overwritten.
         target: World position for the driven site, shape (3,).
         approach: World direction the site's +Z should point along.
-        site_name: Site to drive --- TCP_SITE for a grasp, EIH_SITE to aim the
-            eye-in-hand camera.
+        site_name: Site to drive. Defaults to whichever tool is fitted, which
+            load() works out; a default argument cannot, because it would bind
+            at import time and outlive a tool change.
         image_up: World direction that should end up at the top of the camera
             image. Omit to leave the roll about the approach axis free, which
             is right for a grasp on a round vessel and wrong for a camera.
@@ -229,7 +230,7 @@ def solve_ik(model: mujoco.MjModel, data: mujoco.MjData, target: np.ndarray,
         True when both tolerances are met.
     """
     dofs, qadr = arm_dofs(model), arm_qpos(model)
-    site = model.site(site_name).id
+    site = model.site(site_name or TCP_SITE).id
     lo = np.array([model.jnt_range[model.joint(n).id][0] for n in ARM_JOINTS])
     hi = np.array([model.jnt_range[model.joint(n).id][1] for n in ARM_JOINTS])
     data.qpos[qadr] = SEED_POSE if seed is None else seed
