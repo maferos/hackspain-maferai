@@ -2,3 +2,7 @@
 	path = simulation/third_party/AutoBio
 	url = https://github.com/autobio-bench/AutoBio.git
 	shallow = true
+[submodule "simulation/third_party/mujoco_menagerie"]
+	path = simulation/third_party/mujoco_menagerie
+	url = https://github.com/google-deepmind/mujoco_menagerie.git
+	shallow = true
