@@ -134,6 +134,8 @@ BACKENDS: dict[str, Backend] = {
     "coco26": Backend("yolo26s.pt", 0.13, keep=COCO_KEEP),
     "fixedcam": Backend("yolo26n_fixedcam.pt", 0.07),
     "rail": Backend("yolo26n_rail_general.pt", 0.10),
+    # The harness names this one `mujoco`; same weights, same threshold.
+    "mujoco": Backend("yolo26n_rail_general.pt", 0.10),
 }
 """The two backends chosen on real photographs, the small YOLO-World as a fast
 variant that loses distant vessels, and three chosen on the fixed camera's

@@ -16,6 +16,8 @@ Three figures, each answering one question:
   cloud around it. The two are fixed by completely different things.
 * ``boxes.png`` --- the fixed camera's own frame with the detector's boxes on
   it, and the true silhouettes beside them.
+* ``lookup.png``, with ``--table`` --- what the harness lookup table ends up
+  holding: the robot's memory, and what the formula stage reads.
 
 Colours are the two ends of a validated categorical pair: blue is truth,
 orange is what we predicted. Everything is direct-labelled, so identity never
@@ -231,6 +233,9 @@ def main() -> None:
     """Draw all three figures for one run."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('run', type=Path, help='a propose_confirm output dir')
+    parser.add_argument('--table', type=Path, default=None,
+                        help='a harness lookup_table.json to draw as well')
+    parser.add_argument('--scene-name', default='minihannover_rail_scene')
     parser.add_argument('--frame', type=Path, default=None,
                         help='the fixed camera frame; layout_00_general.jpg '
                              'in the run by default')
@@ -244,9 +249,65 @@ def main() -> None:
         boxes(bottles, proposals, frame, args.run / 'boxes.png')
     else:
         print(f'no frame at {frame}; re-run propose_confirm with --save-frames')
+    if args.table and args.table.exists():
+        lookup(args.table, args.scene_name, args.run / 'lookup.png')
     found = sum(1 for b in bottles if b.get('error_m') is not None)
     print(f'{found}/{len(bottles)} bottles found, {len(proposals)} boxes; '
           f'wrote bench.png, residuals.png and boxes.png to {args.run}')
+
+
+
+
+def lookup(table: Path, scene: str, out: Path) -> None:
+    """The lookup table the harness ends up with, as a readable page.
+
+    The bench plot shows where the three positions are; this shows what was
+    actually written down --- which sample, what it is, where it stands and how
+    far that is from the truth. It is the robot's memory, and the thing the
+    formula stage reads.
+
+    Args:
+        table: A harness lookup_table.json.
+        scene: Which scene block to show.
+        out: Where to write the figure.
+    """
+    block = json.loads(table.read_text())['scenes'][scene]
+    rows = sorted(block['labels'], key=lambda e: e['position'][0])
+    metrics = block['metrics']
+
+    fig, ax = plt.subplots(figsize=(11, 0.34 * len(rows) + 2.1))
+    ax.set_facecolor(SURFACE)
+    ax.axis('off')
+    ax.set_title(f'The lookup table for {scene}', color=INK, fontsize=12,
+                 loc='left', pad=22)
+    ax.text(0, 1.0,
+            f'{metrics["identified"]} of {metrics["gt_labels"]} identified, '
+            f'{metrics["named_wrongly"]} named wrongly, '
+            f'median error {metrics["median_error_m"] * 1000:.1f} mm, '
+            f'{metrics["refined"]} refined by the wrist',
+            transform=ax.transAxes, color=MUTED, fontsize=9.5)
+
+    columns = ((0.00, 'sample'), (0.13, 'material'), (0.40, 'x'), (0.50, 'y'),
+               (0.60, 'ml'), (0.70, 'confidence'), (0.86, 'error'))
+    top = 0.94
+    for x, head in columns:
+        ax.text(x, top, head, transform=ax.transAxes, color=MUTED, fontsize=8.5,
+                fontweight='600')
+    for i, entry in enumerate(rows):
+        y = top - 0.035 - i * (0.90 / max(len(rows), 1))
+        error = entry.get('error_m')
+        cells = (entry['sample_id'], (entry.get('material') or '')[:24],
+                 f'{entry["position"][0]:+.3f}', f'{entry["position"][1]:+.3f}',
+                 f'{entry.get("container_ml", 0):.0f}',
+                 f'{entry["probability"]:.3f}',
+                 '-' if error is None else f'{error * 1000:.1f} mm')
+        for (x, _), text in zip(columns, cells, strict=True):
+            ax.text(x, y, text, transform=ax.transAxes, fontsize=8.5,
+                    color=REFINED if text.startswith('SMP') else INK,
+                    family='monospace' if x >= 0.40 else None)
+    fig.tight_layout()
+    fig.savefig(out, dpi=170, facecolor=SURFACE)
+    plt.close(fig)
 
 
 if __name__ == '__main__':
