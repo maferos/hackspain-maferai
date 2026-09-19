@@ -7,8 +7,8 @@ task planner (none exists in the repo yet).
 
 It also publishes the full `LabState` that the lab state panels render, on
 `ws://localhost:8765/state`, driven by the scripted
-formulation of `labbridge.mock_run` over this same scene. The script moves the
-free containers kinematically, so the camera streams show it too.
+formulation of `labbridge.mock_run` on separate simulation data. The panel demo
+never moves containers in the camera scene.
 
 Usage:
     .venv/bin/python view/backend/server.py
@@ -183,15 +183,17 @@ class SceneRenderer:
         self._latest_rgb: dict[str, np.ndarray] = {}
         self._frame_seq: dict[str, int] = {}
         self._condition = threading.Condition()
-        # Guards `data` between the physics/render thread and the state thread.
+        # Guards the viewport's physics and rendering data.
         self._data_lock = threading.Lock()
 
-        # Scripted formulation that drives the dashboard's LabState and moves
-        # the free containers; the console reads it on ws://:STATE_PORT/state.
+        # The panel demo gets its own MjData: its kinematic bottle animation
+        # must never modify the scene rendered by the camera thread.
         # A scene without the scripted run's samples (e.g. the open lab) still
         # renders its camera streams; only the LabState feed is skipped.
         try:
-            self.run = ScriptedRun(self.model, self.data, vessels(self.model))
+            self.panel_data = mujoco.MjData(self.model)
+            mujoco.mj_forward(self.model, self.panel_data)
+            self.run = ScriptedRun(self.model, self.panel_data, vessels(self.model))
         except Exception as exc:  # noqa: BLE001
             print(
                 f"[view] no scripted run for {xml_path.name}: {exc!r}; "
@@ -324,8 +326,7 @@ class SceneRenderer:
             self.watch_main(mj_camera_name, -1)
 
     def _snapshot_state(self) -> None:
-        with self._data_lock:
-            self.state_server.snapshot(self.run.initial_state(workcell(self.model, self.data, ACTIVE_BALANCE, RAIL)))
+        self.state_server.snapshot(self.run.initial_state(workcell(self.model, self.panel_data, ACTIVE_BALANCE, RAIL)))
 
     def publish_state_forever(self) -> None:
         """Replays the scripted formulation and publishes LabState patches at STATE_RATE_HZ."""
@@ -343,8 +344,7 @@ class SceneRenderer:
                 t0, last = tick, {}
                 self._snapshot_state()
                 t = 0.0
-            with self._data_lock:
-                last = self.run.apply(t, self.state_server, last)
+            last = self.run.apply(t, self.state_server, last)
             remaining = period - (time.time() - tick)
             if remaining > 0:
                 time.sleep(remaining)

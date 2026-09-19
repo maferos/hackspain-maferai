@@ -105,9 +105,9 @@ The same backend also publishes the full `LabState` (see
 `dashboard/bridge/README.md` for the protocol) on `ws://localhost:8765/state`.
 It is driven by the scripted formulation in
 `dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four liquids,
-one recovery: the Eugenol flask is moved during the approach), which moves the
-free containers of the scene kinematically, so the camera streams show the
-bottles travelling to `balance_2`. It needs `websockets` in the venv (listed
+one recovery: the Eugenol flask is displaced in the demo state). This script
+uses separate MuJoCo data for the panels; it never moves bottles in the
+camera scene. The rail sweep remains independent. It needs `websockets` in the venv (listed
 in `backend/requirements.txt`).
 
 When that state is connected, the frontend shows it (`src/LabTaskPanel.jsx`,
