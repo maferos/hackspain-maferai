@@ -27,6 +27,13 @@ fly it around).
 The viewer uses camera WebSockets so multiple open tabs do not exhaust the
 browser's per-host HTTP connection limit. Cameras reconnect automatically
 after a backend restart and show “Connecting camera…” until a frame arrives.
+The main view requests 1920×1080 at up to 15 FPS; the small preview requests
+640×360 at up to 5 FPS. Swapping cameras updates these subscriptions. A camera
+used as a main view in another tab retains full rendering quality. The general
+camera always renders at 1080p for YOLO, even when displayed as a preview,
+but drops to 5 FPS when no main view subscribes. The robot preview renders
+directly at 640×360. JPEG compression runs in a separate worker with at most
+one waiting frame per camera; rendering never waits for compression.
 
 ```sh
 # 1. Backend deps, into the same venv simulation/ already uses:

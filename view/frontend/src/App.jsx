@@ -148,7 +148,7 @@ function useDetections(enabled) {
   return enabled ? detections : null;
 }
 
-function LiveCameraImage({ cameraId, label }) {
+function LiveCameraImage({ cameraId, label, preview }) {
   const imageRef = useRef(null);
   const [connected, setConnected] = useState(false);
   useEffect(() => {
@@ -159,7 +159,7 @@ function LiveCameraImage({ cameraId, label }) {
     let currentUrl;
     let pendingUrl;
     const connect = () => {
-      socket = new WebSocket(`${BACKEND_URL.replace(/^http/, "ws")}/ws/camera/${cameraId}`);
+      socket = new WebSocket(`${BACKEND_URL.replace(/^http/, "ws")}/ws/camera/${cameraId}?preview=${preview}`);
       socket.binaryType = "blob";
       socket.onmessage = ({ data }) => {
         // Keep only one image decoding at a time; slow clients skip frames.
@@ -198,7 +198,7 @@ function LiveCameraImage({ cameraId, label }) {
       if (pendingUrl) URL.revokeObjectURL(pendingUrl);
       if (currentUrl) URL.revokeObjectURL(currentUrl);
     };
-  }, [cameraId]);
+  }, [cameraId, preview]);
   return <>
     <img ref={imageRef} alt={label} className="camera-frame__img" />
     {!connected && <span className="camera-frame__connection" role="status">Connecting camera…</span>}
@@ -210,7 +210,7 @@ function CameraStream({ cameraId, label, className, onClick, big, still, detecti
   return (
     <div className={`camera-frame ${className ?? ""}`} onClick={onClick}>
       {still ? <img src={still} alt={label} className="camera-frame__img" />
-        : <LiveCameraImage key={cameraId} cameraId={cameraId} label={label} />}
+        : <LiveCameraImage key={`${cameraId}-${big}`} cameraId={cameraId} label={label} preview={!big} />}
       {boxes && <DetectionBoxes detections={boxes} />}
       <span className="camera-frame__label">
         {label}

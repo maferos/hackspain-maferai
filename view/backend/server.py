@@ -27,9 +27,9 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-import cv2
 import mujoco
 import numpy as np
+from jpeg_encoder import JpegEncoder, PREVIEW_SIZE
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -78,6 +78,7 @@ FRAME_WIDTH = 1920
 FRAME_HEIGHT = 1080
 RENDER_FPS = 15
 JPEG_QUALITY = 80
+PREVIEW_FPS = 5
 
 # Bottle detector on the general camera's live frames, run only while a client
 # has the boxes on (see Detector). VIEW_DETECTOR is a labvision backend name or
@@ -167,18 +168,20 @@ class SceneRenderer:
     mujoco.Renderer's GL context is bound to the thread that created it, so
     calls to update_scene()/render() must all happen on that one thread —
     calling render from FastAPI's request threadpool produced black frames.
-    Instead this thread renders into `_latest_jpeg` and HTTP handlers (on
-    whatever thread) just read the latest cached bytes.
+    This thread publishes RGB arrays; a separate encoder compresses the newest
+    frame per camera and stream handlers read its cached JPEG bytes.
     """
 
     def __init__(self, xml_path: Path) -> None:
         self.model = mujoco.MjModel.from_xml_path(str(xml_path))
         self.data = mujoco.MjData(self.model)
         mujoco.mj_forward(self.model, self.data)
-        self._latest_jpeg: dict[str, bytes] = {}
-        # The RGB behind each camera's latest JPEG, for the detector.
+        self.encoder = JpegEncoder(JPEG_QUALITY)
+        threading.Thread(target=self.encoder.run_forever, daemon=True).start()
+        self._main_watchers: dict[str, int] = {}
+        # Latest rendered RGB for the detector, independent of JPEG latency.
         self._latest_rgb: dict[str, np.ndarray] = {}
-        self._frame_seq = 0
+        self._frame_seq: dict[str, int] = {}
         self._condition = threading.Condition()
         # Guards `data` between the physics/render thread and the state thread.
         self._data_lock = threading.Lock()
@@ -252,51 +255,73 @@ class SceneRenderer:
         mujoco.mj_forward(self.model, self.data)
         motion["i"] += 1
 
-    def _encode(self, mj_camera_name: str, renderer: "mujoco.Renderer") -> tuple[bytes, np.ndarray]:
-        with self._data_lock:
-            renderer.update_scene(self.data, camera=mj_camera_name, scene_option=self._scene_options[mj_camera_name])
-        frame = renderer.render()  # RGB
-        bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
-        ok, buf = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
-        if not ok:
-            raise RuntimeError("JPEG encode failed")
-        return buf.tobytes(), frame
-
     def run_forever(self) -> None:
-        renderer = mujoco.Renderer(self.model, height=FRAME_HEIGHT, width=FRAME_WIDTH)
+        # One GL context and framebuffer, two viewport sizes. Separate Renderer
+        # objects would duplicate GPU resources and switch contexts every frame.
+        gl = mujoco.GLContext(FRAME_WIDTH, FRAME_HEIGHT)
+        gl.make_current()
+        context = mujoco.MjrContext(self.model, mujoco.mjtFontScale.mjFONTSCALE_150.value)
+        mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, context)
+        render_scene = mujoco.MjvScene(self.model, maxgeom=10000)
+        camera = mujoco.MjvCamera()
+        camera.type = mujoco.mjtCamera.mjCAMERA_FIXED
         period = 1.0 / RENDER_FPS
-        mj_camera_names = [info["mj_name"] for info in self.cameras.values()]
+        names = [info["mj_name"] for info in self.cameras.values()]
+        due = dict.fromkeys(names, 0.0)
+        was_main = dict.fromkeys(names, False)
         while True:
-            start = time.time()
+            start = time.monotonic()
             with self._data_lock:
                 if self._motion is not None:
                     self._advance_motion()
                 else:
                     mujoco.mj_step(self.model, self.data)
-            rendered = {name: self._encode(name, renderer) for name in mj_camera_names}
-            with self._condition:
-                for name, (jpeg, rgb) in rendered.items():
-                    self._latest_jpeg[name] = jpeg
+            for name in names:
+                main = self._main_watchers.get(name, 0) > 0
+                if start < due[name] and main == was_main[name]:
+                    continue
+                width, height = (FRAME_WIDTH, FRAME_HEIGHT) if main or name == "general" else PREVIEW_SIZE
+                camera.fixedcamid = mujoco.mj_name2id(self.model, mujoco.mjtObj.mjOBJ_CAMERA, name)
+                with self._data_lock:
+                    mujoco.mjv_updateScene(self.model, self.data, self._scene_options[name],
+                                          None, camera, mujoco.mjtCatBit.mjCAT_ALL.value, render_scene)
+                viewport = mujoco.MjrRect(0, 0, width, height)
+                rgb = np.empty((height, width, 3), dtype=np.uint8)
+                mujoco.mjr_render(viewport, render_scene, context)
+                mujoco.mjr_readPixels(rgb, None, viewport, context)
+                rgb = np.flipud(rgb).copy()
+                with self._condition:
                     self._latest_rgb[name] = rgb
-                self._frame_seq += 1
-                self._condition.notify_all()
-            remaining = period - (time.time() - start)
+                    self._frame_seq[name] = self._frame_seq.get(name, 0) + 1
+                self.encoder.submit(name, rgb)
+                due[name] = start + 1.0 / (RENDER_FPS if main else PREVIEW_FPS)
+                was_main[name] = main
+            remaining = period - (time.monotonic() - start)
             if remaining > 0:
                 time.sleep(remaining)
 
     def latest_rgb(self, mj_camera_name: str) -> tuple[np.ndarray | None, int]:
-        """The camera's newest rendered RGB frame and the render loop's frame count."""
+        """RGB and sequence number of this camera, independent of JPEG encoding."""
         with self._condition:
-            return self._latest_rgb.get(mj_camera_name), self._frame_seq
+            return self._latest_rgb.get(mj_camera_name), self._frame_seq.get(mj_camera_name, 0)
+
+    def watch_main(self, name: str, delta: int) -> None:
+        with self._condition:
+            self._main_watchers[name] = self._main_watchers.get(name, 0) + delta
 
     def frames(self, mj_camera_name: str):
-        """Yields each newly rendered JPEG for the given camera, blocking between them."""
+        """Legacy MJPEG clients subscribe to the full-resolution camera."""
         last = None
-        while True:
-            with self._condition:
-                self._condition.wait_for(lambda: self._latest_jpeg.get(mj_camera_name) is not last)
-                last = self._latest_jpeg[mj_camera_name]
-            yield last
+        self.watch_main(mj_camera_name, +1)
+        try:
+            while True:
+                with self.encoder.condition:
+                    self.encoder.condition.wait_for(
+                        lambda: self.encoder.latest.get((mj_camera_name, False)) is not last)
+                    last = self.encoder.latest[mj_camera_name, False]
+                yield last
+        finally:
+            self.watch_main(mj_camera_name, -1)
 
     def _snapshot_state(self) -> None:
         with self._data_lock:
@@ -467,26 +492,37 @@ def detector_info():
 
 
 @app.websocket("/ws/camera/{camera_id}")
-async def ws_camera(websocket: WebSocket, camera_id: str):
+async def ws_camera(websocket: WebSocket, camera_id: str, preview: bool = False):
     """Binary JPEG frames without occupying a browser's HTTP connection pool."""
     if camera_id not in scene.cameras:
         await websocket.close(code=1008)
         return
     await websocket.accept()
     camera = scene.cameras[camera_id]["mj_name"]
-    last = None
-    try:
+    if not preview:
+        scene.watch_main(camera, +1)
+    async def send_frames():
+        last = None
         while True:
-            # Immutable bytes are published by one render thread. Do not take
-            # its lock here: rendering holds it across GL work, which would
-            # block FastAPI's event loop and all other camera connections.
-            jpeg = scene._latest_jpeg.get(camera)
+            jpeg = scene.encoder.latest.get((camera, preview))
             if jpeg is not None and jpeg is not last:
                 await websocket.send_bytes(jpeg)
                 last = jpeg
-            await asyncio.sleep(1 / RENDER_FPS)
+            await asyncio.sleep(1 / (PREVIEW_FPS if preview else RENDER_FPS))
+    sender = asyncio.create_task(send_frames())
+    closed = asyncio.create_task(websocket.receive())
+    try:
+        done, _ = await asyncio.wait((sender, closed), return_when=asyncio.FIRST_COMPLETED)
+        for task in done:
+            task.result()
     except WebSocketDisconnect:
         pass
+    finally:
+        sender.cancel()
+        closed.cancel()
+        await asyncio.gather(sender, closed, return_exceptions=True)
+        if not preview:
+            scene.watch_main(camera, -1)
 
 
 @app.websocket("/ws/detections")
