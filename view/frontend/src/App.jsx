@@ -4,6 +4,7 @@ import { chooseScene } from "./sceneSession";
 import "./App.css";
 import useReplayDetections from "./useReplayDetections";
 import FormulaChat from "./FormulaChat";
+import InfoPanel from "./InfoPanel";
 import BalancePanel from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
 import PipelinePanel from "./PipelinePanel";
@@ -42,7 +43,10 @@ const REPLAY_CAMERAS = [
 
 // Views that can be opened and closed from the header, and the sizes the drag
 // handles set. Both are remembered in this browser.
-const VIEWS = [{ id: "balance", label: "Balance" }];
+const VIEWS = [
+  { id: "balance", label: "Balance" },
+  { id: "info", label: "Info", title: "What the viewer is running: models, scene and build" },
+];
 // The chat owns the right column; the dock under the viewport carries the
 // balance, the tasks and the pipeline. The balance only reads out a mass, so
 // its width is fixed in the stylesheet and the other two split what is left.
@@ -547,6 +551,7 @@ export default function App() {
               detections={liveDetections}
               detector={detector}
             />
+            {views.info && <InfoPanel backendUrl={BACKEND_URL} detections={liveDetections} />}
           </div>
         </div>
         <Splitter direction="col" onStart={dragChatWidth} onReset={() => resize({ chatWidth: DEFAULT_SIZES.chatWidth })} />

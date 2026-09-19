@@ -77,7 +77,19 @@ from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
 from labvision.detector import resolve as resolve_detector
 from catalogue import Catalogue, resolve, shelf_from_tracks  # noqa: E402
-from formula_chat import FormulaChat  # noqa: E402
+from formula_chat import MODEL as CHAT_MODEL, FormulaChat  # noqa: E402
+
+
+def build_id() -> str:
+    """The commit the viewer is running, for the Info panel; "" outside git."""
+    try:
+        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO_ROOT,
+                              capture_output=True, text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+COMMIT = build_id()
 
 STATE_PORT = int(os.environ.get("VIEW_STATE_PORT", "8765"))
 STATE_RATE_HZ = 10
@@ -699,6 +711,31 @@ def stream(camera_id: str):
         mjpeg_generator(mj_name),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
+
+
+@app.get("/api/info")
+def viewer_info():
+    """What this viewer is running: the models, the scene and the build.
+
+    The Info panel shows it, so that what is on screen can always be traced to
+    a model file and a commit.
+    """
+    lab = getattr(scene, "lab", None)
+    scan = scene.scan
+    return {
+        "detector": {"backend": DETECTOR_SPEC, "weights": detector.weights.name or None,
+                     "conf": detector.conf, "available": detector.available,
+                     "error": detector.error, "camera": DETECTOR_CAMERA,
+                     "input": f"{FRAME_WIDTH}x{FRAME_HEIGHT}"},
+        "scan": {"enabled": SCAN_ENABLED,
+                 "weights": Path(scan.weights).name if scan and scan.weights else None,
+                 "conf": round(scan.conf, 2) if scan else None},
+        "chat": {"mode": chat.mode, "model": CHAT_MODEL if chat.mode == "claude" else None},
+        "executor": lab.workflow.executor if lab else None,
+        "scene": {"file": SCENE_PATH.name, **(scene.pattern or {})},
+        "state": f"ws://localhost:{STATE_PORT}/state",
+        "build": COMMIT,
+    }
 
 
 @app.get("/api/detector")
