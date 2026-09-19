@@ -32,6 +32,8 @@ parser.add_argument("--fraction", type=float, default=1.0, help="share of train 
 parser.add_argument("--scale", type=float, default=0.5)
 parser.add_argument("--workers", type=int, default=8)
 parser.add_argument("--patience", type=int, default=12)
+parser.add_argument("--cache", default="", choices=["", "ram", "disk"],
+                    help="ram when the decoded frames fit: about 4 MB a bench crop")
 args = parser.parse_args()
 
 assert torch.cuda.is_available(), (
@@ -51,7 +53,7 @@ model.train(
     fraction=args.fraction,
     workers=args.workers,
     device=0,
-    cache=False,
+    cache=args.cache or False,
     scale=args.scale,
     plots=True,
     project="runs/orbit",

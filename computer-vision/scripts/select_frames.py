@@ -7,11 +7,12 @@ covers and caps the crowded ones (``docs/YOLO26_TRAINING.md``):
 - no dark frames: they stay in ``dark_test`` and ``orbit_dark_test``;
 - wall mount: the first ``RAIL_TRAIN`` frames of ``rail_train`` by seed, and the
   first ``RAIL_VAL`` of ``rail_val``;
-- orbit and close views together, on a grid of :data:`ELEVATION_DEG` by
+- orbit, close and low views together, on a grid of :data:`ELEVATION_DEG` by
   :data:`RANGE_M`: at most ``CELL_CAP`` frames a cell, taken round-robin over
   twelve 30-degree bearings, by seed within a bearing, so a capped cell still
   looks at the bench from all round;
-- validation: every frame of ``orbit_val`` and ``close_val`` that is not dark.
+- validation: every frame of ``orbit_val``, ``close_val`` and ``low_val`` that is
+  not dark.
 
     python scripts/select_frames.py --src DIR [--out DIR] [--no-link]
 
@@ -33,12 +34,14 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fixedcam_dataset import DEFAULT_OUT  # noqa: E402
 
-ELEVATION_DEG = (30.0, 45.0, 60.0, 75.0, 88.0)
+ELEVATION_DEG = (15.0, 30.0, 45.0, 60.0, 75.0, 88.0)
 RANGE_M = (0.35, 0.6, 1.0, 1.75, 2.5, 3.5)
 BEARINGS = 12
 CELL_CAP = 200
-RAIL_TRAIN = 1500
-RAIL_VAL = 150
+RAIL_TRAIN = 2000
+RAIL_VAL = 200
+VIEW_SPLITS = ("orbit", "close", "low")
+"""The splits whose camera stands anywhere; ``low`` only where it was rendered."""
 
 
 def band(value: float, edges: tuple[float, ...]) -> int:
@@ -117,19 +120,25 @@ def main() -> None:
     args = parser.parse_args()
     out = args.out or args.src
 
+    def present(split: str) -> bool:
+        return (args.src / split / "gt.json").exists()
+
     def load(split: str) -> dict:
         path = args.src / split / "gt.json"
         return json.loads(path.read_text(encoding="utf-8"))
 
+    def views_of(role: str) -> list[dict]:
+        names = [f"{s}_{role}" for s in VIEW_SPLITS if present(f"{s}_{role}")]
+        return [frame for name in names for frame in load(name)["frames"]]
+
     rail = load("rail_train")
     header = {k: v for k, v in rail.items() if k not in ("frames", "split")}
-    views = lit(load("orbit_train")["frames"] + load("close_train")["frames"])
+    views = lit(views_of("train"))
     picked, counts = grid(views, args.cap)
     train = lit(rail["frames"])[:RAIL_TRAIN] + picked
     val = (
         lit(load("rail_val")["frames"])[:RAIL_VAL]
-        + lit(load("orbit_val")["frames"])
-        + lit(load("close_val")["frames"])
+        + lit(views_of("val"))
     )
     write(out, "sel_train", args.src, header, train, not args.no_link)
     write(out, "sel_val", args.src, header, val, not args.no_link)

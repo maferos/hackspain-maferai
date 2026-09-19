@@ -29,7 +29,7 @@ DATA=${DATA:-/root/yolo_sel}
 TESTS=${TESTS:-rail_test,rail_test_shift,orbit_test,close_test,overhead_test,dark_test,orbit_dark_test}
 mkdir -p "$OUT/plots" "$OUT/weights"
 exec > >(tee -a "$OUT/run.log") 2>&1
-stage() { echo "== $(date -u +%H:%M:%S) $*"; echo "$*" > "$OUT/STAGE"; }
+stage() { echo "== $(date -u +%H:%M:%S) $*"; echo "$*" > "${STAGE_FILE:-$OUT/STAGE}"; }
 fail() { stage "FAILED: $*"; exit 1; }
 
 stage deps
@@ -55,7 +55,7 @@ best=$(ls runs/detect/runs/orbit/"$NAME"/weights/best.pt runs/orbit/"$NAME"/weig
 if [ -z "$best" ]; then
   stage "train $NAME"
   python runs/orbit/train_yolo26_gpu.py "$DATA/data.yaml" --size n --imgsz 1920 \
-    --weights "$START" --name "$NAME" || fail train
+    --weights "$START" --name "$NAME" --epochs "${EPOCHS:-50}"     --patience "${PATIENCE:-12}" --workers "${WORKERS:-16}" --cache "${CACHE:-ram}" || fail train
   best=$(ls runs/detect/runs/orbit/"$NAME"/weights/best.pt runs/orbit/"$NAME"/weights/best.pt 2>/dev/null | head -1)
 fi
 [ -n "$best" ] || fail "no best.pt after training"

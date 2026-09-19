@@ -42,9 +42,12 @@ from fixedcam_crops import MIN_VISIBLE  # noqa: E402
 
 THUMB_W, THUMB_H, SHEET_COLS, SHEET = 192, 108, 10, 100
 HEIGHT_BINS = (0, 12, 20, 32, 64, 96, 160, 100_000)
-ELEV_BANDS = (30, 40, 50, 60, 70, 80, 90)
+ELEV_BANDS = (10, 20, 30, 40, 50, 60, 70, 80, 90)
 AZ_SECTORS = 12
-SAMPLES = {"rail": 40, "orbit": 50, "close": 30}
+SAMPLES = {"rail": 40, "orbit": 50, "close": 30, "low": 20}
+STYLES = ("scatter", "cluster", "as built", "clusters", "rows", "crowd")
+"""Bench layouts a frame can carry in ``randomisation.layout.style``: the
+renderer's own first, then ``bottle_patterns``'; a row stores the index."""
 FLAT_STD = 6.0
 
 
@@ -54,8 +57,10 @@ def family(split: str) -> str:
     ``dark_test`` is the wall camera dimmed and ``overhead_test`` the orbit
     camera from above, so they go with the camera, not their first word.
     """
+    named = {"pattern_test": "rail", "pattern_orbit_test": "orbit",
+             "lab_test": "orbit", "lab_rail_test": "rail"}  # fmt: skip
     head = split.split("_")[0]
-    return {"dark": "rail", "overhead": "orbit"}.get(head, head)
+    return named.get(split, {"dark": "rail", "overhead": "orbit"}.get(head, head))
 
 
 def camera(frame: dict) -> tuple[np.ndarray, np.ndarray]:
@@ -222,6 +227,7 @@ def main() -> None:
             pixels += (x1 - x0) * (y1 - y0) / (frame["width"] * frame["height"])
             heights[fam] += [round(b[3] - b[1]) for b in kept]
             frames.append((str(args.src / split), frame, crop))
+            layout = frame["randomisation"].get("layout", {})
             rows.append(
                 [
                     split_id,
@@ -235,6 +241,8 @@ def main() -> None:
                     int("degrade" in frame["randomisation"]),
                     int("dark" in frame["randomisation"]),
                     *crop,
+                    STYLES.index(layout.get("style", "scatter")),
+                    int("lab" in frame["randomisation"]),
                 ]
             )
             if flags:
@@ -314,6 +322,7 @@ def main() -> None:
             e = -1
         else:
             e = min(len(ELEV_BANDS) - 2, int((row[2] - ELEV_BANDS[0]) // 10))
+            e = max(e, 0)
         a = int(row[3] // (360 / AZ_SECTORS)) % AZ_SECTORS
         grid.setdefault(fam, np.zeros((len(ELEV_BANDS) - 1, AZ_SECTORS), int))
         if e >= 0:
@@ -338,7 +347,10 @@ def main() -> None:
             "crop_y0",
             "crop_x1",
             "crop_y1",
+            "style",
+            "lab",
         ],
+        "styles": STYLES,
         "rows": rows,
         "flagged": flagged,
         "samples": sorted(written),
