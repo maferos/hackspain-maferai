@@ -59,7 +59,31 @@ def test_a_track_is_the_index_the_console_joins_on():
         PerceivedBottle((0.0, 0.0, 0.9), 0.5, track=6),
         PerceivedBottle((1, 1, 1), 0.4),
     ]
-    assert [r["index"] for r in to_dashboard(tracked)] == [6, 1]
+    assert [r["index"] for r in to_dashboard(tracked)] == [6, 7]
+
+
+def test_a_bottle_without_a_track_never_takes_a_vessel_s_index():
+    from labvision.world import assign_tracks
+
+    far = PerceivedBottle((2.0, 2.0, 0.9), 0.4)
+    on_first = PerceivedBottle((0.0, 0.0, 0.9), 0.5)
+    anchors = {0: (0.0, 0.0), 1: (0.5, 0.0)}
+    records = to_dashboard(assign_tracks([far, on_first], anchors))
+    assert [r["index"] for r in records] == [1, 0]  # past the largest track
+    records = to_dashboard(assign_tracks([far, on_first], anchors), spare_from=2)
+    assert [r["index"] for r in records] == [2, 0]  # past every console vessel
+    assert len({r["index"] for r in records}) == len(records)
+
+
+def test_one_record_per_sample_the_refined_one_first():
+    from labvision.world import one_per_sample
+
+    rough = PerceivedBottle((0.03, 0.0, 0.9), 0.9, "SMP-0001")
+    placed = PerceivedBottle((0.0, 0.0, 0.9), 0.4, "SMP-0001", refined=True)
+    other = PerceivedBottle((0.5, 0.0, 0.9), 0.3, "SMP-0002", refined=True)
+    unnamed = [PerceivedBottle((1.0, 0.0, 0.9), 0.2) for _ in range(2)]
+    kept = one_per_sample([rough, other, placed, *unnamed])
+    assert kept == [other, placed, *unnamed]
 
 
 def test_tracks_go_to_the_nearest_free_anchor_within_reach():

@@ -46,22 +46,31 @@ SIZES = {"1080p": (1920, 1080), "4K": (3840, 2160)}
 
 
 def named(frame, bottles, rows, marker_of, reader) -> dict[str, list[bool]]:
-    """Per bench bottle required, whether each method named it"""
+    """Per bench bottle required, whether each method named it, or named it wrong
+
+    A whole-frame read names a bottle wrong when an id other than its own lies
+    on it and its own does not; a true-box read, when the box votes for
+    another id. A wrong name sends the arm to the wrong sample, so it is
+    counted apart from a miss.
+    """
     required = [b for b in bottles if b.get("where") == "bench" and is_required(b)]
     whole = identify_frame(frame, rows, reader=reader)
     boxes = identify(frame, [BBox(*b["xyxy"]) for b in required], rows, reader=reader)
-    result = {"whole": [], "true box": []}
+    result = {"whole": [], "true box": [], "whole wrong": [], "true box wrong": []}
     for bottle, in_box in zip(required, boxes, strict=True):
         marker = marker_of[bottle["sample_id"]]
         u0, v0, u1, v1 = bottle["full_xyxy"]
-        on_it = any(
-            i.marker_id == marker
+        on_it = {
+            i.marker_id
+            for i in whole
+            if i.marker_id is not None
             and u0 <= (i.bbox.u_min + i.bbox.u_max) / 2 <= u1
             and v0 <= (i.bbox.v_min + i.bbox.v_max) / 2 <= v1
-            for i in whole
-        )
-        result["whole"].append(on_it)
+        }
+        result["whole"].append(marker in on_it)
+        result["whole wrong"].append(bool(on_it) and marker not in on_it)
         result["true box"].append(in_box.marker_id == marker)
+        result["true box wrong"].append(in_box.marker_id not in (None, marker))
     return {"kinds": [kind(b) for b in required], **result}
 
 
@@ -89,6 +98,7 @@ def main() -> None:
         size: {m: defaultdict(lambda: [0, 0]) for m in ("whole", "true box")}
         for size in SIZES
     }
+    wrong = {size: {"whole": 0, "true box": 0} for size in SIZES}
     for k in range(args.layouts):
         x0 = float(rng.uniform(BENCH_X[0] + 0.8, BENCH_X[1] - 0.8))
         lab.scatter(rng, int(rng.integers(10, 16)), (x0 - 0.9, x0 + 0.9), (-1,))
@@ -99,6 +109,7 @@ def main() -> None:
                 for label, hit in zip(result["kinds"], result[method], strict=True):
                     tally[size][method][label][0] += hit
                     tally[size][method][label][1] += 1
+                wrong[size][method] += sum(result[f"{method} wrong"])
         print(f"layout {k} done", flush=True)
 
     kinds = sorted({k for s in tally.values() for m in s.values() for k in m})
@@ -121,10 +132,16 @@ def main() -> None:
         total = sum(v[1] for v in tally[size][method].values())
         totals.append(f"{100 * hit / total:.0f} % ({hit}/{total})" if total else "-")
     lines.append("| **all** | " + " | ".join(totals) + " |")
+    lines.append(
+        "| named wrong | "
+        + " | ".join(str(wrong[size][method]) for size, method in columns)
+        + " |"
+    )
     report = "\n".join(lines) + "\n"
     serialisable = {
         s: {m: dict(v) for m, v in methods.items()} for s, methods in tally.items()
     }
+    serialisable["wrong"] = wrong
     (args.out / "general_4k_identify.json").write_text(
         json.dumps(serialisable, indent=1), encoding="utf-8"
     )

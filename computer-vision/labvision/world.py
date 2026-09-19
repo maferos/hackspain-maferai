@@ -59,33 +59,76 @@ class PerceivedBottle:
         return CLASS_NAMES.get(self.phase or "", UNKNOWN_CLASS)
 
 
-def to_dashboard(bottles: list[PerceivedBottle]) -> list[dict]:
+def to_dashboard(
+    bottles: list[PerceivedBottle], *, spare_from: int | None = None
+) -> list[dict]:
     """The console's ``PerceivedVessel`` records
 
-    ``index`` is each bottle's :attr:`PerceivedBottle.track`, or its place in
-    the list when it has none. Only a track joins a record to the console's
-    scene vessel; list order is just a number.
+    ``index`` is each bottle's :attr:`PerceivedBottle.track`. The console
+    joins records to its scene vessels on it, so a bottle with no track must
+    not borrow a vessel's number: those are numbered on from ``spare_from``,
+    skipping every track. Pass the number of vessels the console draws there;
+    by default the count starts one past the largest track.
+
+    Args:
+        bottles: What the vision system found.
+        spare_from: First index for bottles without a track.
 
     Example:
         >>> to_dashboard([PerceivedBottle((0.1, -0.4, 0.9), 0.87, "SMP-0005",
         ...     4, "liquid", refined=True)])[0]["cls"]
         'amber bottle'
     """
-    return [
-        {
-            "index": index if bottle.track is None else bottle.track,
-            "id": bottle.sample_id,
-            "cls": bottle.cls,
-            "confidence": round(float(bottle.confidence), 3),
-            "position": {
-                "x": float(bottle.position[0]),
-                "y": float(bottle.position[1]),
-                "z": float(bottle.position[2]),
-            },
-            "stale": bool(bottle.stale),
-        }
-        for index, bottle in enumerate(bottles)
-    ]
+    tracks = {b.track for b in bottles if b.track is not None}
+    spare = spare_from if spare_from is not None else max(tracks, default=-1) + 1
+    records = []
+    for bottle in bottles:
+        index = bottle.track
+        if index is None:
+            while spare in tracks:
+                spare += 1
+            index, spare = spare, spare + 1
+        records.append(
+            {
+                "index": index,
+                "id": bottle.sample_id,
+                "cls": bottle.cls,
+                "confidence": round(float(bottle.confidence), 3),
+                "position": {
+                    "x": float(bottle.position[0]),
+                    "y": float(bottle.position[1]),
+                    "z": float(bottle.position[2]),
+                },
+                "stale": bool(bottle.stale),
+            }
+        )
+    return records
+
+
+def one_per_sample(bottles: list[PerceivedBottle]) -> list[PerceivedBottle]:
+    """Drop the second sighting of a sample, keeping the best one in place
+
+    Two proposals a few centimetres apart on one bottle both send the wrist to
+    it, and both come back with its name. A sample stands in one place, so
+    one record is kept: refined over unrefined, then the higher score. Bottles
+    not named are all kept, since nothing says they are the same.
+
+    Example:
+        >>> a = PerceivedBottle((0.0, 0.0, 0.9), 0.4, "SMP-0001", refined=True)
+        >>> b = PerceivedBottle((0.04, 0.0, 0.9), 0.9, "SMP-0001")
+        >>> one_per_sample([b, a]) == [a]
+        True
+    """
+    best: dict[str, int] = {}
+    for i, bottle in enumerate(bottles):
+        if bottle.sample_id is None:
+            continue
+        kept = best.get(bottle.sample_id)
+        rank = (bottle.refined, bottle.confidence)
+        if kept is None or rank > (bottles[kept].refined, bottles[kept].confidence):
+            best[bottle.sample_id] = i
+    keep = set(best.values())
+    return [b for i, b in enumerate(bottles) if b.sample_id is None or i in keep]
 
 
 def assign_tracks(

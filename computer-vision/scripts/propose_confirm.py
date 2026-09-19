@@ -55,7 +55,7 @@ from labvision.detector import _find_weights, input_size_for  # noqa: E402
 from labvision.identify import DEFAULT_TABLE, MarkerReader, rows_by_marker  # noqa: E402
 from labvision.perception import confirm, perceived, propose  # noqa: E402
 from labvision.scene import BBox, gopro_intrinsics  # noqa: E402
-from labvision.world import to_dashboard  # noqa: E402
+from labvision.world import one_per_sample, to_dashboard  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
 STANDOFF_M = 0.30
@@ -239,8 +239,12 @@ def summarise(layouts: list[dict], detector: str) -> str:
             values[min(len(values) - 1, int(q * len(values)))] if values else math.nan
         )
 
-    errors = [b["error_m"] * 1000 for b in graded if b["error_m"] is not None]
-    refined = [b["refined_error_m"] * 1000 for b in graded if b["refined_error_m"]]
+    # Both errors on the same bottles, the ones named right: a wrong name's
+    # refined position is its neighbour's, and would not measure refining.
+    named = [b for b in graded if b["correct"] and b["refined_error_m"] is not None]
+    errors = [b["error_m"] * 1000 for b in named]
+    refined = [b["refined_error_m"] * 1000 for b in named]
+    dropped = sum(layout.get("duplicates_dropped", 0) for layout in layouts)
     seconds = {
         k: statistics.median(layout["seconds"][k] for layout in layouts)
         for k in layouts[0]["seconds"]
@@ -261,12 +265,17 @@ def summarise(layouts: list[dict], detector: str) -> str:
         f"Proposals that matched no bottle: {len(stray)} "
         f"({sum(1 for f in stray if f['confirm']['sample_id'])} of them read an id).",
         "",
-        "| position error | median | p90 |",
+        f"Second sightings of a named sample dropped from the world state: {dropped}.",
+        "",
+        f"| position error, the {len(named)} bottles named right | median | p90 |",
         "| --- | --- | --- |",
         f"| general camera proposal | {quant(errors, 0.5):.0f} mm | "
         f"{quant(errors, 0.9):.0f} mm |",
         f"| after the wrist refines it | {quant(refined, 0.5):.0f} mm | "
         f"{quant(refined, 0.9):.0f} mm |",
+        "",
+        f"A proposal more than {MATCH_M * 100:.0f} cm from every bottle counts as "
+        "a stray, not as a large error, so the proposal errors stop there.",
         "",
         "Median seconds per layout: "
         + ", ".join(f"{k} {v:.1f}" for k, v in seconds.items()),
@@ -400,13 +409,15 @@ def main() -> None:
         scored = score(truth(lab), visible, found)
         for bottle in scored["bottles"]:
             bottle["xyxy"] = boxes_of.get(bottle["sample_id"])
+        unique = one_per_sample(world)
         layouts.append(
             {
                 "layout": k,
                 "x0": x0,
                 "proposals": found,
-                "world": [asdict(b) for b in world],
-                "dashboard": to_dashboard(world),
+                "world": [asdict(b) for b in unique],
+                "duplicates_dropped": len(world) - len(unique),
+                "dashboard": to_dashboard(unique),
                 "scored": scored,
                 "seconds": {"render": t1 - t0, "propose": t2 - t1, "confirm": t3 - t2},
             }

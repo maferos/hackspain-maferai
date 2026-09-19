@@ -46,3 +46,18 @@ def test_a_bottle_counts_as_named_only_where_its_own_ring_reads():
     assert result["kinds"] == ["amber 10 ml", "hdpe 250 ml"]
     assert result["whole"] == [True, False]
     assert result["true box"] == [True, False]
+    assert result["whole wrong"] == [False, False]
+    assert result["true box wrong"] == [False, False]
+
+
+def test_another_bottle_s_ring_on_a_bottle_is_a_wrong_name():
+    frame = np.full((400, 600, 3), 180, np.uint8)
+    marker = cv2.aruco.generateImageMarker(
+        cv2.aruco.getPredefinedDictionary(DICTIONARY), 9, 60
+    )
+    marker = cv2.copyMakeBorder(marker, 10, 10, 10, 10, cv2.BORDER_CONSTANT, value=255)
+    frame[100:180, 100:180] = marker[..., None]
+    bottles = [_bottle("SMP-0006", [90, 60, 190, 260])]
+    result = named(frame, bottles, ROWS, MARKER_OF, MarkerReader())
+    assert result["whole"] == [False] and result["whole wrong"] == [True]
+    assert result["true box"] == [False] and result["true box wrong"] == [True]

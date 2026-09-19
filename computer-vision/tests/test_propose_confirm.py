@@ -103,3 +103,17 @@ def test_the_loose_filter_keeps_the_far_half_that_the_strict_one_drops():
     box = far[len(far) // 2]
     assert not on_worktop(meta, box.as_tuple())
     assert on_any_worktop(meta, box)
+
+
+def test_position_errors_count_only_the_bottles_named_right():
+    found = [
+        _found((0.0, 0.0), "SMP-0001", refined=(0.0, 0.002)),
+        _found((0.02, 0.0), "SMP-0001", refined=(0.0, 0.0)),  # the neighbour's name
+    ]
+    layout = {
+        "scored": score(BOTTLES[:2], {"SMP-0001", "SMP-0002"}, found),
+        "seconds": {"render": 1.0},
+    }
+    report = summarise([layout], "world-b")
+    assert "| position error, the 1 bottles named right | median | p90 |" in report
+    assert "| after the wrist refines it | 2 mm | 2 mm |" in report
