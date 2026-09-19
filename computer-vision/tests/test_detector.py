@@ -103,3 +103,18 @@ def test_coco_backend_finds_nothing_in_a_blank_frame():
 
     detector = Detector("coco", input_px=320)
     assert detector.detect(np.zeros((240, 320, 3), np.uint8)) == []
+
+
+def test_fixed_camera_backends_are_registered_with_their_thresholds():
+    assert BACKENDS["world-bottles"].prompts[0] == "bottle"
+    assert BACKENDS["coco26"].keep == BACKENDS["coco"].keep
+    for name in ("world-bottles", "coco26", "fixedcam"):
+        assert 0.0 < BACKENDS[name].score < 0.5
+
+
+def test_missing_fine_tuned_weights_say_how_to_make_them(tmp_path):
+    pytest.importorskip("ultralytics")
+    from labvision.detector import Detector
+
+    with pytest.raises(FileNotFoundError, match="fixedcam_dataset"):
+        Detector("fixedcam", weights=str(tmp_path / "absent.pt"))
