@@ -5,18 +5,7 @@ import math
 import sys
 import time
 
-
-# Fixed general camera: keep the entire bench width and a margin above its
-# samples. Fractions preserve the crop when the recording resolution changes.
-TABLE_TOP = 0.30
-TABLE_BOTTOM = 0.75
-
-
-def table_region(frame):
-    height = frame.shape[0]
-    top = int(height * TABLE_TOP)
-    bottom = math.ceil(height * TABLE_BOTTOM)
-    return frame[top:bottom, :], top
+from table_crop import table_region
 
 
 def main():

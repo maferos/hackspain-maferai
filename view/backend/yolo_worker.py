@@ -8,6 +8,8 @@ import json
 import sys
 import time
 
+from table_crop import table_region
+
 
 def main():
     output = sys.stdout
@@ -33,13 +35,16 @@ def main():
             try:
                 frame = np.frombuffer(raw, dtype=np.uint8).reshape(shape)
                 start = time.monotonic()
+                cropped, top = table_region(frame)
                 result = model.predict(
-                    np.ascontiguousarray(frame[:, :, ::-1]),
+                    np.ascontiguousarray(cropped[:, :, ::-1]),
                     imgsz=max(shape[:2]), conf=confidence, verbose=False,
                 )[0]
+                coordinates = result.boxes.xyxy.cpu().numpy().copy()
+                coordinates[:, [1, 3]] += top
                 boxes = [
                     [round(float(v), 1) for v in xyxy] + [round(float(score), 3)]
-                    for xyxy, score in zip(result.boxes.xyxy.cpu().numpy(),
+                    for xyxy, score in zip(coordinates,
                                           result.boxes.conf.cpu().numpy(), strict=True)
                 ]
                 payload = {"boxes": boxes, "inference_ms": round((time.monotonic() - start) * 1000)}

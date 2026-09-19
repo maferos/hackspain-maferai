@@ -35,6 +35,11 @@ but drops to 5 FPS when no main view subscribes. The robot preview renders
 directly at 640×360. JPEG compression runs in a separate worker with at most
 one waiting frame per camera; rendering never waits for compression.
 
+Live YOLO processes only the table band (30–75% of image height, full width),
+using the same crop as Replay. It retains the live input's pixel scale and
+translates detections back to full-frame coordinates. The camera stream stays
+uncropped. Recheck `view/backend/table_crop.py` when camera framing changes.
+
 ```sh
 # 1. Backend deps, into the same venv simulation/ already uses:
 uv pip install --python simulation/.venv/bin/python \
