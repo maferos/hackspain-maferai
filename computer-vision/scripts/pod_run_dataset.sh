@@ -31,7 +31,7 @@ nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
 echo "cpus $NPROC, parts $PARTS"; free -g | head -2; df -h /workspace | tail -1
 mkdir -p "$DATA" "$OUT/render_logs"
 # The code the data was rendered with, next to the data.
-rm -rf /workspace/code_v2 && cp -r "$R" /workspace/code_v2 && rm -rf /workspace/code_v2/simulation/third_party
+[ -n "${RUN_TAG:-}" ] || { rm -rf /workspace/code_v2 && cp -r "$R" /workspace/code_v2 && rm -rf /workspace/code_v2/simulation/third_party; }
 
 stage render
 cd "$CV" || fail cd
@@ -90,8 +90,11 @@ tar czf "$OUT/gt.tgz" -C "$(dirname "$DATA")" $(cd "$(dirname "$DATA")" && ls "$
 # Train, score and draw. train_pod.sh writes its own stages from here on.
 export R SRC="$DATA" OUT_TRAIN="$OUT/train" EPOCHS="${EPOCHS:-25}" PATIENCE="${PATIENCE:-8}"
 export TESTS="rail_test,rail_test_shift,orbit_test,close_test,overhead_test,low_test,dark_test,orbit_dark_test,pattern_test,pattern_orbit_test,lab_test,lab_rail_test"
-OUT="$OUT_TRAIN" STAGE_FILE="$OUT/STAGE" bash "$CV/scripts/train_pod.sh" n_full_1920
+# RUN_TAG names a second run on the same frames (another pod, other epochs), so
+# two runs never write the same folder of the volume.
+TAG=${RUN_TAG:+_$RUN_TAG}
+OUT="$OUT_TRAIN" STAGE_FILE="$OUT/STAGE" bash "$CV/scripts/train_pod.sh" "n_full_1920$TAG"
 status=$?
 tar czf "$OUT/train.tgz" -C "$OUT" train
-mkdir -p /workspace/out_v2 && cp -r "$OUT/train" "$OUT/report.tgz" "$OUT/gt.tgz" /workspace/out_v2/ 2>/dev/null
+mkdir -p "/workspace/out_v2$TAG" && cp -r "$OUT/train" "$OUT/report.tgz" "$OUT/gt.tgz" "/workspace/out_v2$TAG/" 2>/dev/null
 [ "$status" = 0 ] && stage DONE || stage "FAILED: training, see train/run.log"

@@ -25,7 +25,8 @@ set -uo pipefail
 R=${R:-/workspace/code}; SRC=${SRC:-/workspace/fixedcam}; OUT=${OUT:-/workspace/out}
 NAME=${1:-n_sel_1920}
 START=${START:-weights/yolo26n_rail_general.pt}   # fine-tune from the detector in use
-DATA=${DATA:-/root/yolo_sel}
+# Not DATA: a caller that renders exports that name for the frames.
+YOLO=${YOLO:-/root/yolo_sel}
 TESTS=${TESTS:-rail_test,rail_test_shift,orbit_test,close_test,overhead_test,dark_test,orbit_dark_test}
 mkdir -p "$OUT/plots" "$OUT/weights"
 exec > >(tee -a "$OUT/run.log") 2>&1
@@ -54,15 +55,17 @@ python scripts/pose_map.py sel_train --src "$SRC" --title "the training set" \
   --out "$OUT/plots/pose_map_train.png" || fail "pose map"
 
 stage convert
-[ -f "$DATA/data.yaml" ] || python scripts/fixedcam_to_yolo.py sel_train:train sel_val:val \
-  --src "$SRC" --out "$DATA" --crop || fail convert
+# An earlier run wrote its crops into SRC by mistake: they are not frames.
+rm -rf "$SRC/images" "$SRC/labels" "$SRC/data.yaml"
+[ -f "$YOLO/data.yaml" ] || python scripts/fixedcam_to_yolo.py sel_train:train sel_val:val \
+  --src "$SRC" --out "$YOLO" --crop || fail convert
 
 # Ultralytics nests project= under runs/detect/.
 best=$(ls runs/detect/runs/orbit/"$NAME"/weights/best.pt runs/orbit/"$NAME"/weights/best.pt 2>/dev/null | head -1)
 if [ -z "$best" ]; then
   stage "train $NAME"
-  python runs/orbit/train_yolo26_gpu.py "$DATA/data.yaml" --size n --imgsz 1920 \
-    --weights "$START" --name "$NAME" --epochs "${EPOCHS:-50}"     --patience "${PATIENCE:-12}" --workers "${WORKERS:-16}" --cache "${CACHE:-ram}" || fail train
+  python runs/orbit/train_yolo26_gpu.py "$YOLO/data.yaml" --size n --imgsz 1920 \
+    --weights "$START" --name "$NAME" --epochs "${EPOCHS:-50}"     --patience "${PATIENCE:-12}" --workers "${WORKERS:-12}" --cache "${CACHE:-}" || fail train
   best=$(ls runs/detect/runs/orbit/"$NAME"/weights/best.pt runs/orbit/"$NAME"/weights/best.pt 2>/dev/null | head -1)
 fi
 [ -n "$best" ] || fail "no best.pt after training"
