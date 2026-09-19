@@ -39,12 +39,12 @@
          sample through computer-vision/barcodes/lookup_table.json. The rest of the
          catalogue stands on the gantry, put there by scripts/generate_lab_room.py, which
          lists these thirteen as PLACED_BY_SCENE so that no sample is in the room twice. -->
-    <model name="pwd_0004" file="../assets/labelled_bottles/PWD-0004.xml"/>  <!-- Vanillin, 1 L -->
-    <model name="pwd_0008" file="../assets/labelled_bottles/PWD-0008.xml"/>  <!-- Ethylvanillin, 500 ml -->
-    <model name="pwd_0012" file="../assets/labelled_bottles/PWD-0012.xml"/>  <!-- Coumarin, 250 ml -->
-    <model name="pwd_0020" file="../assets/labelled_bottles/PWD-0020.xml"/>  <!-- Maltol, 2 L -->
-    <model name="pwd_0024" file="../assets/labelled_bottles/PWD-0024.xml"/>  <!-- Ethyl maltol, 1 L -->
-    <model name="pwd_0026" file="../assets/labelled_bottles/PWD-0026.xml"/>  <!-- Menthol, 100 ml -->
+    <model name="smp_0105" file="../assets/labelled_bottles/SMP-0105.xml"/>  <!-- Dihydromyrcenol, 100 ml -->
+    <model name="smp_0110" file="../assets/labelled_bottles/SMP-0110.xml"/>  <!-- Hedione, 100 ml -->
+    <model name="smp_0115" file="../assets/labelled_bottles/SMP-0115.xml"/>  <!-- Ethyl butyrate, 100 ml -->
+    <model name="smp_0120" file="../assets/labelled_bottles/SMP-0120.xml"/>  <!-- Isoamyl acetate, 100 ml -->
+    <model name="smp_0125" file="../assets/labelled_bottles/SMP-0125.xml"/>  <!-- Benzyl benzoate, 100 ml -->
+    <model name="smp_0130" file="../assets/labelled_bottles/SMP-0130.xml"/>  <!-- Terpinolene, 100 ml -->
     <model name="smp_0005" file="../assets/labelled_bottles/SMP-0005.xml"/>  <!-- Limonene, 100 ml -->
     <model name="smp_0009" file="../assets/labelled_bottles/SMP-0009.xml"/>  <!-- Linalool, 50 ml -->
     <model name="smp_0013" file="../assets/labelled_bottles/SMP-0013.xml"/>  <!-- Geraniol, 30 ml -->
@@ -97,21 +97,21 @@
          or take, as bottles put down by hand do. -->
 
     <!-- Entrance corner counter (top at z = 0.90). Welded, like the rest of the corner. -->
-    <frame pos="-7.82 -2.36 0.9" euler="0 0 3.0020"><attach model="pwd_0004" body="PWD-0004" prefix="corner_1_"/></frame>
+    <frame pos="-7.82 -2.36 0.9" euler="0 0 3.0020"><attach model="smp_0105" body="SMP-0105" prefix="corner_1_"/></frame>
     <frame pos="-7.68 -2.3 0.9" euler="0 0 3.5430"><attach model="smp_0005" body="SMP-0005" prefix="corner_2_"/></frame>
     <frame pos="-7.55 -2.38 0.9" euler="0 0 2.7053"><attach model="smp_0030" body="SMP-0030" prefix="corner_3_"/></frame>
-    <frame pos="-8.3 -1.95 0.9" euler="0 0 1.7104"><attach model="pwd_0020" body="PWD-0020" prefix="corner_4_"/></frame>
-    <frame pos="-8.3 -1.75 0.9" euler="0 0 1.2217"><attach model="pwd_0024" body="PWD-0024" prefix="corner_5_"/></frame>
+    <frame pos="-8.3 -1.95 0.9" euler="0 0 1.7104"><attach model="smp_0110" body="SMP-0110" prefix="corner_4_"/></frame>
+    <frame pos="-8.3 -1.75 0.9" euler="0 0 1.2217"><attach model="smp_0115" body="SMP-0115" prefix="corner_5_"/></frame>
     <frame pos="-8.05 -1.45 0.9" euler="0 0 2.0944"><attach model="smp_0034" body="SMP-0034" prefix="corner_6_"/></frame>
 
     <!-- Loose bottles on the worktop: the movable objects. Each is a free body wrapping
          a labelled bottle; inertia="exact", so an empty 100 ml amber flask weighs 91 g. -->
     <body name="loose_1" pos="-2.25 -0.6 0.9" euler="0 0 0.2094"><freejoint/><attach model="smp_0009" body="SMP-0009" prefix="loose_1_"/></body>
-    <body name="loose_2" pos="-2.33 -0.46 0.9" euler="0 0 -0.4014"><freejoint/><attach model="pwd_0012" body="PWD-0012" prefix="loose_2_"/></body>
+    <body name="loose_2" pos="-2.33 -0.46 0.9" euler="0 0 -0.4014"><freejoint/><attach model="smp_0120" body="SMP-0120" prefix="loose_2_"/></body>
     <body name="loose_3" pos="0.72 -0.62 0.9" euler="0 0 -0.1396"><freejoint/><attach model="smp_0021" body="SMP-0021" prefix="loose_3_"/></body>
-    <body name="loose_4" pos="0.82 -0.5 0.9" euler="0 0 0.4363"><freejoint/><attach model="pwd_0026" body="PWD-0026" prefix="loose_4_"/></body>
+    <body name="loose_4" pos="0.82 -0.5 0.9" euler="0 0 0.4363"><freejoint/><attach model="smp_0125" body="SMP-0125" prefix="loose_4_"/></body>
     <body name="loose_5" pos="0.1 0.58 0.9" euler="0 0 2.9671"><freejoint/><attach model="smp_0013" body="SMP-0013" prefix="loose_5_"/></body>
-    <body name="loose_6" pos="0.2 0.45 0.9" euler="0 0 3.4907"><freejoint/><attach model="pwd_0008" body="PWD-0008" prefix="loose_6_"/></body>
+    <body name="loose_6" pos="0.2 0.45 0.9" euler="0 0 3.4907"><freejoint/><attach model="smp_0130" body="SMP-0130" prefix="loose_6_"/></body>
     <body name="loose_7" pos="1.95 0.62 0.9" euler="0 0 3.2289"><freejoint/><attach model="smp_0017" body="SMP-0017" prefix="loose_7_"/></body>
 
     <!-- The vision system's two cameras. Both are a GoPro in Linear mode at 1080p: a
@@ -127,8 +127,8 @@
             fovy="60.44" resolution="1920 1080"/>
 
     <!-- wrist: a stand-in for the camera that will ride on the arm's wrist. It hovers
-         9 cm over the bench edge, 0.30 m in front of the label of loose_2 (PWD-0012,
-         Coumarin 250 ml) - 0.30 m is about as close as a GoPro's fixed focus stays
+         9 cm over the bench edge, 0.30 m in front of the label of loose_2 (SMP-0120,
+         Isoamyl acetate 100 ml) - 0.30 m is about as close as a GoPro's fixed focus stays
          sharp - and its marker decodes from this frame. The mount is a mocap body,
          so the view can be flown around (data.mocap_pos / mocap_quat) until the
          camera moves onto the robot. -->

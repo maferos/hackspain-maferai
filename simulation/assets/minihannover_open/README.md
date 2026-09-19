@@ -4,12 +4,14 @@ A separate scene variant with a **6.0 × 2.0 m** worktop at **0.90 m**, centered
 at **(-1.5, -0.4, 0)**, the midpoint of the original room's interior bounds.
 The original MiniHannover scene and its assets remain unchanged.
 
-The central gantry, divider and splash glass are omitted. All **187 former shelf
-samples** now stand in a randomly scattered center stock area, plus **220 extra
-small amber reserve vials** with blank labels. The center contains **407 containers:
-313 amber liquid bottles and 94 white powder jars**. Catalogue samples retain their
-original sizes and barcode identity. Extra vials randomly use 10, 20, 30 or 50 ml
-sizes, weighted toward smaller vials. No extra catalogue/barcode identities are invented.
+The central gantry, divider and splash glass are omitted. As of catalogue
+version 6 the catalogue is **200 liquid samples** (`SMP-0001..SMP-0200`, all
+amber flasks, each with a distinct `DICT_4X4_250` ArUco marker). The **187
+former shelf samples** stand in a randomly scattered center stock area; there
+are **no blank reserve vials and no powder jars** — every bottle on the bench is
+a uniquely-labelled catalogue sample. With the thirteen hand-placed samples the
+bench carries all **200 distinct labels**. Samples retain their catalogue sizes
+(10–100 ml) and barcode identity.
 
 Positions and rotations are deterministic (seed 29), with at least 9 mm between
 container footprints. `population.json` records each container's size and local

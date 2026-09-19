@@ -60,7 +60,7 @@ WB_X0, WB_X1, WB_DEPTH = -5.0, 2.2, 0.70
 BOTTLES = OUT.parent / "labelled_bottles"
 # Samples models/minihannover_scene.xml places itself, in the entrance corner and
 # loose on the worktop. A sample is one physical bottle, so they are not shelved too.
-PLACED_BY_SCENE = ("PWD-0004", "PWD-0008", "PWD-0012", "PWD-0020", "PWD-0024", "PWD-0026",
+PLACED_BY_SCENE = ("SMP-0105", "SMP-0110", "SMP-0115", "SMP-0120", "SMP-0125", "SMP-0130",
                    "SMP-0005", "SMP-0009", "SMP-0013", "SMP-0017", "SMP-0021", "SMP-0030",
                    "SMP-0034")
 SHELF_FACE_HALF_WIDTH = MODULE / 2 - 0.045   # clear of the uprights

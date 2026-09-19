@@ -325,21 +325,19 @@ def test_the_cli_prints_the_error_budget(capsys: pytest.CaptureFixture[str]) -> 
     assert f"{math.floor(scene.TABLE_TOP_Z * 100)}" in out.replace(".", "")
 
 
-def test_every_powder_vessel_in_the_catalogue_has_dimensions() -> None:
+def test_every_bottle_size_has_dimensions() -> None:
     """A decoded barcode must index straight into VESSELS, or locate cannot run.
 
-    The powder catalogue moved from the flask series to the bottle kit; this
-    is what notices if it moves again, or if a sixth size is added.
+    Powder left the catalogue at registry v6, but the bottle kit and its
+    dimensions stay: locate still runs when handed a bottle vessel (the CLI's
+    --vessel, the scene tests). This notices if a bottle size loses its
+    dimensions in VESSELS, or if a sixth is added.
     """
     from labvision import registry
 
-    powders = {
-        sample.vessel_class
-        for sample in registry.default_samples()
-        if sample.phase == "powder"
-    }
-    assert powders
-    assert powders <= set(scene.VESSELS)
+    bottles = {f"bottle_{v:g}ml" for v in registry.BOTTLE_VOLUMES_ML}
+    assert bottles
+    assert bottles <= set(scene.VESSELS)
 
 
 def test_the_liquid_flasks_are_the_known_gap() -> None:

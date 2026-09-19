@@ -69,8 +69,7 @@ one command regenerates all 200, byte-identically:
 python -m labvision.registry barcodes
 ```
 
-That writes one PNG per sample — `barcodes/SMP-XXXX_<code>.png` for liquids and
-`barcodes/PWD-XXXX_<code>.png` for powders — and rewrites
+That writes one PNG per sample — `barcodes/SMP-XXXX_<code>.png` — and rewrites
 `barcodes/lookup_table.json`. Takes a few seconds.
 
 What **is** committed is `barcodes/lookup_table.json` — the lookup table itself,
@@ -438,8 +437,8 @@ and the one-sided ArUco 1 to 4. No id was read as another.
 of `DICT_4X4_250`, eight times round the straight wall, one copy every 45
 degrees, as tall as an eighth of the circumference. The marker is the sample's
 `marker_id`, its position in the catalogue (0 to 199) --- dealt out rather than
-hashed, because a dictionary of 250 ids would collide --- and schema version 5
-of the lookup table carries it on every row. `label="ean13"` still builds the
+hashed, because a dictionary of 250 ids would collide --- and the lookup table
+carries it on every row (schema version 5 added it; version 6 dropped powder). `label="ean13"` still builds the
 one-sided barcode label, and `python -m labvision.bottles --label ean13`
 regenerates the old kits.
 
@@ -696,56 +695,46 @@ for detection, record in reader.resolve(
 
 ## Sample catalogue
 
-**200 barcodes: two phases, each a full cross product of compounds x container
-sizes.**
+**200 barcodes: 40 liquid compounds, each in five flask sizes — a full cross
+product of compound x container.** As of registry **version 6** the catalogue is
+liquids only, so every one of the 250 `DICT_4X4_250` markers is free for a sample
+and the bench carries 200 distinct labels with nothing repeated.
 
 | Phase | Compounds | Containers | Ids | Codes |
 | --- | --- | --- | --- | --- |
-| Liquid | 20 | flasks — 10, 20, 30, 50, 100 ml | `SMP-0001..0100` | 100 |
-| Powder | 20 | bottles — 100, 250, 500, 1000, 2000 ml | `PWD-0001..0100` | 100 |
+| Liquid | 40 | flasks — 10, 20, 30, 50, 100 ml | `SMP-0001..0200` | 200 |
 
-Material varies slowest, so `SMP-0001..0005` are Limonene at each flask size and
-`PWD-0001..0005` are Vanillin at each bottle size. Only the lot number is
-random, under `DEFAULT_SEED`.
+Material varies slowest, so `SMP-0001..0005` are the first compound (Limonene) at
+each flask size. Only the lot number is random, under `DEFAULT_SEED`.
+`SMP-0001..0100` keep the codes and markers they had in version 5; the 20 added
+compounds are `SMP-0101..0200`.
 
-**Each phase has its own labware**, so there are ten vessel classes: five
-flasks — `flask_10ml`, `flask_20ml`, `flask_30ml`, `flask_50ml`, `flask_100ml` —
-and five bottles — `bottle_100ml`, `bottle_250ml`, `bottle_500ml`,
-`bottle_1000ml`, `bottle_2000ml`.
+**The liquids live in flasks**, so there are five vessel classes: `flask_10ml`,
+`flask_20ml`, `flask_30ml`, `flask_50ml`, `flask_100ml`.
 
-### Why powders are in bottles
+### Powder left the catalogue at version 6 (but not the code)
 
-The powder sizes are not free choices: they are the white HDPE bottles in
-`assets/agrochemical-bottles`, which is what the simulation renders powders in.
-A powder row has to name a bottle that exists as a mesh, and
-`test_powder_sizes_match_the_bottle_kit` checks each size against the kit's
-`glb/` files.
+Versions 4–5 catalogued 100 powders (`PWD-*`) in white HDPE bottles beside the
+liquids, which spent half the marker dictionary. Version 6 drops the powder phase
+so all 250 ids go to liquids. What **stays**: `POWDER_MATERIALS` and the `POWDER`
+phase spec in `registry.py`, the agrochemical bottle kit in
+`assets/agrochemical-bottles` (five sizes: `Bote_100mL` Ø46 / `_250mL` Ø60 /
+`_500mL` Ø74 / `_1L` Ø88 / `_2L` Ø116 mm), and the powder path in `bottles.py` —
+so a hand-made powder sample still resolves its labware and labels correctly, and
+a future catalogue can bring powders back by adding `POWDER` to `PHASES`.
+`scene.VESSELS` still carries those bottle dimensions.
 
-| `container_ml` | Kit object | Body Ø | Height without cap |
-| --- | --- | --- | --- |
-| 100 | `Bote_100mL` | 46 mm | 97 mm |
-| 250 | `Bote_250mL` | 60 mm | 131 mm |
-| 500 | `Bote_500mL` | 74 mm | 164 mm |
-| 1000 | `Bote_1L` | 88 mm | 216 mm |
-| 2000 | `Bote_2L` | 116 mm | 245 mm |
-
-The kit has a sixth bottle, the wide-mouth `Bote_1L_ancho`. It is left out of
-the catalogue because it shares its nominal capacity with `Bote_1L`, and
-`container_ml` could not tell the two apart.
-
-Version 3 of the table put powders in the flask series instead, so that a
-detector could not read "powder" off the vessel shape and skip the barcode.
-That shortcut is open again — a bottle means powder — and it is accepted: phase
-only tells the robot how to dispense, while the compound, which is what the
-barcode is for, is still a full cross product against bottle size. Moving
-powders changed every powder barcode; the 100 liquid codes are the same as in
-version 3.
+> **The measured tables further down that name `bottle_*` sizes** (decode reach,
+> ArUco vs EAN-13, placement error, detector size floor) were taken on the
+> earlier liquid+powder catalogue and its bottles. They are kept as the record of
+> what was measured; the geometry they describe is still what `scene.VESSELS`
+> holds, but the catalogue no longer generates powder samples.
 
 ### Phase is a property of the compound, not a choice
 
 A compound is solid or liquid at room temperature; it does not get to be both.
-`POWDER_MATERIALS` carries each one's melting point as a comment, which is the
-evidence for it being there:
+`POWDER_MATERIALS` (kept for the reasons above) carries each solid's melting point
+as a comment, which is the evidence for it being there:
 
 | Compound | mp °C | | Compound | mp °C |
 | --- | --- | --- | --- | --- |
@@ -793,8 +782,8 @@ if you want strict ISO sizes.
 ## Labels on the bottles
 
 ```bash
-python -m labvision.bottles                 # both kits
-python -m labvision.bottles --phase liquid  # one of them
+python -m labvision.bottles                 # every catalogued phase (liquids only, v6)
+python -m labvision.bottles --phase liquid  # just one phase
 ```
 
 Each phase has a kit of bottle models under `assets/`, and every sample gets a
@@ -802,8 +791,12 @@ copy of its bottle with its label stuck on:
 
 | Phase | Kit | Bottles | Labelled models |
 | --- | --- | --- | --- |
-| Liquid | `assets/amber-bottles` | amber glass, closed, white cap | `labelled/SMP-XXXX_<code>.glb`, 100 files, ~31 MB |
-| Powder | `assets/agrochemical-bottles` | white HDPE, open | `labelled/PWD-XXXX_<code>.glb`, 100 files, ~60 MB |
+| Liquid | `assets/amber-bottles` | amber glass, closed, white cap | `labelled/SMP-XXXX_<code>.glb`, 200 files, ~62 MB |
+
+The powder kit (`assets/agrochemical-bottles`, white HDPE) is no longer
+catalogued (registry v6); its `labelled/PWD-XXXX_<code>.glb` files remain from
+version 5 for whenever powders return, but `python -m labvision.bottles` builds
+only the catalogued liquids now.
 
 The liquid sizes — 10, 20, 30, 50, 100 ml — are exactly the amber kit's, so no
 liquid barcode had to change. The kit also has a 60 ml bottle that no sample
@@ -915,8 +908,8 @@ away, lighting and the camera's resolution, none of which are tested here yet.
 
 The labelled bottles are in the MuJoCo scene: `simulation/tools/build_labelled_bottles.py`
 turns the GLBs into MJCF bodies with the sticker as an OBJ plus a PNG texture, and
-`simulation/models/minihannover_scene.xml` uses them for every sample container,
-six powders and seven liquids. The first decode from a rendered frame works: at
+`simulation/models/minihannover_scene.xml` uses them for every sample container:
+all thirteen hand-placed samples are liquids now. The first decode from a rendered frame works: at
 0.3 m and 1280 x 720, the 100 ml amber bottle reads as `SMP-0005`. At 0.45 m the
 same labels are about one pixel per module and do not read, which is the
 resolution floor above and not something new.
@@ -924,9 +917,9 @@ resolution floor above and not something new.
 The shelving library is the catalogue too. `simulation/scripts/generate_lab_room.py`
 stands every sample the scene does not place by hand on the gantry, once, so
 **all 200 samples are in the room, each exactly once**. They are scattered on
-purpose: 94 powders and 93 liquids dealt at random over all four shelves, uneven
+purpose: 200 liquids dealt at random over all four shelves, uneven
 gaps, varying depth, labels turned up to 25 degrees off the aisle, and the
-thirteen hand-placed ones mix powders and liquids too. Where a bottle stands
+thirteen hand-placed ones are liquids too. Where a bottle stands
 says nothing about what it is, so a detector cannot learn the room by position. Shelved bottles are light stand-in meshes
 with the real sticker at half texture resolution (4 px/module). A 1280 x 720
 render from about 0.4 m shows six scattered bottles, turned and seen in
