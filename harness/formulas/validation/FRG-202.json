@@ -1,0 +1,327 @@
+{
+ "id": "FRG-202",
+ "name": "Pine Trail",
+ "family": "woody aromatic (coniferous)",
+ "description": "Fir needle and resin cut with lime peel, a herbal mint edge and a dry balsamic base.",
+ "product": "Eau de Toilette",
+ "concentrate_pct_in_product": 12.0,
+ "solvent": {
+  "material": "Ethanol 96 % (perfumer's alcohol)",
+  "pct_in_product": 88.0
+ },
+ "batch": {
+  "concentrate_g": 10.0,
+  "ethanol_g_for_product": 73.33
+ },
+ "ifra": "IFRA Standards, 51st Amendment (2023), Category 4, max % in finished product",
+ "catalogue": "computer-vision/barcodes/lookup_table.json",
+ "ingredients": [
+  {
+   "material": "Limonene",
+   "cas": "5989-27-5",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 15.0,
+   "batch_g": 1.5,
+   "finished_pct": 1.8,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L",
+   "samples": [
+    "SMP-0001",
+    "SMP-0002",
+    "SMP-0003",
+    "SMP-0004",
+    "SMP-0005"
+   ]
+  },
+  {
+   "material": "alpha-Pinene",
+   "cas": "80-56-8",
+   "note": "top",
+   "role": "coniferous",
+   "concentrate_pct": 12.0,
+   "batch_g": 1.2,
+   "finished_pct": 1.44,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L",
+   "samples": [
+    "SMP-0056",
+    "SMP-0057",
+    "SMP-0058",
+    "SMP-0059",
+    "SMP-0060"
+   ]
+  },
+  {
+   "material": "Isobornyl acetate",
+   "cas": "125-12-2",
+   "note": "top-heart",
+   "role": "coniferous",
+   "concentrate_pct": 12.0,
+   "batch_g": 1.2,
+   "finished_pct": 1.44,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0171",
+    "SMP-0172",
+    "SMP-0173",
+    "SMP-0174",
+    "SMP-0175"
+   ]
+  },
+  {
+   "material": "beta-Pinene",
+   "cas": "127-91-3",
+   "note": "top",
+   "role": "coniferous",
+   "concentrate_pct": 8.0,
+   "batch_g": 0.8,
+   "finished_pct": 0.96,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L",
+   "samples": [
+    "SMP-0131",
+    "SMP-0132",
+    "SMP-0133",
+    "SMP-0134",
+    "SMP-0135"
+   ]
+  },
+  {
+   "material": "Linalyl acetate",
+   "cas": "115-95-7",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 8.0,
+   "batch_g": 0.8,
+   "finished_pct": 0.96,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0091",
+    "SMP-0092",
+    "SMP-0093",
+    "SMP-0094",
+    "SMP-0095"
+   ]
+  },
+  {
+   "material": "Linalool",
+   "cas": "78-70-6",
+   "note": "top-heart",
+   "role": "floral",
+   "concentrate_pct": 6.0,
+   "batch_g": 0.6,
+   "finished_pct": 0.72,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L",
+   "samples": [
+    "SMP-0006",
+    "SMP-0007",
+    "SMP-0008",
+    "SMP-0009",
+    "SMP-0010"
+   ]
+  },
+  {
+   "material": "Dihydromyrcenol",
+   "cas": "18479-58-8",
+   "note": "top-heart",
+   "role": "citrus",
+   "concentrate_pct": 6.0,
+   "batch_g": 0.6,
+   "finished_pct": 0.72,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0101",
+    "SMP-0102",
+    "SMP-0103",
+    "SMP-0104",
+    "SMP-0105"
+   ]
+  },
+  {
+   "material": "Benzyl benzoate",
+   "cas": "120-51-4",
+   "note": "base",
+   "role": "balsamic",
+   "concentrate_pct": 6.0,
+   "batch_g": 0.6,
+   "finished_pct": 0.72,
+   "ifra_cat4_max_pct": 4.8,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0121",
+    "SMP-0122",
+    "SMP-0123",
+    "SMP-0124",
+    "SMP-0125"
+   ]
+  },
+  {
+   "material": "Terpinolene",
+   "cas": "586-62-9",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 5.0,
+   "batch_g": 0.5,
+   "finished_pct": 0.6,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0126",
+    "SMP-0127",
+    "SMP-0128",
+    "SMP-0129",
+    "SMP-0130"
+   ]
+  },
+  {
+   "material": "Nerolidol",
+   "cas": "7212-44-4",
+   "note": "base",
+   "role": "woody",
+   "concentrate_pct": 5.0,
+   "batch_g": 0.5,
+   "finished_pct": 0.6,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0071",
+    "SMP-0072",
+    "SMP-0073",
+    "SMP-0074",
+    "SMP-0075"
+   ]
+  },
+  {
+   "material": "Myrcene",
+   "cas": "123-35-3",
+   "note": "top",
+   "role": "herbal",
+   "concentrate_pct": 4.0,
+   "batch_g": 0.4,
+   "finished_pct": 0.48,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0141",
+    "SMP-0142",
+    "SMP-0143",
+    "SMP-0144",
+    "SMP-0145"
+   ]
+  },
+  {
+   "material": "gamma-Terpinene",
+   "cas": "99-85-4",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 4.0,
+   "batch_g": 0.4,
+   "finished_pct": 0.48,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0136",
+    "SMP-0137",
+    "SMP-0138",
+    "SMP-0139",
+    "SMP-0140"
+   ]
+  },
+  {
+   "material": "alpha-Terpineol",
+   "cas": "98-55-5",
+   "note": "heart",
+   "role": "floral",
+   "concentrate_pct": 4.0,
+   "batch_g": 0.4,
+   "finished_pct": 0.48,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0061",
+    "SMP-0062",
+    "SMP-0063",
+    "SMP-0064",
+    "SMP-0065"
+   ]
+  },
+  {
+   "material": "Hedione",
+   "cas": "24851-98-7",
+   "note": "heart",
+   "role": "white floral",
+   "concentrate_pct": 2.0,
+   "batch_g": 0.2,
+   "finished_pct": 0.24,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0106",
+    "SMP-0107",
+    "SMP-0108",
+    "SMP-0109",
+    "SMP-0110"
+   ]
+  },
+  {
+   "material": "Methyl salicylate",
+   "cas": "119-36-8",
+   "note": "heart",
+   "role": "aromatic",
+   "concentrate_pct": 1.5,
+   "batch_g": 0.15,
+   "finished_pct": 0.18,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0086",
+    "SMP-0087",
+    "SMP-0088",
+    "SMP-0089",
+    "SMP-0090"
+   ]
+  },
+  {
+   "material": "Carvone",
+   "cas": "99-49-0",
+   "note": "top",
+   "role": "aromatic",
+   "concentrate_pct": 1.0,
+   "batch_g": 0.1,
+   "finished_pct": 0.12,
+   "ifra_cat4_max_pct": 0.59,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0051",
+    "SMP-0052",
+    "SMP-0053",
+    "SMP-0054",
+    "SMP-0055"
+   ]
+  },
+  {
+   "material": "Eugenol",
+   "cas": "97-53-0",
+   "note": "heart-base",
+   "role": "spicy",
+   "concentrate_pct": 0.5,
+   "batch_g": 0.05,
+   "finished_pct": 0.06,
+   "ifra_cat4_max_pct": 2.5,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0021",
+    "SMP-0022",
+    "SMP-0023",
+    "SMP-0024",
+    "SMP-0025"
+   ]
+  }
+ ],
+ "set": "validation"
+}

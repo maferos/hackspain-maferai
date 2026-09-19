@@ -1,0 +1,363 @@
+{
+ "id": "FRG-203",
+ "name": "Marzipan Anise",
+ "family": "spicy gourmand",
+ "description": "Almond and anise over a honeyed floral heart, warmed by clove and cinnamon on a balsamic base.",
+ "product": "Eau de Parfum",
+ "concentrate_pct_in_product": 18.0,
+ "solvent": {
+  "material": "Ethanol 96 % (perfumer's alcohol)",
+  "pct_in_product": 82.0
+ },
+ "batch": {
+  "concentrate_g": 10.0,
+  "ethanol_g_for_product": 45.56
+ },
+ "ifra": "IFRA Standards, 51st Amendment (2023), Category 4, max % in finished product",
+ "catalogue": "computer-vision/barcodes/lookup_table.json",
+ "ingredients": [
+  {
+   "material": "Benzyl benzoate",
+   "cas": "120-51-4",
+   "note": "base",
+   "role": "balsamic",
+   "concentrate_pct": 20.0,
+   "batch_g": 2.0,
+   "finished_pct": 3.6,
+   "ifra_cat4_max_pct": 4.8,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0121",
+    "SMP-0122",
+    "SMP-0123",
+    "SMP-0124",
+    "SMP-0125"
+   ]
+  },
+  {
+   "material": "Hedione",
+   "cas": "24851-98-7",
+   "note": "heart",
+   "role": "white floral",
+   "concentrate_pct": 10.0,
+   "batch_g": 1.0,
+   "finished_pct": 1.8,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0106",
+    "SMP-0107",
+    "SMP-0108",
+    "SMP-0109",
+    "SMP-0110"
+   ]
+  },
+  {
+   "material": "Phenylethyl alcohol",
+   "cas": "60-12-8",
+   "note": "heart",
+   "role": "rose",
+   "concentrate_pct": 10.0,
+   "batch_g": 1.0,
+   "finished_pct": 1.8,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0081",
+    "SMP-0082",
+    "SMP-0083",
+    "SMP-0084",
+    "SMP-0085"
+   ]
+  },
+  {
+   "material": "Limonene",
+   "cas": "5989-27-5",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 8.0,
+   "batch_g": 0.8,
+   "finished_pct": 1.44,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L",
+   "samples": [
+    "SMP-0001",
+    "SMP-0002",
+    "SMP-0003",
+    "SMP-0004",
+    "SMP-0005"
+   ]
+  },
+  {
+   "material": "Nerolidol",
+   "cas": "7212-44-4",
+   "note": "base",
+   "role": "woody",
+   "concentrate_pct": 8.0,
+   "batch_g": 0.8,
+   "finished_pct": 1.44,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0071",
+    "SMP-0072",
+    "SMP-0073",
+    "SMP-0074",
+    "SMP-0075"
+   ]
+  },
+  {
+   "material": "Hydroxycitronellal",
+   "cas": "107-75-5",
+   "note": "heart",
+   "role": "floral",
+   "concentrate_pct": 6.5,
+   "batch_g": 0.65,
+   "finished_pct": 1.17,
+   "ifra_cat4_max_pct": 2.1,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0151",
+    "SMP-0152",
+    "SMP-0153",
+    "SMP-0154",
+    "SMP-0155"
+   ]
+  },
+  {
+   "material": "Anethole",
+   "cas": "104-46-1",
+   "note": "heart",
+   "role": "spicy",
+   "concentrate_pct": 6.0,
+   "batch_g": 0.6,
+   "finished_pct": 1.08,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0041",
+    "SMP-0042",
+    "SMP-0043",
+    "SMP-0044",
+    "SMP-0045"
+   ]
+  },
+  {
+   "material": "Linalool",
+   "cas": "78-70-6",
+   "note": "top-heart",
+   "role": "floral",
+   "concentrate_pct": 6.0,
+   "batch_g": 0.6,
+   "finished_pct": 1.08,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L",
+   "samples": [
+    "SMP-0006",
+    "SMP-0007",
+    "SMP-0008",
+    "SMP-0009",
+    "SMP-0010"
+   ]
+  },
+  {
+   "material": "beta-Ionone",
+   "cas": "14901-07-6",
+   "note": "heart-base",
+   "role": "powdery",
+   "concentrate_pct": 5.0,
+   "batch_g": 0.5,
+   "finished_pct": 0.9,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0176",
+    "SMP-0177",
+    "SMP-0178",
+    "SMP-0179",
+    "SMP-0180"
+   ]
+  },
+  {
+   "material": "Eugenol",
+   "cas": "97-53-0",
+   "note": "heart-base",
+   "role": "spicy",
+   "concentrate_pct": 4.0,
+   "batch_g": 0.4,
+   "finished_pct": 0.72,
+   "ifra_cat4_max_pct": 2.5,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0021",
+    "SMP-0022",
+    "SMP-0023",
+    "SMP-0024",
+    "SMP-0025"
+   ]
+  },
+  {
+   "material": "Citronellol",
+   "cas": "106-22-9",
+   "note": "heart",
+   "role": "rose",
+   "concentrate_pct": 4.0,
+   "batch_g": 0.4,
+   "finished_pct": 0.72,
+   "ifra_cat4_max_pct": 12.0,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0031",
+    "SMP-0032",
+    "SMP-0033",
+    "SMP-0034",
+    "SMP-0035"
+   ]
+  },
+  {
+   "material": "Geraniol",
+   "cas": "106-24-1",
+   "note": "heart",
+   "role": "rose",
+   "concentrate_pct": 3.0,
+   "batch_g": 0.3,
+   "finished_pct": 0.54,
+   "ifra_cat4_max_pct": 4.7,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0011",
+    "SMP-0012",
+    "SMP-0013",
+    "SMP-0014",
+    "SMP-0015"
+   ]
+  },
+  {
+   "material": "Ethyl acetoacetate",
+   "cas": "141-97-9",
+   "note": "top",
+   "role": "fruity",
+   "concentrate_pct": 3.0,
+   "batch_g": 0.3,
+   "finished_pct": 0.54,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0191",
+    "SMP-0192",
+    "SMP-0193",
+    "SMP-0194",
+    "SMP-0195"
+   ]
+  },
+  {
+   "material": "Farnesol",
+   "cas": "4602-84-0",
+   "note": "base",
+   "role": "floral",
+   "concentrate_pct": 2.5,
+   "batch_g": 0.25,
+   "finished_pct": 0.45,
+   "ifra_cat4_max_pct": 1.2,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0066",
+    "SMP-0067",
+    "SMP-0068",
+    "SMP-0069",
+    "SMP-0070"
+   ]
+  },
+  {
+   "material": "Benzaldehyde",
+   "cas": "100-52-7",
+   "note": "top",
+   "role": "fruity",
+   "concentrate_pct": 1.2,
+   "batch_g": 0.12,
+   "finished_pct": 0.216,
+   "ifra_cat4_max_pct": 0.25,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0026",
+    "SMP-0027",
+    "SMP-0028",
+    "SMP-0029",
+    "SMP-0030"
+   ]
+  },
+  {
+   "material": "Isoamyl acetate",
+   "cas": "123-92-2",
+   "note": "top",
+   "role": "fruity",
+   "concentrate_pct": 1.0,
+   "batch_g": 0.1,
+   "finished_pct": 0.18,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0116",
+    "SMP-0117",
+    "SMP-0118",
+    "SMP-0119",
+    "SMP-0120"
+   ]
+  },
+  {
+   "material": "Ethyl butyrate",
+   "cas": "105-54-4",
+   "note": "top",
+   "role": "fruity",
+   "concentrate_pct": 0.7,
+   "batch_g": 0.07,
+   "finished_pct": 0.126,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0111",
+    "SMP-0112",
+    "SMP-0113",
+    "SMP-0114",
+    "SMP-0115"
+   ]
+  },
+  {
+   "material": "Cinnamaldehyde",
+   "cas": "104-55-2",
+   "note": "heart",
+   "role": "spicy",
+   "concentrate_pct": 0.6,
+   "batch_g": 0.06,
+   "finished_pct": 0.108,
+   "ifra_cat4_max_pct": 0.25,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0046",
+    "SMP-0047",
+    "SMP-0048",
+    "SMP-0049",
+    "SMP-0050"
+   ]
+  },
+  {
+   "material": "Methyl salicylate",
+   "cas": "119-36-8",
+   "note": "heart",
+   "role": "aromatic",
+   "concentrate_pct": 0.5,
+   "batch_g": 0.05,
+   "finished_pct": 0.09,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0086",
+    "SMP-0087",
+    "SMP-0088",
+    "SMP-0089",
+    "SMP-0090"
+   ]
+  }
+ ],
+ "set": "validation"
+}

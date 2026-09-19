@@ -16,6 +16,9 @@ The catalogue has no musks, woods, ambers or vanilla, so the bases rest on
 Benzyl benzoate, Nerolidol, Farnesol, beta-Ionone and Hedione. The formulas are
 invented for the demo, not tested on skin.
 
+Two sets are written: the five formulas in harness/formulas/, and a held-out set
+of five more in harness/formulas/validation/ to check a run against.
+
     python harness/build_formulas.py
 """
 
@@ -233,6 +236,142 @@ FORMULAS = [
     },
 ]
 
+# A second, held-out set, written to harness/formulas/validation/. Same rules and
+# the same catalogue: keep it out of whatever the first five are tuned against, so
+# there is something unseen to check a run on.
+VALIDATION_FORMULAS = [
+    {
+        "id": "FRG-201",
+        "name": "Hyacinth Field",
+        "family": "green floral (hyacinth)",
+        "product": "Eau de Toilette",
+        "description": "Hyacinth and lilac over crushed stems, a soft muguet heart and a woody-green trail.",
+        "ingredients": [
+            ("Hedione", 18.0),
+            ("Phenylethyl alcohol", 12.0),
+            ("Benzyl acetate", 10.0),
+            ("Hydroxycitronellal", 8.0),
+            ("Linalool", 8.0),
+            ("Benzyl benzoate", 8.0),
+            ("alpha-Terpineol", 5.0),
+            ("Nerolidol", 5.0),
+            ("Tetrahydrolinalool", 5.0),
+            ("Geraniol", 4.0),
+            ("Citronellol", 4.0),
+            ("Phenylacetaldehyde dimethyl acetal", 3.0),
+            ("cis-3-Hexen-1-ol", 3.0),
+            ("Geranyl acetate", 3.0),
+            ("Farnesol", 2.0),
+            ("beta-Ionone", 2.0),
+        ],
+    },
+    {
+        "id": "FRG-202",
+        "name": "Pine Trail",
+        "family": "woody aromatic (coniferous)",
+        "product": "Eau de Toilette",
+        "description": "Fir needle and resin cut with lime peel, a herbal mint edge and a dry balsamic base.",
+        "ingredients": [
+            ("Limonene", 15.0),
+            ("alpha-Pinene", 12.0),
+            ("Isobornyl acetate", 12.0),
+            ("beta-Pinene", 8.0),
+            ("Linalyl acetate", 8.0),
+            ("Linalool", 6.0),
+            ("Dihydromyrcenol", 6.0),
+            ("Benzyl benzoate", 6.0),
+            ("Terpinolene", 5.0),
+            ("Nerolidol", 5.0),
+            ("Myrcene", 4.0),
+            ("gamma-Terpinene", 4.0),
+            ("alpha-Terpineol", 4.0),
+            ("Hedione", 2.0),
+            ("Methyl salicylate", 1.5),
+            ("Carvone", 1.0),
+            ("Eugenol", 0.5),
+        ],
+    },
+    {
+        "id": "FRG-203",
+        "name": "Marzipan Anise",
+        "family": "spicy gourmand",
+        "product": "Eau de Parfum",
+        "description": "Almond and anise over a honeyed floral heart, warmed by clove and cinnamon on a balsamic base.",
+        "ingredients": [
+            ("Benzyl benzoate", 20.0),
+            ("Hedione", 10.0),
+            ("Phenylethyl alcohol", 10.0),
+            ("Limonene", 8.0),
+            ("Nerolidol", 8.0),
+            ("Hydroxycitronellal", 6.5),
+            ("Anethole", 6.0),
+            ("Linalool", 6.0),
+            ("beta-Ionone", 5.0),
+            ("Eugenol", 4.0),
+            ("Citronellol", 4.0),
+            ("Geraniol", 3.0),
+            ("Ethyl acetoacetate", 3.0),
+            ("Farnesol", 2.5),
+            ("Benzaldehyde", 1.2),
+            ("Isoamyl acetate", 1.0),
+            ("Ethyl butyrate", 0.7),
+            ("Cinnamaldehyde", 0.6),
+            ("Methyl salicylate", 0.5),
+        ],
+    },
+    {
+        "id": "FRG-204",
+        "name": "Citrus Mint",
+        "family": "citrus aromatic (cologne)",
+        "product": "Eau de Cologne",
+        "description": "Lemon and lime over spearmint and wintergreen; sharp, cold, gone in an hour.",
+        "ingredients": [
+            ("Limonene", 30.0),
+            ("Linalyl acetate", 12.0),
+            ("Dihydromyrcenol", 10.0),
+            ("Linalool", 8.0),
+            ("Tetrahydrolinalool", 6.0),
+            ("Hedione", 6.0),
+            ("gamma-Terpinene", 5.0),
+            ("Benzyl benzoate", 4.0),
+            ("Citral", 3.0),
+            ("Terpinolene", 3.0),
+            ("Carvone", 3.0),
+            ("Methyl salicylate", 2.0),
+            ("Citronellal", 2.0),
+            ("Geranyl acetate", 2.0),
+            ("Nerol", 2.0),
+            ("Myrcene", 1.0),
+            ("cis-3-Hexen-1-ol", 1.0),
+        ],
+    },
+    {
+        "id": "FRG-205",
+        "name": "Violet Powder",
+        "family": "powdery floral",
+        "product": "Eau de Parfum",
+        "description": "Violet and orris over rose and honey, with a raspberry glint and a long balsamic drydown.",
+        "ingredients": [
+            ("Phenylethyl alcohol", 20.0),
+            ("Benzyl benzoate", 18.0),
+            ("Hedione", 14.0),
+            ("beta-Ionone", 12.0),
+            ("Citronellol", 6.0),
+            ("Nerolidol", 6.0),
+            ("Linalool", 5.0),
+            ("Geraniol", 4.0),
+            ("Farnesol", 4.0),
+            ("Nerol", 3.0),
+            ("Citronellyl acetate", 3.0),
+            ("Eugenol", 2.0),
+            ("Benzyl acetate", 2.0),
+            ("Allyl hexanoate", 0.5),
+            ("cis-3-Hexen-1-ol", 0.38),
+            ("beta-Damascone", 0.12),
+        ],
+    },
+]
+
 BATCH_G = 10.0  # grams of concentrate per batch, as the dashboard's recipe
 
 
@@ -306,11 +445,17 @@ def main() -> None:
     (OUT / "olfactory_profiles.json").write_text(json.dumps(
         {"ifra": IFRA_SOURCE, "count": len(profiles), "compounds": profiles}, indent=1, ensure_ascii=False) + "\n")
 
-    for f in FORMULAS:
-        out = build_formula(f, catalogue)
-        (OUT / f"{f['id']}.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
-        print(f"{f['id']} {f['name']}: {len(out['ingredients'])} ingredients, {out['product']}")
-    print(f"{len(profiles)} profiles, {len(FORMULAS)} formulas -> {OUT.relative_to(REPO)}")
+    for directory, formulas, tag in ((OUT, FORMULAS, None), (OUT / "validation", VALIDATION_FORMULAS, "validation")):
+        directory.mkdir(exist_ok=True)
+        for f in formulas:
+            out = build_formula(f, catalogue)
+            if tag:
+                out["set"] = tag
+            (directory / f"{f['id']}.json").write_text(json.dumps(out, indent=1, ensure_ascii=False) + "\n")
+            print(f"{f['id']} {f['name']}: {len(out['ingredients'])} ingredients, {out['product']}"
+                  f"{' [' + tag + ']' if tag else ''}")
+    print(f"{len(profiles)} profiles, {len(FORMULAS)} formulas and "
+          f"{len(VALIDATION_FORMULAS)} validation formulas -> {OUT.relative_to(REPO)}")
 
 
 if __name__ == "__main__":

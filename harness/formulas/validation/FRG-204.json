@@ -1,0 +1,327 @@
+{
+ "id": "FRG-204",
+ "name": "Citrus Mint",
+ "family": "citrus aromatic (cologne)",
+ "description": "Lemon and lime over spearmint and wintergreen; sharp, cold, gone in an hour.",
+ "product": "Eau de Cologne",
+ "concentrate_pct_in_product": 5.0,
+ "solvent": {
+  "material": "Ethanol 96 % (perfumer's alcohol)",
+  "pct_in_product": 95.0
+ },
+ "batch": {
+  "concentrate_g": 10.0,
+  "ethanol_g_for_product": 190.0
+ },
+ "ifra": "IFRA Standards, 51st Amendment (2023), Category 4, max % in finished product",
+ "catalogue": "computer-vision/barcodes/lookup_table.json",
+ "ingredients": [
+  {
+   "material": "Limonene",
+   "cas": "5989-27-5",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 30.0,
+   "batch_g": 3.0,
+   "finished_pct": 1.5,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L",
+   "samples": [
+    "SMP-0001",
+    "SMP-0002",
+    "SMP-0003",
+    "SMP-0004",
+    "SMP-0005"
+   ]
+  },
+  {
+   "material": "Linalyl acetate",
+   "cas": "115-95-7",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 12.0,
+   "batch_g": 1.2,
+   "finished_pct": 0.6,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0091",
+    "SMP-0092",
+    "SMP-0093",
+    "SMP-0094",
+    "SMP-0095"
+   ]
+  },
+  {
+   "material": "Dihydromyrcenol",
+   "cas": "18479-58-8",
+   "note": "top-heart",
+   "role": "citrus",
+   "concentrate_pct": 10.0,
+   "batch_g": 1.0,
+   "finished_pct": 0.5,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0101",
+    "SMP-0102",
+    "SMP-0103",
+    "SMP-0104",
+    "SMP-0105"
+   ]
+  },
+  {
+   "material": "Linalool",
+   "cas": "78-70-6",
+   "note": "top-heart",
+   "role": "floral",
+   "concentrate_pct": 8.0,
+   "batch_g": 0.8,
+   "finished_pct": 0.4,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": "specification: peroxide value < 20 mmol/L",
+   "samples": [
+    "SMP-0006",
+    "SMP-0007",
+    "SMP-0008",
+    "SMP-0009",
+    "SMP-0010"
+   ]
+  },
+  {
+   "material": "Tetrahydrolinalool",
+   "cas": "78-69-3",
+   "note": "top-heart",
+   "role": "floral",
+   "concentrate_pct": 6.0,
+   "batch_g": 0.6,
+   "finished_pct": 0.3,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0196",
+    "SMP-0197",
+    "SMP-0198",
+    "SMP-0199",
+    "SMP-0200"
+   ]
+  },
+  {
+   "material": "Hedione",
+   "cas": "24851-98-7",
+   "note": "heart",
+   "role": "white floral",
+   "concentrate_pct": 6.0,
+   "batch_g": 0.6,
+   "finished_pct": 0.3,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0106",
+    "SMP-0107",
+    "SMP-0108",
+    "SMP-0109",
+    "SMP-0110"
+   ]
+  },
+  {
+   "material": "gamma-Terpinene",
+   "cas": "99-85-4",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 5.0,
+   "batch_g": 0.5,
+   "finished_pct": 0.25,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0136",
+    "SMP-0137",
+    "SMP-0138",
+    "SMP-0139",
+    "SMP-0140"
+   ]
+  },
+  {
+   "material": "Benzyl benzoate",
+   "cas": "120-51-4",
+   "note": "base",
+   "role": "balsamic",
+   "concentrate_pct": 4.0,
+   "batch_g": 0.4,
+   "finished_pct": 0.2,
+   "ifra_cat4_max_pct": 4.8,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0121",
+    "SMP-0122",
+    "SMP-0123",
+    "SMP-0124",
+    "SMP-0125"
+   ]
+  },
+  {
+   "material": "Citral",
+   "cas": "5392-40-5",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 3.0,
+   "batch_g": 0.3,
+   "finished_pct": 0.15,
+   "ifra_cat4_max_pct": 0.6,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0016",
+    "SMP-0017",
+    "SMP-0018",
+    "SMP-0019",
+    "SMP-0020"
+   ]
+  },
+  {
+   "material": "Terpinolene",
+   "cas": "586-62-9",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 3.0,
+   "batch_g": 0.3,
+   "finished_pct": 0.15,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0126",
+    "SMP-0127",
+    "SMP-0128",
+    "SMP-0129",
+    "SMP-0130"
+   ]
+  },
+  {
+   "material": "Carvone",
+   "cas": "99-49-0",
+   "note": "top",
+   "role": "aromatic",
+   "concentrate_pct": 3.0,
+   "batch_g": 0.3,
+   "finished_pct": 0.15,
+   "ifra_cat4_max_pct": 0.59,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0051",
+    "SMP-0052",
+    "SMP-0053",
+    "SMP-0054",
+    "SMP-0055"
+   ]
+  },
+  {
+   "material": "Methyl salicylate",
+   "cas": "119-36-8",
+   "note": "heart",
+   "role": "aromatic",
+   "concentrate_pct": 2.0,
+   "batch_g": 0.2,
+   "finished_pct": 0.1,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0086",
+    "SMP-0087",
+    "SMP-0088",
+    "SMP-0089",
+    "SMP-0090"
+   ]
+  },
+  {
+   "material": "Citronellal",
+   "cas": "106-23-0",
+   "note": "top",
+   "role": "citrus",
+   "concentrate_pct": 2.0,
+   "batch_g": 0.2,
+   "finished_pct": 0.1,
+   "ifra_cat4_max_pct": 0.49,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0146",
+    "SMP-0147",
+    "SMP-0148",
+    "SMP-0149",
+    "SMP-0150"
+   ]
+  },
+  {
+   "material": "Geranyl acetate",
+   "cas": "105-87-3",
+   "note": "heart",
+   "role": "rose",
+   "concentrate_pct": 2.0,
+   "batch_g": 0.2,
+   "finished_pct": 0.1,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0156",
+    "SMP-0157",
+    "SMP-0158",
+    "SMP-0159",
+    "SMP-0160"
+   ]
+  },
+  {
+   "material": "Nerol",
+   "cas": "106-25-2",
+   "note": "heart",
+   "role": "rose",
+   "concentrate_pct": 2.0,
+   "batch_g": 0.2,
+   "finished_pct": 0.1,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0036",
+    "SMP-0037",
+    "SMP-0038",
+    "SMP-0039",
+    "SMP-0040"
+   ]
+  },
+  {
+   "material": "Myrcene",
+   "cas": "123-35-3",
+   "note": "top",
+   "role": "herbal",
+   "concentrate_pct": 1.0,
+   "batch_g": 0.1,
+   "finished_pct": 0.05,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0141",
+    "SMP-0142",
+    "SMP-0143",
+    "SMP-0144",
+    "SMP-0145"
+   ]
+  },
+  {
+   "material": "cis-3-Hexen-1-ol",
+   "cas": "928-96-1",
+   "note": "top",
+   "role": "green",
+   "concentrate_pct": 1.0,
+   "batch_g": 0.1,
+   "finished_pct": 0.05,
+   "ifra_cat4_max_pct": null,
+   "ifra_note": null,
+   "samples": [
+    "SMP-0096",
+    "SMP-0097",
+    "SMP-0098",
+    "SMP-0099",
+    "SMP-0100"
+   ]
+  }
+ ],
+ "set": "validation"
+}
