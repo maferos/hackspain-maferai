@@ -1010,3 +1010,36 @@ is almost all geometry; the exact box gives 5 to 17.
    problem, not the model.
 4. If both backends fail on frames that pass the size floor, the next step is
    a fine-tune on renderer-labelled frames, not another pretrained model.
+
+### On the perfumery lab: every bottle in the room, from the scene's own cameras
+
+`scripts/render_perfumery.py` renders Eki's `minihannover_scene.xml` as it is,
+from its walkthrough cameras and from the vision system's two GoPros: the fixed
+`general` one over the bench, and the `wrist` one flown to a random bench
+bottle at 0.25 to 0.6 m. Bench layouts are random. The truth is written for
+every one of the 200 catalogue bottles with a pixel in view, the loose ones,
+the entrance corner and the 187 on the gantry alike: its visible box, its
+whole silhouette drawn with nothing in front of it, how much of it is visible,
+and whether it stands on the bench, on a shelf or elsewhere. Only the
+simulator's state writes that truth; the detector sees the RGB frame alone.
+`scripts/perfumery_eval.py` scores a backend on those frames, per set, by
+bottle and by apparent size, and names what every false box landed on: a shelf
+bottle, glassware, a balance. `scripts/world_prompts.py` tries YOLO-World
+vocabularies on the same frames, distractor prompts included.
+
+```
+python scripts/render_perfumery.py
+python scripts/perfumery_eval.py ../simulation/out/perfumery --backend both --overlays
+python scripts/world_prompts.py ../simulation/out/perfumery
+```
+
+Measured before the gantry held the catalogue (scene at `663ae2e`, decorative
+shelf bottles, a fixed GoPro 1.4 m from the bench): YOLO-World found 91 % of
+the bench bottles, 97 % of those 48 px or wider, and COCO found 50 %. From the
+walkthrough cameras both found about half, with 79 of 179 bottles under 16 px.
+Nine false boxes in ten fell on the shelf library. The worktop filter in
+`perfumery_eval.on_worktop`, which back-projects a box's bottom edge onto the
+bench plane from the calibrated camera, cut them from 65 to 3.9 per frame on
+the walkthrough cameras without losing a bottle, and from 17.5 to 1.8 on the
+fixed GoPro, precision 33 % to 82 %. On a CPU, World takes about 7 s per 1080p
+frame and COCO 1.3 s.
