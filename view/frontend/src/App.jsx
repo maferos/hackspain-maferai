@@ -19,8 +19,9 @@ const DEFAULT_CAMERAS = [
 //   realtime — the backend's live MuJoCo streams of the scene.
 //   replay   — Eloi's Isaac Sim RTX renders (simulation/renders/isaac/open),
 //              static images that need no backend.
-// ?live=1 still starts in real time; otherwise start in replay.
-const INITIAL_MODE = new URLSearchParams(window.location.search).get("live") === "1" ? "realtime" : "replay";
+// Start in Real time on the live MuJoCo streams; ?replay=1 opens in Replay
+// (the Isaac stills, which need no backend).
+const INITIAL_MODE = new URLSearchParams(window.location.search).get("replay") === "1" ? "replay" : "realtime";
 const STILL_CAMERAS = [
   { id: "scene", label: "General camera", src: "/renders/general.jpg" },
   { id: "aisle", label: "Aisle camera", src: "/renders/room_aisle.jpg" },
