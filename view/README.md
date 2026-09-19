@@ -68,6 +68,9 @@ inference (about 0.4 s on a laptop CPU).
 The first detection runs immediately. Between detections the last boxes stay
 visible. If inference takes longer than 5 frames, it skips ahead to the newest
 frame instead of building a queue.
+YOLO runs in a separate Python subprocess, so its preprocessing and torch
+inference cannot hold the renderer's Python interpreter lock. Only the
+detector thread waits for results; camera rendering and streaming continue.
 
 It needs `ultralytics` in the backend's venv and the weights: `VIEW_DETECTOR`
 names a `labvision.detector` backend or a weights path, and the default,

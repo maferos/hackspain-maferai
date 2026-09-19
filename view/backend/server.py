@@ -18,6 +18,8 @@ from __future__ import annotations
 
 import asyncio
 import itertools
+import json
+import subprocess
 import os
 import sys
 import threading
@@ -250,16 +252,15 @@ class SceneRenderer:
         mujoco.mj_forward(self.model, self.data)
         motion["i"] += 1
 
-    def _encode(self, mj_camera_name: str, renderer: "mujoco.Renderer") -> bytes:
+    def _encode(self, mj_camera_name: str, renderer: "mujoco.Renderer") -> tuple[bytes, np.ndarray]:
         with self._data_lock:
             renderer.update_scene(self.data, camera=mj_camera_name, scene_option=self._scene_options[mj_camera_name])
         frame = renderer.render()  # RGB
-        self._latest_rgb[mj_camera_name] = frame
         bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         ok, buf = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
         if not ok:
             raise RuntimeError("JPEG encode failed")
-        return buf.tobytes()
+        return buf.tobytes(), frame
 
     def run_forever(self) -> None:
         renderer = mujoco.Renderer(self.model, height=FRAME_HEIGHT, width=FRAME_WIDTH)
@@ -272,9 +273,11 @@ class SceneRenderer:
                     self._advance_motion()
                 else:
                     mujoco.mj_step(self.model, self.data)
+            rendered = {name: self._encode(name, renderer) for name in mj_camera_names}
             with self._condition:
-                for mj_name in mj_camera_names:
-                    self._latest_jpeg[mj_name] = self._encode(mj_name, renderer)
+                for name, (jpeg, rgb) in rendered.items():
+                    self._latest_jpeg[name] = jpeg
+                    self._latest_rgb[name] = rgb
                 self._frame_seq += 1
                 self._condition.notify_all()
             remaining = period - (time.time() - start)
@@ -364,48 +367,52 @@ class Detector:
     def run_forever(self) -> None:
         if not self.available:
             return
+        worker = None
         try:
-            import torch
-            from ultralytics import YOLO
-
-            torch.set_num_threads(DETECTOR_THREADS)
-            model = YOLO(str(self.weights))
+            worker = subprocess.Popen(
+                [sys.executable, str(Path(__file__).with_name("yolo_worker.py")),
+                 str(self.weights), str(self.conf), str(DETECTOR_THREADS)],
+                stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            )
+            last_seq = None
+            while True:
+                if worker.poll() is not None:
+                    raise RuntimeError(f"YOLO worker exited ({worker.returncode})")
+                if self.watchers == 0:
+                    time.sleep(0.2)
+                    continue
+                frame, seq = self.renderer.latest_rgb(self.mj_camera)
+                if frame is None or (last_seq is not None and seq - last_seq < DETECTOR_FRAME_STRIDE):
+                    time.sleep(0.01)
+                    continue
+                # Only this detector thread waits for the subprocess. There is
+                # one frame in flight, no inference queue and no render lock.
+                worker.stdin.write((json.dumps(frame.shape) + "\n").encode())
+                worker.stdin.write(memoryview(frame).cast("B"))
+                worker.stdin.flush()
+                line = worker.stdout.readline()
+                if not line:
+                    raise RuntimeError("YOLO worker closed its output")
+                result = json.loads(line)
+                if "error" in result:
+                    raise RuntimeError(result["error"])
+                self.latest = {
+                    "camera": DETECTOR_CAMERA, "frame": seq,
+                    "width": int(frame.shape[1]), "height": int(frame.shape[0]),
+                    **result,
+                }
+                last_seq = seq
         except Exception as exc:  # noqa: BLE001
-            self.error = f"detector failed to load: {exc!r}"
+            self.error = f"detector failed: {exc!r}"
+            self.latest = None
             print(f"[view] {self.error}", file=sys.stderr)
-            return
-        last_seq = None
-        while True:
-            if self.watchers == 0:
-                time.sleep(0.2)
-                continue
-            frame, seq = self.renderer.latest_rgb(self.mj_camera)
-            if frame is None or (last_seq is not None and seq - last_seq < DETECTOR_FRAME_STRIDE):
-                time.sleep(0.02)
-                continue
-            start = time.time()
-            result = model.predict(
-                np.ascontiguousarray(frame[:, :, ::-1]),  # ultralytics wants BGR
-                imgsz=max(frame.shape[:2]),
-                conf=self.conf,
-                verbose=False,
-            )[0]
-            took = time.time() - start
-            boxes = [
-                [round(float(v), 1) for v in xyxy] + [round(float(score), 3)]
-                for xyxy, score in zip(
-                    result.boxes.xyxy.cpu().numpy(), result.boxes.conf.cpu().numpy(), strict=True
-                )
-            ]
-            self.latest = {
-                "camera": DETECTOR_CAMERA,
-                "frame": seq,
-                "width": int(frame.shape[1]),
-                "height": int(frame.shape[0]),
-                "boxes": boxes,
-                "inference_ms": round(took * 1000),
-            }
-            last_seq = seq
+        finally:
+            if worker is not None:
+                worker.stdin.close()
+                worker.stdout.close()
+                if worker.poll() is None:
+                    worker.terminate()
+                worker.wait()
 
 
 detector = Detector(scene, DETECTOR_SPEC)
