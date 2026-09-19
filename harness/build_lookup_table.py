@@ -52,7 +52,8 @@ Run with the venv that has mujoco, OpenCV and ultralytics, headless:
     MUJOCO_GL=egl simulation/.venv-act/bin/python harness/build_lookup_table.py
     ... build_lookup_table.py --weights path/to/best.pt --device cuda:0
     ... build_lookup_table.py path/to/scene.xml --cameras general room_desk
-    ... build_lookup_table.py --no-confirm         # the fixed cameras alone
+    ... build_lookup_table.py --confirm mocap      # teleport the camera instead
+    ... build_lookup_table.py --confirm off        # the fixed cameras alone
     ... build_lookup_table.py --method gt          # only needs mujoco
     ... build_lookup_table.py --save-frames /tmp/frames   # annotated renders
 """
@@ -231,6 +232,7 @@ def vision_labels(scan, truth, registry, by_marker, diameters):
             "position_spread_m": round(spread, 4),
             "cameras": sorted({s.camera for s in bottle.sightings}),
             "confirmed": bottle.confirmed,
+            "reached": bottle.reached,
         }
         seen_id, seen_distance = truth_near(position)
         if readings:
@@ -299,10 +301,11 @@ def main():
     parser.add_argument("--device", help="torch device, e.g. cuda:0 (default: a GPU if any)")
     parser.add_argument("--score", type=float, help="override the detector threshold")
     parser.add_argument("--ean", action="store_true", help="also read EAN-13 inside boxes")
-    parser.add_argument("--no-confirm", dest="confirm", action="store_false",
-                        help="skip the wrist pass: the fixed cameras alone")
-    parser.add_argument("--wrist-camera", default="wrist",
-                        help="the movable camera the wrist pass flies (default: wrist)")
+    parser.add_argument("--confirm", choices=("auto", "arm", "mocap", "off"),
+                        default="auto",
+                        help="how the confirming camera gets to a bottle: carried "
+                             "by the arm, teleported on a mocap mount, the arm "
+                             "where the scene has one (default), or not at all")
     parser.add_argument("--save-frames", type=Path, help="write annotated frames here")
     parser.add_argument("--out", type=Path, default=OUT)
     args = parser.parse_args()
@@ -319,7 +322,7 @@ def main():
                                 weights=str(args.weights) if args.weights else None,
                                 score=args.score, device=args.device,
                                 read_ean=args.ean, frames_dir=args.save_frames,
-                                confirm=args.confirm, wrist_camera=args.wrist_camera)
+                                confirm=args.confirm)
 
     def keep(entries):
         return [e for e in entries if not args.phase or e.get("phase") == args.phase]
@@ -375,13 +378,16 @@ def main():
             decoder=(f"labvision.markers: soft ArUco posterior over the catalogue, every copy "
                      f"of the ring fused across cameras (TEMPER={markers.TEMPER}); "
                      f"accept >= {markers.ACCEPT_P}, rescan >= {markers.REJECT_P}, else reject"),
-            confirm=("the fixed cameras propose; every bottle they do not accept is looked "
-                     f"at again from {wrist.STANDOFF_M} m by the scene's "
-                     f"{args.wrist_camera!r} camera, at each of "
-                     f"{len(wrist.AZIMUTHS_DEG)} azimuths until the ring reads, and those "
-                     "quads join the same posterior. Entries say which pass named them "
-                     "in `confirmed`")
-                    if args.confirm else "off: the fixed cameras alone",
+            confirm=("the fixed cameras propose; every bottle they do not accept is "
+                     f"looked at again from about {wrist.STANDOFF_M} m, bearing by "
+                     "bearing until the ring reads, and those quads join the same "
+                     "posterior. `metrics.confirm.mount` says what carried the "
+                     "camera there: ArmCamera means the UR10e's own eye-in-hand "
+                     "camera, driven by rail_kinematics.look_at_point, so a bottle "
+                     "the arm cannot reach is never looked at and `reached` on its "
+                     "entry says so. Entries say which pass named them in "
+                     "`confirmed`")
+                    if args.confirm != "off" else "off: the fixed cameras alone",
             probability="posterior that sample_id is the bottle at position, under "
                         "labvision.markers' noise model. NOT calibrated yet: see "
                         "computer-vision/docs/READ_CONFIDENCE.md and metrics.by_decision",

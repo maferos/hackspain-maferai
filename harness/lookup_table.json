@@ -10,7 +10,7 @@
     "score": 0.1
   },
   "decoder": "labvision.markers: soft ArUco posterior over the catalogue, every copy of the ring fused across cameras (TEMPER=0.5); accept >= 0.999, rescan >= 0.9, else reject",
-  "confirm": "the fixed cameras propose; every bottle they do not accept is looked at again from 0.3 m by the scene's 'wrist' camera, at each of 5 azimuths until the ring reads, and those quads join the same posterior. Entries say which pass named them in `confirmed`",
+  "confirm": "the fixed cameras propose; every bottle they do not accept is looked at again from about 0.3 m, bearing by bearing until the ring reads, and those quads join the same posterior. `metrics.confirm.mount` says what carried the camera there: ArmCamera means the UR10e's own eye-in-hand camera, driven by rail_kinematics.look_at_point, so a bottle the arm cannot reach is never looked at and `reached` on its entry says so. Entries say which pass named them in `confirmed`",
   "probability": "posterior that sample_id is the bottle at position, under labvision.markers' noise model. NOT calibrated yet: see computer-vision/docs/READ_CONFIDENCE.md and metrics.by_decision",
   "position": "bottle axis at label height: depth under the ring quads, pushed back by the bottle radius; surface_point is the raw point. From the wrist's views alone where it confirmed the bottle",
   "position_spread_m": "largest distance of one view's point from surface_point",
@@ -114,9 +114,12 @@
         },
         "confirm": {
           "camera": "wrist",
-          "standoff_m": 0.3,
-          "bottles_looked_at": 185,
+          "mount": "MocapCamera",
           "views": 372,
+          "standoff_m": 0.3,
+          "elevation_deg": 15.0,
+          "azimuths": 5,
+          "bottles_looked_at": 185,
           "confirmed": 163
         }
       },
@@ -161,6 +164,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.7739,
@@ -362,6 +366,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.5037,
@@ -482,6 +487,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.4532,
@@ -700,6 +706,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.4783,
@@ -1050,6 +1057,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.3819,
@@ -1234,6 +1242,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.1302,
@@ -1365,6 +1374,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.0592,
@@ -1505,6 +1515,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.25,
@@ -1667,6 +1678,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.5459,
@@ -1899,6 +1911,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.3611,
@@ -2026,6 +2039,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3661,
@@ -2200,6 +2214,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.1,
@@ -2394,6 +2409,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.7711,
@@ -2638,6 +2654,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.5974,
@@ -2747,6 +2764,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.95,
@@ -2943,6 +2961,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.1279,
@@ -3138,6 +3157,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.3446,
@@ -3315,6 +3335,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.6761,
@@ -3619,6 +3640,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.72,
@@ -3824,6 +3846,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.3736,
@@ -4001,6 +4024,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.8839,
@@ -4330,6 +4354,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.5895,
@@ -4538,6 +4563,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.8533,
@@ -4670,6 +4696,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.8863,
@@ -4881,6 +4908,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.1621,
@@ -5108,6 +5136,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.2654,
@@ -5279,6 +5308,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.3088,
@@ -5418,6 +5448,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.6051,
@@ -5614,6 +5645,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.3942,
@@ -5818,6 +5850,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.7712,
@@ -6015,6 +6048,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.1171,
@@ -6166,6 +6200,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.5984,
@@ -6419,6 +6454,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9538,
@@ -6578,6 +6614,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.8195,
@@ -6858,6 +6895,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1862,
@@ -7032,6 +7070,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3249,
@@ -7141,6 +7180,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.6338,
@@ -7280,6 +7320,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.5153,
@@ -7434,6 +7475,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.4404,
@@ -7700,6 +7742,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.2273,
@@ -7887,6 +7930,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.2112,
@@ -8045,6 +8089,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.6215,
@@ -8250,6 +8295,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.063,
@@ -8403,6 +8449,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.764,
@@ -8574,6 +8621,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.7959,
@@ -8767,6 +8815,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.0917,
@@ -8898,6 +8947,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.9429,
@@ -9067,6 +9117,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.8737,
@@ -9196,6 +9247,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.0244,
@@ -9400,6 +9452,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4075,
@@ -9540,6 +9593,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.8262,
@@ -9697,6 +9751,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.3994,
@@ -9819,6 +9874,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.7442,
@@ -10030,6 +10086,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.1233,
@@ -10205,6 +10262,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.6936,
@@ -10412,6 +10470,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.816,
@@ -10597,6 +10656,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.6728,
@@ -10853,6 +10913,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.0709,
@@ -11054,6 +11115,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.6914,
@@ -11230,6 +11292,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.2035,
@@ -11401,6 +11464,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.573,
@@ -11602,6 +11666,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.8227,
@@ -11737,6 +11802,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.307,
@@ -12027,6 +12093,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.7619,
@@ -12174,6 +12241,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1139,
@@ -12368,6 +12436,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.4084,
@@ -12563,6 +12632,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.514,
@@ -12709,6 +12779,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.569,
@@ -12828,6 +12899,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.0805,
@@ -12947,6 +13019,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.3578,
@@ -13124,6 +13197,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.518,
@@ -13323,6 +13397,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.2964,
@@ -13517,6 +13592,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.5041,
@@ -13723,6 +13799,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.4969,
@@ -13883,6 +13960,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9298,
@@ -14060,6 +14138,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.9069,
@@ -14242,6 +14321,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.5582,
@@ -14362,6 +14442,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.8097,
@@ -14502,6 +14583,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.2856,
@@ -14703,6 +14785,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.7603,
@@ -14823,6 +14906,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.6873,
@@ -14975,6 +15059,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.3692,
@@ -15221,6 +15306,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.33,
@@ -15413,6 +15499,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.6465,
@@ -15573,6 +15660,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.82,
@@ -15911,6 +15999,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.2793,
@@ -16085,6 +16174,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.8976,
@@ -16205,6 +16295,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.9086,
@@ -16409,6 +16500,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.2,
@@ -16536,6 +16628,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.7222,
@@ -16669,6 +16762,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.4715,
@@ -16865,6 +16959,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1537,
@@ -17017,6 +17112,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.0181,
@@ -17326,6 +17422,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.8297,
@@ -17559,6 +17656,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.4455,
@@ -17788,6 +17886,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.7528,
@@ -17907,6 +18006,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.004,
@@ -18082,6 +18182,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.9851,
@@ -18231,6 +18332,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.3255,
@@ -18351,6 +18453,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.1143,
@@ -18492,6 +18595,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.7076,
@@ -18755,6 +18859,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.6797,
@@ -18927,6 +19032,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3457,
@@ -19132,6 +19238,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.7168,
@@ -19297,6 +19404,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.452,
@@ -19419,6 +19527,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.401,
@@ -19653,6 +19762,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.1595,
@@ -19818,6 +19928,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.6531,
@@ -19927,6 +20038,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.606,
@@ -20120,6 +20232,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.1885,
@@ -20297,6 +20410,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.8214,
@@ -20506,6 +20620,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1843,
@@ -20693,6 +20808,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4634,
@@ -20885,6 +21001,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.9698,
@@ -21162,6 +21279,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.653,
@@ -21336,6 +21454,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.6702,
@@ -21468,6 +21587,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.7951,
@@ -21659,6 +21779,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.0346,
@@ -21809,6 +21930,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.1995,
@@ -21961,6 +22083,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.0511,
@@ -22156,6 +22279,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.0468,
@@ -22338,6 +22462,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.7366,
@@ -22497,6 +22622,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.3577,
@@ -22745,6 +22871,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9554,
@@ -23040,6 +23167,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.0489,
@@ -23179,6 +23307,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1074,
@@ -23306,6 +23435,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.1132,
@@ -23482,6 +23612,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.0129,
@@ -23641,6 +23772,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3258,
@@ -23789,6 +23921,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.0051,
@@ -24049,6 +24182,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9022,
@@ -24274,6 +24408,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.6174,
@@ -24449,6 +24584,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.5348,
@@ -24651,6 +24787,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             1.7269,
@@ -24833,6 +24970,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.808,
@@ -25029,6 +25167,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.5364,
@@ -25226,6 +25365,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.9435,
@@ -25549,6 +25689,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -25659,6 +25800,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -25747,6 +25889,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "wrong: the label here is SMP-0113",
           "views": [
             {
@@ -25835,6 +25978,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "wrong: the label here is SMP-0074",
           "views": [
             {
@@ -25923,6 +26067,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -26010,6 +26155,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -26088,6 +26234,7 @@
             "room_far_end"
           ],
           "confirmed": false,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -26166,6 +26313,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -26246,6 +26394,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -26353,6 +26502,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -26427,6 +26577,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -26478,6 +26629,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -26529,6 +26681,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -26580,6 +26733,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -26631,6 +26785,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -26701,6 +26856,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -26752,6 +26908,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -26803,6 +26960,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -26854,6 +27012,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -26905,6 +27064,7 @@
             "room_library"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_library",
@@ -26956,6 +27116,7 @@
             "room_library"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_library",
@@ -27007,6 +27168,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",
@@ -27059,6 +27221,7 @@
             "room_far_end"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_drying_rack",
@@ -27129,6 +27292,7 @@
             "room_drying_rack"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_drying_rack",
@@ -27180,6 +27344,7 @@
             "room_drying_rack"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_drying_rack",
@@ -27231,6 +27396,7 @@
             "room_drying_rack"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_drying_rack",
@@ -27282,6 +27448,7 @@
             "room_far_end"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_far_end",
@@ -27333,6 +27500,7 @@
             "room_far_end"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_far_end",
@@ -27384,6 +27552,7 @@
             "room_far_end"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_far_end",
@@ -27496,9 +27665,12 @@
         },
         "confirm": {
           "camera": "wrist",
-          "standoff_m": 0.3,
-          "bottles_looked_at": 307,
+          "mount": "MocapCamera",
           "views": 575,
+          "standoff_m": 0.3,
+          "elevation_deg": 15.0,
+          "azimuths": 5,
+          "bottles_looked_at": 307,
           "confirmed": 288
         }
       },
@@ -27543,6 +27715,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.0366,
@@ -27714,6 +27887,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.7142,
@@ -27936,6 +28110,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.3364,
@@ -28171,6 +28346,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.2331,
@@ -28483,6 +28659,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.0338,
@@ -28697,6 +28874,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.1691,
@@ -28913,6 +29091,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.4245,
@@ -29074,6 +29253,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.75,
@@ -29382,6 +29562,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.6823,
@@ -29683,6 +29864,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.5344,
@@ -29886,6 +30068,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.2105,
@@ -30047,6 +30230,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4,
@@ -30301,6 +30485,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.5591,
@@ -30595,6 +30780,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.7631,
@@ -30829,6 +31015,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9388,
@@ -31028,6 +31215,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.45,
@@ -31227,6 +31415,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.8497,
@@ -31500,6 +31689,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.5893,
@@ -31753,6 +31943,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.2136,
@@ -31976,6 +32167,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.78,
@@ -32212,6 +32404,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.0084,
@@ -32434,6 +32627,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.3425,
@@ -32744,6 +32938,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.5023,
@@ -32926,6 +33121,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.8784,
@@ -33390,6 +33586,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.2552,
@@ -33636,6 +33833,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9658,
@@ -33863,6 +34061,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.19,
@@ -34078,6 +34277,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.6627,
@@ -34333,6 +34533,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.8078,
@@ -34724,6 +34925,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.2529,
@@ -34920,6 +35122,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.1046,
@@ -35108,6 +35311,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.3026,
@@ -35247,6 +35451,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.6938,
@@ -35376,6 +35581,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.8004,
@@ -35537,6 +35743,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.4581,
@@ -35988,6 +36195,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.8928,
@@ -36288,6 +36496,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.0994,
@@ -36569,6 +36778,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.9736,
@@ -36751,6 +36961,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3474,
@@ -36988,6 +37199,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.0251,
@@ -37312,6 +37524,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.6237,
@@ -37552,6 +37765,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.7747,
@@ -37947,6 +38161,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.5144,
@@ -38125,6 +38340,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.153,
@@ -38286,6 +38502,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.6261,
@@ -38544,6 +38761,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.7975,
@@ -38724,6 +38942,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.5214,
@@ -39178,6 +39397,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.3433,
@@ -39339,6 +39559,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.5989,
@@ -39537,6 +39758,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.8207,
@@ -39750,6 +39972,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.6459,
@@ -39968,6 +40191,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1203,
@@ -40097,6 +40321,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.5421,
@@ -40268,6 +40493,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.371,
@@ -40448,6 +40674,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.5029,
@@ -40750,6 +40977,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.2743,
@@ -40963,6 +41191,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.6524,
@@ -41572,6 +41801,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.871,
@@ -41771,6 +42001,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.9187,
@@ -42057,6 +42288,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.2667,
@@ -42224,6 +42456,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9669,
@@ -42414,6 +42647,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.0686,
@@ -42657,6 +42891,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.4235,
@@ -43028,6 +43263,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.2313,
@@ -43287,6 +43523,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4711,
@@ -43439,6 +43676,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.9917,
@@ -43608,6 +43846,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.589,
@@ -43829,6 +44068,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4168,
@@ -44118,6 +44358,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.7114,
@@ -44522,6 +44763,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.7328,
@@ -44688,6 +44930,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.727,
@@ -44863,6 +45106,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.5428,
@@ -45247,6 +45491,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.7297,
@@ -45416,6 +45661,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.0832,
@@ -45680,6 +45926,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.5049,
@@ -46014,6 +46261,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.365,
@@ -46305,6 +46553,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.8798,
@@ -46503,6 +46752,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.1646,
@@ -46907,6 +47157,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.0119,
@@ -47194,6 +47445,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.6188,
@@ -47335,6 +47587,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.2914,
@@ -47554,6 +47807,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.4554,
@@ -47811,6 +48065,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3307,
@@ -48351,6 +48606,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.7904,
@@ -48499,6 +48755,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.163,
@@ -48649,6 +48906,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9474,
@@ -48921,6 +49179,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.8138,
@@ -49101,6 +49360,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.923,
@@ -49428,6 +49688,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.1862,
@@ -49681,6 +49942,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1351,
@@ -50022,6 +50284,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.8433,
@@ -50269,6 +50532,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.8191,
@@ -50511,6 +50775,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.2174,
@@ -50746,6 +51011,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.8396,
@@ -50903,6 +51169,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.2392,
@@ -51124,6 +51391,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.243,
@@ -51472,6 +51740,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.7008,
@@ -51669,6 +51938,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.0174,
@@ -51926,6 +52196,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.2892,
@@ -52354,6 +52625,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1169,
@@ -52552,6 +52824,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.3131,
@@ -52792,6 +53065,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.213,
@@ -52933,6 +53207,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.7488,
@@ -53112,6 +53387,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.4849,
@@ -53310,6 +53586,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.969,
@@ -53506,6 +53783,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.6085,
@@ -53647,6 +53925,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.2366,
@@ -53826,6 +54105,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.4534,
@@ -54016,6 +54296,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.83,
@@ -54269,6 +54550,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1635,
@@ -54729,6 +55011,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.1361,
@@ -54889,6 +55172,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3848,
@@ -55100,6 +55384,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.2093,
@@ -55340,6 +55625,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.68,
@@ -55759,6 +56045,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.88,
@@ -55976,6 +56263,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.963,
@@ -56245,6 +56533,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.5598,
@@ -56462,6 +56751,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4986,
@@ -56691,6 +56981,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.3,
@@ -56967,6 +57258,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.8396,
@@ -57136,6 +57428,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.594,
@@ -57396,6 +57689,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1194,
@@ -57566,6 +57860,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.3765,
@@ -57727,6 +58022,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9576,
@@ -58022,6 +58318,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.2646,
@@ -58171,6 +58468,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.2106,
@@ -58349,6 +58647,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.6622,
@@ -58572,6 +58871,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.6062,
@@ -58800,6 +59100,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.4031,
@@ -59229,6 +59530,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3795,
@@ -59605,6 +59907,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.274,
@@ -59775,6 +60078,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.2495,
@@ -59949,6 +60253,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.6834,
@@ -60346,6 +60651,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.1243,
@@ -60493,6 +60799,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.9696,
@@ -60795,6 +61102,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.2216,
@@ -61151,6 +61459,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.1403,
@@ -61312,6 +61621,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.5977,
@@ -61580,6 +61890,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4039,
@@ -61739,6 +62050,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.1573,
@@ -62085,6 +62397,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.0051,
@@ -62396,6 +62709,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3007,
@@ -62609,6 +62923,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.1807,
@@ -62923,6 +63238,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.5227,
@@ -63053,6 +63369,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.8183,
@@ -63318,6 +63635,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.1081,
@@ -63580,6 +63898,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.4588,
@@ -63931,6 +64250,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.3343,
@@ -64109,6 +64429,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.1557,
@@ -64313,6 +64634,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.1305,
@@ -64534,6 +64856,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.6761,
@@ -64851,6 +65174,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.0483,
@@ -65122,6 +65446,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4496,
@@ -65391,6 +65716,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.171,
@@ -65569,6 +65895,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.3364,
@@ -65729,6 +66056,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.3628,
@@ -65927,6 +66255,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4288,
@@ -66271,6 +66600,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.3871,
@@ -66641,6 +66971,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.67,
@@ -66819,6 +67150,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.6133,
@@ -66980,6 +67312,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.9919,
@@ -67311,6 +67644,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.4206,
@@ -67770,6 +68104,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.7873,
@@ -67898,6 +68233,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.3801,
@@ -68072,6 +68408,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.534,
@@ -68252,6 +68589,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.3572,
@@ -68648,6 +68986,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.6332,
@@ -68983,6 +69322,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.0445,
@@ -69257,6 +69597,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.3703,
@@ -69418,6 +69759,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.909,
@@ -69644,6 +69986,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.7437,
@@ -69924,6 +70267,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.6152,
@@ -70261,6 +70605,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.5748,
@@ -70421,6 +70766,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.0099,
@@ -70677,6 +71023,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.9735,
@@ -71066,6 +71413,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.0205,
@@ -71211,6 +71559,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.2695,
@@ -71548,6 +71897,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4394,
@@ -71836,6 +72186,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.6564,
@@ -71996,6 +72347,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.2623,
@@ -72272,6 +72624,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.0268,
@@ -72592,6 +72945,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.1184,
@@ -72751,6 +73105,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.0412,
@@ -72956,6 +73311,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.7514,
@@ -73140,6 +73496,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.2827,
@@ -73307,6 +73664,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.1574,
@@ -73498,6 +73856,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -73632,6 +73991,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -73743,6 +74103,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "wrong: the label here is SMP-0051",
           "views": [
             {
@@ -74004,6 +74365,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -74114,6 +74476,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -74201,6 +74564,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -74280,6 +74644,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -74369,6 +74734,7 @@
             "wrist"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -74463,6 +74829,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74533,6 +74900,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74584,6 +74952,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74635,6 +75004,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74686,6 +75056,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74737,6 +75108,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74788,6 +75160,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74839,6 +75212,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74890,6 +75264,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74941,6 +75316,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -74992,6 +75368,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -75043,6 +75420,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -75094,6 +75472,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -75145,6 +75524,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_aisle",
@@ -75196,6 +75576,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",
@@ -75247,6 +75628,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",
@@ -75298,6 +75680,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",
@@ -75349,6 +75732,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",
@@ -75419,8 +75803,8 @@
         },
         "missed": 6,
         "unidentified_vessels": 18,
-        "median_error_m": 0.0027,
-        "max_error_m": 0.0053,
+        "median_error_m": 0.0034,
+        "max_error_m": 0.0083,
         "per_camera": {
           "general": {
             "boxes": 19,
@@ -75460,24 +75844,34 @@
           }
         },
         "confirm": {
-          "camera": "wrist",
-          "standoff_m": 0.3,
+          "camera": "arm_eih",
+          "mount": "ArmCamera",
+          "views": 81,
+          "standoffs_m": [
+            0.3,
+            0.25,
+            0.35,
+            0.22,
+            0.4
+          ],
+          "elevation_deg": 12.0,
+          "bearings": 12,
+          "out_of_reach": 9,
           "bottles_looked_at": 49,
-          "views": 130,
           "confirmed": 32
         }
       },
       "labels": [
         {
           "position": [
-            -3.7513,
-            -1.2483,
-            0.9321
+            -3.7539,
+            -1.2528,
+            0.932
           ],
           "surface_point": [
-            -3.753,
-            -1.2673,
-            0.9321
+            -3.7537,
+            -1.2338,
+            0.932
           ],
           "sample_id": "SMP-0009",
           "probability": 1.0,
@@ -75489,34 +75883,35 @@
             ],
             [
               "SMP-0183",
-              5.20075e-16
+              3.09912e-14
             ],
             [
               "SMP-0198",
-              1.42708e-16
+              3.01003e-17
             ]
           ],
           "quads": {
-            "total": 8,
+            "total": 9,
             "accepted_by_opencv": 6
           },
-          "position_spread_m": 0.0069,
+          "position_spread_m": 0.0068,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.75,
             -1.25,
             0.9318
           ],
-          "error_m": 0.0022,
+          "error_m": 0.0049,
           "views": [
             {
               "camera": "general",
@@ -75576,10 +75971,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.7531,
-                -1.2673,
+                -3.747,
+                -1.2327,
                 0.9321
               ],
               "confirmed": true,
@@ -75591,8 +75986,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1020.7,
-                    611.9
+                    878.5,
+                    616.2
                   ]
                 },
                 {
@@ -75602,8 +75997,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1065.5,
-                    614.6
+                    835.6,
+                    614.0
                   ]
                 }
               ]
@@ -75628,11 +76023,11 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.753,
-                -1.2673,
-                0.9321
+                -3.7538,
+                -1.2338,
+                0.932
               ],
               "confirmed": true,
               "quads": [
@@ -75643,8 +76038,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    967.8,
-                    588.6
+                    931.7,
+                    583.5
                   ]
                 },
                 {
@@ -75654,8 +76049,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    924.0,
-                    586.1
+                    975.7,
+                    585.5
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0088",
+                  "marker_id": 87,
+                  "probability": 0.264642,
+                  "bit_errors": 3,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    1011.8,
+                    580.0
                   ]
                 }
               ]
@@ -75712,11 +76118,11 @@
               ]
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.7462,
-                -1.2663,
-                0.9322
+                -3.7537,
+                -1.2338,
+                0.932
               ],
               "confirmed": true,
               "quads": [
@@ -75727,19 +76133,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    930.1,
-                    595.6
+                    968.9,
+                    581.9
                   ]
                 },
                 {
-                  "sample_id": "SMP-0060",
-                  "marker_id": 59,
-                  "probability": 0.505793,
-                  "bit_errors": 3,
+                  "sample_id": "SMP-0191",
+                  "marker_id": 190,
+                  "probability": 0.938601,
+                  "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    1011.2,
-                    590.2
+                    1004.8,
+                    576.0
                   ]
                 },
                 {
@@ -75749,8 +76155,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    974.6,
-                    598.1
+                    925.4,
+                    580.5
                   ]
                 }
               ]
@@ -75767,53 +76173,54 @@
         },
         {
           "position": [
-            -1.5367,
-            -0.5039,
+            -1.5353,
+            -0.5057,
             0.9174
           ],
           "surface_point": [
-            -1.5365,
-            -0.5151,
+            -1.5352,
+            -0.4945,
             0.9174
           ],
           "sample_id": "SMP-0011",
-          "probability": 0.999575,
+          "probability": 0.999972,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0011",
-              0.999575
+              0.999972
+            ],
+            [
+              "SMP-0165",
+              1.23456e-05
             ],
             [
               "SMP-0130",
-              0.000123368
-            ],
-            [
-              "SMP-0002",
-              8.15478e-05
+              1.16511e-05
             ]
           ],
           "quads": {
-            "total": 4,
-            "accepted_by_opencv": 2
+            "total": 2,
+            "accepted_by_opencv": 1
           },
           "position_spread_m": 0.0,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.5344,
             -0.5048,
             0.9173
           ],
-          "error_m": 0.0024,
+          "error_m": 0.0012,
           "views": [
             {
               "camera": "general",
@@ -75911,56 +76318,34 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -1.5365,
-                -0.5151,
+                -1.5352,
+                -0.4945,
                 0.9174
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0108",
-                  "marker_id": 107,
-                  "probability": 0.399278,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    924.0,
-                    602.2
-                  ]
-                },
-                {
                   "sample_id": "SMP-0011",
                   "marker_id": 10,
                   "probability": 0.99998,
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    970.1,
-                    606.4
+                    955.1,
+                    591.2
                   ]
                 },
                 {
                   "sample_id": "SMP-0011",
                   "marker_id": 10,
-                  "probability": 0.99998,
+                  "probability": 0.99996,
                   "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    943.6,
-                    607.0
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0146",
-                  "marker_id": 145,
-                  "probability": 0.130912,
-                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    951.5,
-                    608.5
+                    979.5,
+                    590.8
                   ]
                 }
               ]
@@ -75977,53 +76362,54 @@
         },
         {
           "position": [
-            -1.4002,
-            0.4263,
-            0.9274
+            -1.3972,
+            0.4273,
+            0.9273
           ],
           "surface_point": [
-            -1.3968,
-            0.4417,
-            0.9274
+            -1.3973,
+            0.4434,
+            0.9273
           ],
           "sample_id": "SMP-0013",
-          "probability": 1.0,
+          "probability": 0.999896,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0013",
-              1.0
+              0.999896
+            ],
+            [
+              "SMP-0132",
+              5.953e-05
             ],
             [
               "SMP-0113",
-              6.7363e-09
-            ],
-            [
-              "SMP-0130",
-              3.38019e-11
+              1.46913e-05
             ]
           ],
           "quads": {
-            "total": 8,
-            "accepted_by_opencv": 4
+            "total": 3,
+            "accepted_by_opencv": 2
           },
-          "position_spread_m": 0.0046,
+          "position_spread_m": 0.0,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.4,
             0.43,
             0.9271
           ],
-          "error_m": 0.0037,
+          "error_m": 0.0038,
           "views": [
             {
               "camera": "general",
@@ -76121,65 +76507,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -1.4014,
-                0.4418,
-                0.9275
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0013",
-                  "marker_id": 12,
-                  "probability": 0.999917,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    955.3,
-                    585.0
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0038",
-                  "marker_id": 37,
-                  "probability": 0.927922,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    925.2,
-                    579.0
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0013",
-                  "marker_id": 12,
-                  "probability": 0.999917,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    991.2,
-                    582.4
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0146",
-                  "marker_id": 145,
-                  "probability": 0.767913,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    981.5,
-                    447.5
-                  ]
-                }
-              ]
-            },
-            {
-              "camera": "wrist",
-              "surface_point": [
-                -1.3922,
-                0.4416,
+                -1.3973,
+                0.4434,
                 0.9273
               ],
               "confirmed": true,
@@ -76191,19 +76522,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    966.6,
-                    584.7
+                    955.3,
+                    591.9
                   ]
                 },
                 {
-                  "sample_id": "SMP-0098",
-                  "marker_id": 97,
-                  "probability": 0.894997,
-                  "bit_errors": 1,
+                  "sample_id": "SMP-0089",
+                  "marker_id": 88,
+                  "probability": 0.897651,
+                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    995.2,
-                    578.2
+                    925.0,
+                    587.2
                   ]
                 },
                 {
@@ -76213,19 +76544,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    930.4,
-                    583.3
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0035",
-                  "marker_id": 34,
-                  "probability": 0.91541,
-                  "bit_errors": 1,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    909.5,
-                    577.0
+                    991.3,
+                    589.7
                   ]
                 }
               ]
@@ -76242,14 +76562,14 @@
         },
         {
           "position": [
-            0.4507,
-            0.4675,
-            0.9237
+            0.4502,
+            0.4678,
+            0.9236
           ],
           "surface_point": [
             0.4538,
             0.4809,
-            0.9237
+            0.9236
           ],
           "sample_id": "SMP-0017",
           "probability": 1.0,
@@ -76260,34 +76580,35 @@
               1.0
             ],
             [
-              "SMP-0131",
-              1.50214e-07
+              "SMP-0123",
+              2.46204e-09
             ],
             [
-              "SMP-0123",
-              4.27651e-08
+              "SMP-0139",
+              1.77319e-10
             ]
           ],
           "quads": {
             "total": 6,
-            "accepted_by_opencv": 2
+            "accepted_by_opencv": 3
           },
-          "position_spread_m": 0.005,
+          "position_spread_m": 0.0051,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             0.45,
             0.47,
             0.9235
           ],
-          "error_m": 0.0026,
+          "error_m": 0.0023,
           "views": [
             {
               "camera": "general",
@@ -76385,54 +76706,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
                 0.4488,
                 0.4811,
-                0.9236
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0017",
-                  "marker_id": 16,
-                  "probability": 0.891782,
-                  "bit_errors": 1,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    949.0,
-                    578.5
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0017",
-                  "marker_id": 16,
-                  "probability": 0.999927,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    979.2,
-                    581.1
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0039",
-                  "marker_id": 38,
-                  "probability": 0.918309,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    1007.0,
-                    576.8
-                  ]
-                }
-              ]
-            },
-            {
-              "camera": "wrist",
-              "surface_point": [
-                0.4588,
-                0.4808,
                 0.9237
               ],
               "confirmed": true,
@@ -76440,12 +76717,12 @@
                 {
                   "sample_id": "SMP-0017",
                   "marker_id": 16,
-                  "probability": 0.999927,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "probability": 0.79819,
+                  "bit_errors": 4,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    954.0,
-                    579.2
+                    949.0,
+                    586.0
                   ]
                 },
                 {
@@ -76453,21 +76730,65 @@
                   "marker_id": 16,
                   "probability": 0.999927,
                   "bit_errors": 0,
-                  "accepted_by_opencv": false,
+                  "accepted_by_opencv": true,
                   "centre_px": [
-                    985.2,
-                    578.0
+                    979.5,
+                    588.2
                   ]
                 },
                 {
-                  "sample_id": "SMP-0018",
-                  "marker_id": 17,
-                  "probability": 0.252402,
-                  "bit_errors": 3,
+                  "sample_id": "SMP-0156",
+                  "marker_id": 155,
+                  "probability": 0.29018,
+                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    928.8,
-                    573.5
+                    1007.0,
+                    584.8
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                0.4589,
+                0.4806,
+                0.9236
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0017",
+                  "marker_id": 16,
+                  "probability": 0.999927,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    955.2,
+                    584.5
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0017",
+                  "marker_id": 16,
+                  "probability": 0.999927,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    986.4,
+                    582.9
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0017",
+                  "marker_id": 16,
+                  "probability": 0.985114,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    928.0,
+                    580.5
                   ]
                 }
               ]
@@ -76484,52 +76805,53 @@
         },
         {
           "position": [
-            -0.7817,
-            -1.2679,
-            0.9174
+            -0.7795,
+            -1.2714,
+            0.9175
           ],
           "surface_point": [
-            -0.7815,
-            -1.2791,
-            0.9174
+            -0.7767,
+            -1.2609,
+            0.9175
           ],
           "sample_id": "SMP-0021",
-          "probability": 0.999725,
+          "probability": 1.0,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0021",
-              0.999725
+              1.0
             ],
             [
               "SMP-0093",
-              0.000205025
+              9.54949e-09
             ],
             [
-              "SMP-0107",
-              6.01533e-05
+              "SMP-0195",
+              1.33696e-09
             ]
           ],
           "quads": {
-            "total": 4,
-            "accepted_by_opencv": 1
+            "total": 6,
+            "accepted_by_opencv": 3
           },
-          "position_spread_m": 0.0,
+          "position_spread_m": 0.0019,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.78,
             -1.27,
             0.9173
           ],
-          "error_m": 0.0027,
+          "error_m": 0.0015,
           "views": [
             {
               "camera": "general",
@@ -76621,10 +76943,10 @@
               ]
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.7815,
-                -1.2791,
+                -0.7786,
+                -1.2608,
                 0.9174
               ],
               "confirmed": true,
@@ -76632,23 +76954,56 @@
                 {
                   "sample_id": "SMP-0021",
                   "marker_id": 20,
-                  "probability": 0.988571,
+                  "probability": 0.999953,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    967.4,
+                    590.6
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0042",
+                  "marker_id": 41,
+                  "probability": 0.704905,
                   "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    967.2,
-                    603.8
+                    946.0,
+                    587.8
                   ]
                 },
                 {
                   "sample_id": "SMP-0021",
                   "marker_id": 20,
-                  "probability": 0.926438,
-                  "bit_errors": 1,
+                  "probability": 0.999787,
+                  "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    918.2,
-                    601.5
+                    991.0,
+                    589.0
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -0.7747,
+                -1.2611,
+                0.9175
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0021",
+                  "marker_id": 20,
+                  "probability": 0.999953,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    962.2,
+                    583.9
                   ]
                 },
                 {
@@ -76658,8 +77013,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    941.5,
-                    605.5
+                    937.5,
+                    583.9
                   ]
                 }
               ]
@@ -76676,30 +77031,30 @@
         },
         {
           "position": [
-            -2.9751,
-            -0.7824,
+            -2.9719,
+            -0.7842,
             0.9175
           ],
           "surface_point": [
-            -2.9751,
-            -0.7936,
+            -2.9721,
+            -0.773,
             0.9175
           ],
           "sample_id": "SMP-0041",
-          "probability": 0.999729,
+          "probability": 0.999903,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0041",
-              0.999729
-            ],
-            [
-              "SMP-0110",
-              9.29385e-05
+              0.999903
             ],
             [
               "SMP-0106",
-              4.22665e-05
+              1.54014e-05
+            ],
+            [
+              "SMP-0110",
+              1.54014e-05
             ]
           ],
           "quads": {
@@ -76708,18 +77063,19 @@
           },
           "position_spread_m": 0.0,
           "cameras": [
+            "arm_eih",
             "general",
-            "room_desk",
-            "wrist"
+            "room_desk"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.9736,
             -0.7833,
             0.9173
           ],
-          "error_m": 0.0017,
+          "error_m": 0.0019,
           "views": [
             {
               "camera": "general",
@@ -76760,10 +77116,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -2.9751,
-                -0.7936,
+                -2.9721,
+                -0.773,
                 0.9175
               ],
               "confirmed": true,
@@ -76771,23 +77127,23 @@
                 {
                   "sample_id": "SMP-0041",
                   "marker_id": 40,
-                  "probability": 0.998195,
+                  "probability": 0.999936,
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    951.3,
-                    593.6
+                    958.4,
+                    576.7
                   ]
                 },
                 {
                   "sample_id": "SMP-0041",
                   "marker_id": 40,
-                  "probability": 0.999936,
+                  "probability": 0.999845,
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    977.1,
-                    594.8
+                    933.7,
+                    575.8
                   ]
                 }
               ]
@@ -76804,14 +77160,14 @@
         },
         {
           "position": [
-            -3.6242,
-            -0.74,
-            0.9322
+            -3.6199,
+            -0.7469,
+            0.9321
           ],
           "surface_point": [
-            -3.624,
-            -0.759,
-            0.9322
+            -3.62,
+            -0.7279,
+            0.9321
           ],
           "sample_id": "SMP-0044",
           "probability": 1.0,
@@ -76823,34 +77179,35 @@
             ],
             [
               "SMP-0156",
-              5.50721e-09
+              1.65449e-07
             ],
             [
-              "SMP-0170",
-              3.5452e-09
+              "SMP-0197",
+              7.08138e-09
             ]
           ],
           "quads": {
-            "total": 7,
-            "accepted_by_opencv": 4
+            "total": 6,
+            "accepted_by_opencv": 3
           },
-          "position_spread_m": 0.0036,
+          "position_spread_m": 0.0,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.6237,
             -0.7441,
             0.9318
           ],
-          "error_m": 0.0042,
+          "error_m": 0.0047,
           "views": [
             {
               "camera": "general",
@@ -76910,11 +77267,11 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.6274,
-                -0.7602,
-                0.9322
+                -3.62,
+                -0.7279,
+                0.9321
               ],
               "confirmed": true,
               "quads": [
@@ -76925,19 +77282,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    985.3,
-                    634.3
+                    953.7,
+                    610.8
                   ]
                 },
                 {
-                  "sample_id": "SMP-0150",
-                  "marker_id": 149,
-                  "probability": 0.756901,
+                  "sample_id": "SMP-0156",
+                  "marker_id": 155,
+                  "probability": 0.527137,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    904.0,
-                    628.2
+                    918.8,
+                    604.5
                   ]
                 },
                 {
@@ -76947,8 +77304,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    940.8,
-                    637.3
+                    996.2,
+                    608.6
                   ]
                 }
               ]
@@ -76992,34 +77349,23 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.6206,
-                -0.7577,
-                0.9322
+                -3.62,
+                -0.7279,
+                0.9321
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0044",
-                  "marker_id": 43,
-                  "probability": 0.999961,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    977.8,
-                    608.0
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0191",
-                  "marker_id": 190,
-                  "probability": 0.0531925,
+                  "sample_id": "SMP-0156",
+                  "marker_id": 155,
+                  "probability": 0.526444,
                   "bit_errors": 2,
-                  "accepted_by_opencv": true,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    1000.8,
-                    596.8
+                    924.0,
+                    621.5
                   ]
                 },
                 {
@@ -77029,19 +77375,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    934.8,
-                    610.5
+                    961.0,
+                    628.5
                   ]
                 },
                 {
-                  "sample_id": "SMP-0150",
-                  "marker_id": 149,
-                  "probability": 0.887846,
-                  "bit_errors": 1,
+                  "sample_id": "SMP-0044",
+                  "marker_id": 43,
+                  "probability": 0.998712,
+                  "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    899.5,
-                    602.5
+                    1005.2,
+                    626.2
                   ]
                 }
               ]
@@ -77058,30 +77404,30 @@
         },
         {
           "position": [
-            -2.6248,
-            -0.2779,
-            0.9275
+            -2.6274,
+            -0.2848,
+            0.9273
           ],
           "surface_point": [
-            -2.6249,
-            -0.294,
-            0.9275
+            -2.6273,
+            -0.2687,
+            0.9273
           ],
           "sample_id": "SMP-0048",
-          "probability": 0.999927,
+          "probability": 0.999846,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0048",
-              0.999927
+              0.999846
             ],
             [
               "SMP-0096",
-              3.42275e-05
+              4.49242e-05
             ],
             [
               "SMP-0099",
-              1.80244e-05
+              3.95706e-05
             ]
           ],
           "quads": {
@@ -77090,21 +77436,22 @@
           },
           "position_spread_m": 0.0,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.6261,
             -0.2814,
             0.9271
           ],
-          "error_m": 0.0037,
+          "error_m": 0.0036,
           "views": [
             {
               "camera": "general",
@@ -77202,36 +77549,14 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -2.6249,
-                -0.294,
-                0.9275
+                -2.6273,
+                -0.2687,
+                0.9273
               ],
               "confirmed": true,
               "quads": [
-                {
-                  "sample_id": "SMP-0171",
-                  "marker_id": 170,
-                  "probability": 0.255136,
-                  "bit_errors": 1,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    995.5,
-                    590.0
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0048",
-                  "marker_id": 47,
-                  "probability": 0.999606,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    925.2,
-                    591.5
-                  ]
-                },
                 {
                   "sample_id": "SMP-0048",
                   "marker_id": 47,
@@ -77239,8 +77564,30 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    961.7,
-                    595.5
+                    963.0,
+                    583.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0048",
+                  "marker_id": 47,
+                  "probability": 0.690874,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    928.5,
+                    580.5
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0099",
+                  "marker_id": 98,
+                  "probability": 0.334385,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    995.2,
+                    579.2
                   ]
                 }
               ]
@@ -77257,46 +77604,47 @@
         },
         {
           "position": [
-            -0.1424,
-            -0.5791,
-            0.9174
+            -0.1418,
+            -0.5847,
+            0.9175
           ],
           "surface_point": [
-            -0.1422,
-            -0.5903,
-            0.9174
+            -0.1416,
+            -0.5735,
+            0.9175
           ],
           "sample_id": "SMP-0051",
-          "probability": 0.999913,
+          "probability": 0.999998,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0051",
-              0.999913
+              0.999998
+            ],
+            [
+              "SMP-0164",
+              1.43735e-06
             ],
             [
               "SMP-0157",
-              1.80893e-05
-            ],
-            [
-              "SMP-0055",
-              1.75841e-05
+              6.15543e-07
             ]
           ],
           "quads": {
             "total": 3,
-            "accepted_by_opencv": 1
+            "accepted_by_opencv": 3
           },
           "position_spread_m": 0.0,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.1419,
@@ -77401,23 +77749,23 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.1422,
-                -0.5903,
-                0.9174
+                -0.1416,
+                -0.5735,
+                0.9175
               ],
               "confirmed": true,
               "quads": [
                 {
                   "sample_id": "SMP-0051",
                   "marker_id": 50,
-                  "probability": 0.921063,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
+                  "probability": 0.903335,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": true,
                   "centre_px": [
-                    967.0,
-                    584.0
+                    949.9,
+                    569.6
                   ]
                 },
                 {
@@ -77427,19 +77775,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    941.9,
-                    586.6
+                    972.8,
+                    572.4
                   ]
                 },
                 {
-                  "sample_id": "SMP-0108",
-                  "marker_id": 107,
-                  "probability": 0.386888,
-                  "bit_errors": 1,
-                  "accepted_by_opencv": false,
+                  "sample_id": "SMP-0051",
+                  "marker_id": 50,
+                  "probability": 0.999888,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
                   "centre_px": [
-                    917.8,
-                    583.0
+                    996.2,
+                    569.8
                   ]
                 }
               ]
@@ -77456,53 +77804,54 @@
         },
         {
           "position": [
-            -0.5054,
-            -0.5433,
-            0.9237
+            -0.5099,
+            -0.5456,
+            0.9236
           ],
           "surface_point": [
-            -0.5053,
-            -0.5574,
-            0.9237
+            -0.5096,
+            -0.5316,
+            0.9236
           ],
           "sample_id": "SMP-0082",
-          "probability": 0.999978,
+          "probability": 0.999958,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0082",
-              0.999978
+              0.999958
             ],
             [
               "SMP-0195",
-              8.50675e-06
+              3.67227e-05
             ],
             [
-              "SMP-0093",
-              8.50321e-06
+              "SMP-0129",
+              3.02846e-06
             ]
           ],
           "quads": {
-            "total": 2,
+            "total": 3,
             "accepted_by_opencv": 2
           },
           "position_spread_m": 0.0,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.5049,
             -0.5444,
             0.9235
           ],
-          "error_m": 0.0012,
+          "error_m": 0.0052,
           "views": [
             {
               "camera": "general",
@@ -77600,11 +77949,11 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.5053,
-                -0.5574,
-                0.9237
+                -0.5096,
+                -0.5316,
+                0.9236
               ],
               "confirmed": true,
               "quads": [
@@ -77615,8 +77964,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    968.9,
-                    601.0
+                    946.5,
+                    571.2
                   ]
                 },
                 {
@@ -77626,8 +77975,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    935.2,
-                    600.6
+                    978.2,
+                    571.1
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0129",
+                  "marker_id": 128,
+                  "probability": 0.509341,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    1000.2,
+                    566.0
                   ]
                 }
               ]
@@ -77644,14 +78004,14 @@
         },
         {
           "position": [
-            -3.8828,
-            -0.6337,
-            0.9323
+            -3.8778,
+            -0.6404,
+            0.9322
           ],
           "surface_point": [
-            -3.8821,
-            -0.6527,
-            0.9323
+            -3.8774,
+            -0.6214,
+            0.9322
           ],
           "sample_id": "SMP-0084",
           "probability": 1.0,
@@ -77663,11 +78023,11 @@
             ],
             [
               "SMP-0103",
-              4.92274e-10
+              8.39277e-11
             ],
             [
-              "SMP-0006",
-              2.64218e-10
+              "SMP-0166",
+              2.99576e-12
             ]
           ],
           "quads": {
@@ -77676,21 +78036,22 @@
           },
           "position_spread_m": 0.0034,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.8798,
             -0.637,
             0.9318
           ],
-          "error_m": 0.0045,
+          "error_m": 0.0039,
           "views": [
             {
               "camera": "room_entrance",
@@ -77712,23 +78073,23 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.8788,
-                -0.6517,
-                0.9324
+                -3.8807,
+                -0.6224,
+                0.9323
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0103",
-                  "marker_id": 102,
-                  "probability": 0.695423,
-                  "bit_errors": 1,
+                  "sample_id": "SMP-0084",
+                  "marker_id": 83,
+                  "probability": 0.999979,
+                  "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    953.5,
-                    710.0
+                    968.8,
+                    712.2
                   ]
                 },
                 {
@@ -77738,19 +78099,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    913.9,
-                    718.2
+                    1009.9,
+                    717.7
                   ]
                 },
                 {
-                  "sample_id": "SMP-0084",
-                  "marker_id": 83,
-                  "probability": 0.995852,
-                  "bit_errors": 1,
+                  "sample_id": "SMP-0166",
+                  "marker_id": 165,
+                  "probability": 0.892511,
+                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    874.0,
-                    711.8
+                    1047.5,
+                    710.5
                   ]
                 }
               ]
@@ -77851,10 +78212,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.8854,
-                -0.6537,
+                -3.8742,
+                -0.6203,
                 0.9321
               ],
               "confirmed": true,
@@ -77866,19 +78227,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    959.6,
-                    604.7
+                    966.1,
+                    590.1
                   ]
                 },
                 {
                   "sample_id": "SMP-0084",
                   "marker_id": 83,
-                  "probability": 0.988579,
-                  "bit_errors": 2,
+                  "probability": 0.999965,
+                  "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    917.8,
-                    600.0
+                    924.8,
+                    586.2
                   ]
                 }
               ]
@@ -77895,53 +78256,54 @@
         },
         {
           "position": [
-            -1.9506,
-            -0.6885,
+            -1.9457,
+            -0.6936,
             0.9273
           ],
           "surface_point": [
-            -1.9503,
-            -0.7045,
+            -1.9419,
+            -0.6785,
             0.9273
           ],
           "sample_id": "SMP-0093",
-          "probability": 0.999561,
+          "probability": 0.999999,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0093",
-              0.999561
+              0.999999
             ],
             [
-              "SMP-0108",
-              0.000169258
+              "SMP-0063",
+              1.21569e-06
             ],
             [
-              "SMP-0021",
-              6.14916e-05
+              "SMP-0107",
+              1.8672e-07
             ]
           ],
           "quads": {
-            "total": 3,
-            "accepted_by_opencv": 2
+            "total": 7,
+            "accepted_by_opencv": 4
           },
-          "position_spread_m": 0.0,
+          "position_spread_m": 0.0028,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.9474,
             -0.6911,
             0.9271
           ],
-          "error_m": 0.0041,
+          "error_m": 0.003,
           "views": [
             {
               "camera": "general",
@@ -78039,23 +78401,78 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -1.9503,
-                -0.7045,
+                -1.9445,
+                -0.6775,
+                0.9274
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0093",
+                  "marker_id": 92,
+                  "probability": 0.999886,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    953.7,
+                    583.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0093",
+                  "marker_id": 92,
+                  "probability": 0.999886,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    989.1,
+                    581.1
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0108",
+                  "marker_id": 107,
+                  "probability": 0.435473,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    924.0,
+                    578.0
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -1.9392,
+                -0.6795,
                 0.9273
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0108",
-                  "marker_id": 107,
-                  "probability": 0.909581,
+                  "sample_id": "SMP-0093",
+                  "marker_id": 92,
+                  "probability": 0.999886,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    960.0,
+                    572.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0106",
+                  "marker_id": 105,
+                  "probability": 0.604922,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    913.0,
-                    594.5
+                    986.5,
+                    566.8
                   ]
                 },
                 {
@@ -78065,19 +78482,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    983.6,
-                    599.6
+                    923.7,
+                    571.3
                   ]
                 },
                 {
-                  "sample_id": "SMP-0093",
-                  "marker_id": 92,
-                  "probability": 0.999886,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "sample_id": "SMP-0127",
+                  "marker_id": 126,
+                  "probability": 0.940798,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    945.1,
-                    601.5
+                    901.2,
+                    566.5
                   ]
                 }
               ]
@@ -78094,13 +78511,13 @@
         },
         {
           "position": [
-            -2.3132,
-            -0.6079,
+            -2.3163,
+            -0.6104,
             0.9321
           ],
           "surface_point": [
-            -2.3073,
-            -0.6268,
+            -2.3118,
+            -0.5924,
             0.9321
           ],
           "sample_id": "SMP-0109",
@@ -78112,35 +78529,36 @@
               1.0
             ],
             [
-              "SMP-0146",
-              5.53651e-15
+              "SMP-0195",
+              4.92963e-10
             ],
             [
-              "SMP-0195",
-              1.27945e-15
+              "SMP-0108",
+              4.73287e-15
             ]
           ],
           "quads": {
-            "total": 9,
+            "total": 13,
             "accepted_by_opencv": 6
           },
-          "position_spread_m": 0.0069,
+          "position_spread_m": 0.0071,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -2.3131,
             -0.6094,
             0.9318
           ],
-          "error_m": 0.0015,
+          "error_m": 0.0034,
           "views": [
             {
               "camera": "general",
@@ -78251,23 +78669,23 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -2.3143,
-                -0.6269,
+                -2.3189,
+                -0.5922,
                 0.9321
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0109",
-                  "marker_id": 108,
-                  "probability": 0.9999,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "sample_id": "SMP-0195",
+                  "marker_id": 194,
+                  "probability": 0.835123,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    987.4,
-                    623.3
+                    960.5,
+                    598.5
                   ]
                 },
                 {
@@ -78277,30 +78695,41 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1032.9,
-                    624.4
+                    927.4,
+                    606.3
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0109",
+                  "marker_id": 108,
+                  "probability": 0.9999,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    884.0,
+                    605.5
                   ]
                 }
               ]
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -2.3071,
-                -0.6268,
-                0.9321
+                -2.3048,
+                -0.5926,
+                0.9323
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0109",
-                  "marker_id": 108,
-                  "probability": 0.674996,
-                  "bit_errors": 2,
+                  "sample_id": "SMP-0115",
+                  "marker_id": 114,
+                  "probability": 0.924405,
+                  "bit_errors": 3,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    953.0,
-                    625.0
+                    945.5,
+                    605.5
                   ]
                 },
                 {
@@ -78310,19 +78739,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    994.0,
-                    632.9
+                    904.9,
+                    611.3
                   ]
                 },
                 {
                   "sample_id": "SMP-0109",
                   "marker_id": 108,
-                  "probability": 0.999885,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "probability": 0.583652,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    1038.0,
-                    628.8
+                    863.8,
+                    606.8
                   ]
                 }
               ]
@@ -78347,25 +78776,58 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -2.3073,
-                -0.6265,
+                -2.3189,
+                -0.5923,
                 0.9321
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0098",
-                  "marker_id": 97,
-                  "probability": 0.0373022,
-                  "bit_errors": 4,
+                  "sample_id": "SMP-0109",
+                  "marker_id": 108,
+                  "probability": 0.9999,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    935.9,
+                    582.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0109",
+                  "marker_id": 108,
+                  "probability": 0.9999,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    980.1,
+                    582.8
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0195",
+                  "marker_id": 194,
+                  "probability": 0.713228,
+                  "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    1007.8,
-                    590.2
+                    1012.2,
+                    575.5
                   ]
-                },
+                }
+              ]
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -2.3047,
+                -0.5926,
+                0.9321
+              ],
+              "confirmed": true,
+              "quads": [
                 {
                   "sample_id": "SMP-0109",
                   "marker_id": 108,
@@ -78373,19 +78835,30 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    975.5,
-                    598.4
+                    962.7,
+                    598.1
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0082",
+                  "marker_id": 81,
+                  "probability": 0.705302,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    1001.5,
+                    593.2
                   ]
                 },
                 {
                   "sample_id": "SMP-0109",
                   "marker_id": 108,
-                  "probability": 0.9999,
+                  "probability": 0.99686,
                   "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    930.4,
-                    597.4
+                    921.2,
+                    594.2
                   ]
                 }
               ]
@@ -78402,13 +78875,13 @@
         },
         {
           "position": [
-            -3.83,
-            -1.1081,
+            -3.8296,
+            -1.1118,
             0.9417
           ],
           "surface_point": [
-            -3.8302,
-            -1.1321,
+            -3.8298,
+            -1.0879,
             0.9417
           ],
           "sample_id": "SMP-0120",
@@ -78434,20 +78907,21 @@
           },
           "position_spread_m": 0.0001,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
-            "room_entrance",
-            "wrist"
+            "room_entrance"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.83,
             -1.11,
             0.9414
           ],
-          "error_m": 0.0019,
+          "error_m": 0.0018,
           "views": [
             {
               "camera": "general",
@@ -78488,11 +78962,11 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.8302,
-                -1.1321,
-                0.9418
+                -3.8298,
+                -1.0879,
+                0.9417
               ],
               "confirmed": true,
               "quads": [
@@ -78503,8 +78977,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    971.4,
-                    631.9
+                    946.5,
+                    633.4
                   ]
                 },
                 {
@@ -78514,8 +78988,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    914.5,
-                    631.7
+                    1003.0,
+                    633.6
                   ]
                 }
               ]
@@ -78559,10 +79033,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.8302,
-                -1.132,
+                -3.8298,
+                -1.0879,
                 0.9417
               ],
               "confirmed": true,
@@ -78574,8 +79048,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    937.2,
-                    598.7
+                    981.8,
+                    616.2
                   ]
                 },
                 {
@@ -78585,8 +79059,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    992.8,
-                    598.9
+                    923.5,
+                    616.1
                   ]
                 }
               ]
@@ -78611,10 +79085,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.8302,
-                -1.1321,
+                -3.8298,
+                -1.0879,
                 0.9416
               ],
               "confirmed": true,
@@ -78626,8 +79100,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    941.2,
-                    499.5
+                    977.0,
+                    492.3
                   ]
                 },
                 {
@@ -78637,8 +79111,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    999.0,
-                    499.6
+                    917.7,
+                    492.3
                   ]
                 }
               ]
@@ -78655,13 +79129,13 @@
         },
         {
           "position": [
-            -0.6842,
-            -1.1486,
+            -0.672,
+            -1.1521,
             0.9418
           ],
           "surface_point": [
-            -0.6789,
-            -1.1715,
+            -0.6722,
+            -1.1282,
             0.9418
           ],
           "sample_id": "SMP-0125",
@@ -78673,35 +79147,36 @@
               1.0
             ],
             [
-              "SMP-0118",
-              1.07797e-25
+              "SMP-0132",
+              1.10142e-18
             ],
             [
-              "SMP-0132",
-              1.15305e-26
+              "SMP-0118",
+              1.28779e-20
             ]
           ],
           "quads": {
-            "total": 18,
-            "accepted_by_opencv": 9
+            "total": 15,
+            "accepted_by_opencv": 10
           },
-          "position_spread_m": 0.0089,
+          "position_spread_m": 0.0006,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.68,
             -1.15,
             0.9414
           ],
-          "error_m": 0.0045,
+          "error_m": 0.0083,
           "views": [
             {
               "camera": "room_wash",
@@ -78723,54 +79198,54 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.6877,
-                -1.1717,
-                0.9418
+                -0.6722,
+                -1.1282,
+                0.9417
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    974.8,
-                    618.3
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    918.4,
-                    619.1
-                  ]
-                },
-                {
                   "sample_id": "SMP-0045",
                   "marker_id": 44,
-                  "probability": 0.602239,
+                  "probability": 0.462564,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    879.5,
-                    607.0
+                    909.8,
+                    616.2
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0125",
+                  "marker_id": 124,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    950.1,
+                    626.6
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0125",
+                  "marker_id": 124,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    1007.0,
+                    625.9
                   ]
                 }
               ]
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.67,
-                -1.1714,
+                -0.6717,
+                -1.1279,
                 0.9418
               ],
               "confirmed": true,
@@ -78778,12 +79253,12 @@
                 {
                   "sample_id": "SMP-0125",
                   "marker_id": 124,
-                  "probability": 0.977916,
-                  "bit_errors": 1,
-                  "accepted_by_opencv": false,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
                   "centre_px": [
-                    997.8,
-                    611.5
+                    932.6,
+                    621.7
                   ]
                 },
                 {
@@ -78793,19 +79268,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    946.3,
-                    618.4
+                    987.6,
+                    625.2
                   ]
                 },
                 {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.998312,
-                  "bit_errors": 0,
+                  "sample_id": "SMP-0189",
+                  "marker_id": 188,
+                  "probability": 0.815417,
+                  "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    895.5,
-                    611.5
+                    1033.5,
+                    616.5
                   ]
                 }
               ]
@@ -78868,67 +79343,67 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.6878,
-                -1.1717,
+                -0.6723,
+                -1.1282,
                 0.9418
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0018",
-                  "marker_id": 17,
-                  "probability": 0.638772,
-                  "bit_errors": 3,
+                  "sample_id": "SMP-0125",
+                  "marker_id": 124,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    975.1,
+                    654.2
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0125",
+                  "marker_id": 124,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    919.3,
+                    655.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0045",
+                  "marker_id": 44,
+                  "probability": 0.58399,
+                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    909.5,
-                    641.5
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    949.6,
-                    655.7
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    1006.2,
-                    654.8
+                    881.0,
+                    643.8
                   ]
                 }
               ]
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.67,
-                -1.1714,
-                0.942
+                -0.6718,
+                -1.1279,
+                0.9418
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.985493,
+                  "sample_id": "SMP-0189",
+                  "marker_id": 188,
+                  "probability": 0.939844,
                   "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    917.8,
-                    651.2
+                    999.2,
+                    639.5
                   ]
                 },
                 {
@@ -78938,19 +79413,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    969.9,
-                    659.6
+                    952.7,
+                    649.2
                   ]
                 },
                 {
-                  "sample_id": "SMP-0189",
-                  "marker_id": 188,
-                  "probability": 0.633128,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
+                  "sample_id": "SMP-0125",
+                  "marker_id": 124,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
                   "centre_px": [
-                    1021.2,
-                    651.5
+                    898.3,
+                    645.3
                   ]
                 }
               ]
@@ -78975,10 +79450,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.6878,
-                -1.1717,
+                -0.6723,
+                -1.1282,
                 0.9416
               ],
               "confirmed": true,
@@ -78990,19 +79465,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    953.1,
-                    501.0
+                    972.8,
+                    507.0
                   ]
                 },
                 {
-                  "sample_id": "SMP-0045",
-                  "marker_id": 44,
-                  "probability": 0.800441,
-                  "bit_errors": 2,
+                  "sample_id": "SMP-0178",
+                  "marker_id": 177,
+                  "probability": 0.962641,
+                  "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    913.0,
-                    492.8
+                    871.0,
+                    500.5
                   ]
                 },
                 {
@@ -79012,52 +79487,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1009.3,
-                    500.4
-                  ]
-                }
-              ]
-            },
-            {
-              "camera": "wrist",
-              "surface_point": [
-                -0.6701,
-                -1.1714,
-                0.9417
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.99823,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    938.8,
-                    499.8
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    991.3,
-                    504.4
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0189",
-                  "marker_id": 188,
-                  "probability": 0.789034,
-                  "bit_errors": 1,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    1042.5,
-                    499.5
+                    912.3,
+                    507.5
                   ]
                 }
               ]
@@ -79074,13 +79505,13 @@
         },
         {
           "position": [
-            -1.2988,
+            -1.2995,
             0.2982,
             0.9417
           ],
           "surface_point": [
             -1.2991,
-            0.322,
+            0.3221,
             0.9417
           ],
           "sample_id": "SMP-0130",
@@ -79092,35 +79523,36 @@
               1.0
             ],
             [
-              "SMP-0112",
-              6.07166e-15
+              "SMP-0127",
+              3.8356e-14
             ],
             [
-              "SMP-0159",
-              3.11728e-15
+              "SMP-0112",
+              3.06029e-15
             ]
           ],
           "quads": {
             "total": 8,
             "accepted_by_opencv": 5
           },
-          "position_spread_m": 0.009,
+          "position_spread_m": 0.0091,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.3,
             0.3,
             0.9414
           ],
-          "error_m": 0.0022,
+          "error_m": 0.0019,
           "views": [
             {
               "camera": "general",
@@ -79231,10 +79663,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
                 -1.2991,
-                0.322,
+                0.3221,
                 0.9417
               ],
               "confirmed": true,
@@ -79246,8 +79678,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    931.5,
-                    593.8
+                    931.4,
+                    585.5
                   ]
                 },
                 {
@@ -79257,30 +79689,30 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    875.7,
-                    593.0
+                    875.5,
+                    584.8
                   ]
                 }
               ]
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -1.2901,
-                0.3214,
-                0.9419
+                -1.29,
+                0.3213,
+                0.9418
               ],
               "confirmed": true,
               "quads": [
                 {
                   "sample_id": "SMP-0130",
                   "marker_id": 129,
-                  "probability": 0.999879,
-                  "bit_errors": 0,
+                  "probability": 0.573833,
+                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    956.5,
-                    596.0
+                    961.8,
+                    587.5
                   ]
                 },
                 {
@@ -79290,19 +79722,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    902.9,
-                    603.0
+                    910.1,
+                    594.6
                   ]
                 },
                 {
                   "sample_id": "SMP-0130",
                   "marker_id": 129,
-                  "probability": 0.980601,
-                  "bit_errors": 1,
+                  "probability": 0.996947,
+                  "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    851.8,
-                    595.8
+                    856.2,
+                    590.0
                   ]
                 }
               ]
@@ -79327,10 +79759,10 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
                 -1.2991,
-                0.322,
+                0.3221,
                 0.9417
               ],
               "confirmed": true,
@@ -79342,8 +79774,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    945.4,
-                    609.5
+                    945.3,
+                    614.9
                   ]
                 },
                 {
@@ -79353,8 +79785,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1001.5,
-                    610.3
+                    1001.9,
+                    615.6
                   ]
                 }
               ]
@@ -79371,53 +79803,54 @@
         },
         {
           "position": [
-            -0.995,
-            -0.5176,
+            -0.9965,
+            -0.5227,
             0.9321
           ],
           "surface_point": [
-            -0.9907,
-            -0.5356,
+            -0.9962,
+            -0.5037,
             0.9321
           ],
           "sample_id": "SMP-0174",
-          "probability": 1.0,
+          "probability": 0.999928,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0174",
-              1.0
+              0.999928
             ],
             [
-              "SMP-0043",
-              5.16032e-13
+              "SMP-0045",
+              1.06305e-05
             ],
             [
-              "SMP-0111",
-              4.70878e-13
+              "SMP-0123",
+              8.62551e-06
             ]
           ],
           "quads": {
-            "total": 8,
-            "accepted_by_opencv": 3
+            "total": 3,
+            "accepted_by_opencv": 1
           },
-          "position_spread_m": 0.0035,
+          "position_spread_m": 0.0,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -0.9919,
             -0.5207,
             0.9318
           ],
-          "error_m": 0.0044,
+          "error_m": 0.005,
           "views": [
             {
               "camera": "general",
@@ -79528,100 +79961,34 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -0.9942,
-                -0.5361,
-                0.9323
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0109",
-                  "marker_id": 108,
-                  "probability": 0.470355,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    915.5,
-                    610.8
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0174",
-                  "marker_id": 173,
-                  "probability": 0.999832,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    999.2,
-                    614.2
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0174",
-                  "marker_id": 173,
-                  "probability": 0.999908,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    954.8,
-                    618.5
-                  ]
-                }
-              ]
-            },
-            {
-              "camera": "wrist",
-              "surface_point": [
-                -0.9872,
-                -0.5351,
-                0.932
+                -0.9962,
+                -0.5037,
+                0.9321
               ],
               "confirmed": true,
               "quads": [
                 {
                   "sample_id": "SMP-0174",
                   "marker_id": 173,
-                  "probability": 0.999482,
+                  "probability": 0.999908,
                   "bit_errors": 0,
-                  "accepted_by_opencv": false,
+                  "accepted_by_opencv": true,
                   "centre_px": [
-                    996.5,
-                    608.5
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0146",
-                  "marker_id": 145,
-                  "probability": 0.0377679,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    889.8,
-                    607.5
+                    951.5,
+                    595.9
                   ]
                 },
                 {
                   "sample_id": "SMP-0174",
                   "marker_id": 173,
-                  "probability": 0.999908,
+                  "probability": 0.999384,
                   "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    959.5,
-                    617.3
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0174",
-                  "marker_id": 173,
-                  "probability": 0.999908,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    913.8,
-                    615.4
+                    992.8,
+                    593.0
                   ]
                 }
               ]
@@ -79638,13 +80005,13 @@
         },
         {
           "position": [
-            -1.2671,
-            -0.4144,
+            -1.2726,
+            -0.4237,
             0.9418
           ],
           "surface_point": [
-            -1.2669,
-            -0.4383,
+            -1.272,
+            -0.3998,
             0.9418
           ],
           "sample_id": "SMP-0190",
@@ -79657,161 +80024,36 @@
             ],
             [
               "SMP-0054",
-              2.71203e-18
+              3.06621e-18
             ],
             [
               "SMP-0014",
-              1.76289e-18
+              9.94338e-19
             ]
           ],
           "quads": {
             "total": 9,
-            "accepted_by_opencv": 5
+            "accepted_by_opencv": 6
           },
-          "position_spread_m": 0.0002,
+          "position_spread_m": 0.0001,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
             "room_entrance",
-            "room_wash",
-            "wrist"
+            "room_wash"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -1.2695,
             -0.4191,
             0.9414
           ],
-          "error_m": 0.0053,
+          "error_m": 0.0056,
           "views": [
-            {
-              "camera": "room_entrance",
-              "label": "amber_bottle",
-              "score": 0.285,
-              "xyxy": [
-                968.9,
-                539.5,
-                974.9,
-                555.1
-              ],
-              "side_px": 9.7,
-              "barcode": null,
-              "surface_point": [
-                -1.2827,
-                -0.4461,
-                0.9216
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "wrist",
-              "surface_point": [
-                -1.2669,
-                -0.4383,
-                0.9416
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0190",
-                  "marker_id": 189,
-                  "probability": 0.999927,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    953.5,
-                    478.6
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0143",
-                  "marker_id": 142,
-                  "probability": 0.349084,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    1000.2,
-                    474.0
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0190",
-                  "marker_id": 189,
-                  "probability": 0.999926,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    901.9,
-                    475.8
-                  ]
-                }
-              ]
-            },
-            {
-              "camera": "room_wash",
-              "label": "amber_bottle",
-              "score": 0.868,
-              "xyxy": [
-                447.3,
-                337.8,
-                464.7,
-                366.6
-              ],
-              "side_px": 22.4,
-              "barcode": null,
-              "surface_point": [
-                -1.2482,
-                -0.4228,
-                0.9599
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "wrist",
-              "surface_point": [
-                -1.2669,
-                -0.4383,
-                0.9419
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0190",
-                  "marker_id": 189,
-                  "probability": 0.425032,
-                  "bit_errors": 3,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    1002.5,
-                    610.8
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0190",
-                  "marker_id": 189,
-                  "probability": 0.999927,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    953.3,
-                    620.3
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0190",
-                  "marker_id": 189,
-                  "probability": 0.999902,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    899.0,
-                    614.8
-                  ]
-                }
-              ]
-            },
             {
               "camera": "general",
               "label": "amber_bottle",
@@ -79908,10 +80150,73 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -1.267,
-                -0.4382,
+                -1.2721,
+                -0.3998,
+                0.9418
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0190",
+                  "marker_id": 189,
+                  "probability": 0.954672,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    959.0,
+                    590.2
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0190",
+                  "marker_id": 189,
+                  "probability": 0.999927,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    909.6,
+                    597.6
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0190",
+                  "marker_id": 189,
+                  "probability": 0.999787,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    857.3,
+                    593.5
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "room_wash",
+              "label": "amber_bottle",
+              "score": 0.868,
+              "xyxy": [
+                447.3,
+                337.8,
+                464.7,
+                366.6
+              ],
+              "side_px": 22.4,
+              "barcode": null,
+              "surface_point": [
+                -1.2482,
+                -0.4228,
+                0.9599
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -1.272,
+                -0.3999,
                 0.9418
               ],
               "confirmed": true,
@@ -79923,8 +80228,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    971.3,
-                    609.6
+                    927.5,
+                    608.4
                   ]
                 },
                 {
@@ -79934,19 +80239,82 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1028.0,
-                    615.0
+                    981.8,
+                    612.8
                   ]
                 },
                 {
                   "sample_id": "SMP-0143",
                   "marker_id": 142,
-                  "probability": 0.477392,
+                  "probability": 0.474973,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    1076.2,
-                    605.8
+                    1029.5,
+                    605.2
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "room_entrance",
+              "label": "amber_bottle",
+              "score": 0.285,
+              "xyxy": [
+                968.9,
+                539.5,
+                974.9,
+                555.1
+              ],
+              "side_px": 9.7,
+              "barcode": null,
+              "surface_point": [
+                -1.2827,
+                -0.4461,
+                0.9216
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -1.272,
+                -0.3998,
+                0.9417
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0190",
+                  "marker_id": 189,
+                  "probability": 0.999925,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    923.5,
+                    501.4
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0143",
+                  "marker_id": 142,
+                  "probability": 0.477529,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    1039.0,
+                    499.2
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0190",
+                  "marker_id": 189,
+                  "probability": 0.999927,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    985.0,
+                    504.4
                   ]
                 }
               ]
@@ -79963,52 +80331,53 @@
         },
         {
           "position": [
-            -3.2822,
-            -0.8089,
+            -3.2839,
+            -0.8132,
             0.9321
           ],
           "surface_point": [
-            -3.2752,
-            -0.8266,
+            -3.2802,
+            -0.7952,
             0.9321
           ],
           "sample_id": "SMP-0199",
-          "probability": 0.999954,
+          "probability": 1.0,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0199",
-              0.999954
+              1.0
             ],
             [
               "SMP-0070",
-              8.49947e-06
+              1.44171e-08
             ],
             [
-              "SMP-0182",
-              8.49947e-06
+              "SMP-0012",
+              3.67368e-10
             ]
           ],
           "quads": {
-            "total": 2,
-            "accepted_by_opencv": 2
+            "total": 5,
+            "accepted_by_opencv": 3
           },
-          "position_spread_m": 0.0,
+          "position_spread_m": 0.0036,
           "cameras": [
+            "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
-            "room_entrance",
-            "wrist"
+            "room_entrance"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "correct",
           "gt_position": [
             -3.2827,
             -0.8108,
             0.9318
           ],
-          "error_m": 0.002,
+          "error_m": 0.0026,
           "views": [
             {
               "camera": "general",
@@ -80106,10 +80475,54 @@
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "arm_eih",
               "surface_point": [
-                -3.2752,
-                -0.8266,
+                -3.2837,
+                -0.7961,
+                0.9321
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0199",
+                  "marker_id": 198,
+                  "probability": 0.999884,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    942.5,
+                    590.8
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0199",
+                  "marker_id": 198,
+                  "probability": 0.999954,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    901.8,
+                    595.9
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0070",
+                  "marker_id": 69,
+                  "probability": 0.638117,
+                  "bit_errors": 3,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    861.8,
+                    592.2
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -3.2767,
+                -0.7943,
                 0.9321
               ],
               "confirmed": true,
@@ -80121,8 +80534,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    989.4,
-                    619.7
+                    932.5,
+                    617.6
                   ]
                 },
                 {
@@ -80132,8 +80545,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1035.6,
-                    619.7
+                    887.1,
+                    619.9
                   ]
                 }
               ]
@@ -80152,68 +80565,111 @@
       "unidentified": [
         {
           "position": [
-            5.5,
-            0.8051,
-            1.5716
+            0.5864,
+            -0.4256,
+            0.9977
           ],
           "surface_point": [
-            5.5,
-            0.8051,
-            1.5716
+            0.5864,
+            -0.4256,
+            0.9977
           ],
-          "probability": 0.523036,
+          "probability": 0.700157,
           "decision": "reject",
           "posterior": [
             [
               "SMP-0146",
-              0.523036
+              0.700157
             ],
             [
               "SMP-0106",
-              0.0747195
+              0.0541349
             ],
             [
-              "SMP-0063",
-              0.0747195
+              "SMP-0111",
+              0.0538165
             ]
           ],
           "quads": {
-            "total": 1,
+            "total": 2,
             "accepted_by_opencv": 0
           },
-          "position_spread_m": 0.0,
+          "position_spread_m": 0.0598,
           "cameras": [
-            "room_entrance",
-            "wrist"
+            "arm_eih",
+            "room_aisle",
+            "room_entrance"
           ],
           "confirmed": true,
+          "reached": true,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.226,
+              "score": 0.105,
               "xyxy": [
-                976.5,
-                436.2,
-                982.9,
-                450.3
+                1005.2,
+                510.2,
+                1012.5,
+                522.1
               ],
-              "side_px": 9.5,
+              "side_px": 9.3,
               "barcode": null,
               "surface_point": [
-                5.4998,
-                0.7768,
-                1.6449
+                0.562,
+                -0.4279,
+                1.0002
               ],
               "confirmed": false
             },
             {
-              "camera": "wrist",
+              "camera": "room_aisle",
+              "label": "amber_bottle",
+              "score": 0.127,
+              "xyxy": [
+                1093.3,
+                463.4,
+                1106.6,
+                478.5
+              ],
+              "side_px": 14.2,
+              "barcode": null,
               "surface_point": [
-                5.5,
-                0.8051,
-                1.5716
+                0.5645,
+                -0.4353,
+                0.9872
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                0.5474,
+                -0.4488,
+                0.9588
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0146",
+                  "marker_id": 145,
+                  "probability": 0.271941,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    1076.2,
+                    642.5
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                0.6253,
+                -0.4023,
+                1.0367
               ],
               "confirmed": true,
               "quads": [
@@ -80224,8 +80680,8 @@
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    934.2,
-                    790.0
+                    962.0,
+                    412.2
                   ]
                 }
               ]
@@ -80234,8 +80690,8 @@
           "best_guess": "SMP-0146",
           "sample_id": null,
           "nearest_gt": {
-            "sample_id": "SMP-0017",
-            "distance_m": 5.1107
+            "sample_id": "SMP-0051",
+            "distance_m": 0.7449
           }
         },
         {
@@ -80274,6 +80730,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": false,
           "check": "no ground-truth label within 5 cm",
           "views": [
             {
@@ -80340,6 +80797,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": false,
           "views": [
             {
               "camera": "room_entrance",
@@ -80410,6 +80868,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -80440,6 +80899,58 @@
         },
         {
           "position": [
+            5.4998,
+            0.7768,
+            1.6449
+          ],
+          "surface_point": [
+            5.4998,
+            0.7768,
+            1.6449
+          ],
+          "probability": 0.0,
+          "decision": "reject",
+          "posterior": [],
+          "quads": {
+            "total": 0,
+            "accepted_by_opencv": 0
+          },
+          "position_spread_m": 0.0,
+          "cameras": [
+            "room_entrance"
+          ],
+          "confirmed": false,
+          "reached": false,
+          "views": [
+            {
+              "camera": "room_entrance",
+              "label": "amber_bottle",
+              "score": 0.226,
+              "xyxy": [
+                976.5,
+                436.2,
+                982.9,
+                450.3
+              ],
+              "side_px": 9.5,
+              "barcode": null,
+              "surface_point": [
+                5.4998,
+                0.7768,
+                1.6449
+              ],
+              "confirmed": false
+            }
+          ],
+          "best_guess": null,
+          "sample_id": null,
+          "nearest_gt": {
+            "sample_id": "SMP-0017",
+            "distance_m": 5.1103
+          }
+        },
+        {
+          "position": [
             1.0268,
             -2.3539,
             0.9681
@@ -80461,6 +80972,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": false,
           "views": [
             {
               "camera": "room_entrance",
@@ -80512,6 +81024,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -80563,6 +81076,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": false,
           "views": [
             {
               "camera": "room_entrance",
@@ -80614,6 +81128,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -80644,77 +81159,6 @@
         },
         {
           "position": [
-            0.5632,
-            -0.4316,
-            0.9937
-          ],
-          "surface_point": [
-            0.5632,
-            -0.4316,
-            0.9937
-          ],
-          "probability": 0.0,
-          "decision": "reject",
-          "posterior": [],
-          "quads": {
-            "total": 0,
-            "accepted_by_opencv": 0
-          },
-          "position_spread_m": 0.0076,
-          "cameras": [
-            "room_aisle",
-            "room_entrance"
-          ],
-          "confirmed": false,
-          "views": [
-            {
-              "camera": "room_entrance",
-              "label": "amber_bottle",
-              "score": 0.105,
-              "xyxy": [
-                1005.2,
-                510.2,
-                1012.5,
-                522.1
-              ],
-              "side_px": 9.3,
-              "barcode": null,
-              "surface_point": [
-                0.562,
-                -0.4279,
-                1.0002
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "room_aisle",
-              "label": "amber_bottle",
-              "score": 0.127,
-              "xyxy": [
-                1093.3,
-                463.4,
-                1106.6,
-                478.5
-              ],
-              "side_px": 14.2,
-              "barcode": null,
-              "surface_point": [
-                0.5645,
-                -0.4353,
-                0.9872
-              ],
-              "confirmed": false
-            }
-          ],
-          "best_guess": null,
-          "sample_id": null,
-          "nearest_gt": {
-            "sample_id": "SMP-0051",
-            "distance_m": 0.725
-          }
-        },
-        {
-          "position": [
             -0.9316,
             0.5331,
             0.8955
@@ -80736,6 +81180,7 @@
             "room_entrance"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_entrance",
@@ -80787,6 +81232,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": false,
           "views": [
             {
               "camera": "room_aisle",
@@ -80838,6 +81284,7 @@
             "room_aisle"
           ],
           "confirmed": false,
+          "reached": false,
           "views": [
             {
               "camera": "room_aisle",
@@ -80889,6 +81336,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",
@@ -80940,6 +81388,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",
@@ -80991,6 +81440,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": false,
           "views": [
             {
               "camera": "room_wash",
@@ -81042,6 +81492,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",
@@ -81093,6 +81544,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": false,
           "views": [
             {
               "camera": "room_wash",
@@ -81144,6 +81596,7 @@
             "room_wash"
           ],
           "confirmed": false,
+          "reached": true,
           "views": [
             {
               "camera": "room_wash",

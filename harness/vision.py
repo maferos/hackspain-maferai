@@ -111,6 +111,7 @@ class Bottle:
     sightings: list[Sighting]
     posterior: list[tuple[int, float]] = field(default_factory=list)
     refused: bool = False          # its id was claimed by a likelier bottle
+    reached: bool = False          # something could be put in front of it to look
 
     @property
     def readings(self) -> list[markers.MarkerReading]:
@@ -309,7 +310,7 @@ class VisionScanner:
 
     def __init__(self, table: dict, *, backend="rail", weights=None, score=None,
                  device=None, read_ean=False, frames_dir: Path | None = None,
-                 confirm=True, wrist_camera="wrist"):
+                 confirm="auto"):
         self.detector = Detector(backend, score=score, weights=weights, device=device)
         self.marker_detector = markers.make_detector()
         self.by_marker = {int(row["marker_id"]): row for row in table.values()}
@@ -317,7 +318,6 @@ class VisionScanner:
         self.read_ean = read_ean
         self.frames_dir = frames_dir
         self.confirm = confirm
-        self.wrist_camera = wrist_camera
 
     def scan(self, model, data, name: str, cameras: list[str]) -> SceneScan:
         sightings: list[Sighting] = []
@@ -372,17 +372,19 @@ class VisionScanner:
         Returns:
             What the pass did, for the scene's ``metrics``.
         """
-        cam = wrist.find(model, self.wrist_camera) if self.confirm else None
-        if cam is None:
+        eye = (wrist.mover(model, data, self.confirm,
+                           lambda cam: camera_size(model, cam))
+               if self.confirm != "off" else None)
+        if eye is None:
             return {"camera": None, "views": 0, "confirmed": 0,
-                    "skipped": "not asked for" if not self.confirm
-                               else f"no movable camera named {self.wrist_camera!r}"}
-        width, height = camera_size(model, cam)
-        flying = wrist.WristCamera(model, data, cam, width, height)
+                    "skipped": "not asked for" if self.confirm == "off"
+                               else "this scene has no camera that can be taken "
+                                    "to a bottle"}
         tried = 0
         try:
             for bottle in bottles:
                 if bottle.decision == "accept":
+                    bottle.reached = True
                     continue
                 tried += 1
                 # The bottle is not identified yet, so there is no radius to
@@ -391,13 +393,18 @@ class VisionScanner:
                 # 0.30 m is well inside the frame.
                 aim = to_axis(bottle.sightings[0].camera_position, bottle.point,
                               2 * PROPOSAL_RADIUS_M)
-                for k, position in enumerate(wrist.poses(aim)):
-                    frame, depth = flying.look(data, position, aim)
-                    sighting = self._read_wrist(
-                        camera_model(model, data, cam, width, height),
+                for k, (frame, depth, _pose) in enumerate(eye.look(data, aim)):
+                    bottle.reached = True
+                    # From where the camera really is, which the arm decides.
+                    # It lands within 1.5 mm and 15 mrad of what it was asked
+                    # for, and reading the request instead would put that error
+                    # into every position the frame produces.
+                    sighting = self._read(
+                        eye.name,
+                        camera_model(model, data, eye.cam, *camera_size(model, eye.cam)),
                         frame, depth, aim)
                     if self.frames_dir is not None:
-                        self._save_wrist(name, tried, k, frame, sighting)
+                        self._save_view(name, tried, k, frame, sighting)
                     if sighting is None:
                         continue
                     bottle.sightings.append(sighting)
@@ -405,13 +412,12 @@ class VisionScanner:
                     if bottle.decision == "accept":
                         break
         finally:
-            flying.park(data)
-            flying.close()
-        return {"camera": self.wrist_camera, "standoff_m": wrist.STANDOFF_M,
-                "bottles_looked_at": tried, "views": flying.views,
+            eye.park(data)
+            eye.close()
+        return {**eye.report(), "bottles_looked_at": tried,
                 "confirmed": sum(b.confirmed for b in bottles)}
 
-    def _read_wrist(self, camera, frame, depth, aim) -> Sighting | None:
+    def _read(self, name, camera, frame, depth, aim) -> Sighting | None:
         """The ring in one wrist frame, if it is the ring of the bottle aimed at
 
         Every quad is soft-decoded by the same decoder the fixed pass uses and
@@ -440,7 +446,7 @@ class VisionScanner:
         seen.sort(key=lambda q: q[0])
         anchor = seen[0][1]
         quads = [q for q in seen if np.linalg.norm(q[1] - anchor) < RING_M]
-        return Sighting(self.wrist_camera, camera.position, None,
+        return Sighting(name, camera.position, None,
                         np.median([point for _, point, _ in quads], axis=0),
                         [reading for _, _, reading in quads], confirmed=True)
 
@@ -473,7 +479,7 @@ class VisionScanner:
             corners - np.roll(corners, -1, axis=0), axis=1)))
         return SIDE_RANGE[0] * expected <= side <= SIDE_RANGE[1] * expected
 
-    def _save_wrist(self, scene, bottle, view, frame, sighting: "Sighting | None"):
+    def _save_view(self, scene, bottle, view, frame, sighting: "Sighting | None"):
         out = frame.copy()
         for r in (sighting.readings if sighting else []):
             cv2.polylines(out, [np.round(r.corners).astype(np.int32)], True,

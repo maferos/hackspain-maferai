@@ -31,6 +31,7 @@ RAIL_JOINT = 'rail_x'
 TCP_SITES = ('arm_pip_tip', 'arm_grip_pinch')
 TCP_SITE = TCP_SITES[0]
 EIH_SITE = 'arm_eih_site'
+EIH_CAMERA = 'arm_eih'
 BENCH_TOP = 0.90
 # What computer-vision/scripts/wrist_scan.py found the ArUco rings need: about
 # 0.30 m of standoff, and near level. The bars are rings round the bottle, so
@@ -365,6 +366,113 @@ def label_view(bottle: Bottle, *, standoff: float = LABEL_STANDOFF,
     rise = np.radians(elevation)
     offset = standoff * (np.cos(rise) * heading + np.sin(rise) * np.array([0, 0, 1.0]))
     return bottle.label + offset, -offset / np.linalg.norm(offset)
+
+
+# Where the eye-in-hand camera can be put and still read an ArUco ring, and
+# where the arm can hold it. The standoff is not one number: the arm decides
+# which of these it can manage at a given bearing, and the caller reads the
+# pose the camera actually ended up at rather than the one that was asked for.
+# 0.30 m is where the ring reads on every bottle size
+# (computer-vision/scripts/ring_experiment.py); closer crops the ring on a 1 L
+# bottle, further loses the smallest flasks' modules.
+LOOK_STANDOFFS = (0.30, 0.25, 0.35, 0.22, 0.40)
+LOOK_ELEVATION = 12.0
+"""Degrees above level. The ring is printed round the bottle, so from above a
+marker is an arc: at 25 degrees it bends too far to rectify, at 8 it reads.
+Something is needed, though --- a camera level with the ring cannot place it,
+because its ray runs along the ring's height instead of crossing it
+(``labvision.perception.refine``)."""
+
+
+@dataclass(frozen=True)
+class Look:
+    """One pose of the eye-in-hand camera the arm is actually holding.
+
+    Attributes:
+        station: World X of the carriage.
+        bearing: Horizontal direction the camera stands in, from the target.
+        standoff: Distance asked for, in metres.
+        asked: World position the camera was asked to occupy.
+    """
+
+    station: float
+    bearing: tuple[float, float]
+    standoff: float
+    asked: np.ndarray
+
+
+def has_arm(model: mujoco.MjModel) -> bool:
+    """Whether this scene has the rail arm and its eye-in-hand camera."""
+    names = {mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_JOINT, j)
+             for j in range(model.njnt)}
+    sites = {mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_SITE, i)
+             for i in range(model.nsite)}
+    return (set(ARM_JOINTS) <= names and RAIL_JOINT in names
+            and EIH_SITE in sites
+            and mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_CAMERA, EIH_CAMERA) >= 0)
+
+
+def look_at_point(model: mujoco.MjModel, data: mujoco.MjData, point: np.ndarray,
+                  *, standoffs: tuple[float, ...] = LOOK_STANDOFFS,
+                  elevation: float = LOOK_ELEVATION,
+                  bearings: tuple[tuple[float, float], ...] | None = None,
+                  limit: int = 5):
+    """Pose the arm so the eye-in-hand camera looks at a world point.
+
+    The truth-free half of :func:`read_label`: it takes a point rather than a
+    vessel, and it never asks the simulator whether the view is blocked. A
+    pose that sees nothing is found out by looking and reading nothing, and
+    the next bearing is tried --- which is what an arm in a real lab has to do.
+
+    One pose per bearing. Retrying the same bearing at a different standoff
+    shows very nearly the same thing; what a second look is worth is a
+    different angle. The standoffs are what the arm is allowed to trade away
+    to reach a bearing at all, tried in order until one lands, so the camera
+    does not stand at a fixed distance --- it stands wherever the arm can hold
+    it and still read a ring.
+
+    Each pose is left in ``data`` when it is yielded, with the cameras moved to
+    match, so the caller can render straight away. The camera's real pose is
+    then ``data.cam_xpos``, which is not quite the one that was asked for: the
+    solver is done at 1.5 mm and 15 mrad.
+
+    Args:
+        model: Compiled scene.
+        data: Data to solve in; the rail and arm joints are overwritten.
+        point: World point to look at, shape (3,).
+        standoffs: Camera-to-point distances to try, in metres, in order.
+        elevation: Degrees above level to look down from.
+        bearings: Horizontal directions to try, in order. BEARINGS by default,
+            which starts on the rail side, where the arm stands, and works out.
+        limit: Most poses to yield.
+
+    Yields:
+        A :class:`Look` per pose the arm can hold, best first.
+    """
+    point = np.asarray(point, dtype=float)
+    rise = np.radians(elevation)
+    found = 0
+    for bearing in bearings or BEARINGS:
+        if found >= limit:
+            return
+        heading = np.array([bearing[0], bearing[1], 0.0], dtype=float)
+        heading /= np.linalg.norm(heading)
+        for standoff in standoffs:
+            offset = standoff * (np.cos(rise) * heading
+                                 + np.sin(rise) * np.array([0.0, 0.0, 1.0]))
+            eye = point + offset
+            station = reach(model, data, eye,
+                            approach=tuple(-offset / np.linalg.norm(offset)),
+                            site_name=EIH_SITE, image_up=(0.0, 0.0, 1.0))
+            if station is None:
+                continue
+            # Camera poses are mj_camlight's job, not mj_kinematics', and the
+            # IK only runs the latter. Without this the renderer and the
+            # pinhole model both read wherever the camera was last left.
+            mujoco.mj_camlight(model, data)
+            found += 1
+            yield Look(station, bearing, standoff, eye)
+            break
 
 
 def read_label(model: mujoco.MjModel, data: mujoco.MjData, bottle: Bottle, *,
