@@ -11,7 +11,16 @@ is where the bottle stands --- to about a centimetre). Those positions are
 matched against the bottles it already knows, so the world model follows the
 bench: a bottle that appears is a new track, one that goes missing is lost.
 
-**Control**, in the physics loop, takes its directions from that world model:
+**Control**, in the physics loop, takes its directions from that world model.
+It starts with the **initial scan**: the carriage parks at the end of the rail,
+where the arm hides no bottle from the fixed camera, the fixed camera surveys
+the whole bench, and the arm then sweeps the rail once from that end to the
+other, reading every proposal's ring on the way. The wrist camera keeps every
+ring in its frame, not only the one it went for: a neighbour's ring names a
+track before the arm gets there, and a ring where the fixed camera boxed
+nothing is a bottle it cannot see. What it read is written to
+``out/bench_map.json``, one entry per sample with where it stands, before the
+arm touches anything. After that:
 
 1. A track nobody has looked at yet: the arm flies its eye-in-hand camera to
    0.36 m from it, 25 degrees above level, and ``confirm`` reads the ArUco ring.
@@ -39,6 +48,7 @@ Run from simulation/, with computer-vision's requirements installed as well
     python scripts/vision_pick.py                     # viewer + page, picks everything
     python scripts/vision_pick.py --manual            # only looks; pick from the page
     python scripts/vision_pick.py --headless --video out/vision_pick.mp4 --perturb-at 40
+    python scripts/vision_pick.py --headless --manual # the initial scan only, then stop
 
 The page at http://localhost:8009 shows the fixed camera with the detector's
 boxes, the wrist camera, the tracked bottles and the log of what happened. The
@@ -69,12 +79,21 @@ import rail_kinematics as rk
 from generate_rail_scene import BENCH_X, BENCH_Y
 from labvision import registry
 from labvision.camera import Camera
-from labvision.identify import DEFAULT_TABLE, MarkerReader, rows_by_marker
+from labvision.identify import (
+    DEFAULT_TABLE,
+    MarkerReader,
+    identify_frame,
+    rows_by_marker,
+)
 from labvision.perception import (
+    KIT,
     Confirmation,
     Proposal,
     confirm,
     propose,
+    refine,
+    refine_marker,
+    ring_geometry,
     vessel_height,
 )
 from labvision.scene import BBox, gopro_intrinsics
@@ -135,6 +154,23 @@ FLASK_HEIGHT = 0.115
 MAX_BOX = (1.5, 0.8)        # a box's height and width, in flask heights at its place
 SURE = 0.5                  # tracks scoring this or better are looked at first
 MATCH = 0.06                # scoring only: a bottle this near a track is it
+# The initial scan waits this many perception cycles with the arm parked before
+# it plans the sweep: enough for every box to be seen CONFIRM_HITS times running.
+SURVEY_CYCLES = CONFIRM_HITS + 2
+BENCH_MAP = rk.SIM / 'out/bench_map.json'
+# The wrist camera reads every ring in its frame, not only the one it went for,
+# and a neighbour's ring names a bottle nobody has visited yet. That is how the
+# scan finds the flasks the fixed camera never boxes: from one look on this
+# bench the wrist read five rings, two of them bottles with no box, each placed
+# within 4 mm. A ring this near a track is that track's bottle: proposals land
+# within 3 cm of their bottle nine times in ten, the worst seen was 6.3 cm, and
+# no two vessels on the bench stand closer than 10 cm.
+RING_ASSOCIATE = 0.08
+# Rings are only placed from this close to the lens. Farther off they are a few
+# pixels across, and a bottle on a shelf past the bench, placed as if it stood
+# on the worktop, lands somewhere wrong.
+RING_RANGE = 1.2
+CATALOGUE_FIELDS = ('material', 'cas', 'phase', 'container_ml', 'lot', 'vessel_class')
 
 
 class Retarget(Exception):
@@ -147,9 +183,10 @@ class Track:
 
     Attributes:
         id: Stable number for the page and the log.
-        seen_xy: Where the fixed camera last put it.
+        seen_xy: Where the fixed camera last put it; for a bottle only the
+            wrist camera has seen, where its ring put it.
         score: The detector's latest confidence.
-        bbox: The detector's latest box, for drawing.
+        bbox: The detector's latest box, for drawing; None if it never had one.
         state: ``tentative`` until seen :data:`CONFIRM_HITS` times running, then
             ``proposed``, ``named``, ``empty``, ``unreachable``, ``picked``,
             ``missed`` or ``lost``.
@@ -157,6 +194,8 @@ class Track:
         hits: Cycles it has been seen in.
         misses: Cycles since the fixed camera last saw it.
         held: The gripper has it; the fixed camera is not expected to.
+        wrist_only: Only the wrist camera has seen it, beside another bottle
+            it went to look at. The fixed camera not seeing it says nothing.
         note: One line for the table.
         truth: Scoring only --- the true body nearest it and the error in mm.
     """
@@ -164,12 +203,13 @@ class Track:
     id: int
     seen_xy: tuple[float, float]
     score: float
-    bbox: BBox
+    bbox: BBox | None
     state: str = 'tentative'
     confirmation: Confirmation | None = None
     hits: int = 1
     misses: int = 0
     held: bool = False
+    wrist_only: bool = False
     picks: int = 0
     note: str = 'seen by the fixed camera'
     truth: dict[str, object] = field(default_factory=dict)
@@ -199,6 +239,7 @@ class World:
         self.cycles = 0
         self.cycle_seconds = 0.0
         self.caption = 'starting'
+        self.scan: dict | None = None       # the initial scan's record, once it is done
         self._next = 1
 
     def log(self, clock: float, text: str) -> None:
@@ -220,14 +261,16 @@ class World:
         with self.lock:
             free = {t.id for t in self.tracks.values() if t.state != 'lost'}
             for proposal in proposals:
-                near = [(math.dist(proposal.xy, self.tracks[i].xy), i) for i in free]
+                # Box against box: a named track's ring position can stand a few
+                # cm off where the fixed camera puts it, and is not what it sees.
+                near = [(math.dist(proposal.xy, self.tracks[i].seen_xy), i) for i in free]
                 near = [pair for pair in near if pair[0] < ASSOCIATE]
                 if near:
                     track = self.tracks[min(near)[1]]
                     free.discard(track.id)
                     track.seen_xy, track.score = proposal.xy, proposal.score
                     track.bbox, track.misses = proposal.bbox, 0
-                    track.hits += 1
+                    track.hits, track.wrist_only = track.hits + 1, False
                     if track.state == 'tentative' and track.hits >= CONFIRM_HITS:
                         track.state = 'proposed'
                         self.log(clock, f'track {track.id}: new at ({track.xy[0]:+.2f}, '
@@ -238,7 +281,7 @@ class World:
                     self._next += 1
             for i in free:
                 track = self.tracks[i]
-                if track.held or hidden(track.xy):
+                if track.held or track.wrist_only or hidden(track.xy):
                     continue
                 track.misses += 1
                 if track.state == 'tentative':
@@ -259,6 +302,47 @@ class World:
                     self.log(clock, f'{track.sample} moved {moved * 100:.0f} cm: was track '
                                     f'{other.id}, now track {track.id}')
                     del self.tracks[other.id]
+
+    def sighted(self, rings: list[Confirmation], clock: float, beside: Track) -> None:
+        """Fold in the rings a look read around the bottle it went for.
+
+        A ring whose sample is known already adds nothing. One that lands near
+        a track nobody has named names it, and saves that track a look of its
+        own. One that lands near nothing is a bottle the fixed camera never
+        boxed: it becomes a track only the wrist camera has seen.
+
+        Args:
+            rings: Every ring the look read on the worktop, placed by its own geometry.
+            clock: Simulated time, for the log.
+            beside: The track the look was for.
+        """
+        with self.lock:
+            for ring in rings:
+                if any(t.sample == ring.sample_id and t.state != 'lost'
+                       for t in self.tracks.values()):
+                    continue
+                near = [(math.dist(ring.refined_xy, t.seen_xy), t) for t in self.tracks.values()
+                        if t.state in ('tentative', 'proposed', 'empty', 'unreachable')]
+                near = [pair for pair in near if pair[0] < RING_ASSOCIATE]
+                x, y = ring.refined_xy
+                if near:
+                    off, track = min(near, key=lambda pair: pair[0])
+                    track.confirmation, track.state = ring, 'named'
+                    source = ('its own look' if track is beside
+                              else f'the look at track {beside.id}')
+                    track.note = f'ring read from {source}, {off * 100:.1f} cm off its box'
+                    self.log(clock, f'track {track.id} is {ring.sample_id}: its ring, read '
+                                    f'from {source}, places it at ({x:+.4f}, {y:+.4f}), '
+                                    f'{off * 100:.1f} cm off its box')
+                else:
+                    track = Track(self._next, ring.refined_xy, 0.0, None, state='named',
+                                  confirmation=ring, wrist_only=True,
+                                  note=f'no box; ring read beside track {beside.id}')
+                    self.tracks[track.id] = track
+                    self._next += 1
+                    self.log(clock, f'{ring.sample_id}: a bottle the fixed camera never boxed, '
+                                    f'its ring read beside track {beside.id}; track '
+                                    f'{track.id} at ({x:+.4f}, {y:+.4f})')
 
     def snapshot(self) -> list[Track]:
         """The tracks as they stand, safe to iterate."""
@@ -352,6 +436,42 @@ def lighten(model: mujoco.MjModel, data: mujoco.MjData) -> int:
     return hidden
 
 
+def rings_in_view(frame: np.ndarray, camera: Camera, rows: dict[int, dict],
+                  reader: MarkerReader) -> list[Confirmation]:
+    """Every catalogue ring in a wrist frame, each placed on the bench by itself.
+
+    ``confirm`` keeps only the ring at the target. This keeps them all, placed
+    the same way: the ring's most frontal marker and the vessel's ring geometry
+    give the bottle's axis. Rings off the worktop or beyond :data:`RING_RANGE`
+    are dropped.
+
+    Returns:
+        One confirmation per ring, with ``refined_xy`` set.
+    """
+    out = []
+    for identity in identify_frame(frame, rows, reader=reader):
+        row = identity.row
+        vessel = row.get('vessel_class') if row else None
+        if not vessel or not (KIT / 'meshes' / f'{vessel}_label.obj').exists():
+            continue
+        radius, ring_height = ring_geometry(vessel)
+        facing = identity.frontal
+        xy = (refine_marker(camera, facing.corners, radius, ring_height,
+                            bench_z=rk.BENCH_TOP) if facing else None)
+        if xy is None:
+            uv = facing.centre if facing else identity.bbox.centre
+            xy = refine(camera, uv, radius, ring_height, bench_z=rk.BENCH_TOP)
+        if xy is None or math.dist(xy, camera.position[:2]) > RING_RANGE:
+            continue
+        if not (WORKTOP[0][0] <= xy[0] <= WORKTOP[0][1]
+                and WORKTOP[1][0] <= xy[1] <= WORKTOP[1][1]):
+            continue
+        out.append(Confirmation(sample_id=identity.sample_id, marker_id=identity.marker_id,
+                                votes=identity.votes, phase=row.get('phase'),
+                                refined_xy=xy))
+    return out
+
+
 def flask_sized(proposal: Proposal, camera: Camera) -> bool:
     """Whether a box is no bigger than a sample flask would look where it stands."""
     foot = np.array([*proposal.xy, rk.BENCH_TOP])
@@ -438,6 +558,7 @@ class Read:
     def __init__(self, target: np.ndarray) -> None:
         self.target = target
         self.result: Confirmation | None = None
+        self.rings: list[Confirmation] = []     # every ring in the frame, the target's too
         self.done = threading.Event()
 
 
@@ -500,10 +621,15 @@ class Perception(threading.Thread):
                     mujoco.mj_copyData(self.data, self.model, self.live)
                 while self.requests:
                     request = self.requests.pop(0)
-                    wrist = eyes.frame('arm_eih')
-                    request.result = confirm(wrist, eyes.camera('arm_eih'),
-                                             request.target, self.rows,
+                    # The copy above can predate the request by a whole cycle, when
+                    # the arm was still on its way to the view: a frame from it
+                    # reads nothing and costs a second bearing. Look from now.
+                    with self.physics:
+                        mujoco.mj_copyData(self.data, self.model, self.live)
+                    wrist, lens = eyes.frame('arm_eih'), eyes.camera('arm_eih')
+                    request.result = confirm(wrist, lens, request.target, self.rows,
                                              reader=self.reader, bench_z=rk.BENCH_TOP)
+                    request.rings = rings_in_view(wrist, lens, self.rows, self.reader)
                     request.done.set()
                 general = eyes.frame('general')
                 camera = eyes.camera('general')
@@ -523,7 +649,7 @@ class Perception(threading.Thread):
                     lambda xy, on_arm=on_arm, camera=camera: on_arm(camera.project(
                         np.array([xy[0], xy[1], rk.BENCH_TOP + 0.03]))))
                 self.score()
-                drawn = annotate(general, self.world.snapshot())
+                drawn = annotate(general, self.world.snapshot(), camera)
                 self.show.general.publish(jpeg(drawn))
                 small = eyes.frame('arm_eih', (960, 540))
                 self.show.wrist.publish(jpeg(small))
@@ -723,7 +849,7 @@ def plan_grasp(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
 
 
 def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
-               perception: Perception):
+               perception: Perception, bench_map_to: Path | None = BENCH_MAP):
     """Work the bench from the world model, stepping physics throughout.
 
     A generator: it yields a caption after every simulation step, so the caller
@@ -732,6 +858,14 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
 
     Every job starts and ends in the carry pose, hand high over the middle of
     the bench, and the carriage only travels with the arm in it.
+
+    Args:
+        model: Compiled scene.
+        data: The live state.
+        world: The tracks, shared with the perception thread.
+        perception: The perception thread, which reads rings on request.
+        bench_map_to: Where the initial scan writes what it found; None skips
+            the scan and the arm works the tracks as they come.
 
     Yields:
         A short line describing what is happening.
@@ -786,7 +920,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         target = np.array([x, y, rk.BENCH_TOP + LOOK_ABOVE_BENCH])
         tag = f'track {track.id} at ({x:+.2f}, {y:+.2f})'
         sides = RAIL_SIDE + AISLE_SIDE if y + STANDOFF < 0.10 else AISLE_SIDE + RAIL_SIDE
-        looks, result = 0, None
+        looks, result, rings = 0, None, []
         for bearing in sides:
             mujoco.mj_copyData(scratch, model, data)
             found = plan_look(model, scratch, carry, target, bearing)
@@ -808,6 +942,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             while not request.done.is_set():
                 yield from still(0.05, f'reading the ring at {tag}')
             result = request.result
+            rings += request.rings
             yield from drive(station, q_high, open_hand, 1.2, f'backing off {tag}')
             yield from drive(station, carry, open_hand, 1.5, f'backing off {tag}')
             if result.sample_id or looks >= MAX_LOOKS:
@@ -826,6 +961,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         world.log(data.time, f'{tag}: ' + (
             f'ring reads {track.sample}, placed at ({track.xy[0]:+.4f}, '
             f'{track.xy[1]:+.4f})' if track.sample else track.note))
+        world.sighted(rings, data.time, track)
 
     def pick(track: Track):
         if not track.confirmation.refined_xy:
@@ -874,8 +1010,63 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         track.picks += 1
         track.held = False
 
+    def survey(cycles, caption):
+        """Hold still while the fixed camera looks at the bench this many times."""
+        since = world.cycles
+        while world.cycles < since + cycles:
+            yield from still(0.2, caption)
+
+    def initial_scan():
+        """Read every bottle on the bench once, in one sweep of the rail.
+
+        The carriage parks at the end of the rail nearer to it. From there the
+        arm stands past the end of the bench in the fixed camera's picture and
+        hides no bottle, so the survey sees them all. The proposals are then
+        looked at in order along the rail from that end, and the carriage
+        crosses the bench once. A proposal that turns up during the sweep joins
+        it, or waits for the way back if the carriage has already passed it.
+        """
+        lo, hi = (float(home + v) for v in model.joint(rk.RAIL_JOINT).range)
+        start = hi if hi - here() <= here() - lo else lo
+        sweep = -1.0 if start == hi else 1.0
+        began = float(data.time)
+        yield from travel(start, 'initial scan: parking the arm at the end of the rail',
+                          None)
+        yield from survey(SURVEY_CYCLES, 'initial scan: the fixed camera surveys the bench')
+        frontier, looked, settled = start, 0, False
+        while True:
+            todo = [t for t in world.snapshot() if t.state == 'proposed']
+            if not todo:
+                if settled:
+                    break
+                # A box first seen during the last look needs CONFIRM_HITS cycles
+                # to become a track: one more survey before calling it done.
+                yield from survey(CONFIRM_HITS, 'initial scan: a last survey of the bench')
+                settled = True
+                continue
+            settled = False
+            ahead = [t for t in todo if sweep * (t.seen_xy[0] - frontier) >= 0]
+            if not ahead:
+                sweep = -sweep
+                continue
+            track = min(ahead, key=lambda t: sweep * t.seen_xy[0])
+            frontier = track.seen_xy[0]
+            looked += 1
+            prefix = f'initial scan {looked}/{looked + len(todo) - 1}: '
+            yield from (prefix + caption for caption in look(track))
+        world.scan = bench_map(world, began, float(data.time))
+        bench_map_to.parent.mkdir(parents=True, exist_ok=True)
+        bench_map_to.write_text(json.dumps(world.scan, indent=1) + '\n', encoding='utf-8')
+        summary = world.scan['scans'][0]
+        world.log(data.time, f'initial scan done in {summary["seconds"]:.0f} s: '
+                             f'{summary["named"]} named, {summary["unidentified"]} '
+                             f'not samples, {summary["unreachable"]} out of reach; '
+                             f'wrote {bench_map_to.name}')
+
     yield from still(0.5, 'settling')
     yield from drive(here(), carry, open_hand, 3.0, 'raising the hand to carry')
+    if bench_map_to is not None:
+        yield from initial_scan()
     while True:
         tracks = world.snapshot()
         by_id = {t.id: t for t in tracks}
@@ -895,7 +1086,9 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             todo = todo or [(look, t) for t in tracks if t.state == 'proposed']
             if todo:
                 # What the detector is sure of first, nearest along the rail first.
-                job = min(todo, key=lambda j: (j[1].score < SURE,
+                # A ring is surer than any box: a bottle it named goes with the
+                # sure ones, even one the fixed camera never boxed at all.
+                job = min(todo, key=lambda j: (j[1].score < SURE and not j[1].sample,
                                                abs(j[1].xy[0] - here())))
         if job is None:
             yield from still(0.2, 'idle: watching the bench')
@@ -903,15 +1096,25 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         yield from job[0](job[1])
 
 
-def annotate(frame: np.ndarray, tracks: list[Track]) -> np.ndarray:
-    """The fixed camera's frame with every track it sees boxed and labelled."""
+def annotate(frame: np.ndarray, tracks: list[Track], camera: Camera) -> np.ndarray:
+    """The fixed camera's frame with every track it sees boxed and labelled.
+
+    A bottle only the wrist camera has seen has no box; one is drawn where a
+    flask standing at its position would be.
+    """
     out = frame.copy()
     colours = {'proposed': (0, 190, 255), 'named': (80, 200, 120),
                'picked': (80, 200, 120), 'missed': (60, 60, 230)}
     for track in tracks:
         if track.state in ('lost', 'tentative') or track.misses:
             continue
-        x0, y0, x1, y1 = (round(v) for v in track.bbox.as_tuple())
+        if track.bbox is None:
+            foot = np.array([*track.xy, rk.BENCH_TOP])
+            (u, v0), (_, v1) = camera.project(np.array([foot, foot + (0, 0, FLASK_HEIGHT)]))
+            half = 0.25 * abs(v0 - v1)
+            x0, y0, x1, y1 = (round(c) for c in (u - half, v1, u + half, v0))
+        else:
+            x0, y0, x1, y1 = (round(c) for c in track.bbox.as_tuple())
         colour = colours.get(track.state, (140, 140, 140))
         cv2.rectangle(out, (x0 - 3, y0 - 3), (x1 + 3, y1 + 3), colour, 2)
         cv2.putText(out, track.sample or f'#{track.id}', (x0 - 3, y0 - 8),
@@ -1082,7 +1285,7 @@ def move_a_bottle(model: mujoco.MjModel, data: mujoco.MjData, world: World,
     the cameras have named, because moving one nobody knows shows nothing.
     """
     bodies = truth(model, data)
-    known = [t for t in world.snapshot() if t.sample and not t.held
+    known = [t for t in world.snapshot() if t.sample and not t.held and not t.wrist_only
              and t.state != 'lost' and t.truth.get('body') in bodies]
     if not known:
         world.log(data.time, 'move a bottle: none named yet')
@@ -1100,13 +1303,93 @@ def move_a_bottle(model: mujoco.MjModel, data: mujoco.MjData, world: World,
     data.qvel[qvel:qvel + 6] = 0.0
 
 
+def bench_map(world: World, began: float, ended: float) -> dict[str, object]:
+    """The initial scan as the bench memory of SCANNING_PLAN.md: what stands where.
+
+    A named bottle is keyed by its sample id and carries the catalogue's row. A
+    proposal no ring named is kept too, as ``UNK-*``: the arm has to know that
+    something stands there even when it does not know what, so as not to hit it
+    and to try again. The truth only fills ``scored``, which grades the scan.
+
+    Args:
+        world: The tracks as the scan left them.
+        began: Simulated time the scan started.
+        ended: Simulated time it finished.
+
+    Returns:
+        The JSON-ready map.
+    """
+    table = registry.load_table(DEFAULT_TABLE)
+    by_marker = {int(row['marker_id']): (code, row) for code, row in table.items()
+                 if 'marker_id' in row}
+    entries: dict[str, dict] = {}
+    tracks = sorted((t for t in world.snapshot() if t.state not in ('lost', 'tentative')),
+                    key=lambda t: t.xy[0])
+    unknown, errors, right = 0, [], 0
+    for track in tracks:
+        entry = {
+            'position': [round(track.xy[0], 4), round(track.xy[1], 4), rk.BENCH_TOP],
+            'refined': bool(track.confirmation and track.confirmation.refined_xy),
+            'detector_score': round(track.score, 3) if track.bbox is not None else None,
+            'found_by': 'wrist camera' if track.bbox is None else 'fixed camera',
+            'track': track.id,
+        }
+        body = track.truth.get('body')
+        if track.sample:
+            code, row = by_marker[track.confirmation.marker_id]
+            key = track.sample
+            entry = {'marker_id': track.confirmation.marker_id, 'barcode': code,
+                     **{k: row[k] for k in CATALOGUE_FIELDS if k in row}, **entry,
+                     'votes': track.confirmation.votes, 'status': 'present'}
+            correct = body is not None and str(body).endswith(track.sample)
+            entry['scored'] = {'check': 'correct' if correct else 'wrong',
+                               'error_mm': track.truth.get('error_mm')}
+            if correct:
+                right += 1
+                errors.append(track.truth['error_mm'])
+        else:
+            unknown += 1
+            key = f'UNK-{unknown:04d}'
+            entry['status'] = 'unreachable' if track.state == 'unreachable' else 'unidentified'
+            entry['note'] = track.note
+            entry['scored'] = {'body': body, 'error_mm': track.truth.get('error_mm')}
+        entries[key] = entry
+    named = sum(1 for e in entries.values() if e['status'] == 'present')
+    return {
+        'version': 1,
+        'scene': GRIPPER_SCENE.relative_to(REPO).as_posix(),
+        'frame': f'MuJoCo world, metres, +Z up; bench top z = {rk.BENCH_TOP}',
+        'method': 'initial scan: the fixed camera proposes, the arm sweeps the rail '
+                  'once and its wrist camera reads each proposal\'s ArUco ring',
+        'scans': [{
+            'id': 0, 'started_s': round(began, 1), 'finished_s': round(ended, 1),
+            'seconds': round(ended - began, 1), 'proposals': len(entries),
+            'named': named,
+            'unidentified': sum(1 for e in entries.values() if e['status'] == 'unidentified'),
+            'unreachable': sum(1 for e in entries.values() if e['status'] == 'unreachable'),
+            'found_by_wrist_only': sum(1 for e in entries.values()
+                                       if e['found_by'] == 'wrist camera'),
+            'scored': {'named_right': right, 'named_wrong': named - right,
+                       'median_error_mm': (round(float(np.median(errors)), 1)
+                                           if errors else None)},
+        }],
+        'entries': entries,
+    }
+
+
 def report(world: World) -> str:
     """The run in a few lines: the cameras' claims against the truth."""
     tracks = [t for t in world.snapshot() if t.state not in ('lost', 'tentative')]
     named = [t for t in tracks if t.sample]
     right = [t for t in named if str(t.truth.get('body', '')).endswith(t.sample)]
     errors = [t.truth['error_mm'] for t in named if t.truth.get('error_mm') is not None]
-    lines = [
+    lines = []
+    if world.scan:
+        scan = world.scan['scans'][0]
+        lines.append(f'initial scan:             {scan["named"]} named of '
+                     f'{scan["proposals"]} proposals in {scan["seconds"]:.0f} s '
+                     f'({scan["scored"]["named_wrong"]} named wrong)')
+    lines += [
         f'perception cycles:        {world.cycles} (last {world.cycle_seconds:.2f} s)',
         f'tracks on the bench:      {len(tracks)}',
         f'named by the ring:        {len(named)} ({len(right)} checked right against truth)',
@@ -1140,6 +1423,10 @@ def main() -> None:
                         help='simulated times at which a bottle gets moved')
     parser.add_argument('--video', type=Path, default=None,
                         help='write what the cameras saw, one frame per perception cycle')
+    parser.add_argument('--no-scan', action='store_true',
+                        help='skip the initial scan: look at and pick each track as it comes')
+    parser.add_argument('--bench-map', type=Path, default=BENCH_MAP,
+                        help='where the initial scan writes what stands on the bench')
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--port', type=int, default=8009)
     parser.add_argument('--no-browser', action='store_true')
@@ -1160,7 +1447,8 @@ def main() -> None:
     print(f'detector {weights.name} at {detector.threshold} on {detector.device}')
     world, show, physics = World(auto=not args.manual), Show(), threading.Lock()
     perception = Perception(model, data, physics, world, detector, show, args.video)
-    run = controller(model, data, world, perception)
+    run = controller(model, data, world, perception,
+                     None if args.no_scan else args.bench_map)
     perturb_at = sorted(args.perturb_at)
 
     server = serve(world, show, args.port)

@@ -80,7 +80,9 @@ camera and its boxes, the wrist camera, the table of tracked bottles and the log
 
 | Do this | And this happens |
 | --- | --- |
-| nothing | the arm looks at every detection in turn, names it by its ring, picks it, puts it back |
+| nothing | the **initial scan** first: the arm parks at the end of the rail, sweeps it once reading every detection's ring, and writes `out/bench_map.json`; then it picks each named bottle and puts it back |
+| `--headless --manual` | the initial scan only; it stops once the bench is mapped |
+| `--no-scan` | no initial scan: the arm looks at and picks each detection as it comes |
 | press `M` in the MuJoCo window, or **move a bottle** on the page | a named bottle is put somewhere else; its track is lost, a new one appears, the arm reads it and logs `SMP-0013 moved 160 cm` |
 | double-click a bottle, Ctrl + right-drag | the same, by hand |
 | `--manual`, then **pick** on a row of the page | the arm only looks; it picks what you ask for |
@@ -92,9 +94,11 @@ A script that shows the point in about two minutes:
 
 1. Start it. The page fills with yellow boxes: "the fixed camera sees bottles
    and knows where they stand, not what they are."
-2. The arm goes to the first one, the wrist view shows the ring, the box turns
-   green with a sample id: "now it knows which sample, to under a millimetre."
-3. It picks it up on the gripper's own force sensing and puts it back.
+2. The arm parks at the end of the rail and sweeps it. At each bottle the wrist
+   view shows the ring and the box turns green with a sample id: "now it knows
+   which sample, to under a millimetre." The boxes turn green end to end.
+3. The log says the initial scan is done and the bench is mapped. Then the arm
+   picks each bottle on the gripper's own force sensing and puts it back.
 4. Press `M`. The log says the track is lost, a new box appears elsewhere, the
    arm goes there and the log says which sample moved and how far.
 
@@ -102,6 +106,80 @@ Use `--manual` if you would rather choose the bottle yourself in front of the
 judges. Have the `--video` recording of a good run ready as the fallback.
 
 ## Measured
+
+### The initial scan
+
+`--headless --manual --light`, rail-trained weights, the gripper scene, the
+integrated-graphics laptop, 2026-09-19:
+
+| | |
+| --- | --- |
+| bottles on the bench (truth) | 19 |
+| proposals the fixed camera held | 16, all of them within 5 s |
+| named by their ring | **19, none wrongly** |
+| of them, bottles the fixed camera never boxed | 3 (SMP-0009, SMP-0120, SMP-0125) |
+| named from a neighbour's look, with no visit of their own | 8 (5 boxed, 3 never boxed) |
+| looks the arm made | 11 |
+| position error of the named, median / max | 0.4 mm / 2.6 mm |
+| scan time, park to map written | 181 s of simulated time |
+
+The sweep crosses the bench once, from +0.45 to -3.88 m. What gets it from 15
+to 19 is that **the wrist camera keeps every ring it reads, not only the one it
+went for** (`rings_in_view`, `World.sighted`). Each ring is placed by its own
+geometry, the same way `confirm()` places the target's. What happens to it
+depends on where it lands:
+
+* **Near a track nobody has named:** it names that track, which then needs no
+  look of its own. That is 5 tracks on this bench.
+* **Near nothing:** it is a bottle the fixed camera never boxed. It becomes a
+  track only the wrist camera has seen, and the fixed camera not seeing it
+  does not count against it. SMP-0009, SMP-0120 and SMP-0125 stand on the
+  aisle edge, where the fixed camera misses them. Three of the four
+  ingredients of the demo recipe FRG-031 are among them.
+* **Off the worktop, or more than 1.2 m from the lens:** it is dropped. One
+  read on this bench was a shelf bottle 4.9 m away.
+
+**Found is not reachable.** All four FRG-031 ingredients (SMP-0009, SMP-0120,
+SMP-0125, SMP-0021) stand on the aisle edge, at y = -1.11 to -1.27. The scan
+names all four, but `plan_grasp` finds no grasp for any of them: from the rail
+at y = 0.30 they are beyond the UR10e's reach. Asked from the page, the arm
+logs `named, but the gripper cannot reach`. Every scanned flask between
+y = -0.81 and -0.28 can be grasped, and so can the two on the back strip at
+y = +0.43 and +0.47. SMP-0130, under the gantry beam, cannot. For the recipe
+to run, its ingredients have to stand in that band, or the recipe has to use
+samples that do.
+
+SMP-0044's box lands 6.3 cm from the bottle, and `confirm()` takes a ring more
+than 5 cm off to be a neighbour's. Its own look now names it through the same
+path, since 8 cm is still well under the 10 cm between any two vessels.
+
+Before this, 15 were named and the scan took 206 s. Two things made the looks
+cheaper:
+
+* **Fewer looks.** 11 instead of 16: neighbours name 5 boxed tracks without a visit.
+* **A race is fixed.** The perception thread used to read the wrist frame from
+  the state it had copied at the top of its cycle. That copy could be a whole
+  cycle old, with the arm still on its way to the view. The frame then read
+  nothing and the arm tried a second bearing. It now copies the state again
+  right before it reads.
+
+`out/bench_map.json` follows the format in `SCANNING_PLAN.md`. Each named
+bottle is keyed by its sample id, with its catalogue row, the ring-refined
+position, how many markers were read and `found_by` (fixed or wrist camera). A
+proposal the ring did not name is kept as `UNK-*` with its position, because
+the arm must not hit it. `scored` grades each entry against the simulator and
+is the only field that reads it. The plan's merge rules for a second pass are
+not implemented: this is the first pass only.
+
+**What the scan cannot find.** A flask gets on the map in one of two ways: the
+fixed camera boxes it, or its ring shows up in the wrist frame of a look at
+some other flask. One that neither happens to is never found. The scan has no
+coverage pass that sends the wrist camera over stretches of bench with no
+proposal in them. On this bench the three flasks with no box stand 15 cm to 57
+cm from the nearest proposal and were caught in all six runs. A lone flask in
+the aisle edge's blind spot, far from any other, would be missed.
+
+### The whole loop
 
 330 s of simulated time on the shipped scene, one bottle moved 1.6 m at t = 100 s,
 headless on the integrated-graphics laptop:

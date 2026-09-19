@@ -328,8 +328,9 @@ Everything above picks bottles whose positions it read out of the scene.
 only what the cameras told it, and they keep telling it while it moves.
 
 ```bash
-python scripts/vision_pick.py                 # viewer + page at :8009, picks everything
-python scripts/vision_pick.py --manual        # looks at everything, picks what the page asks
+python scripts/vision_pick.py                 # viewer + page at :8009, scans, then picks everything
+python scripts/vision_pick.py --manual        # scans, then picks what the page asks
+python scripts/vision_pick.py --headless --manual   # the initial scan only: out/bench_map.json
 python scripts/vision_pick.py --headless --perturb-at 100 --video out/vision_pick.mp4
 ```
 
