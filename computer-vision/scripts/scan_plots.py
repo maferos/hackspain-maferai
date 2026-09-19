@@ -6,10 +6,11 @@ Run from computer-vision/ after scripts/propose_confirm.py:
 
 Three figures, each answering one question:
 
-* ``bench.png`` --- the bench from above, every bottle's true position against
-  the one the fixed camera proposed and the one the wrist refined to, with a
-  line joining each pair. This is the picture to look at first: it shows *where*
-  on the bench the placement is worse, which the summary statistics hide.
+* ``bench.png`` --- the bench from above: every bottle's true position, the
+  one the fixed camera proposed, and the one the wrist refined to once it flew
+  over and read the ring. This is the picture to look at first, because it
+  shows *where* on the bench the placement is worse, which the summary
+  statistics hide.
 * ``residuals.png`` --- the same errors as offsets in millimetres, so a
   systematic bias shows up as a cloud off the origin and random error as a
   cloud around it. The two are fixed by completely different things.
@@ -91,7 +92,16 @@ def bench(bottles: list[dict], proposals: list[dict], out: Path) -> None:
                 color=PREDICTED, linewidth=1.3, alpha=0.8, zorder=2)
         ax.plot(*truth, marker='o', markersize=6, color=TRUTH, zorder=4)
         ax.plot(*shown, marker='x', markersize=7, markeredgewidth=1.8,
-                color=PREDICTED, zorder=4)
+                color=PREDICTED, zorder=5)
+        # The wrist's correction, exaggerated the same amount so the three
+        # marks are comparable. It lands on the truth even at 20x, which is
+        # the point: 0.2 mm times twenty is still a fifth of a marker.
+        refined = (proposal.get('confirm') or {}).get('refined_xy')
+        if refined:
+            ax.plot(*[truth[i] + (refined[i] - truth[i]) * EXAGGERATION
+                      for i in (0, 1)],
+                    marker='D', markersize=4.5, color=REFINED,
+                    markeredgecolor=SURFACE, markeredgewidth=0.9, zorder=6)
 
     # Only the worst, and only one: at this scale neighbouring labels collide.
     worst = max((b for b in bottles if b.get('error_m')),
@@ -99,24 +109,32 @@ def bench(bottles: list[dict], proposals: list[dict], out: Path) -> None:
     if worst:
         ax.annotate(f'worst: {worst["sample_id"]}, '
                     f'{worst["error_m"] * 1000:.0f} mm',
-                    worst['xy'], textcoords='offset points', xytext=(0, 13),
-                    ha='center', fontsize=8.5, color=INK)
+                    worst['xy'], textcoords='offset points', xytext=(14, -14),
+                    ha='left', va='top', fontsize=8.5, color=INK)
 
     missed = sum(1 for b in bottles if b.get('error_m') is None)
     ax.plot([], [], 'o', color=TRUTH, markersize=6, label='true position')
     ax.plot([], [], 'x', color=PREDICTED, markersize=7, markeredgewidth=1.8,
-            label=f'proposed, offset drawn {EXAGGERATION}x')
+            label=f'proposed by the fixed camera, offset {EXAGGERATION}x')
+    ax.plot([], [], 'D', color=REFINED, markersize=4.5,
+            markeredgecolor=SURFACE, markeredgewidth=0.9,
+            label=f'refined by the wrist, offset {EXAGGERATION}x')
     if missed:
         ax.plot([], [], 'o', color=SURFACE, markeredgecolor=MUTED,
                 markeredgewidth=1.6, markersize=7,
                 label=f'not detected ({missed})')
-    ax.legend(loc='upper left', frameon=False, fontsize=9, labelcolor=INK,
-              ncol=3)
+    # Under the axes: the bench is wide and flat, and a legend inside it
+    # covers bottles at either end.
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.20), frameon=False,
+              fontsize=9, labelcolor=INK, ncol=4)
     ax.set_xlabel('x along the bench (m)', color=MUTED, fontsize=9)
     ax.set_ylabel('y (m)', color=MUTED, fontsize=9)
-    ax.set_title('Where the bottles are, and where the fixed camera put them',
-                 color=INK, fontsize=12, loc='left', pad=12)
-    ax.text(0, 1.02, f'offsets drawn {EXAGGERATION}x; axes are real metres',
+    ax.set_title('Where the bottles are, where the camera put them, '
+                 'and where the wrist corrected them to',
+                 color=INK, fontsize=12, loc='left', pad=26)
+    ax.text(0, 1.035,
+            f'offsets drawn {EXAGGERATION}x, axes in real metres; the wrist '
+            'correction still lands on the truth',
             transform=ax.transAxes, color=MUTED, fontsize=9)
     ax.set_aspect('equal')
     fig.tight_layout()
