@@ -115,6 +115,32 @@ ARC_SEGMENTS = 32
 turns through under 3 degrees."""
 
 TEXTURE_MODULE_PX = 8
+
+LABELS = ("aruco_ring", "ean13")
+"""The labels a bottle can carry. The first is what the kits are built with."""
+
+ARUCO_DICTIONARY = cv2.aruco.DICT_4X4_250
+"""Marker family of the ring: 4 x 4 bits, 250 ids, every id distinct from every
+other under all four rotations by at least 3 bits."""
+
+ARUCO_MARKER_MODULES = 4 + 2
+"""Modules across a marker: its 4 x 4 bits and the black border round them."""
+
+ARUCO_QUIET_MODULES = 1
+"""White modules on each side of a marker, which the detector needs to find it."""
+
+RING_COPIES = 8
+"""Copies of the marker round the bottle, one every 45 degrees. A marker on a
+cylinder is lost 10 to 20 degrees off square when it spans 90 degrees of arc and
+30 to 40 when it spans 30, so the copies are narrow and close: the worst a camera
+can do is 22.5 degrees off one of them. Measured in scripts/ring_experiment.py."""
+
+RING_SEGMENTS = 96
+"""Quads round the whole ring, a multiple of RING_COPIES so marker edges fall on
+vertices."""
+
+RING_MODULE_PX = 16
+"""Texture pixels per marker module."""
 """Pixels per barcode module in the embedded texture."""
 
 _GLB_MAGIC = 0x46546C67
@@ -389,6 +415,97 @@ def label_patch(wall: Wall, modules_wide: float, modules_high: float) -> LabelPa
     )
 
 
+def ring_patch(wall: Wall, copies: int = RING_COPIES) -> LabelPatch:
+    """Build a sticker that goes all the way round the bottle
+
+    It holds ``copies`` square cells side by side, each a marker with its quiet
+    zone, so its height is the circumference divided by ``copies``, or the
+    straight wall less its margins if that is shorter. It is centred on the
+    wall's height, and the texture starts and ends at the back of the bottle.
+
+    Args:
+        wall: The bottle's straight wall, from straight_wall.
+        copies: Cells round the ring.
+
+    Returns:
+        The patch. ``width_m`` is the circumference, ``height_m`` the band's
+        height, and ``module_m`` the side of one marker module.
+
+    Example:
+        >>> patch = ring_patch(Wall(0.0111, 0.004, 0.030))
+        >>> round(patch.height_m * 1e3, 2), round(patch.module_m * 1e3, 2)
+        (8.87, 1.11)
+    """
+    radius = wall.radius_m + LABEL_OFFSET_M
+    circumference = 2.0 * math.pi * radius
+    height = min(circumference / copies, wall.top_m - wall.bottom_m - 2 * WALL_MARGIN_M)
+    middle = (wall.bottom_m + wall.top_m) / 2
+    y_bottom, y_top = middle - height / 2, middle + height / 2
+
+    # Angle runs from -180 degrees at the back, through the front (+Z) at 0, to
+    # +180 at the back again, which is left to right for someone facing the
+    # bottle. The texture is upright: u runs round, and v = 0 is its top.
+    across = np.linspace(0.0, 1.0, RING_SEGMENTS + 1)
+    angle = (across - 0.5) * 2.0 * math.pi
+    side = np.stack([np.sin(angle), np.zeros_like(angle), np.cos(angle)], axis=1)
+    bottom = side * radius + [0.0, y_bottom, 0.0]
+    top = side * radius + [0.0, y_top, 0.0]
+    uv_bottom = np.stack([across, np.ones_like(across)], axis=1)
+    uv_top = np.stack([across, np.zeros_like(across)], axis=1)
+
+    k = np.arange(RING_SEGMENTS)
+    n = RING_SEGMENTS + 1
+    triangles = np.concatenate([
+        np.stack([k, k + 1, k + 1 + n], axis=1),
+        np.stack([k, k + 1 + n, k + n], axis=1),
+    ])
+    cell_modules = ARUCO_MARKER_MODULES + 2 * ARUCO_QUIET_MODULES
+    return LabelPatch(
+        positions=np.concatenate([bottom, top]).astype("<f4"),
+        normals=np.concatenate([side, side]).astype("<f4"),
+        uvs=np.concatenate([uv_bottom, uv_top]).astype("<f4"),
+        indices=triangles.reshape(-1).astype("<u2"),
+        module_m=min(height, circumference / copies) / cell_modules,
+        width_m=circumference,
+        height_m=height,
+        arc_deg=360.0,
+    )
+
+
+def render_ring(marker_id: int, copies: int = RING_COPIES) -> np.ndarray:
+    """Draw the ring's texture: one marker, ``copies`` times, side by side
+
+    The strip is rolled by half a cell, so that a marker, not the seam between
+    two, sits at the middle of the texture and so at the front of the bottle.
+
+    Args:
+        marker_id: Id within ARUCO_DICTIONARY.
+        copies: Cells in the strip.
+
+    Returns:
+        A greyscale image, RING_MODULE_PX pixels per module.
+
+    Raises:
+        BottleError: If the dictionary has no such marker.
+
+    Example:
+        >>> render_ring(0).shape
+        (128, 1024)
+    """
+    dictionary = cv2.aruco.getPredefinedDictionary(ARUCO_DICTIONARY)
+    if not 0 <= marker_id < dictionary.bytesList.shape[0]:
+        raise BottleError(f"the marker dictionary has no id {marker_id}")
+    marker = cv2.aruco.generateImageMarker(
+        dictionary, marker_id, ARUCO_MARKER_MODULES * RING_MODULE_PX,
+    )
+    pad = ARUCO_QUIET_MODULES * RING_MODULE_PX
+    cell = cv2.copyMakeBorder(
+        marker, pad, pad, pad, pad, cv2.BORDER_CONSTANT, value=255,
+    )
+    strip = np.hstack([cell] * copies)
+    return np.roll(strip, cell.shape[1] // 2, axis=1)
+
+
 def attach_label(
     glb: Glb,
     patch: LabelPatch,
@@ -566,6 +683,7 @@ def bottle_path(sample: registry.Sample, assets_dir: Path = ASSETS_DIR) -> Path:
 def labelled_bottle(
     entry: registry.Entry,
     assets_dir: Path = ASSETS_DIR,
+    label: str = LABELS[0],
 ) -> tuple[Glb, LabelPatch]:
     """Put a sample's label on the bottle that sample is stored in
 
@@ -575,26 +693,37 @@ def labelled_bottle(
     Args:
         entry: A row of the registry.
         assets_dir: The repository's ``assets`` directory.
+        label: ``aruco_ring``, the ring of markers that reads from any side, or
+            ``ean13``, the one-sided barcode label the bottles carried before.
 
     Returns:
         The labelled model, and the patch that was attached to it.
 
     Raises:
-        BottleError: If no kit has a bottle for the sample.
+        BottleError: If no kit has a bottle for the sample, or the label is
+            not one of LABELS.
     """
+    if label not in LABELS:
+        raise BottleError(f"no such label as {label!r}; choose from {LABELS}")
     sample = entry.sample
     bottle = read_glb(bottle_path(sample, assets_dir))
-    image = registry.render_label(entry, TEXTURE_MODULE_PX)
-    patch = label_patch(
-        straight_wall(bottle),
-        image.shape[1] / TEXTURE_MODULE_PX,
-        image.shape[0] / TEXTURE_MODULE_PX,
-    )
+    if label == "aruco_ring":
+        image = render_ring(entry.marker_id)
+        patch = ring_patch(straight_wall(bottle))
+    else:
+        image = registry.render_label(entry, TEXTURE_MODULE_PX)
+        patch = label_patch(
+            straight_wall(bottle),
+            image.shape[1] / TEXTURE_MODULE_PX,
+            image.shape[0] / TEXTURE_MODULE_PX,
+        )
     ok, png = cv2.imencode(".png", image)
     if not ok:
         raise BottleError(f"could not encode the label of {sample.sample_id}")
     extras = {
+        "label": label,
         "code": entry.code,
+        "marker_id": entry.marker_id,
         "sample_id": sample.sample_id,
         "material": sample.material,
         "container_ml": sample.container_ml,
@@ -632,6 +761,7 @@ def write_labelled_bottles(
     entries: list[registry.Entry],
     assets_dir: Path = ASSETS_DIR,
     out_dir: Path | None = None,
+    label: str = LABELS[0],
 ) -> list[Path]:
     """Write one labelled bottle model per registry row
 
@@ -640,6 +770,7 @@ def write_labelled_bottles(
         assets_dir: The repository's ``assets`` directory.
         out_dir: Directory for every GLB. When omitted each model goes to the
             ``labelled`` folder of its own kit, which is where they are kept.
+        label: Which of LABELS to put on the bottles.
 
     Returns:
         The paths written, in entry order.
@@ -649,7 +780,7 @@ def write_labelled_bottles(
     """
     paths = []
     for entry in entries:
-        labelled, patch = labelled_bottle(entry, assets_dir)
+        labelled, patch = labelled_bottle(entry, assets_dir, label)
         path = labelled_path(entry, assets_dir)
         if out_dir is not None:
             path = out_dir / path.name
@@ -678,6 +809,10 @@ def main() -> None:
         "--seed", type=int, default=registry.DEFAULT_SEED,
         help=f"Seed for the catalogue (default: {registry.DEFAULT_SEED}).",
     )
+    parser.add_argument(
+        "--label", choices=LABELS, default=LABELS[0],
+        help="What the bottles carry (default: %(default)s).",
+    )
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
@@ -686,15 +821,15 @@ def main() -> None:
         if args.phase not in (None, kit.phase):
             continue
         rows = [e for e in entries if e.sample.phase == kit.phase]
-        paths = write_labelled_bottles(rows, args.assets)
+        paths = write_labelled_bottles(rows, args.assets, label=args.label)
         print(f"{len(paths)} {kit.phase} bottles -> {paths[0].parent}")
         for container_ml in kit.files:
             first = next(e for e in rows if e.sample.container_ml == container_ml)
-            _, patch = labelled_bottle(first, args.assets)
+            _, patch = labelled_bottle(first, args.assets, args.label)
             print(
                 f"  {container_ml:>6g} ml: label {patch.width_m * 1e3:.1f} x "
                 f"{patch.height_m * 1e3:.1f} mm, {patch.arc_deg:.0f} deg of arc, "
-                f"{patch.module_m / NOMINAL_MODULE_M:.0%} magnification"
+                f"{patch.module_m * 1e3:.2f} mm modules"
             )
 
 

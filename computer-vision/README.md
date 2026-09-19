@@ -7,6 +7,14 @@ table.
 
 Owners: Nacho, Martí (see `AGENTS.md`).
 
+> **What the bottles carry now.** The sample bottles in `assets/*/labelled` and in
+> the MuJoCo scenes no longer wear the one-sided EAN-13 label: they wear a **ring of
+> eight ArUco markers** (`DICT_4X4_250`), which a camera reads from any side and
+> from three times as far. Each row of `lookup_table.json` has a `marker_id` beside
+> its EAN-13 code, so both resolve to the same sample. The EAN-13 half of this
+> package is unchanged and still what a printed paper label would use; see
+> *The bottles carry an ArUco ring* for the measurements behind the switch.
+
 Two halves. **Identity** --- a printed EAN-13 label per sample, and a reader
 for it. **Placement** --- turning a detector's bounding box into metres on the
 bench, from one camera, using the bench plane in place of a depth sensor. The
@@ -380,6 +388,90 @@ to three times the EAN-13's reach; or the marker on the flat cap top, where
 there is no curvature and the bottle's turn is irrelevant, at the price that a
 cap can end up on the wrong bottle. Neither is built yet.
 
+### Labels that go all the way round
+
+A bottle put down by hand faces wherever it faces, and a label on one side is
+invisible from the other. `scripts/ring_experiment.py` measures two labels that
+have no side against the two that do, on every bottle size, turning the bottle
+through a full turn in 15 degree steps, and draws `comparison.png`:
+
+- **EAN-13 ring.** The ladder EAN-13's bars already run round the bottle;
+  stretched to 360 degrees every bar is a full ring. Same symbol, same module.
+  It is read without a localiser --- the code is the bottle --- by laying down a
+  vertical strip from the middle of the bottle's box for `decode_scanline`.
+- **ArUco ring.** Eight copies of one `DICT_4X4_250` marker, one every 45
+  degrees, since a single marker is lost 10 to 20 degrees off square.
+
+| Vessel | Reach: EAN / EAN ring / ArUco / ArUco ring | Turns read from 0.30 m, of 24: same order |
+| --- | --- | --- |
+| flask_10ml | 0.15 / 0.15 / 1.0 / 0.4 m | 0 / 0 / 3 / **24** |
+| flask_20ml | 0.2 / 0.2 / 1.5 / 0.75 m | 0 / 0 / 3 / **24** |
+| flask_30ml | 0.3 / 0.3 / 1.5 / 0.5 m | 6 / **24** / 3 / **24** |
+| flask_50ml | 0.3 / 0.3 / 2.0 / 0.75 m | 7 / **24** / 3 / **24** |
+| flask_100ml | 0.5 / 0.5 / 2.5 / 0.75 m | 10 / **24** / 3 / **24** |
+| bottle_100ml | 0.2 / 0.2 / 2.5 / 1.0 m | 0 / 0 / 3 / **24** |
+| bottle_250ml | 0.4 / 0.4 / 2.5 / 1.0 m | 8 / **24** / 3 / **24** |
+| bottle_500ml | 0.5 / 0.5 / 5.0 / 2.0 m | 7 / **24** / 3 / **24** |
+| bottle_1000ml | 0.5 / 0.5 / 5.0 / 1.5 m | 8 / **24** / 3 / **24** |
+| bottle_2000ml | 0.5 / 0.5 / 4.0 / 2.5 m | 8 / **24** / 3 / **24** |
+
+Frames are cropped to the bottle, as a detector's box would, and the scene is
+plainly lit with nothing else in shot. At half of each label's own reach both
+rings read 24 of 24 turns on every bottle; the one-sided EAN-13 reads 7 to 10
+and the one-sided ArUco 1 to 4. No id was read as another.
+
+- **Both rings make the bottle's turn irrelevant.** Today's label is readable
+  from about a third of the directions a bottle can face.
+- **The EAN-13 ring costs nothing in reach and gains nothing**: same module, so
+  the 10 and 20 ml flasks and the 100 ml powder bottle still cannot be read
+  from a GoPro's 0.30 m near focus. It keeps the hash-derived code, the lookup
+  table and handheld scanners, and drops the printed text beside the bars.
+- **The ArUco ring is the only label that reads every bottle, however it is
+  turned, from 0.30 m**, and it reads from 0.4 to 2.5 m: two to five times the
+  EAN-13. It pays for going round with half the single marker's module.
+- The two are not exclusive where the wall is tall enough: an ArUco ring for
+  the robot above an EAN-13 ring for people and scanners.
+
+### The bottles carry an ArUco ring
+
+`labvision.bottles` now builds every kit with `label="aruco_ring"`: one marker
+of `DICT_4X4_250`, eight times round the straight wall, one copy every 45
+degrees, as tall as an eighth of the circumference. The marker is the sample's
+`marker_id`, its position in the catalogue (0 to 199) --- dealt out rather than
+hashed, because a dictionary of 250 ids would collide --- and schema version 5
+of the lookup table carries it on every row. `label="ean13"` still builds the
+one-sided barcode label, and `python -m labvision.bottles --label ean13`
+regenerates the old kits.
+
+| Bottle | EAN-13 module | Ring module |
+| --- | --- | --- |
+| Liquid 10 / 20 / 30 / 50 / 100 ml | 0.21 / 0.30 / 0.36 / 0.43 / 0.58 mm | 1.10 / 1.38 / 1.58 / 1.87 / 2.35 mm |
+| Powder 100 / 250 / 500 ml / 1 / 2 L | 0.32 / 0.48 / 0.65 / 0.66 / 0.66 mm | 2.28 / 2.96 / 3.65 / 4.34 / 5.71 mm |
+
+Measured in the minihannover scene, before and after, with `wrist_scan.py` on the
+same 40 bottles (the 13 placed by hand and 27 drawn from the gantry), decoding
+the whole 1080p frame. `--approach aisle` comes at each bottle from the aisle it
+stands beside, not knowing which way it is turned, which is what an arm gets;
+`--approach label` parks square to the label, the barcode's best case.
+`scripts/wrist_compare.py` draws the figure.
+
+| | Read | Read from 0.30 m | Had to come closer | Not read | Misread |
+| --- | --- | --- | --- | --- | --- |
+| EAN-13, square to the label | 38 / 40 | 10 | 28 | 2 | 0 |
+| EAN-13, from the aisle | 37 / 40 | 12 | 25 | 3 | 0 |
+| **ArUco ring, from the aisle** | **40 / 40** | **38** | 2 | 0 | 0 |
+
+0.30 m is a GoPro's near focus, so it is the distance that counts: the ring
+reads 38 of 40 bottles from there against 12, every flask size included, and the
+two it has to approach (to 0.10 m) are hidden behind a neighbour from the aisle.
+The EAN-13's misses are 10 and 20 ml flasks at the back of a shelf. A frame
+with a ring in it also reads the neighbours: 107 other bottles were identified
+in passing, against 38, which is a fixed camera's job done by the wrist.
+
+What the ring gives up: a handheld retail scanner cannot read it, and the label
+no longer prints the material's name. Both can come back as a text strip or an
+EAN-13 beside the ring on the bottles whose wall is tall enough.
+
 What the frame actually contains, with a 92 x 60.4 degree lens aimed there:
 
 | Image row | What is there |
@@ -551,7 +643,7 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
 | `labvision/bottles.py` | Sticks each label onto the bottle of its phase and size |
-| `tests/` | 281 tests, plus 25 doctests |
+| `tests/` | 309 tests, plus 27 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage

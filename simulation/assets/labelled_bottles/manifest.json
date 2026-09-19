@@ -3,7 +3,7 @@
   "flask_10ml": {
    "phase": "liquid",
    "container_ml": 10.0,
-   "diameter_m": 0.02221,
+   "diameter_m": 0.02241,
    "height_m": 0.05388,
    "parts": {
     "glass": [
@@ -35,7 +35,7 @@
   "flask_20ml": {
    "phase": "liquid",
    "container_ml": 20.0,
-   "diameter_m": 0.02793,
+   "diameter_m": 0.02813,
    "height_m": 0.06747,
    "parts": {
     "glass": [
@@ -67,7 +67,7 @@
   "flask_30ml": {
    "phase": "liquid",
    "container_ml": 30.0,
-   "diameter_m": 0.03195,
+   "diameter_m": 0.03215,
    "height_m": 0.077,
    "parts": {
     "glass": [
@@ -99,7 +99,7 @@
   "flask_50ml": {
    "phase": "liquid",
    "container_ml": 50.0,
-   "diameter_m": 0.03784,
+   "diameter_m": 0.03804,
    "height_m": 0.091,
    "parts": {
     "glass": [
@@ -131,7 +131,7 @@
   "flask_100ml": {
    "phase": "liquid",
    "container_ml": 100.0,
-   "diameter_m": 0.04763,
+   "diameter_m": 0.04783,
    "height_m": 0.11423,
    "parts": {
     "glass": [
@@ -163,7 +163,7 @@
   "bottle_100ml": {
    "phase": "powder",
    "container_ml": 100.0,
-   "diameter_m": 0.0462,
+   "diameter_m": 0.0464,
    "height_m": 0.0987,
    "parts": {
     "body": [
@@ -189,7 +189,7 @@
   "bottle_250ml": {
    "phase": "powder",
    "container_ml": 250.0,
-   "diameter_m": 0.0602,
+   "diameter_m": 0.0604,
    "height_m": 0.1321,
    "parts": {
     "body": [
@@ -215,7 +215,7 @@
   "bottle_500ml": {
    "phase": "powder",
    "container_ml": 500.0,
-   "diameter_m": 0.0742,
+   "diameter_m": 0.0744,
    "height_m": 0.16548,
    "parts": {
     "body": [
@@ -241,7 +241,7 @@
   "bottle_1000ml": {
    "phase": "powder",
    "container_ml": 1000.0,
-   "diameter_m": 0.0882,
+   "diameter_m": 0.0884,
    "height_m": 0.21802,
    "parts": {
     "body": [
@@ -267,7 +267,7 @@
   "bottle_2000ml": {
    "phase": "powder",
    "container_ml": 2000.0,
-   "diameter_m": 0.1162,
+   "diameter_m": 0.1164,
    "height_m": 0.24636,
    "parts": {
     "body": [
@@ -295,1002 +295,1203 @@
   "SMP-0001": {
    "vessel_class": "flask_10ml",
    "code": "2006943906698",
+   "marker_id": 0,
    "material": "Limonene"
   },
   "SMP-0002": {
    "vessel_class": "flask_20ml",
    "code": "2008373235843",
+   "marker_id": 1,
    "material": "Limonene"
   },
   "SMP-0003": {
    "vessel_class": "flask_30ml",
    "code": "2000016463750",
+   "marker_id": 2,
    "material": "Limonene"
   },
   "SMP-0004": {
    "vessel_class": "flask_50ml",
    "code": "2003063811970",
+   "marker_id": 3,
    "material": "Limonene"
   },
   "SMP-0005": {
    "vessel_class": "flask_100ml",
    "code": "2003357513856",
+   "marker_id": 4,
    "material": "Limonene"
   },
   "SMP-0006": {
    "vessel_class": "flask_10ml",
    "code": "2005173561004",
+   "marker_id": 5,
    "material": "Linalool"
   },
   "SMP-0007": {
    "vessel_class": "flask_20ml",
    "code": "2004479635181",
+   "marker_id": 6,
    "material": "Linalool"
   },
   "SMP-0008": {
    "vessel_class": "flask_30ml",
    "code": "2004771734124",
+   "marker_id": 7,
    "material": "Linalool"
   },
   "SMP-0009": {
    "vessel_class": "flask_50ml",
    "code": "2007063201700",
+   "marker_id": 8,
    "material": "Linalool"
   },
   "SMP-0010": {
    "vessel_class": "flask_100ml",
    "code": "2001406135486",
+   "marker_id": 9,
    "material": "Linalool"
   },
   "SMP-0011": {
    "vessel_class": "flask_10ml",
    "code": "2008070695988",
+   "marker_id": 10,
    "material": "Geraniol"
   },
   "SMP-0012": {
    "vessel_class": "flask_20ml",
    "code": "2003178981414",
+   "marker_id": 11,
    "material": "Geraniol"
   },
   "SMP-0013": {
    "vessel_class": "flask_30ml",
    "code": "2006329492524",
+   "marker_id": 12,
    "material": "Geraniol"
   },
   "SMP-0014": {
    "vessel_class": "flask_50ml",
    "code": "2001844343061",
+   "marker_id": 13,
    "material": "Geraniol"
   },
   "SMP-0015": {
    "vessel_class": "flask_100ml",
    "code": "2006658330467",
+   "marker_id": 14,
    "material": "Geraniol"
   },
   "SMP-0016": {
    "vessel_class": "flask_10ml",
    "code": "2005334881330",
+   "marker_id": 15,
    "material": "Citral"
   },
   "SMP-0017": {
    "vessel_class": "flask_20ml",
    "code": "2002216596177",
+   "marker_id": 16,
    "material": "Citral"
   },
   "SMP-0018": {
    "vessel_class": "flask_30ml",
    "code": "2002711369054",
+   "marker_id": 17,
    "material": "Citral"
   },
   "SMP-0019": {
    "vessel_class": "flask_50ml",
    "code": "2009925844322",
+   "marker_id": 18,
    "material": "Citral"
   },
   "SMP-0020": {
    "vessel_class": "flask_100ml",
    "code": "2008543423209",
+   "marker_id": 19,
    "material": "Citral"
   },
   "SMP-0021": {
    "vessel_class": "flask_10ml",
    "code": "2001316174674",
+   "marker_id": 20,
    "material": "Eugenol"
   },
   "SMP-0022": {
    "vessel_class": "flask_20ml",
    "code": "2009703312524",
+   "marker_id": 21,
    "material": "Eugenol"
   },
   "SMP-0023": {
    "vessel_class": "flask_30ml",
    "code": "2008601317105",
+   "marker_id": 22,
    "material": "Eugenol"
   },
   "SMP-0024": {
    "vessel_class": "flask_50ml",
    "code": "2003268638525",
+   "marker_id": 23,
    "material": "Eugenol"
   },
   "SMP-0025": {
    "vessel_class": "flask_100ml",
    "code": "2006570420055",
+   "marker_id": 24,
    "material": "Eugenol"
   },
   "SMP-0026": {
    "vessel_class": "flask_10ml",
    "code": "2008463415674",
+   "marker_id": 25,
    "material": "Benzaldehyde"
   },
   "SMP-0027": {
    "vessel_class": "flask_20ml",
    "code": "2009990268917",
+   "marker_id": 26,
    "material": "Benzaldehyde"
   },
   "SMP-0028": {
    "vessel_class": "flask_30ml",
    "code": "2005762371854",
+   "marker_id": 27,
    "material": "Benzaldehyde"
   },
   "SMP-0029": {
    "vessel_class": "flask_50ml",
    "code": "2008640510611",
+   "marker_id": 28,
    "material": "Benzaldehyde"
   },
   "SMP-0030": {
    "vessel_class": "flask_100ml",
    "code": "2008812123304",
+   "marker_id": 29,
    "material": "Benzaldehyde"
   },
   "SMP-0031": {
    "vessel_class": "flask_10ml",
    "code": "2000557284500",
+   "marker_id": 30,
    "material": "Citronellol"
   },
   "SMP-0032": {
    "vessel_class": "flask_20ml",
    "code": "2000283426953",
+   "marker_id": 31,
    "material": "Citronellol"
   },
   "SMP-0033": {
    "vessel_class": "flask_30ml",
    "code": "2004883180512",
+   "marker_id": 32,
    "material": "Citronellol"
   },
   "SMP-0034": {
    "vessel_class": "flask_50ml",
    "code": "2001122395645",
+   "marker_id": 33,
    "material": "Citronellol"
   },
   "SMP-0035": {
    "vessel_class": "flask_100ml",
    "code": "2004042438249",
+   "marker_id": 34,
    "material": "Citronellol"
   },
   "SMP-0036": {
    "vessel_class": "flask_10ml",
    "code": "2002993943454",
+   "marker_id": 35,
    "material": "Nerol"
   },
   "SMP-0037": {
    "vessel_class": "flask_20ml",
    "code": "2001511292685",
+   "marker_id": 36,
    "material": "Nerol"
   },
   "SMP-0038": {
    "vessel_class": "flask_30ml",
    "code": "2008949627102",
+   "marker_id": 37,
    "material": "Nerol"
   },
   "SMP-0039": {
    "vessel_class": "flask_50ml",
    "code": "2002111210598",
+   "marker_id": 38,
    "material": "Nerol"
   },
   "SMP-0040": {
    "vessel_class": "flask_100ml",
    "code": "2002680696373",
+   "marker_id": 39,
    "material": "Nerol"
   },
   "SMP-0041": {
    "vessel_class": "flask_10ml",
    "code": "2004820385598",
+   "marker_id": 40,
    "material": "Anethole"
   },
   "SMP-0042": {
    "vessel_class": "flask_20ml",
    "code": "2007472038454",
+   "marker_id": 41,
    "material": "Anethole"
   },
   "SMP-0043": {
    "vessel_class": "flask_30ml",
    "code": "2009139205926",
+   "marker_id": 42,
    "material": "Anethole"
   },
   "SMP-0044": {
    "vessel_class": "flask_50ml",
    "code": "2007359636780",
+   "marker_id": 43,
    "material": "Anethole"
   },
   "SMP-0045": {
    "vessel_class": "flask_100ml",
    "code": "2006469861877",
+   "marker_id": 44,
    "material": "Anethole"
   },
   "SMP-0046": {
    "vessel_class": "flask_10ml",
    "code": "2009236754471",
+   "marker_id": 45,
    "material": "Cinnamaldehyde"
   },
   "SMP-0047": {
    "vessel_class": "flask_20ml",
    "code": "2009014054465",
+   "marker_id": 46,
    "material": "Cinnamaldehyde"
   },
   "SMP-0048": {
    "vessel_class": "flask_30ml",
    "code": "2000088222828",
+   "marker_id": 47,
    "material": "Cinnamaldehyde"
   },
   "SMP-0049": {
    "vessel_class": "flask_50ml",
    "code": "2006363110705",
+   "marker_id": 48,
    "material": "Cinnamaldehyde"
   },
   "SMP-0050": {
    "vessel_class": "flask_100ml",
    "code": "2003547026661",
+   "marker_id": 49,
    "material": "Cinnamaldehyde"
   },
   "SMP-0051": {
    "vessel_class": "flask_10ml",
    "code": "2007724806114",
+   "marker_id": 50,
    "material": "Carvone"
   },
   "SMP-0052": {
    "vessel_class": "flask_20ml",
    "code": "2002240266121",
+   "marker_id": 51,
    "material": "Carvone"
   },
   "SMP-0053": {
    "vessel_class": "flask_30ml",
    "code": "2007724880497",
+   "marker_id": 52,
    "material": "Carvone"
   },
   "SMP-0054": {
    "vessel_class": "flask_50ml",
    "code": "2003996579541",
+   "marker_id": 53,
    "material": "Carvone"
   },
   "SMP-0055": {
    "vessel_class": "flask_100ml",
    "code": "2003019937129",
+   "marker_id": 54,
    "material": "Carvone"
   },
   "SMP-0056": {
    "vessel_class": "flask_10ml",
    "code": "2007803255772",
+   "marker_id": 55,
    "material": "alpha-Pinene"
   },
   "SMP-0057": {
    "vessel_class": "flask_20ml",
    "code": "2003438292069",
+   "marker_id": 56,
    "material": "alpha-Pinene"
   },
   "SMP-0058": {
    "vessel_class": "flask_30ml",
    "code": "2000334647221",
+   "marker_id": 57,
    "material": "alpha-Pinene"
   },
   "SMP-0059": {
    "vessel_class": "flask_50ml",
    "code": "2005039791262",
+   "marker_id": 58,
    "material": "alpha-Pinene"
   },
   "SMP-0060": {
    "vessel_class": "flask_100ml",
    "code": "2005021649250",
+   "marker_id": 59,
    "material": "alpha-Pinene"
   },
   "SMP-0061": {
    "vessel_class": "flask_10ml",
    "code": "2006314962162",
+   "marker_id": 60,
    "material": "alpha-Terpineol"
   },
   "SMP-0062": {
    "vessel_class": "flask_20ml",
    "code": "2003426376412",
+   "marker_id": 61,
    "material": "alpha-Terpineol"
   },
   "SMP-0063": {
    "vessel_class": "flask_30ml",
    "code": "2002247541979",
+   "marker_id": 62,
    "material": "alpha-Terpineol"
   },
   "SMP-0064": {
    "vessel_class": "flask_50ml",
    "code": "2009091538643",
+   "marker_id": 63,
    "material": "alpha-Terpineol"
   },
   "SMP-0065": {
    "vessel_class": "flask_100ml",
    "code": "2008463324686",
+   "marker_id": 64,
    "material": "alpha-Terpineol"
   },
   "SMP-0066": {
    "vessel_class": "flask_10ml",
    "code": "2002620812108",
+   "marker_id": 65,
    "material": "Farnesol"
   },
   "SMP-0067": {
    "vessel_class": "flask_20ml",
    "code": "2009081715009",
+   "marker_id": 66,
    "material": "Farnesol"
   },
   "SMP-0068": {
    "vessel_class": "flask_30ml",
    "code": "2007211781993",
+   "marker_id": 67,
    "material": "Farnesol"
   },
   "SMP-0069": {
    "vessel_class": "flask_50ml",
    "code": "2009725468773",
+   "marker_id": 68,
    "material": "Farnesol"
   },
   "SMP-0070": {
    "vessel_class": "flask_100ml",
    "code": "2003363118786",
+   "marker_id": 69,
    "material": "Farnesol"
   },
   "SMP-0071": {
    "vessel_class": "flask_10ml",
    "code": "2000449867286",
+   "marker_id": 70,
    "material": "Nerolidol"
   },
   "SMP-0072": {
    "vessel_class": "flask_20ml",
    "code": "2000488930255",
+   "marker_id": 71,
    "material": "Nerolidol"
   },
   "SMP-0073": {
    "vessel_class": "flask_30ml",
    "code": "2003640576384",
+   "marker_id": 72,
    "material": "Nerolidol"
   },
   "SMP-0074": {
    "vessel_class": "flask_50ml",
    "code": "2008880110589",
+   "marker_id": 73,
    "material": "Nerolidol"
   },
   "SMP-0075": {
    "vessel_class": "flask_100ml",
    "code": "2005421081124",
+   "marker_id": 74,
    "material": "Nerolidol"
   },
   "SMP-0076": {
    "vessel_class": "flask_10ml",
    "code": "2006618754067",
+   "marker_id": 75,
    "material": "Benzyl acetate"
   },
   "SMP-0077": {
    "vessel_class": "flask_20ml",
    "code": "2005689234423",
+   "marker_id": 76,
    "material": "Benzyl acetate"
   },
   "SMP-0078": {
    "vessel_class": "flask_30ml",
    "code": "2006912855033",
+   "marker_id": 77,
    "material": "Benzyl acetate"
   },
   "SMP-0079": {
    "vessel_class": "flask_50ml",
    "code": "2003163789926",
+   "marker_id": 78,
    "material": "Benzyl acetate"
   },
   "SMP-0080": {
    "vessel_class": "flask_100ml",
    "code": "2001165904750",
+   "marker_id": 79,
    "material": "Benzyl acetate"
   },
   "SMP-0081": {
    "vessel_class": "flask_10ml",
    "code": "2006999993802",
+   "marker_id": 80,
    "material": "Phenylethyl alcohol"
   },
   "SMP-0082": {
    "vessel_class": "flask_20ml",
    "code": "2009720340531",
+   "marker_id": 81,
    "material": "Phenylethyl alcohol"
   },
   "SMP-0083": {
    "vessel_class": "flask_30ml",
    "code": "2001979981343",
+   "marker_id": 82,
    "material": "Phenylethyl alcohol"
   },
   "SMP-0084": {
    "vessel_class": "flask_50ml",
    "code": "2004538539160",
+   "marker_id": 83,
    "material": "Phenylethyl alcohol"
   },
   "SMP-0085": {
    "vessel_class": "flask_100ml",
    "code": "2003856264518",
+   "marker_id": 84,
    "material": "Phenylethyl alcohol"
   },
   "SMP-0086": {
    "vessel_class": "flask_10ml",
    "code": "2002000819666",
+   "marker_id": 85,
    "material": "Methyl salicylate"
   },
   "SMP-0087": {
    "vessel_class": "flask_20ml",
    "code": "2002774841658",
+   "marker_id": 86,
    "material": "Methyl salicylate"
   },
   "SMP-0088": {
    "vessel_class": "flask_30ml",
    "code": "2002606821933",
+   "marker_id": 87,
    "material": "Methyl salicylate"
   },
   "SMP-0089": {
    "vessel_class": "flask_50ml",
    "code": "2000762581234",
+   "marker_id": 88,
    "material": "Methyl salicylate"
   },
   "SMP-0090": {
    "vessel_class": "flask_100ml",
    "code": "2002834494060",
+   "marker_id": 89,
    "material": "Methyl salicylate"
   },
   "SMP-0091": {
    "vessel_class": "flask_10ml",
    "code": "2003700752048",
+   "marker_id": 90,
    "material": "Linalyl acetate"
   },
   "SMP-0092": {
    "vessel_class": "flask_20ml",
    "code": "2008374978398",
+   "marker_id": 91,
    "material": "Linalyl acetate"
   },
   "SMP-0093": {
    "vessel_class": "flask_30ml",
    "code": "2007843423834",
+   "marker_id": 92,
    "material": "Linalyl acetate"
   },
   "SMP-0094": {
    "vessel_class": "flask_50ml",
    "code": "2001249719867",
+   "marker_id": 93,
    "material": "Linalyl acetate"
   },
   "SMP-0095": {
    "vessel_class": "flask_100ml",
    "code": "2003337038836",
+   "marker_id": 94,
    "material": "Linalyl acetate"
   },
   "SMP-0096": {
    "vessel_class": "flask_10ml",
    "code": "2001144163611",
+   "marker_id": 95,
    "material": "cis-3-Hexen-1-ol"
   },
   "SMP-0097": {
    "vessel_class": "flask_20ml",
    "code": "2007872939795",
+   "marker_id": 96,
    "material": "cis-3-Hexen-1-ol"
   },
   "SMP-0098": {
    "vessel_class": "flask_30ml",
    "code": "2009972274189",
+   "marker_id": 97,
    "material": "cis-3-Hexen-1-ol"
   },
   "SMP-0099": {
    "vessel_class": "flask_50ml",
    "code": "2004115345252",
+   "marker_id": 98,
    "material": "cis-3-Hexen-1-ol"
   },
   "SMP-0100": {
    "vessel_class": "flask_100ml",
    "code": "2002540016730",
+   "marker_id": 99,
    "material": "cis-3-Hexen-1-ol"
   },
   "PWD-0001": {
    "vessel_class": "bottle_100ml",
    "code": "2005217175150",
+   "marker_id": 100,
    "material": "Vanillin"
   },
   "PWD-0002": {
    "vessel_class": "bottle_250ml",
    "code": "2009590279276",
+   "marker_id": 101,
    "material": "Vanillin"
   },
   "PWD-0003": {
    "vessel_class": "bottle_500ml",
    "code": "2007626526783",
+   "marker_id": 102,
    "material": "Vanillin"
   },
   "PWD-0004": {
    "vessel_class": "bottle_1000ml",
    "code": "2001630255950",
+   "marker_id": 103,
    "material": "Vanillin"
   },
   "PWD-0005": {
    "vessel_class": "bottle_2000ml",
    "code": "2009776900499",
+   "marker_id": 104,
    "material": "Vanillin"
   },
   "PWD-0006": {
    "vessel_class": "bottle_100ml",
    "code": "2006679772420",
+   "marker_id": 105,
    "material": "Ethylvanillin"
   },
   "PWD-0007": {
    "vessel_class": "bottle_250ml",
    "code": "2005410424680",
+   "marker_id": 106,
    "material": "Ethylvanillin"
   },
   "PWD-0008": {
    "vessel_class": "bottle_500ml",
    "code": "2003307005233",
+   "marker_id": 107,
    "material": "Ethylvanillin"
   },
   "PWD-0009": {
    "vessel_class": "bottle_1000ml",
    "code": "2007161718988",
+   "marker_id": 108,
    "material": "Ethylvanillin"
   },
   "PWD-0010": {
    "vessel_class": "bottle_2000ml",
    "code": "2005929377774",
+   "marker_id": 109,
    "material": "Ethylvanillin"
   },
   "PWD-0011": {
    "vessel_class": "bottle_100ml",
    "code": "2002140506778",
+   "marker_id": 110,
    "material": "Coumarin"
   },
   "PWD-0012": {
    "vessel_class": "bottle_250ml",
    "code": "2006117949254",
+   "marker_id": 111,
    "material": "Coumarin"
   },
   "PWD-0013": {
    "vessel_class": "bottle_500ml",
    "code": "2004492108976",
+   "marker_id": 112,
    "material": "Coumarin"
   },
   "PWD-0014": {
    "vessel_class": "bottle_1000ml",
    "code": "2006872675832",
+   "marker_id": 113,
    "material": "Coumarin"
   },
   "PWD-0015": {
    "vessel_class": "bottle_2000ml",
    "code": "2009016395658",
+   "marker_id": 114,
    "material": "Coumarin"
   },
   "PWD-0016": {
    "vessel_class": "bottle_100ml",
    "code": "2001432875585",
+   "marker_id": 115,
    "material": "Maltol"
   },
   "PWD-0017": {
    "vessel_class": "bottle_250ml",
    "code": "2006015922663",
+   "marker_id": 116,
    "material": "Maltol"
   },
   "PWD-0018": {
    "vessel_class": "bottle_500ml",
    "code": "2004802283782",
+   "marker_id": 117,
    "material": "Maltol"
   },
   "PWD-0019": {
    "vessel_class": "bottle_1000ml",
    "code": "2003789156607",
+   "marker_id": 118,
    "material": "Maltol"
   },
   "PWD-0020": {
    "vessel_class": "bottle_2000ml",
    "code": "2006126684887",
+   "marker_id": 119,
    "material": "Maltol"
   },
   "PWD-0021": {
    "vessel_class": "bottle_100ml",
    "code": "2008398186472",
+   "marker_id": 120,
    "material": "Ethyl maltol"
   },
   "PWD-0022": {
    "vessel_class": "bottle_250ml",
    "code": "2009218740386",
+   "marker_id": 121,
    "material": "Ethyl maltol"
   },
   "PWD-0023": {
    "vessel_class": "bottle_500ml",
    "code": "2002484405362",
+   "marker_id": 122,
    "material": "Ethyl maltol"
   },
   "PWD-0024": {
    "vessel_class": "bottle_1000ml",
    "code": "2006644060101",
+   "marker_id": 123,
    "material": "Ethyl maltol"
   },
   "PWD-0025": {
    "vessel_class": "bottle_2000ml",
    "code": "2001015298022",
+   "marker_id": 124,
    "material": "Ethyl maltol"
   },
   "PWD-0026": {
    "vessel_class": "bottle_100ml",
    "code": "2008565432623",
+   "marker_id": 125,
    "material": "Menthol"
   },
   "PWD-0027": {
    "vessel_class": "bottle_250ml",
    "code": "2004606088293",
+   "marker_id": 126,
    "material": "Menthol"
   },
   "PWD-0028": {
    "vessel_class": "bottle_500ml",
    "code": "2002764950018",
+   "marker_id": 127,
    "material": "Menthol"
   },
   "PWD-0029": {
    "vessel_class": "bottle_1000ml",
    "code": "2004099998659",
+   "marker_id": 128,
    "material": "Menthol"
   },
   "PWD-0030": {
    "vessel_class": "bottle_2000ml",
    "code": "2001955256441",
+   "marker_id": 129,
    "material": "Menthol"
   },
   "PWD-0031": {
    "vessel_class": "bottle_100ml",
    "code": "2009481547620",
+   "marker_id": 130,
    "material": "Thymol"
   },
   "PWD-0032": {
    "vessel_class": "bottle_250ml",
    "code": "2005314460128",
+   "marker_id": 131,
    "material": "Thymol"
   },
   "PWD-0033": {
    "vessel_class": "bottle_500ml",
    "code": "2002393238600",
+   "marker_id": 132,
    "material": "Thymol"
   },
   "PWD-0034": {
    "vessel_class": "bottle_1000ml",
    "code": "2009661090762",
+   "marker_id": 133,
    "material": "Thymol"
   },
   "PWD-0035": {
    "vessel_class": "bottle_2000ml",
    "code": "2000927888437",
+   "marker_id": 134,
    "material": "Thymol"
   },
   "PWD-0036": {
    "vessel_class": "bottle_100ml",
    "code": "2009346134583",
+   "marker_id": 135,
    "material": "Camphor"
   },
   "PWD-0037": {
    "vessel_class": "bottle_250ml",
    "code": "2000500081705",
+   "marker_id": 136,
    "material": "Camphor"
   },
   "PWD-0038": {
    "vessel_class": "bottle_500ml",
    "code": "2001130191642",
+   "marker_id": 137,
    "material": "Camphor"
   },
   "PWD-0039": {
    "vessel_class": "bottle_1000ml",
    "code": "2008830625095",
+   "marker_id": 138,
    "material": "Camphor"
   },
   "PWD-0040": {
    "vessel_class": "bottle_2000ml",
    "code": "2004955932148",
+   "marker_id": 139,
    "material": "Camphor"
   },
   "PWD-0041": {
    "vessel_class": "bottle_100ml",
    "code": "2007021452137",
+   "marker_id": 140,
    "material": "Piperonal"
   },
   "PWD-0042": {
    "vessel_class": "bottle_250ml",
    "code": "2009961568503",
+   "marker_id": 141,
    "material": "Piperonal"
   },
   "PWD-0043": {
    "vessel_class": "bottle_500ml",
    "code": "2004366967494",
+   "marker_id": 142,
    "material": "Piperonal"
   },
   "PWD-0044": {
    "vessel_class": "bottle_1000ml",
    "code": "2009579944867",
+   "marker_id": 143,
    "material": "Piperonal"
   },
   "PWD-0045": {
    "vessel_class": "bottle_2000ml",
    "code": "2005887439408",
+   "marker_id": 144,
    "material": "Piperonal"
   },
   "PWD-0046": {
    "vessel_class": "bottle_100ml",
    "code": "2002625713202",
+   "marker_id": 145,
    "material": "Indole"
   },
   "PWD-0047": {
    "vessel_class": "bottle_250ml",
    "code": "2004252704769",
+   "marker_id": 146,
    "material": "Indole"
   },
   "PWD-0048": {
    "vessel_class": "bottle_500ml",
    "code": "2000614717330",
+   "marker_id": 147,
    "material": "Indole"
   },
   "PWD-0049": {
    "vessel_class": "bottle_1000ml",
    "code": "2003877178405",
+   "marker_id": 148,
    "material": "Indole"
   },
   "PWD-0050": {
    "vessel_class": "bottle_2000ml",
    "code": "2000543244808",
+   "marker_id": 149,
    "material": "Indole"
   },
   "PWD-0051": {
    "vessel_class": "bottle_100ml",
    "code": "2006835788449",
+   "marker_id": 150,
    "material": "Musk ketone"
   },
   "PWD-0052": {
    "vessel_class": "bottle_250ml",
    "code": "2006422948898",
+   "marker_id": 151,
    "material": "Musk ketone"
   },
   "PWD-0053": {
    "vessel_class": "bottle_500ml",
    "code": "2000162345122",
+   "marker_id": 152,
    "material": "Musk ketone"
   },
   "PWD-0054": {
    "vessel_class": "bottle_1000ml",
    "code": "2000491513827",
+   "marker_id": 153,
    "material": "Musk ketone"
   },
   "PWD-0055": {
    "vessel_class": "bottle_2000ml",
    "code": "2009541783623",
+   "marker_id": 154,
    "material": "Musk ketone"
   },
   "PWD-0056": {
    "vessel_class": "bottle_100ml",
    "code": "2003192885507",
+   "marker_id": 155,
    "material": "Tonalide"
   },
   "PWD-0057": {
    "vessel_class": "bottle_250ml",
    "code": "2002559903380",
+   "marker_id": 156,
    "material": "Tonalide"
   },
   "PWD-0058": {
    "vessel_class": "bottle_500ml",
    "code": "2006027035313",
+   "marker_id": 157,
    "material": "Tonalide"
   },
   "PWD-0059": {
    "vessel_class": "bottle_1000ml",
    "code": "2003323846292",
+   "marker_id": 158,
    "material": "Tonalide"
   },
   "PWD-0060": {
    "vessel_class": "bottle_2000ml",
    "code": "2006655217211",
+   "marker_id": 159,
    "material": "Tonalide"
   },
   "PWD-0061": {
    "vessel_class": "bottle_100ml",
    "code": "2005081429496",
+   "marker_id": 160,
    "material": "Sclareolide"
   },
   "PWD-0062": {
    "vessel_class": "bottle_250ml",
    "code": "2009666185425",
+   "marker_id": 161,
    "material": "Sclareolide"
   },
   "PWD-0063": {
    "vessel_class": "bottle_500ml",
    "code": "2003276541596",
+   "marker_id": 162,
    "material": "Sclareolide"
   },
   "PWD-0064": {
    "vessel_class": "bottle_1000ml",
    "code": "2009653175842",
+   "marker_id": 163,
    "material": "Sclareolide"
   },
   "PWD-0065": {
    "vessel_class": "bottle_2000ml",
    "code": "2009347890310",
+   "marker_id": 164,
    "material": "Sclareolide"
   },
   "PWD-0066": {
    "vessel_class": "bottle_100ml",
    "code": "2000941057956",
+   "marker_id": 165,
    "material": "Cedryl acetate"
   },
   "PWD-0067": {
    "vessel_class": "bottle_250ml",
    "code": "2004217643935",
+   "marker_id": 166,
    "material": "Cedryl acetate"
   },
   "PWD-0068": {
    "vessel_class": "bottle_500ml",
    "code": "2004224518592",
+   "marker_id": 167,
    "material": "Cedryl acetate"
   },
   "PWD-0069": {
    "vessel_class": "bottle_1000ml",
    "code": "2000538857785",
+   "marker_id": 168,
    "material": "Cedryl acetate"
   },
   "PWD-0070": {
    "vessel_class": "bottle_2000ml",
    "code": "2000072137473",
+   "marker_id": 169,
    "material": "Cedryl acetate"
   },
   "PWD-0071": {
    "vessel_class": "bottle_100ml",
    "code": "2006693367565",
+   "marker_id": 170,
    "material": "Methyl cinnamate"
   },
   "PWD-0072": {
    "vessel_class": "bottle_250ml",
    "code": "2009309661309",
+   "marker_id": 171,
    "material": "Methyl cinnamate"
   },
   "PWD-0073": {
    "vessel_class": "bottle_500ml",
    "code": "2005392482487",
+   "marker_id": 172,
    "material": "Methyl cinnamate"
   },
   "PWD-0074": {
    "vessel_class": "bottle_1000ml",
    "code": "2004739516427",
+   "marker_id": 173,
    "material": "Methyl cinnamate"
   },
   "PWD-0075": {
    "vessel_class": "bottle_2000ml",
    "code": "2008425624007",
+   "marker_id": 174,
    "material": "Methyl cinnamate"
   },
   "PWD-0076": {
    "vessel_class": "bottle_100ml",
    "code": "2007683182472",
+   "marker_id": 175,
    "material": "Benzyl cinnamate"
   },
   "PWD-0077": {
    "vessel_class": "bottle_250ml",
    "code": "2007782957384",
+   "marker_id": 176,
    "material": "Benzyl cinnamate"
   },
   "PWD-0078": {
    "vessel_class": "bottle_500ml",
    "code": "2008628116675",
+   "marker_id": 177,
    "material": "Benzyl cinnamate"
   },
   "PWD-0079": {
    "vessel_class": "bottle_1000ml",
    "code": "2000049716120",
+   "marker_id": 178,
    "material": "Benzyl cinnamate"
   },
   "PWD-0080": {
    "vessel_class": "bottle_2000ml",
    "code": "2006776203186",
+   "marker_id": 179,
    "material": "Benzyl cinnamate"
   },
   "PWD-0081": {
    "vessel_class": "bottle_100ml",
    "code": "2004194144210",
+   "marker_id": 180,
    "material": "Cinnamic acid"
   },
   "PWD-0082": {
    "vessel_class": "bottle_250ml",
    "code": "2006153139312",
+   "marker_id": 181,
    "material": "Cinnamic acid"
   },
   "PWD-0083": {
    "vessel_class": "bottle_500ml",
    "code": "2002321517876",
+   "marker_id": 182,
    "material": "Cinnamic acid"
   },
   "PWD-0084": {
    "vessel_class": "bottle_1000ml",
    "code": "2004648657709",
+   "marker_id": 183,
    "material": "Cinnamic acid"
   },
   "PWD-0085": {
    "vessel_class": "bottle_2000ml",
    "code": "2007504640013",
+   "marker_id": 184,
    "material": "Cinnamic acid"
   },
   "PWD-0086": {
    "vessel_class": "bottle_100ml",
    "code": "2007448822094",
+   "marker_id": 185,
    "material": "Diphenyl ether"
   },
   "PWD-0087": {
    "vessel_class": "bottle_250ml",
    "code": "2004765390763",
+   "marker_id": 186,
    "material": "Diphenyl ether"
   },
   "PWD-0088": {
    "vessel_class": "bottle_500ml",
    "code": "2008804395696",
+   "marker_id": 187,
    "material": "Diphenyl ether"
   },
   "PWD-0089": {
    "vessel_class": "bottle_1000ml",
    "code": "2000748050532",
+   "marker_id": 188,
    "material": "Diphenyl ether"
   },
   "PWD-0090": {
    "vessel_class": "bottle_2000ml",
    "code": "2006776021087",
+   "marker_id": 189,
    "material": "Diphenyl ether"
   },
   "PWD-0091": {
    "vessel_class": "bottle_100ml",
    "code": "2008192823009",
+   "marker_id": 190,
    "material": "Exaltolide"
   },
   "PWD-0092": {
    "vessel_class": "bottle_250ml",
    "code": "2004632424621",
+   "marker_id": 191,
    "material": "Exaltolide"
   },
   "PWD-0093": {
    "vessel_class": "bottle_500ml",
    "code": "2007421447603",
+   "marker_id": 192,
    "material": "Exaltolide"
   },
   "PWD-0094": {
    "vessel_class": "bottle_1000ml",
    "code": "2003623109288",
+   "marker_id": 193,
    "material": "Exaltolide"
   },
   "PWD-0095": {
    "vessel_class": "bottle_2000ml",
    "code": "2001877336337",
+   "marker_id": 194,
    "material": "Exaltolide"
   },
   "PWD-0096": {
    "vessel_class": "bottle_100ml",
    "code": "2003170400227",
+   "marker_id": 195,
    "material": "Phenylacetic acid"
   },
   "PWD-0097": {
    "vessel_class": "bottle_250ml",
    "code": "2003873393826",
+   "marker_id": 196,
    "material": "Phenylacetic acid"
   },
   "PWD-0098": {
    "vessel_class": "bottle_500ml",
    "code": "2002656335688",
+   "marker_id": 197,
    "material": "Phenylacetic acid"
   },
   "PWD-0099": {
    "vessel_class": "bottle_1000ml",
    "code": "2004713561962",
+   "marker_id": 198,
    "material": "Phenylacetic acid"
   },
   "PWD-0100": {
    "vessel_class": "bottle_2000ml",
    "code": "2003200718797",
+   "marker_id": 199,
    "material": "Phenylacetic acid"
   }
- }
+ },
+ "label": "aruco_ring"
 }

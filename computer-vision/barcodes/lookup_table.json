@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "symbology": "EAN-13",
   "id_scheme": "sha256(sample.payload()) mod 10^9, prefixed '200', EAN-13 check digit appended",
   "phases": {
@@ -41,7 +41,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-50378",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 0
     },
     "2008373235843": {
       "sha256": "168de8a9c840c90fb96a22b2a031c47fbabe976bec21f715a9feb2302f030140",
@@ -52,7 +53,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-30196",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 1
     },
     "2000016463750": {
       "sha256": "5903e3c0323f80f056a02ced2c0abbd0e4d7350c0c5116d6ae519180e5336727",
@@ -63,7 +65,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-90982",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 2
     },
     "2003063811970": {
       "sha256": "6f52968c624cb417c81393dcacc9002399ca9b5251e69ea4334463e29570938d",
@@ -74,7 +77,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-16612",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 3
     },
     "2003357513856": {
       "sha256": "15a2b0b6e6d640a8c7660a192bc12e4f4b1b618cd1f6fd44defd892eb75c56d9",
@@ -85,7 +89,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-89516",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 4
     },
     "2005173561004": {
       "sha256": "b6f6ee62dd75bfeedf32c4cd1eddca7557e006fe8eb5926d5764166f64ba3444",
@@ -96,7 +101,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-66519",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 5
     },
     "2004479635181": {
       "sha256": "5dce964bae575b727c1166b81baa7fc2e8e6b3f196bfdbaaca7a802a1d66377e",
@@ -107,7 +113,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-56147",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 6
     },
     "2004771734124": {
       "sha256": "39bdc32e8aeb37ccb68395d28e055d19243596781ada146d56ae9da50272a2a4",
@@ -118,7 +125,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-92359",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 7
     },
     "2007063201700": {
       "sha256": "a5c1d1275baf5d4a3b45717290d4c382d9137342aae0bbdc54317e3c6b166b2a",
@@ -129,7 +137,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-52639",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 8
     },
     "2001406135486": {
       "sha256": "d711fa5be7b3fdd26934dab31053713109b6435dab28ffc7cb7d8b15fb799fac",
@@ -140,7 +149,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-96411",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 9
     },
     "2008070695988": {
       "sha256": "38b80245231253080977f2ddaf42f43ce13c430ba356f424ecef18dfb17f8d9e",
@@ -151,7 +161,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-30543",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 10
     },
     "2003178981414": {
       "sha256": "e933c07c553eef5c725c0f3472f635fd553b739be90c9f8f78424d17524ab39d",
@@ -162,7 +173,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-56938",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 11
     },
     "2006329492524": {
       "sha256": "4fd3486171718bf10d05a4fa9576e933938425a794312c89267c5b3db118c204",
@@ -173,7 +185,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-24360",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 12
     },
     "2001844343061": {
       "sha256": "077955fd93995958b47c739ce9ab230c0e64f746ba437dca328b9e5c6c2e6c82",
@@ -184,7 +197,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-81936",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 13
     },
     "2006658330467": {
       "sha256": "8893d6772fc64fb0cd067339bfc909d783ba3735924157bbe084fb6cf191fe56",
@@ -195,7 +209,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-87308",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 14
     },
     "2005334881330": {
       "sha256": "c4539f0a1a6e9104094803dcce8584058b25ee8dc868e81610f749908bd6fe05",
@@ -206,7 +221,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-58428",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 15
     },
     "2002216596177": {
       "sha256": "b4c61ce3252d9276cdc2a890d2987fdf9fb91874b6e0a072b10b911632d431e1",
@@ -217,7 +233,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-26360",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 16
     },
     "2002711369054": {
       "sha256": "dd38e3fbc3d9b54136d208ec970b774f940b002a55f2ba88782d334976882c89",
@@ -228,7 +245,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-22824",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 17
     },
     "2009925844322": {
       "sha256": "f01727ce3ff9046c11ae2a73f4d904f6a261c4dd6c6ae3ca76fb9cf24dcef2f0",
@@ -239,7 +257,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-38534",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 18
     },
     "2008543423209": {
       "sha256": "25b76c9863dad8f17a45284226b50c35dce88a584027036aadcc1886400186b0",
@@ -250,7 +269,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-34947",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 19
     },
     "2001316174674": {
       "sha256": "d5ede6430e0d24d546edd7743c039f50a3068ed575df5cf3bcbc7d6c79a17abb",
@@ -261,7 +281,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-16095",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 20
     },
     "2009703312524": {
       "sha256": "a3e16be4ab73defa438172f60a7fb3361b0ac42a6400a6a000aadd74748e6274",
@@ -272,7 +293,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-54083",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 21
     },
     "2008601317105": {
       "sha256": "c0a5f63376a32145db80390c42da83fdaa4ac8a07e2de5a47c0d3e445c42ff7e",
@@ -283,7 +305,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-33883",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 22
     },
     "2003268638525": {
       "sha256": "040e6a3460719706f66e59a8e7a49c288751a544c578bfe996e52ef13db8efec",
@@ -294,7 +317,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-97394",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 23
     },
     "2006570420055": {
       "sha256": "3b3dfaa42a2cbe4807372aacf46391a6aff6c7fed768bbf23d0d75e5240f0a55",
@@ -305,7 +329,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-89042",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 24
     },
     "2008463415674": {
       "sha256": "876f75cbb9411094ee72c5031ed398fc9a7eb0212cd515d1d6ba97009f8b9fbf",
@@ -316,7 +341,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-47941",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 25
     },
     "2009990268917": {
       "sha256": "b3cb64ea50634fc25850e15eb41fdab386fc159fa6a806c24ce678fdfdb232cb",
@@ -327,7 +353,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-40843",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 26
     },
     "2005762371854": {
       "sha256": "b107a4d726ba7ba9058e5405721574f513ba3e15422f648dd7dc74bda1ac0a81",
@@ -338,7 +365,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-89440",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 27
     },
     "2008640510611": {
       "sha256": "e21b25f1c48489bf6a7c404b0094c402e762b70f7cd4b99edda9ff788480e775",
@@ -349,7 +377,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-92325",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 28
     },
     "2008812123304": {
       "sha256": "f274533405c924b13e27cadcccd91632078c869b4059b4125430f8a4278261aa",
@@ -360,7 +389,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-75195",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 29
     },
     "2000557284500": {
       "sha256": "6734db507a8bacc2ba2828ee3b8dc50700f9377480840a0d0bd7d8926032f342",
@@ -371,7 +401,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-99825",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 30
     },
     "2000283426953": {
       "sha256": "6105a078730e9652aef65d91bed837072e7975372ca638a520bada2152c5b5a7",
@@ -382,7 +413,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-46472",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 31
     },
     "2004883180512": {
       "sha256": "50c367b961351823ddbe4ec09625ad7eb9cbfc1886b4e42dc2edef29785ccc63",
@@ -393,7 +425,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-82880",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 32
     },
     "2001122395645": {
       "sha256": "79cb6090da125f231e0c0f4dd1180b85ea62a91d98f76a9f433303b68fe875cc",
@@ -404,7 +437,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-39411",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 33
     },
     "2004042438249": {
       "sha256": "afddf2b5a822c1e9d0b989d03bf948865d16d0e8fe1535a96aa4214f55372770",
@@ -415,7 +449,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-97500",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 34
     },
     "2002993943454": {
       "sha256": "7986e76254fea33d688a15d9aee01cd73974be826788561347a2140b57e18129",
@@ -426,7 +461,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-81596",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 35
     },
     "2001511292685": {
       "sha256": "ffcfe38bf6c3afea2eba3646a9203f785810a53ff8043178aea943f89f1194b4",
@@ -437,7 +473,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-74821",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 36
     },
     "2008949627102": {
       "sha256": "a7a9a155a108fd0a01daf45e218c997d2d484d81151447344dfd81ff06731816",
@@ -448,7 +485,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-76373",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 37
     },
     "2002111210598": {
       "sha256": "919df9ca5ef97beb9e114cd6847789f90f9925102d015472b61f2b62c2a395a3",
@@ -459,7 +497,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-18499",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 38
     },
     "2002680696373": {
       "sha256": "c76683630bcfb4c77fd1d1f96cd8638910039115b5f16439254c537fc89e4105",
@@ -470,7 +509,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-82836",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 39
     },
     "2004820385598": {
       "sha256": "03e441e28bbdd86844435d80dc8fa9f4461ca2da97e3b269217e85fe1c14671f",
@@ -481,7 +521,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-30535",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 40
     },
     "2007472038454": {
       "sha256": "53e71bb865b01ae817a4c251166ba48da282c543fe30323b8213df0483cc9705",
@@ -492,7 +533,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-36364",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 41
     },
     "2009139205926": {
       "sha256": "2d584b388aba3a47f497613bedc3c10cf83fb568b6dab19bfb1acdd7bba4f650",
@@ -503,7 +545,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-26920",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 42
     },
     "2007359636780": {
       "sha256": "8f5ae161ab35ac7d73a47b64131b130e91014d4d5e0a6736df8755914757c21e",
@@ -514,7 +557,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-42080",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 43
     },
     "2006469861877": {
       "sha256": "409c428d3a26a2f26a306767f1ccae801c47b2e3a0225e8b63ddd0864790d9cb",
@@ -525,7 +569,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-94662",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 44
     },
     "2009236754471": {
       "sha256": "478fd7b290de924e666380a92435d4d9215fd445eca6ced0c44722161fd6bf37",
@@ -536,7 +581,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-88347",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 45
     },
     "2009014054465": {
       "sha256": "18dae73edc40d374288254a749981cfb0afcb742b559f407b61ebf5cbf592f06",
@@ -547,7 +593,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-30810",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 46
     },
     "2000088222828": {
       "sha256": "557cb11e346fb14ffe2992138baa8555f8c1664534bf1e99b6b91a05695f860a",
@@ -558,7 +605,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-25050",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 47
     },
     "2006363110705": {
       "sha256": "9bc865584b821af52d155418b1d2df34396c0d4205a3d997bdb0f5e5664bf81e",
@@ -569,7 +617,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-59541",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 48
     },
     "2003547026661": {
       "sha256": "332e3de2b6714d6190117246342beaae79e9adf6b42a386e376e5ae1c23c6f4a",
@@ -580,7 +629,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-44348",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 49
     },
     "2007724806114": {
       "sha256": "fb9823f36460b15614d4f38ea955379d01e9d2cd86beca4670da47e5bd202663",
@@ -591,7 +641,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-64911",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 50
     },
     "2002240266121": {
       "sha256": "6972d2751540c86b55f0fa0cc4e82cdc2fb1f527a540a2a4d441a0938c710bf4",
@@ -602,7 +653,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-44275",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 51
     },
     "2007724880497": {
       "sha256": "89da43ac97fe8ee0c151f2a67ce305252de5b806093cff31c258560a7d299171",
@@ -613,7 +665,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-17891",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 52
     },
     "2003996579541": {
       "sha256": "7d294818e3202f7fdb21c92ad83c05ea829509b579ae1185160b620fe9f39de2",
@@ -624,7 +677,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-45979",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 53
     },
     "2003019937129": {
       "sha256": "c726de9f9e4bf11849168dd24b2f7dfeae79321eeba7546ce3eff5e1a3f77cf0",
@@ -635,7 +689,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-77056",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 54
     },
     "2007803255772": {
       "sha256": "58bc04901afbd5a62ce1a81824d65dd12f267b9dac1cde2b1c7b021382d774c9",
@@ -646,7 +701,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-81716",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 55
     },
     "2003438292069": {
       "sha256": "2b3c7f48421d86e7a95f2e3124d3453f08b18052ffa2dd795d7c11f7e2fb3cd6",
@@ -657,7 +713,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-41688",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 56
     },
     "2000334647221": {
       "sha256": "918d33d928b5f4577b7881de1634e0fba28b23ba38b1dab2e435e88bc01a0b92",
@@ -668,7 +725,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-31562",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 57
     },
     "2005039791262": {
       "sha256": "9a1d44b7628afc62042342359239a9be3d9c7d1bb35d4af2214c4f6b070a2c76",
@@ -679,7 +737,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-44279",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 58
     },
     "2005021649250": {
       "sha256": "db372ba8614cc300167bb0ade7c143faf761d102750869f60ffa7af3e8b9ebbd",
@@ -690,7 +749,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-14934",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 59
     },
     "2006314962162": {
       "sha256": "6408c4e150c7f20f5762dc5ff29970da45b4e5821cec061d18364d9cba03aa18",
@@ -701,7 +761,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-83188",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 60
     },
     "2003426376412": {
       "sha256": "de1d1c4224de11c784dc3e0232f60a0f414638e5f56aece4a992976c66e56649",
@@ -712,7 +773,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-91827",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 61
     },
     "2002247541979": {
       "sha256": "038009018e7acedb521c5b5557c0d643ae5ae300223efe87f0aaf8f865bee815",
@@ -723,7 +785,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-80480",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 62
     },
     "2009091538643": {
       "sha256": "c9801ed388bebdb38424705f3b34df14149475981e5b7898d462d97da3980248",
@@ -734,7 +797,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-31985",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 63
     },
     "2008463324686": {
       "sha256": "a1e72adfafc7764110d9e1fbb82ab53fc3c076c85b8da22cc4143c05f8e38634",
@@ -745,7 +809,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-12147",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 64
     },
     "2002620812108": {
       "sha256": "50ff668ad146061bc0a37c413086af7c6336b0dc1b94f217cb841f4a25a8d0ba",
@@ -756,7 +821,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-28000",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 65
     },
     "2009081715009": {
       "sha256": "39997e3100d969b26c6274e428a378104a36c3a8eff4a13d63dc567b0fe912ec",
@@ -767,7 +833,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-17687",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 66
     },
     "2007211781993": {
       "sha256": "54d329ec8b8f63d76427c16f45a098c55ffa1cb8186e3339a4588706af604657",
@@ -778,7 +845,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-13624",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 67
     },
     "2009725468773": {
       "sha256": "417f327be3418f33491f086bc09fe52d08f45626a6f6de1ac822bc5a34e6e73d",
@@ -789,7 +857,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-31608",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 68
     },
     "2003363118786": {
       "sha256": "1cc99148a637073b6531bb6db6d1de3b830f3ad1e2459263568357f7a9265646",
@@ -800,7 +869,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-76352",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 69
     },
     "2000449867286": {
       "sha256": "8df5e09ffe09892230a45bd892aba47aa8587d383e31b0bab25417b8bbcd6768",
@@ -811,7 +881,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-17609",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 70
     },
     "2000488930255": {
       "sha256": "8fb6170128663465dccae87b72243163e60e5f69e341fa0dd8c995b57a763061",
@@ -822,7 +893,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-14019",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 71
     },
     "2003640576384": {
       "sha256": "f8d211524ff6a880be1e343738535ab926049617a1e2cf9b39098569f5be8026",
@@ -833,7 +905,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-64509",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 72
     },
     "2008880110589": {
       "sha256": "7e0239413eeef7bc116ec259ab81093e6adeaccc66b86ba56ddc379276b2a932",
@@ -844,7 +917,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-24844",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 73
     },
     "2005421081124": {
       "sha256": "c7e24b7c07039f2d85de1a449277af9fc5b1952c46badc7ac4336b23992cb1d0",
@@ -855,7 +929,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-91355",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 74
     },
     "2006618754067": {
       "sha256": "e28629b70f4408695140c705cd6a72eb99efacb627a9aa4ad174055bf8a4b4ce",
@@ -866,7 +941,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-51888",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 75
     },
     "2005689234423": {
       "sha256": "37972b5949372d59dae203be0895a600cf3bc12f2e0d85b7aabbe3c8e03e6532",
@@ -877,7 +953,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-91951",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 76
     },
     "2006912855033": {
       "sha256": "6d75e36a7b42f92253bd04fa5fbf9858ede1b869156104e6f14731b3aa7375ff",
@@ -888,7 +965,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-49099",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 77
     },
     "2003163789926": {
       "sha256": "cccee8173bd0de538df1deb2e58d91a4153623a200c6718197bd0e7dfd33e370",
@@ -899,7 +977,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-68717",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 78
     },
     "2001165904750": {
       "sha256": "b5b7acca27e6fb94cf358d106704e2f58f13a4ad12a359ad3415f76d4c666f8b",
@@ -910,7 +989,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-42166",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 79
     },
     "2006999993802": {
       "sha256": "8a52637418530f373b6db1e63377c9c4825e539a2120966866eaf07268d8f894",
@@ -921,7 +1001,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-25650",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 80
     },
     "2009720340531": {
       "sha256": "de5ca1989c1639a7c0d0883c55d46ef7599fe50945c88b40deae259c72cbbe05",
@@ -932,7 +1013,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-67073",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 81
     },
     "2001979981343": {
       "sha256": "bf7b23022d0b4c7d39914a32be4cdd8fd492acb288fd600439056cc0a13bc036",
@@ -943,7 +1025,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-51078",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 82
     },
     "2004538539160": {
       "sha256": "ed2e6c54e96f9f5d0144fb68189fbfb3510ac4cce0cf5efcead0a1477394dadc",
@@ -954,7 +1037,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-68880",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 83
     },
     "2003856264518": {
       "sha256": "82a5910ab0327e3b1f6f48a85632573c371f211492ae3989d755c24d39e05753",
@@ -965,7 +1049,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-15185",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 84
     },
     "2002000819666": {
       "sha256": "ff1923bf255a294d69eb2c984800a794cf74a852ea912e6bb2d426b8cf724e2e",
@@ -976,7 +1061,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-42131",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 85
     },
     "2002774841658": {
       "sha256": "7651f1a07d0d69c0de00419685e062dc272cfe1a205134b2e381e4447ffc7685",
@@ -987,7 +1073,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-66874",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 86
     },
     "2002606821933": {
       "sha256": "a4810457e847d8d8bd87cfa23763546ccfbae6a409e6ecdb93b7684daeb513d1",
@@ -998,7 +1085,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-69498",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 87
     },
     "2000762581234": {
       "sha256": "1e94d431cc485cff16b8aeffe2c48046f0bce259da122ba6b2b951e7fbe4594b",
@@ -1009,7 +1097,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-63004",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 88
     },
     "2002834494060": {
       "sha256": "62af94c8f1959452eadb2524ed0c050252c4161d759d609e9703ff73a14fdc3e",
@@ -1020,7 +1109,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-92766",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 89
     },
     "2003700752048": {
       "sha256": "30abd10a89b3c015ec1f7d3f0589cb228a82bb3bf54defd5289abc2ddda2c044",
@@ -1031,7 +1121,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-15044",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 90
     },
     "2008374978398": {
       "sha256": "04550ac494b028e0f773dcab6b09f33ee08b2d05c478fc32c5baddb637046bef",
@@ -1042,7 +1133,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-36915",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 91
     },
     "2007843423834": {
       "sha256": "c8bee60c6617f396d3f9b5315a2fbd1a1894a765d1f43fc3147d9cfcbb64db6f",
@@ -1053,7 +1145,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-57644",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 92
     },
     "2001249719867": {
       "sha256": "367da8be765b7553d8c8224b499d1b81e9cdbc45be9e66dd54288ce0b7d149d2",
@@ -1064,7 +1157,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-37465",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 93
     },
     "2003337038836": {
       "sha256": "5693afe32755f6bfae2fb77185fc273c992b6550bbb112da0ed4b57b3c5f2ecb",
@@ -1075,7 +1169,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-10308",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 94
     },
     "2001144163611": {
       "sha256": "0e1f2f57bbb4d8b8a7963d88856c99492ef12f34fc7a710b9f90e18ce543dae9",
@@ -1086,7 +1181,8 @@
       "phase": "liquid",
       "container_ml": 10.0,
       "lot": "LOT-65249",
-      "vessel_class": "flask_10ml"
+      "vessel_class": "flask_10ml",
+      "marker_id": 95
     },
     "2007872939795": {
       "sha256": "c7adcedffba8ce0b4698a851309e66bd01009ce91e34fd3b5e8decc21306a31b",
@@ -1097,7 +1193,8 @@
       "phase": "liquid",
       "container_ml": 20.0,
       "lot": "LOT-57678",
-      "vessel_class": "flask_20ml"
+      "vessel_class": "flask_20ml",
+      "marker_id": 96
     },
     "2009972274189": {
       "sha256": "1c44299dd6cc969abd8b65a23c5372a6025e1dfdf4e2fbe22952bdaeef09199a",
@@ -1108,7 +1205,8 @@
       "phase": "liquid",
       "container_ml": 30.0,
       "lot": "LOT-92383",
-      "vessel_class": "flask_30ml"
+      "vessel_class": "flask_30ml",
+      "marker_id": 97
     },
     "2004115345252": {
       "sha256": "751f213529b4f0afae204fd26f0648b3788ce847f18e36ec814173483a2d4ebd",
@@ -1119,7 +1217,8 @@
       "phase": "liquid",
       "container_ml": 50.0,
       "lot": "LOT-58497",
-      "vessel_class": "flask_50ml"
+      "vessel_class": "flask_50ml",
+      "marker_id": 98
     },
     "2002540016730": {
       "sha256": "df40e5ffd110d15d956de9e5a2541b8d846bae2b99e13e89a7a350c712531809",
@@ -1130,7 +1229,8 @@
       "phase": "liquid",
       "container_ml": 100.0,
       "lot": "LOT-58050",
-      "vessel_class": "flask_100ml"
+      "vessel_class": "flask_100ml",
+      "marker_id": 99
     },
     "2005217175150": {
       "sha256": "e6655acef465244faecb4e4157cd9b9660773798b636a047139e14e47c7da70b",
@@ -1141,7 +1241,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-77603",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 100
     },
     "2009590279276": {
       "sha256": "f531d36951fd419a305b2f23ef87a28c81a29e34825e8ac0f6a7d56af2d370d7",
@@ -1152,7 +1253,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-75787",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 101
     },
     "2007626526783": {
       "sha256": "af5e336c403cf6bd7ec638cb265702b621098fed48f01b52729a25af24e6fe06",
@@ -1163,7 +1265,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-91430",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 102
     },
     "2001630255950": {
       "sha256": "70ade559fa4b25cc6dff87ca9f8f20ac2dde829264ed47c67d9173aa3d08eabb",
@@ -1174,7 +1277,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-95857",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 103
     },
     "2009776900499": {
       "sha256": "11f1da19c5b11c22aa9607e9c7b464b29bc16414954ce1cc827b378e9fc801c1",
@@ -1185,7 +1289,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-74836",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 104
     },
     "2006679772420": {
       "sha256": "4e2d64e91a9b922e876b113d0817d09df332c6cfebe216b6b2c53be9268f6e1a",
@@ -1196,7 +1301,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-22848",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 105
     },
     "2005410424680": {
       "sha256": "1966935290b98f3b48e1faf3472c827048ffa3e34656b4c86d53fdffb01ec724",
@@ -1207,7 +1313,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-18721",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 106
     },
     "2003307005233": {
       "sha256": "f90c52d7eff6201f1d93be6cf0e3bc81ff5befb991f4bb1a20515882b63e48eb",
@@ -1218,7 +1325,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-11104",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 107
     },
     "2007161718988": {
       "sha256": "7a7b962874db05caca4ffb4340e11c14666bc405e5dca8f39d9bbe22d6c7cc7a",
@@ -1229,7 +1337,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-58772",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 108
     },
     "2005929377774": {
       "sha256": "1d3b7c8f67ad88ef074849e7c60001603590e9bee292260a616c5edb5b99c531",
@@ -1240,7 +1349,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-70986",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 109
     },
     "2002140506778": {
       "sha256": "5e8156734d165f953e63d1115537569fb0f5343f8d9a59836dab7dd4a715eb75",
@@ -1251,7 +1361,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-68744",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 110
     },
     "2006117949254": {
       "sha256": "98a0fac95167e34521dfef1eae79f9928bc96e2df6ba4d528694c3d8247b7fed",
@@ -1262,7 +1373,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-79591",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 111
     },
     "2004492108976": {
       "sha256": "eac28dbd4b7f2331b98856a1eb7c8d75df4a37ca99c5644194551d9375826011",
@@ -1273,7 +1385,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-52656",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 112
     },
     "2006872675832": {
       "sha256": "6e969b1ece0fdc0b503a851d8856374d06fb36f10e5541640f38202e88ca0eff",
@@ -1284,7 +1397,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-35640",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 113
     },
     "2009016395658": {
       "sha256": "81a5ef1085bacc279ed186d07fcfcf8bff0c5fb84d470fcd756c7155ad7bf18d",
@@ -1295,7 +1409,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-69894",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 114
     },
     "2001432875585": {
       "sha256": "da0739cb6eaa836d79ea2bdf0c3fe22b6f8bcf25467f344bc80f270a637e7d06",
@@ -1306,7 +1421,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-67293",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 115
     },
     "2006015922663": {
       "sha256": "9822386aab8ba74cfee931dcfadeecb556c7fe69331e80e6abee1c1807be1bca",
@@ -1317,7 +1433,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-34629",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 116
     },
     "2004802283782": {
       "sha256": "07a63d92c472974998a193711e346d0a0396dc07b53a636bd45150c299fe6e1a",
@@ -1328,7 +1445,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-59278",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 117
     },
     "2003789156607": {
       "sha256": "e9498065cb6d1fb3edda2775a6e7c5c04fa3fc4937ca8e3f5ee78936f008e34c",
@@ -1339,7 +1457,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-84357",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 118
     },
     "2006126684887": {
       "sha256": "9ead04703553f4eedd9eccc3e454e4b79879c8b621a59e68e0bb047c03278648",
@@ -1350,7 +1469,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-38939",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 119
     },
     "2008398186472": {
       "sha256": "813358a988995d82540445ae3f2d8e515a6378f1cb8f4441d6a8f94e6b7e4f97",
@@ -1361,7 +1481,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-89204",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 120
     },
     "2009218740386": {
       "sha256": "d1dddd7294b06bbcda4908b8cbea1a7db29dd4ffa0e309bee24f8f9a11d56e76",
@@ -1372,7 +1493,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-50543",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 121
     },
     "2002484405362": {
       "sha256": "9651b89e1b0754a5b25e7c361b3e56ccfab06ad1268932b29862d4dd602686d8",
@@ -1383,7 +1505,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-86155",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 122
     },
     "2006644060101": {
       "sha256": "778d10cb42cc69c6117694511f7ae02d3e23188fa06e00cb59ab2b4812abc9fa",
@@ -1394,7 +1517,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-45751",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 123
     },
     "2001015298022": {
       "sha256": "cd72706e2148825603f74aa1cf10a8a637d3040be1ea83a8ab1dd852bd484eca",
@@ -1405,7 +1529,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-27260",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 124
     },
     "2008565432623": {
       "sha256": "22e4ddc05a304b6bd0ef7a1b4fa18f745ee6ec925dcdaa4527762eec4cacf21e",
@@ -1416,7 +1541,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-36337",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 125
     },
     "2004606088293": {
       "sha256": "d5d787f076798b109e878051d9b40cba51db7186255b23d24911bbcdd2afa73d",
@@ -1427,7 +1553,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-69577",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 126
     },
     "2002764950018": {
       "sha256": "7d6aaa10885d737eb5434cb1b974de06ff6d457cfb9944c1c1db7fc023b51699",
@@ -1438,7 +1565,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-55346",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 127
     },
     "2004099998659": {
       "sha256": "89956479fe6d5308616b83140c64ac539a2a3b883a41b8628015ec2a920fbdf9",
@@ -1449,7 +1577,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-84212",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 128
     },
     "2001955256441": {
       "sha256": "2ff9ffaf3283554dc42aa699f46fe5c1a1b85b64995dc05f28702fc50aa7d40c",
@@ -1460,7 +1589,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-33370",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 129
     },
     "2009481547620": {
       "sha256": "5fa11505427fba397485381fc0083c2a93678c0d7bde8615e4c25f51c7ec9d8a",
@@ -1471,7 +1601,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-95899",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 130
     },
     "2005314460128": {
       "sha256": "167121728aa12ab84ac4f1d38087b2f6265fdf8c03b9e0db66e514ec4a6a82fc",
@@ -1482,7 +1613,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-54677",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 131
     },
     "2002393238600": {
       "sha256": "79d2a0dbc1b199e58694c6b31f2e5d1ff1f2f38fc09b64422945f3bbd13c82d4",
@@ -1493,7 +1625,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-51257",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 132
     },
     "2009661090762": {
       "sha256": "fc4ec03bdf3de41f1b8ed5beb60fa9488aa53b51cec9770e5b9ecf02cc397f94",
@@ -1504,7 +1637,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-56706",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 133
     },
     "2000927888437": {
       "sha256": "d1322ea4b1b09f2cdc7d29fe93f109d50b2a1a0eed0913caf1163d740e157e6b",
@@ -1515,7 +1649,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-57984",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 134
     },
     "2009346134583": {
       "sha256": "99e8c28cf23e8fe91ab2ba373a49b23728ca3b4543166771f5ac63fda4a3bdd2",
@@ -1526,7 +1661,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-39861",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 135
     },
     "2000500081705": {
       "sha256": "85a29fd36fa2e26bd63207b03d3a8e1ad868cec5adda13d8b30faf86718d6c6a",
@@ -1537,7 +1673,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-31945",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 136
     },
     "2001130191642": {
       "sha256": "0b488bd12ec95463ddcca9ccb4bebc7b4e1d1027fa8914c2e20c0a5c30d7911c",
@@ -1548,7 +1685,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-49057",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 137
     },
     "2008830625095": {
       "sha256": "5f228665bb4f4e1f1b545125ee711b90e2049420d5c4fa826eee5a92217496ed",
@@ -1559,7 +1697,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-74159",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 138
     },
     "2004955932148": {
       "sha256": "6c0a9f6c078efea884708df09ee356f73ba509ba021f72ec0329e48e572d94fe",
@@ -1570,7 +1709,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-46353",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 139
     },
     "2007021452137": {
       "sha256": "fbb4f8afb20079d5df14664c01fea6c08d4050213946613571b5e8ff88ab24bd",
@@ -1581,7 +1721,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-56401",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 140
     },
     "2009961568503": {
       "sha256": "4b7cd7a33c515a1500426f20d3d982443c8b5bf6b535e9c85af8813a60515db2",
@@ -1592,7 +1733,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-39369",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 141
     },
     "2004366967494": {
       "sha256": "d84c6501d727975647e23f5d33ee1058fd6980982b683937ccc97b64e37880ad",
@@ -1603,7 +1745,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-24639",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 142
     },
     "2009579944867": {
       "sha256": "e17c2b10124f1681e5e926fd962590f071129052047f5db43079f929a7ad23f6",
@@ -1614,7 +1757,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-20114",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 143
     },
     "2005887439408": {
       "sha256": "5aaf13460bb3081442410750ba267367242944a8ef69dfe929da0a7974239b04",
@@ -1625,7 +1769,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-61721",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 144
     },
     "2002625713202": {
       "sha256": "d854a7448fac343e0b6be9a142d18f49a884bec38167fd28df0c84e2c3382b38",
@@ -1636,7 +1781,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-84591",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 145
     },
     "2004252704769": {
       "sha256": "59c5da79d2666285d063a4b44f47b5284720a0c2ce2b078c1c0f1deed8a094cc",
@@ -1647,7 +1793,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-68073",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 146
     },
     "2000614717330": {
       "sha256": "1ebed048e275ddfade0681dc7ded8755f18c69448aba664d11414b17d1521bf5",
@@ -1658,7 +1805,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-19338",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 147
     },
     "2003877178405": {
       "sha256": "f090de1bb1ab29a9a1845386de76a97570bfdd7c44bac28225d278a0669bbed0",
@@ -1669,7 +1817,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-63064",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 148
     },
     "2000543244808": {
       "sha256": "cb92b01dfb6620093d5c8fd8819db114d401a1f313da1081b2e7da2b3a96ff00",
@@ -1680,7 +1829,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-89533",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 149
     },
     "2006835788449": {
       "sha256": "f94bbcd5c661a3436e8816deaac852d6f02bfafd4e76a352970e07f05d1979dc",
@@ -1691,7 +1841,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-18324",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 150
     },
     "2006422948898": {
       "sha256": "cf58a1066e8913dbdb5c9ee64aa89ddf46b51791fd88635c5bd0d6766f625269",
@@ -1702,7 +1853,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-12390",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 151
     },
     "2000162345122": {
       "sha256": "23c298f068df33107ab27ac83a89cc65b1d41d2240921f2ecc793bd1403bc210",
@@ -1713,7 +1865,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-15892",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 152
     },
     "2000491513827": {
       "sha256": "e027ff3c9c83c332f3b41d3d43a109de031b1197ccea1d943d044aa7beb73f96",
@@ -1724,7 +1877,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-43640",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 153
     },
     "2009541783623": {
       "sha256": "8f5aaa81d1ece9086299dc0dcc446d169935139e290756a83ad64be837ce1d3a",
@@ -1735,7 +1889,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-82046",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 154
     },
     "2003192885507": {
       "sha256": "b7f25c4aa1cc5fb3ea042fc59c70159637f4555ed79d604b30d46802673d3ae6",
@@ -1746,7 +1901,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-15880",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 155
     },
     "2002559903380": {
       "sha256": "17cfd7051df1972a0aabe10d77d38dd66be9d4220da38f5ed28ecff148430242",
@@ -1757,7 +1913,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-75616",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 156
     },
     "2006027035313": {
       "sha256": "ed07228bddce15930ed2213b224cf3dbbdcd074a1ab0c4ba289a7f60468628ab",
@@ -1768,7 +1925,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-70783",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 157
     },
     "2003323846292": {
       "sha256": "a9df431f62240fe7c76098133bc008a279b77dd56dca3aa53daef9a5326a0975",
@@ -1779,7 +1937,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-39244",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 158
     },
     "2006655217211": {
       "sha256": "48838bf1727280599da10f4072a6cacdbb123b44158b6fc604c83c9889fefe39",
@@ -1790,7 +1949,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-16953",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 159
     },
     "2005081429496": {
       "sha256": "9412a713ae05aaa125146e151f6b03a18ef89d208ae11e620d0ad9ed0db3cf65",
@@ -1801,7 +1961,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-38717",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 160
     },
     "2009666185425": {
       "sha256": "dc090775ed975e0bb664c1ce51c413cc13a88f64452b7ec35fb677d266103bae",
@@ -1812,7 +1973,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-14097",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 161
     },
     "2003276541596": {
       "sha256": "72076588b6669c2924af7a6722fd5f660af53574c735f18ef3da972b4ae48b0f",
@@ -1823,7 +1985,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-55445",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 162
     },
     "2009653175842": {
       "sha256": "1208e5f23f18bcc5a7d402bcc23a30260536ce4b32fadc82d08c01a1db34efd0",
@@ -1834,7 +1997,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-36986",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 163
     },
     "2009347890310": {
       "sha256": "e4f4f08a4abe68d89947bf2e67db674057b76d8e286350a66bd93ec7634d99a7",
@@ -1845,7 +2009,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-85078",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 164
     },
     "2000941057956": {
       "sha256": "d62a62ba14876f6608643534d7f1a02127a994c1dc67f44b0e8d7bd121af90c3",
@@ -1856,7 +2021,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-96260",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 165
     },
     "2004217643935": {
       "sha256": "c766f14890e2b41f457d1d8803c7150cfe67a56bcd7b78745dd55b0c61d30d29",
@@ -1867,7 +2033,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-81790",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 166
     },
     "2004224518592": {
       "sha256": "3d3141708868724a314348bf08ea325627acf0e4b0ddb39d6398329508d83693",
@@ -1878,7 +2045,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-38405",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 167
     },
     "2000538857785": {
       "sha256": "b7db8b7d615e6ac5dcda96c33bb96a1589618bbc6014aab434cf9a6da9a04f52",
@@ -1889,7 +2057,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-80088",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 168
     },
     "2000072137473": {
       "sha256": "b41d27cb40fca36f87d8349f99a619f0a60edfc3209be9859820ce8049c73cb3",
@@ -1900,7 +2069,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-82777",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 169
     },
     "2006693367565": {
       "sha256": "e91272b2a0c73f0cfaaa0be4fe1fdce729ddcccb10562618fbb2db62898ed8b4",
@@ -1911,7 +2081,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-28865",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 170
     },
     "2009309661309": {
       "sha256": "e18cc019fd650ea2fc75daa44da7a8ed04ffb39e9dd6b25b83983545d6821872",
@@ -1922,7 +2093,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-42551",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 171
     },
     "2005392482487": {
       "sha256": "cbe0b5c0746af7a9150b73d8e8cb611b89c0386adeda081c5da2ce9ba0bdf678",
@@ -1933,7 +2105,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-18861",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 172
     },
     "2004739516427": {
       "sha256": "8809f994487a02774f40b5f305773ab00a9e6ee2e24d56e849774064924c499a",
@@ -1944,7 +2117,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-17164",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 173
     },
     "2008425624007": {
       "sha256": "12a2f78c4b40fad7cbeeed462b74bce35522f6c1ef028123d3f5e5df2cc13560",
@@ -1955,7 +2129,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-69290",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 174
     },
     "2007683182472": {
       "sha256": "2a166ec1e5ab8a5a36489d5ad85e43059af91abab3a1df1886ace52a7b41f127",
@@ -1966,7 +2141,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-44932",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 175
     },
     "2007782957384": {
       "sha256": "60331272cc0118f75e4f00821b4f45265e154a16173d870c33a7a1558e256fba",
@@ -1977,7 +2153,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-51750",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 176
     },
     "2008628116675": {
       "sha256": "e5950f3b092ccb18829bf8ccfcebf6c1e6451dbaff95cc4e79e747226e7e5013",
@@ -1988,7 +2165,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-52549",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 177
     },
     "2000049716120": {
       "sha256": "a72b42d5aecef4356a8c0da2f0784ae625cd286522a38c6869d54fa28011b05c",
@@ -1999,7 +2177,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-48123",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 178
     },
     "2006776203186": {
       "sha256": "3a33a48ba9448e6fc97207c5996092ad854984b7eec3428441dcd953211d385e",
@@ -2010,7 +2189,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-78641",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 179
     },
     "2004194144210": {
       "sha256": "746e419a6f1c95431c1652a2ca31646e9c6b0452c32719388a08a59cfc8d8595",
@@ -2021,7 +2201,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-43492",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 180
     },
     "2006153139312": {
       "sha256": "7c712f79494109579dc0cd1c987dadcf93256e8f8e4d1dde1c3fced3f30e820b",
@@ -2032,7 +2213,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-71122",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 181
     },
     "2002321517876": {
       "sha256": "9738fbd887b9a604650ed17d678791ff1006f68f85d3e98b2234328b3508bceb",
@@ -2043,7 +2225,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-79318",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 182
     },
     "2004648657709": {
       "sha256": "f93392ef55dd43e21666b9567c899ab4c28fe236edeb54b5f93d384ba5b7e5ea",
@@ -2054,7 +2237,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-86112",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 183
     },
     "2007504640013": {
       "sha256": "838a90af792e6d4544a30d8f2513d0a542a91ea15890053da1121d568889d201",
@@ -2065,7 +2249,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-48433",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 184
     },
     "2007448822094": {
       "sha256": "1397db5a874e8610ee04f32bfc4bbd09a795f30b08fbe24f74a9c0e2d14ad821",
@@ -2076,7 +2261,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-51333",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 185
     },
     "2004765390763": {
       "sha256": "642f1151049695f68190da65b4f8c98274e9e6ab034c725274b7f6d0ad3074c4",
@@ -2087,7 +2273,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-89710",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 186
     },
     "2008804395696": {
       "sha256": "b9329799d90199644ff500d2eb0ba761f98a52d6c0a443441ed0c69aa0fd7911",
@@ -2098,7 +2285,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-58491",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 187
     },
     "2000748050532": {
       "sha256": "ea21789a99c0551a0ddbc8273a148d4e451410ff11f75e0e147f9f8d3a659f3d",
@@ -2109,7 +2297,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-24097",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 188
     },
     "2006776021087": {
       "sha256": "5a575a62d81c6eb9839414c6a4ea4160364c5c5ca30ef9a9cf3a4b863b72933c",
@@ -2120,7 +2309,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-53192",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 189
     },
     "2008192823009": {
       "sha256": "ff6abc5c35997a603c517337d9c8dc5b6e87b88ad4b8c96582bb87080a56dd7c",
@@ -2131,7 +2321,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-66480",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 190
     },
     "2004632424621": {
       "sha256": "d3098f9f0a0cad805844b95152a9d688535b454b25fbec78c45d3e8022f034de",
@@ -2142,7 +2333,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-45865",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 191
     },
     "2007421447603": {
       "sha256": "4b245845c857fc776066a0e78c04d7528337debca21c45518d429f2adde0f2f8",
@@ -2153,7 +2345,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-78041",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 192
     },
     "2003623109288": {
       "sha256": "94885be2a32cad6a264c2caae04f0439d2398835651e214e82581add9f54b110",
@@ -2164,7 +2357,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-36179",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 193
     },
     "2001877336337": {
       "sha256": "20b1c9b54e01b1632d1a83fb8d1ba8a80ce991f3849345df5400a9907f6d8681",
@@ -2175,7 +2369,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-24012",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 194
     },
     "2003170400227": {
       "sha256": "d7131cbb7a89de42889113457b9fc773bde094b9e17fbba1870156c052a8c996",
@@ -2186,7 +2381,8 @@
       "phase": "powder",
       "container_ml": 100.0,
       "lot": "LOT-20422",
-      "vessel_class": "bottle_100ml"
+      "vessel_class": "bottle_100ml",
+      "marker_id": 195
     },
     "2003873393826": {
       "sha256": "784ebd11fd3f17e739a55183697fd4ffd9024ca203196254a50d77d3fc09d876",
@@ -2197,7 +2393,8 @@
       "phase": "powder",
       "container_ml": 250.0,
       "lot": "LOT-40536",
-      "vessel_class": "bottle_250ml"
+      "vessel_class": "bottle_250ml",
+      "marker_id": 196
     },
     "2002656335688": {
       "sha256": "5a525be233afa2fa3b8d6aa4ae4f161bc0cffadbadcd022069f0b5a54bf8f320",
@@ -2208,7 +2405,8 @@
       "phase": "powder",
       "container_ml": 500.0,
       "lot": "LOT-67945",
-      "vessel_class": "bottle_500ml"
+      "vessel_class": "bottle_500ml",
+      "marker_id": 197
     },
     "2004713561962": {
       "sha256": "f4779c95f7db76867c9d2e1e53089678e1ef916a259f65f3985ae6c3cd868724",
@@ -2219,7 +2417,8 @@
       "phase": "powder",
       "container_ml": 1000.0,
       "lot": "LOT-24029",
-      "vessel_class": "bottle_1000ml"
+      "vessel_class": "bottle_1000ml",
+      "marker_id": 198
     },
     "2003200718797": {
       "sha256": "790702ff1df70684bf2a808e563dd865df17ad11ab554797d5dc5d70230336c7",
@@ -2230,7 +2429,8 @@
       "phase": "powder",
       "container_ml": 2000.0,
       "lot": "LOT-96527",
-      "vessel_class": "bottle_2000ml"
+      "vessel_class": "bottle_2000ml",
+      "marker_id": 199
     }
   }
 }

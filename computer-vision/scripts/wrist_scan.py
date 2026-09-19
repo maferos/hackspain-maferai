@@ -19,6 +19,14 @@ and 0.10 m the bars bend too far to rectify, at 8 degrees they still read. The
 render has no defocus, so reads closer than 0.30 m are optimistic for a real
 GoPro and the contact sheet says at which distance each one was made.
 
+Two things can be varied. ``--approach label`` parks the camera square in
+front of the label, which takes knowing how the bottle is turned: the best
+case. ``--approach aisle`` comes at the bottle from the aisle it stands beside,
+whichever way its label faces, which is what an arm gets. And ``--symbology``
+says what the bottles carry: ``ean`` for the one-sided EAN-13 label, ``aruco``
+for the ring of ``DICT_4X4_250`` markers, ``auto`` to ask the bottle kit's
+manifest. A ring has no side, so ``label`` means ``aisle`` for it.
+
 By default the thirteen hand-placed bottles are scanned plus a seeded draw
 from the gantry shelves, so every bottle size is covered and so is the
 scattered library.
@@ -35,7 +43,7 @@ import argparse
 import json
 import math
 import sys
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 
 import cv2
@@ -48,6 +56,15 @@ from labvision import reader, registry  # noqa: E402
 REPO = Path(__file__).resolve().parents[2]
 SCENE = REPO / "simulation" / "models" / "minihannover_scene.xml"
 TABLE = REPO / "computer-vision" / "barcodes" / "lookup_table.json"
+MANIFEST = REPO / "simulation" / "assets" / "labelled_bottles" / "manifest.json"
+ROOM_X0, ROOM_Y0 = -8.5, -2.9
+"""The entrance wall and the right wall, which the corner counters stand against."""
+
+CORNER_X = -7.0
+"""Bottles farther towards the entrance than this stand on the corner counters."""
+
+ARUCO_MODULES = 8
+"""Modules across one marker of the ring, quiet zone included."""
 DEFAULT_STANDOFFS_M = (0.30, 0.20, 0.15, 0.10)
 """Label-to-lens distances tried in order; 0.30 m is a GoPro's near focus."""
 
@@ -74,14 +91,17 @@ class Target:
         sample_id: Catalogue id, which is also what the barcode must resolve to.
         where: ``bench``, ``corner`` or ``shelf``.
         centre: Label centre in world metres.
-        normal: Horizontal unit vector pointing out of the label.
+        normal: Horizontal unit vector pointing out of the label, or None for
+            a label that goes all the way round.
+        axis: The bottle's axis in the floor plane.
         label_height_m: Vertical extent of the sticker, the printed label's width.
     """
 
     sample_id: str
     where: str
     centre: np.ndarray
-    normal: np.ndarray
+    normal: np.ndarray | None
+    axis: np.ndarray
     label_height_m: float
 
 
@@ -156,6 +176,8 @@ def find_targets(model: mujoco.MjModel, data: mujoco.MjData) -> dict[str, Target
         axis = data.geom_xpos[cap]
         centre = data.geom_xpos[geom].copy()
         normal = np.array([*(centre[:2] - axis[:2]), 0.0])
+        # A ring's centroid is on the axis: it has no side to face.
+        one_sided = np.linalg.norm(normal) > 1e-3
         mesh = model.geom_dataid[geom]
         start, count = model.mesh_vertadr[mesh], model.mesh_vertnum[mesh]
         vertices = (
@@ -166,7 +188,8 @@ def find_targets(model: mujoco.MjModel, data: mujoco.MjData) -> dict[str, Target
             sample_id,
             where,
             centre,
-            normal / np.linalg.norm(normal),
+            normal / np.linalg.norm(normal) if one_sided else None,
+            axis[:2].copy(),
             float(np.ptp(vertices[:, 2])),
         )
     return targets
@@ -212,14 +235,74 @@ def park(
     mujoco.mj_forward(model, data)
 
 
+def aisle_direction(target: Target) -> np.ndarray:
+    """Horizontal unit vector from a bottle towards the aisle it is reached from
+
+    The bench and its gantry run along X through the origin, with an aisle on
+    either side, so a bottle there is reached from its own side. The entrance
+    corner's counters stand against two walls, and a bottle there is reached
+    from the room, away from the nearer wall.
+    """
+    x, y = target.axis
+    if x < CORNER_X:
+        from_x_wall = x - ROOM_X0 < y - ROOM_Y0
+        return np.array([1.0, 0.0, 0.0]) if from_x_wall else np.array([0.0, 1.0, 0.0])
+    return np.array([0.0, 1.0 if y > 0 else -1.0, 0.0])
+
+
+def from_aisle(target: Target, radius_m: float) -> Target:
+    """The same bottle, aimed at from its aisle instead of from its label's side"""
+    direction = aisle_direction(target)
+    surface = np.array([*target.axis, target.centre[2]]) + radius_m * direction
+    return replace(target, centre=surface, normal=direction)
+
+
+def make_scanner(symbology: str, table: dict) -> "callable":
+    """Build ``frame -> [(code, corners or None, table row or None)]``
+
+    Args:
+        symbology: ``ean`` or ``aruco``.
+        table: The lookup table, whose rows carry ``marker_id``.
+
+    Returns:
+        A function that reads every symbol of that kind in a frame.
+    """
+    if symbology == "ean":
+
+        def scan_ean(frame: np.ndarray) -> list:
+            found = reader.resolve(reader.decode_image(frame), table)
+            return [(d.code, d.corners, row) for d, row in found]
+
+        return scan_ean
+
+    by_marker = {row["marker_id"]: row for row in table.values()}
+    parameters = cv2.aruco.DetectorParameters()
+    parameters.minMarkerPerimeterRate = 0.02
+    parameters.cornerRefinementMethod = cv2.aruco.CORNER_REFINE_SUBPIX
+    detector = cv2.aruco.ArucoDetector(
+        cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_4X4_250), parameters
+    )
+
+    def scan_aruco(frame: np.ndarray) -> list:
+        corners, ids, _ = detector.detectMarkers(frame)
+        if ids is None:
+            return []
+        return [
+            (f"aruco {int(i)}", c.reshape(4, 2), by_marker.get(int(i)))
+            for i, c in zip(ids.flatten(), corners, strict=True)
+        ]
+
+    return scan_aruco
+
+
 def annotate(frame: np.ndarray, found: list, expected: str) -> np.ndarray:
     """Draw every decoded symbol's quad, green for the bottle being scanned"""
     out = frame.copy()
-    for detection, row in found:
-        if detection.corners is None:
+    for _, corners, row in found:
+        if corners is None:
             continue
         hit = row is not None and row["sample_id"] == expected
-        quad = detection.corners.astype(np.int32).reshape(-1, 1, 2)
+        quad = corners.astype(np.int32).reshape(-1, 1, 2)
         cv2.polylines(out, [quad], True, GREEN if hit else AMBER, 4, cv2.LINE_AA)
     return out
 
@@ -296,6 +379,8 @@ def main() -> None:
         help="how many shelved bottles to add, drawn by --seed",
     )
     parser.add_argument("--seed", type=int, default=3)
+    parser.add_argument("--approach", choices=("label", "aisle"), default="label")
+    parser.add_argument("--symbology", choices=("auto", "ean", "aruco"), default="auto")
     parser.add_argument(
         "--standoffs", type=float, nargs="+", default=DEFAULT_STANDOFFS_M
     )
@@ -307,6 +392,11 @@ def main() -> None:
 
     table = registry.load_table(TABLE)
     by_id = {row["sample_id"]: row for row in table.values()}
+    manifest = json.loads(MANIFEST.read_text())
+    symbology = args.symbology
+    if symbology == "auto":
+        symbology = "aruco" if manifest.get("label") == "aruco_ring" else "ean"
+    scan_frame = make_scanner(symbology, table)
     entries = {
         e.sample.sample_id: e
         for e in registry.build_registry(registry.default_samples())
@@ -335,8 +425,15 @@ def main() -> None:
     scans, cells = [], []
     for sample_id in chosen:
         target, row = targets[sample_id], by_id[sample_id]
-        modules = registry.render_label(entries[sample_id], module_px=2).shape[1] / 2
+        if symbology == "aruco":
+            modules = ARUCO_MODULES
+        else:
+            label = registry.render_label(entries[sample_id], module_px=2)
+            modules = label.shape[1] / 2
         module_m = target.label_height_m / modules
+        if args.approach == "aisle" or target.normal is None:
+            radius = manifest["vessels"][row["vessel_class"]]["diameter_m"] / 2.0
+            target = from_aisle(target, radius)
         tried = []
         approaches = [(e, d) for e in ELEVATIONS_DEG for d in args.standoffs]
         for elevation, standoff in approaches:
@@ -345,20 +442,20 @@ def main() -> None:
             park(model, data, camera, target, standoff, elevation)
             renderer.update_scene(data, camera=camera)
             frame = cv2.cvtColor(renderer.render(), cv2.COLOR_RGB2BGR)
-            found = reader.resolve(reader.decode_image(frame), table)
+            found = scan_frame(frame)
             mine = [
-                d for d, r in found if r is not None and r["sample_id"] == sample_id
+                c for c, _, r in found if r is not None and r["sample_id"] == sample_id
             ]
             if mine:
                 break
         # A code that is in the table but is not this bottle's belongs to a neighbour
         # in shot. A code that is in no table at all is a misread.
         others = sorted(
-            {r["sample_id"] for _, r in found if r is not None} - {sample_id}
+            {r["sample_id"] for _, _, r in found if r is not None} - {sample_id}
         )
-        unknown = [d.code for d, r in found if r is None]
+        unknown = [c for c, _, r in found if r is None]
         if mine:
-            code, read_as, verdict = mine[0].code, sample_id, "ok"
+            code, read_as, verdict = mine[0], sample_id, "ok"
             others += [f"unknown {c}" for c in unknown]
         elif unknown:
             code, read_as, verdict = unknown[0], "not in the table", "wrong"

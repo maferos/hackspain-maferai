@@ -32,9 +32,10 @@
     <model name="balance" file="../assets/balance/balance.xml"/>
     <model name="gc_ms" file="../assets/gc_ms/gc_ms.xml"/>
     <model name="uv_vis_nir" file="../assets/uv_vis_nir/uv_vis_nir.xml"/>
-    <!-- Sample containers: every one is a catalogued sample carrying its own EAN-13
+    <!-- Sample containers: every one is a catalogued sample carrying a ring of eight ArUco markers
+         (DICT_4X4_250, its marker_id in the lookup table) in place of the earlier EAN-13
          label (assets/labelled_bottles, from tools/build_labelled_bottles.py). Powders
-         are in white HDPE bottles, liquids in amber glass; the barcode resolves to the
+         are in white HDPE bottles, liquids in amber glass; the marker resolves to the
          sample through computer-vision/barcodes/lookup_table.json. The rest of the
          catalogue stands on the gantry, put there by scripts/generate_lab_room.py, which
          lists these thirteen as PLACED_BY_SCENE so that no sample is in the room twice. -->
@@ -128,7 +129,7 @@
     <!-- wrist: a stand-in for the camera that will ride on the arm's wrist. It hovers
          9 cm over the bench edge, 0.30 m in front of the label of loose_2 (PWD-0012,
          Coumarin 250 ml) - 0.30 m is about as close as a GoPro's fixed focus stays
-         sharp - and its barcode decodes from this frame. The mount is a mocap body,
+         sharp - and its marker decodes from this frame. The mount is a mocap body,
          so the view can be flown around (data.mocap_pos / mocap_quat) until the
          camera moves onto the robot. -->
     <body name="wrist_camera_mount" mocap="true" pos="-2.459 -0.7639 0.99">

@@ -126,7 +126,12 @@ def test_default_samples_rejects_a_non_positive_count() -> None:
 
 def test_payload_is_stable_and_field_ordered() -> None:
     sample = registry.Sample(
-        "SMP-0001", "Limonene", "5989-27-5", "liquid", 50.0, "LOT-1234",
+        "SMP-0001",
+        "Limonene",
+        "5989-27-5",
+        "liquid",
+        50.0,
+        "LOT-1234",
     )
     assert sample.payload() == "SMP-0001|Limonene|5989-27-5|liquid|50|LOT-1234"
 
@@ -255,3 +260,20 @@ def test_write_label_images_writes_one_png_per_entry(tmp_path: Path) -> None:
     for entry, path in zip(entries, paths, strict=True):
         assert entry.code in path.name
         assert entry.sample.sample_id in path.name
+
+
+def test_every_sample_has_its_own_marker_within_the_dictionary() -> None:
+    """The bottles carry an ArUco ring; DICT_4X4_250 has 250 ids to deal out"""
+    entries = registry.build_registry(registry.default_samples())
+    ids = [e.marker_id for e in entries]
+    assert ids == list(range(len(entries)))
+    assert max(ids) < 250
+    rows = registry.to_table(entries)["entries"]
+    assert [row["marker_id"] for row in rows.values()] == ids
+
+
+def test_the_committed_table_carries_the_marker_ids() -> None:
+    table = registry.load_table(
+        Path(__file__).resolve().parents[1] / "barcodes" / "lookup_table.json"
+    )
+    assert sorted(row["marker_id"] for row in table.values()) == list(range(len(table)))

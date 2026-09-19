@@ -46,14 +46,16 @@ def accessor_array(glb: bottles.Glb, index: int, width: int, dtype: str) -> np.n
     accessor = glb.document["accessors"][index]
     view = glb.document["bufferViews"][accessor["bufferView"]]
     return np.frombuffer(
-        glb.buffer, dtype=dtype, count=accessor["count"] * width,
+        glb.buffer,
+        dtype=dtype,
+        count=accessor["count"] * width,
         offset=view.get("byteOffset", 0),
     ).reshape(-1, width)
 
 
 def label_image(glb: bottles.Glb) -> np.ndarray:
     view = glb.document["bufferViews"][glb.document["images"][-1]["bufferView"]]
-    png = glb.buffer[view["byteOffset"]:view["byteOffset"] + view["byteLength"]]
+    png = glb.buffer[view["byteOffset"] : view["byteOffset"] + view["byteLength"]]
     return cv2.imdecode(np.frombuffer(png, dtype=np.uint8), cv2.IMREAD_COLOR)
 
 
@@ -141,7 +143,7 @@ def test_label_goes_on_the_bottle_of_its_own_size(entry: registry.Entry) -> None
 def test_label_sits_on_the_straight_wall(entry: registry.Entry) -> None:
     bottle = bottles.read_glb(bottles.bottle_path(entry.sample, ASSETS))
     wall = bottles.straight_wall(bottle)
-    _, patch = bottles.labelled_bottle(entry, ASSETS)
+    _, patch = bottles.labelled_bottle(entry, ASSETS, "ean13")
 
     radii = np.hypot(patch.positions[:, 0], patch.positions[:, 2])
     assert radii == pytest.approx(wall.radius_m + bottles.LABEL_OFFSET_M, abs=1e-6)
@@ -156,7 +158,9 @@ def test_label_sits_on_the_straight_wall(entry: registry.Entry) -> None:
 
 @pytest.mark.parametrize("phase", ["liquid", "powder"])
 def test_bigger_bottles_get_bigger_labels(phase: str) -> None:
-    patches = [bottles.labelled_bottle(e, ASSETS)[1] for e in entries_of(phase)[:5]]
+    patches = [
+        bottles.labelled_bottle(e, ASSETS, "ean13")[1] for e in entries_of(phase)[:5]
+    ]
     modules = [patch.module_m for patch in patches]
     assert modules == sorted(modules)
     assert modules[0] < modules[-1]
@@ -167,14 +171,14 @@ def test_label_is_turned_so_its_width_runs_up_the_bottle(
     entry: registry.Entry,
 ) -> None:
     """Ladder orientation: the long side of the label is vertical."""
-    _, patch = bottles.labelled_bottle(entry, ASSETS)
+    _, patch = bottles.labelled_bottle(entry, ASSETS, "ean13")
     assert patch.height_m > patch.width_m
     assert patch.height_m / patch.width_m == pytest.approx(LABEL_ASPECT, rel=1e-6)
 
 
 def test_no_powder_label_is_smaller_than_nominal_by_much() -> None:
     """The point of turning the labels: even the 100 ml one is near full size."""
-    smallest = bottles.labelled_bottle(entries_of("powder")[0], ASSETS)[1]
+    smallest = bottles.labelled_bottle(entries_of("powder")[0], ASSETS, "ean13")[1]
     assert smallest.module_m / bottles.NOMINAL_MODULE_M > 0.9
 
 
@@ -183,11 +187,11 @@ def test_liquid_labels_are_as_large_as_their_short_bottles_allow() -> None:
     for entry in entries_of("liquid")[:5]:
         bottle = bottles.read_glb(bottles.bottle_path(entry.sample, ASSETS))
         wall = bottles.straight_wall(bottle)
-        _, patch = bottles.labelled_bottle(entry, ASSETS)
+        _, patch = bottles.labelled_bottle(entry, ASSETS, "ean13")
         room = wall.top_m - wall.bottom_m - 2 * bottles.WALL_MARGIN_M
         assert patch.height_m == pytest.approx(room, abs=1e-6), entry.sample.sample_id
     # The 10 ml bottle is 52 mm tall, and its label is still over half size.
-    smallest = bottles.labelled_bottle(entries_of("liquid")[0], ASSETS)[1]
+    smallest = bottles.labelled_bottle(entries_of("liquid")[0], ASSETS, "ean13")[1]
     assert smallest.module_m / bottles.NOMINAL_MODULE_M > 0.6
 
 
@@ -225,8 +229,9 @@ def test_labelling_leaves_the_bottle_untouched(phase: str) -> None:
     labelled, _ = bottles.labelled_bottle(entry, ASSETS)
     assert labelled.buffer[: len(bottle.buffer)] == bottle.buffer
     assert labelled.document["meshes"][:-1] == bottle.document["meshes"]
-    assert labelled.document["materials"][: len(bottle.document["materials"])] == (
-        bottle.document["materials"]
+    assert (
+        labelled.document["materials"][: len(bottle.document["materials"])]
+        == (bottle.document["materials"])
     )
     label_node = len(labelled.document["nodes"]) - 1
     parent = labelled.document["nodes"][bottles.bottle_node(labelled)]
@@ -320,7 +325,7 @@ def test_embedded_label_decodes_flat_and_wrapped(entry: registry.Entry) -> None:
     Checked twice: flat, as embedded, and as a camera facing the bottle sees it,
     turned a quarter turn and squeezed round the cylinder.
     """
-    labelled, patch = bottles.labelled_bottle(entry, ASSETS)
+    labelled, patch = bottles.labelled_bottle(entry, ASSETS, "ean13")
     flat = label_image(labelled)
     assert flat.shape[1] > flat.shape[0]
     assert {d.code for d in reader.decode_image(flat)} == {entry.code}
@@ -335,7 +340,95 @@ def test_embedded_label_decodes_flat_and_wrapped(entry: registry.Entry) -> None:
 def test_ladder_labels_survive_far_more_wrap_than_upright_ones(arc_deg: int) -> None:
     """Curvature squeezes bar lengths, not widths, once the label is turned."""
     entry = entries_of("powder")[0]
-    flat = label_image(bottles.labelled_bottle(entry, ASSETS)[0])
+    flat = label_image(bottles.labelled_bottle(entry, ASSETS, "ean13")[0])
     on_bottle = cv2.rotate(flat, cv2.ROTATE_90_COUNTERCLOCKWISE)
     wrapped = seen_on_cylinder(on_bottle, arc_deg)
     assert {d.code for d in reader.decode_image(wrapped)} == {entry.code}
+
+
+# --- The ArUco ring, which is what the kits are built with ---------------------
+
+
+def test_the_ring_is_the_label_the_kits_are_built_with() -> None:
+    assert bottles.LABELS[0] == "aruco_ring"
+    labelled, patch = bottles.labelled_bottle(one_entry_per_size()[0], ASSETS)
+    node = next(
+        n for n in labelled.document["nodes"] if n.get("name", "").startswith("Label_")
+    )
+    assert node["extras"]["label"] == "aruco_ring"
+    assert patch.arc_deg == 360.0
+
+
+def test_an_unknown_label_is_rejected() -> None:
+    with pytest.raises(bottles.BottleError, match="no such label"):
+        bottles.labelled_bottle(one_entry_per_size()[0], ASSETS, "qr")
+
+
+@pytest.mark.parametrize(
+    "entry", one_entry_per_size(), ids=lambda e: e.sample.vessel_class
+)
+def test_ring_goes_all_the_way_round_the_straight_wall(entry: registry.Entry) -> None:
+    wall = bottles.straight_wall(
+        bottles.read_glb(bottles.bottle_path(entry.sample, ASSETS))
+    )
+    _, patch = bottles.labelled_bottle(entry, ASSETS)
+    radii = np.hypot(patch.positions[:, 0], patch.positions[:, 2])
+    assert radii == pytest.approx(wall.radius_m + bottles.LABEL_OFFSET_M, abs=1e-6)
+    assert patch.positions[:, 1].min() >= wall.bottom_m + bottles.WALL_MARGIN_M - 1e-6
+    assert patch.positions[:, 1].max() <= wall.top_m - bottles.WALL_MARGIN_M + 1e-6
+    angles = np.degrees(np.arctan2(patch.positions[:, 0], patch.positions[:, 2]))
+    assert angles.min() == pytest.approx(-180.0, abs=1e-3)
+    assert angles.max() == pytest.approx(180.0, abs=1e-3)
+
+
+@pytest.mark.parametrize(
+    "entry", one_entry_per_size(), ids=lambda e: e.sample.vessel_class
+)
+def test_ring_cells_are_square_so_the_markers_are(entry: registry.Entry) -> None:
+    _, patch = bottles.labelled_bottle(entry, ASSETS)
+    assert patch.width_m / bottles.RING_COPIES == pytest.approx(
+        patch.height_m, rel=1e-6
+    )
+    cell = bottles.ARUCO_MARKER_MODULES + 2 * bottles.ARUCO_QUIET_MODULES
+    assert patch.module_m * cell == pytest.approx(patch.height_m, rel=1e-6)
+
+
+def test_ring_modules_are_several_times_the_barcodes() -> None:
+    """The point of the ring: a module a camera can resolve from arm's length"""
+    for entry in one_entry_per_size():
+        _, ring = bottles.labelled_bottle(entry, ASSETS)
+        _, barcode = bottles.labelled_bottle(entry, ASSETS, "ean13")
+        assert ring.module_m > 4 * barcode.module_m
+
+
+def test_ring_texture_reads_back_as_the_samples_marker() -> None:
+    detector = cv2.aruco.ArucoDetector(
+        cv2.aruco.getPredefinedDictionary(bottles.ARUCO_DICTIONARY),
+        cv2.aruco.DetectorParameters(),
+    )
+    for entry in one_entry_per_size():
+        labelled, _ = bottles.labelled_bottle(entry, ASSETS)
+        strip = label_image(labelled)
+        _, ids, _ = detector.detectMarkers(strip)
+        # The strip is rolled by half a cell, so one copy is split across the seam.
+        assert ids is not None and len(ids) == bottles.RING_COPIES - 1
+        assert set(ids.flatten().tolist()) == {entry.marker_id}
+
+
+def test_a_marker_not_a_seam_faces_the_front() -> None:
+    strip = bottles.render_ring(7)
+    cell = strip.shape[1] // bottles.RING_COPIES
+    middle = strip[:, strip.shape[1] // 2 - cell // 2 : strip.shape[1] // 2 + cell // 2]
+    detector = cv2.aruco.ArucoDetector(
+        cv2.aruco.getPredefinedDictionary(bottles.ARUCO_DICTIONARY),
+        cv2.aruco.DetectorParameters(),
+    )
+    _, ids, _ = detector.detectMarkers(
+        cv2.copyMakeBorder(middle, 40, 40, 40, 40, cv2.BORDER_CONSTANT, value=255)
+    )
+    assert ids is not None and ids.flatten().tolist() == [7]
+
+
+def test_render_ring_rejects_an_id_outside_the_dictionary() -> None:
+    with pytest.raises(bottles.BottleError, match="no id"):
+        bottles.render_ring(250)
