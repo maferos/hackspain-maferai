@@ -26,3 +26,9 @@ data/
 *.mp4
 *.log
 mobileclip*.ts
+
+# Menagerie models, fetched by simulation/scripts/fetch_menagerie.sh. No
+# trailing slash: the sparse clone carries its own .git, so `git add` turns the
+# directory into a gitlink with no .gitmodules entry behind it, and everyone
+# who clones gets an empty directory git then reports as modified for ever.
+simulation/third_party/mujoco_menagerie
