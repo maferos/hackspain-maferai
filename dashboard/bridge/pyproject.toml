@@ -1,0 +1,16 @@
+[project]
+name = "labbridge"
+version = "0.1.0"
+description = "Publishes the Autonomous Formulation Lab state and camera frames to the dashboard"
+requires-python = ">=3.10"
+dependencies = ["websockets>=13", "numpy"]
+
+[project.optional-dependencies]
+sim = ["mujoco>=3.1", "opencv-python"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["labbridge*"]
