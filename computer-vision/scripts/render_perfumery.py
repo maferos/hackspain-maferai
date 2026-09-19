@@ -71,7 +71,13 @@ BENCH_Y = (0.08, 0.72)
 """Distance from the bench spine a bottle may stand at: clear of the gantry's
 splash glass at y = 0 and 3 cm in from the 0.75 m edge."""
 BENCH_HALF = (3.0, 0.75)
-"""Half length and half depth of the worktop, centred on the world origin."""
+"""Half length and half depth of the worktop the bottles are scored on."""
+BENCH_CENTER = (0.0, 0.0)
+"""Where that worktop is centred. The shelved minihannover puts its bench on
+the world origin; the open desk the rail scene is built on sits at (-1.5, -0.4),
+and a scene whose bench is elsewhere sets this before reading :func:`where_is`
+--- ``propose_confirm.py --worktop-center`` does exactly that. Left at the
+origin every earlier run scores as it did."""
 
 WRIST_RANGE = (0.25, 0.6)
 """Wrist camera to its target bottle, metres. 0.25 is about where a GoPro's fixed
@@ -153,7 +159,8 @@ def yaw_quat(yaw: float) -> np.ndarray:
 def where_is(position: np.ndarray) -> str:
     """Say whether a bottle base is on the worktop, on a shelf above it, or elsewhere"""
     x, y, z = position
-    if abs(x) <= BENCH_HALF[0] and abs(y) <= BENCH_HALF[1]:
+    if (abs(x - BENCH_CENTER[0]) <= BENCH_HALF[0]
+            and abs(y - BENCH_CENTER[1]) <= BENCH_HALF[1]):
         if abs(z - WORKTOP_Z) < 0.02:
             return "bench"
         if z > WORKTOP_Z + 0.2:

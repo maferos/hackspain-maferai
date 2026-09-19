@@ -58,6 +58,7 @@ manage at about two frames a second.
 """
 import argparse
 import http.server
+import itertools
 import json
 import math
 import sys
@@ -78,7 +79,7 @@ import grasp_test as gt
 import rail_kinematics as rk
 from generate_rail_scene import BENCH_X, BENCH_Y
 from labvision import registry
-from labvision.camera import Camera
+from labvision.camera import Camera, Intrinsics
 from labvision.identify import (
     DEFAULT_TABLE,
     MarkerReader,
@@ -96,7 +97,7 @@ from labvision.perception import (
     ring_geometry,
     vessel_height,
 )
-from labvision.scene import BBox, gopro_intrinsics
+from labvision.scene import BBox
 
 # The fixed camera's detectors, best first, each with its threshold; the first
 # whose weights are on disk is used. ``rail`` was trained on this scene's own
@@ -124,6 +125,15 @@ STANDOFF = 0.36
 ELEVATION = 25.0
 LOOK_ABOVE_BENCH = 0.05     # the camera aims this far above the proposal's base
 CLEARANCE = 0.25            # the look pose is entered and left from this far above
+# During the initial scan the arm does not climb back to the carry pose between
+# looks. It hops from one view to the next with its lowest point never nearer
+# than HOVER_MARGIN to the top of the tallest flask on the bench (the floor),
+# and it waits HUB_ABOVE over that floor: about 20 cm lower than the carry pose
+# over a bench of 100 ml flasks, and lower still over smaller ones.
+HOVER_MARGIN = 0.03
+HUB_ABOVE = (0.03, 0.08)    # how far over the floor the low poses stand, tried in turn
+SLIDE_STEP = 0.10           # waypoint spacing when the hand slides without turning
+LIFTS = (0.12, 0.25)        # how high a slide may climb to clear what is in its way
 MAX_LOOKS = 2               # bearings tried before a proposal is called empty
 # Bearings the camera can stand at, from the bottle. The rail side first while
 # the camera still clears the gantry beam at y = 0.30, the aisle side otherwise.
@@ -170,6 +180,7 @@ RING_ASSOCIATE = 0.08
 # pixels across, and a bottle on a shelf past the bench, placed as if it stood
 # on the worktop, lands somewhere wrong.
 RING_RANGE = 1.2
+SAME_BOTTLE = 0.03          # two rings placed this close are on one bottle
 CATALOGUE_FIELDS = ('material', 'cas', 'phase', 'container_ml', 'lot', 'vessel_class')
 
 
@@ -240,6 +251,7 @@ class World:
         self.cycle_seconds = 0.0
         self.caption = 'starting'
         self.scan: dict | None = None       # the initial scan's record, once it is done
+        self.scene = GRIPPER_SCENE.relative_to(REPO).as_posix()    # for the bench map
         self._next = 1
 
     def log(self, clock: float, text: str) -> None:
@@ -321,6 +333,10 @@ class World:
                 if any(t.sample == ring.sample_id and t.state != 'lost'
                        for t in self.tracks.values()):
                     continue
+                if any(t.sample and t.state != 'lost'
+                       and math.dist(ring.refined_xy, t.xy) < SAME_BOTTLE
+                       for t in self.tracks.values()):
+                    continue        # that bottle has a name already: a misread
                 near = [(math.dist(ring.refined_xy, t.seen_xy), t) for t in self.tracks.values()
                         if t.state in ('tentative', 'proposed', 'empty', 'unreachable')]
                 near = [pair for pair in near if pair[0] < RING_ASSOCIATE]
@@ -400,10 +416,7 @@ class Eyes:
         On hardware this is the fixed camera's calibration, and for the wrist
         the arm's forward kinematics; neither is a peek at the scene.
         """
-        cam = self.model.camera(name).id
-        width, height = (int(v) for v in self.model.cam_resolution[cam])
-        return Camera.from_mujoco(gopro_intrinsics(width, height),
-                                  self.data.cam_xpos[cam], self.data.cam_xmat[cam])
+        return camera_at(self.model, self.data, name)
 
     def close(self) -> None:
         """Free the OpenGL contexts."""
@@ -469,17 +482,52 @@ def rings_in_view(frame: np.ndarray, camera: Camera, rows: dict[int, dict],
         out.append(Confirmation(sample_id=identity.sample_id, marker_id=identity.marker_id,
                                 votes=identity.votes, phase=row.get('phase'),
                                 refined_xy=xy))
-    return out
+    # Two identities placed on one spot are one bottle with a marker misread:
+    # measured, a single bit error on SMP-0044's ring read as SMP-0018, 5 mm
+    # away. The ring with more markers read wins; a tie names neither.
+    return [ring for ring in out if all(
+        ring.votes > other.votes for other in out
+        if other.sample_id != ring.sample_id
+        and math.dist(other.refined_xy, ring.refined_xy) < SAME_BOTTLE)]
+
+
+def camera_at(model: mujoco.MjModel, data: mujoco.MjData, name: str) -> Camera:
+    """The pinhole model of a named camera where it stands in ``data``.
+
+    The optics are the ones the scene gives the camera, its resolution and
+    vertical field of view, not an assumed lens.
+    """
+    cam = model.camera(name).id
+    width, height = (int(v) for v in model.cam_resolution[cam])
+    return Camera.from_mujoco(
+        Intrinsics.from_fov(width, height, fovy_deg=float(model.cam_fovy[cam])),
+        data.cam_xpos[cam], data.cam_xmat[cam])
+
+
+def flask_pixels(xy: tuple[float, float], camera: Camera) -> float:
+    """How many pixels tall the tallest sample flask looks standing at a place."""
+    foot = np.array([*xy, rk.BENCH_TOP])
+    ends = camera.project(np.array([foot, foot + (0.0, 0.0, FLASK_HEIGHT)]))
+    return float(np.linalg.norm(ends[1] - ends[0]))
 
 
 def flask_sized(proposal: Proposal, camera: Camera) -> bool:
     """Whether a box is no bigger than a sample flask would look where it stands."""
-    foot = np.array([*proposal.xy, rk.BENCH_TOP])
-    ends = camera.project(np.array([foot, foot + (0.0, 0.0, FLASK_HEIGHT)]))
-    flask = float(np.linalg.norm(ends[1] - ends[0]))
+    flask = flask_pixels(proposal.xy, camera)
     box = proposal.bbox
     return (box.v_max - box.v_min <= MAX_BOX[0] * flask
             and box.u_max - box.u_min <= MAX_BOX[1] * flask)
+
+
+def box_height(track: Track, camera: Camera) -> float:
+    """How tall the fixed camera's box says a flask is, in metres.
+
+    The box's height against a 115 mm flask's at the same place. The box takes
+    in the rim of the base and the top seen from above, so this comes out a
+    little tall, which is the safe side for something the arm must pass over.
+    """
+    box = track.bbox
+    return (box.v_max - box.v_min) / flask_pixels(track.seen_xy, camera) * FLASK_HEIGHT
 
 
 GRIPPER_SCENE = rk.SIM /'models/minihannover_rail_gripper_scene.xml'
@@ -487,15 +535,23 @@ GRIPPER_ARM = rk.SIM / 'assets/ur10e_2f85_gripper'
 
 
 def gripper_scene() -> Path:
-    """The rail scene with the Robotiq on the flange, built if it is not there.
+    """The rail scene with the Robotiq on the flange, built if it is out of date.
 
     The scene as shipped carries the pipette, and a pipette cannot pick a bottle
     up. generate_rail_scene.py builds either tool but writes both to the same
     files, so this runs it with the tool switched and its outputs pointed
     elsewhere, leaving the pipetting scene as it was. Both outputs are
     gitignored: they are one command away and would only go stale.
+
+    Which is exactly what they did. A build older than the generator or than the
+    scene it is built from is rebuilt: editing the generator and seeing the old
+    bench is a long way to debug, because the file is there and looks current.
     """
-    if GRIPPER_SCENE.exists() and (GRIPPER_ARM / 'ur10e_2f85.xml').exists():
+    sources = [Path(__file__).resolve(), rk.SIM / 'scripts/generate_rail_scene.py',
+               rk.SCENE]
+    if (GRIPPER_SCENE.exists() and (GRIPPER_ARM / 'ur10e_2f85.xml').exists()
+            and all(s.exists() and s.stat().st_mtime <= GRIPPER_SCENE.stat().st_mtime
+                    for s in sources)):
         return GRIPPER_SCENE
     import generate_rail_scene as gen
     shipped = f'../{gen.ARM_DIR.relative_to(rk.SIM).as_posix()}/'
@@ -579,7 +635,7 @@ class Perception(threading.Thread):
 
     def __init__(self, model: mujoco.MjModel, live: mujoco.MjData,
                  physics: threading.Lock, world: World, detector: Detector,
-                 show: Show, video: Path | None) -> None:
+                 show: Show | None, video: Path | None) -> None:
         super().__init__(daemon=True)
         self.model, self.live, self.physics = model, live, physics
         self.world, self.detector, self.show, self.video = world, detector, show, video
@@ -649,11 +705,14 @@ class Perception(threading.Thread):
                     lambda xy, on_arm=on_arm, camera=camera: on_arm(camera.project(
                         np.array([xy[0], xy[1], rk.BENCH_TOP + 0.03]))))
                 self.score()
-                drawn = annotate(general, self.world.snapshot(), camera)
-                self.show.general.publish(jpeg(drawn))
-                small = eyes.frame('arm_eih', (960, 540))
-                self.show.wrist.publish(jpeg(small))
                 self.world.cycle_seconds = time.time() - started
+                if self.show is None and not self.video:
+                    continue            # someone else shows the cameras
+                drawn = annotate(general, self.world.snapshot(), camera)
+                small = eyes.frame('arm_eih', (960, 540))
+                if self.show is not None:
+                    self.show.general.publish(jpeg(drawn))
+                    self.show.wrist.publish(jpeg(small))
                 if self.video:
                     if writer is None:
                         self.video.parent.mkdir(parents=True, exist_ok=True)
@@ -701,6 +760,48 @@ class Perception(threading.Thread):
                                if off < MATCH else {'body': None, 'error_mm': None})
 
 
+def unwrap(model: mujoco.MjModel, q: np.ndarray, ref: np.ndarray) -> np.ndarray:
+    """The same arm pose with each joint a whole number of turns nearest ``ref``.
+
+    The UR10e's joints turn through two full turns, so an angle and that angle
+    plus 360 degrees put the hand in the same place. IK returns whichever it
+    converges to, and a servo ramped to the other one spins the hand round a
+    full turn to arrive where it almost was: measured, 341 degrees of hand
+    rotation in a single move between two views that look the same way.
+    """
+    out = q.copy()
+    for i, name in enumerate(rk.ARM_JOINTS):
+        joint = model.joint(name)
+        lo, hi = joint.range if model.jnt_limited[joint.id] else (-np.inf, np.inf)
+        turns = round((ref[i] - q[i]) / (2 * math.pi))
+        options = [q[i] + 2 * math.pi * k for k in (turns - 1, turns, turns + 1)]
+        options = [v for v in options if lo <= v <= hi]
+        if options:
+            out[i] = min(options, key=lambda v, r=ref[i]: abs(v - r))
+    return out
+
+
+def ik(model: mujoco.MjModel, scratch: mujoco.MjData, target: np.ndarray,
+       ref: np.ndarray, **kwargs) -> bool:
+    """rail_kinematics.solve_ik, with the answer turned to lie nearest ``ref``.
+
+    Args:
+        model: Compiled scene.
+        scratch: Data to solve in; its arm angles hold the answer.
+        target: World target of the driven site.
+        ref: The arm pose the move starts from.
+        **kwargs: Forwarded to :func:`rail_kinematics.solve_ik`.
+
+    Returns:
+        Whether IK converged.
+    """
+    if not rk.solve_ik(model, scratch, target, **kwargs):
+        return False
+    arm = rk.arm_qpos(model)
+    scratch.qpos[arm] = unwrap(model, scratch.qpos[arm], np.asarray(ref))
+    return True
+
+
 def blocked(model: mujoco.MjModel, data: mujoco.MjData) -> bool:
     """Whether the posed arm touches the room or itself.
 
@@ -720,9 +821,30 @@ def blocked(model: mujoco.MjModel, data: mujoco.MjData) -> bool:
     return False
 
 
+_ARM_GEOMS: dict[int, np.ndarray] = {}
+
+
+def lowest_point(model: mujoco.MjModel, data: mujoco.MjData) -> float:
+    """Height of the lowest point of the arm and its tool, from their geoms' boxes."""
+    arm = _ARM_GEOMS.get(id(model))
+    if arm is None:
+        bodies = [b for b in range(model.nbody) if model.body(b).name.startswith('arm_')]
+        arm = _ARM_GEOMS[id(model)] = np.flatnonzero(np.isin(model.geom_bodyid, bodies))
+    centre, half = model.geom_aabb[arm, :3], model.geom_aabb[arm, 3:]
+    up = data.geom_xmat[arm].reshape(-1, 3, 3)[:, 2, :]   # each local axis' world z
+    z = (data.geom_xpos[arm, 2] + np.einsum('ij,ij->i', up, centre)
+         - np.einsum('ij,ij->i', np.abs(up), half))
+    return float(z.min())
+
+
 def path_clear(model: mujoco.MjModel, scratch: mujoco.MjData,
-               start: tuple[float, np.ndarray], goal: tuple[float, np.ndarray]) -> bool:
+               start: tuple[float, np.ndarray], goal: tuple[float, np.ndarray],
+               floor: float | None = None) -> bool:
     """Whether the straight joint-space move between two poses touches nothing.
+
+    With ``floor``, the arm's lowest point must also stay above that height the
+    whole way: the free flasks are not in :func:`blocked`, so passing over them
+    is a matter of height.
 
     The servos are ramped from one pose to the other joint by joint, so this is
     the path the arm will take. It matters: the first live run solved a grasp
@@ -736,7 +858,8 @@ def path_clear(model: mujoco.MjModel, scratch: mujoco.MjData,
     for f in np.linspace(0.0, 1.0, math.ceil(span) + 1):
         rk.set_rail(model, scratch, x0 + f * (x1 - x0))
         scratch.qpos[rk.arm_qpos(model)] = q0 + f * (q1 - q0)
-        if blocked(model, scratch):
+        if blocked(model, scratch) or (floor is not None
+                                       and lowest_point(model, scratch) < floor):
             return False
     return True
 
@@ -768,7 +891,7 @@ def carry_pose(model: mujoco.MjModel, scratch: mujoco.MjData,
     station = rk.set_rail(model, scratch, float(model.body('rail_carriage').pos[0]))
     target = np.array([station, *CARRY])
     for seed in (HAND_DOWN, *rk.SEED_POSES):
-        if not rk.solve_ik(model, scratch, target, seed=np.array(seed)) \
+        if not ik(model, scratch, target, start, seed=np.array(seed)) \
                 or blocked(model, scratch):
             continue
         pose = scratch.qpos[rk.arm_qpos(model)].copy()
@@ -805,11 +928,11 @@ def plan(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
         if not rk.ENVELOPE[0] <= reach <= rk.ENVELOPE[1]:
             continue
         for seed in (carry, *map(np.array, (HAND_DOWN, *rk.SEED_POSES))):
-            if not rk.solve_ik(model, scratch, first, seed=seed, **kwargs) \
+            if not ik(model, scratch, first, carry, seed=seed, **kwargs) \
                     or blocked(model, scratch):
                 continue
             q_first = scratch.qpos[rk.arm_qpos(model)].copy()
-            if not rk.solve_ik(model, scratch, second, seed=q_first, **kwargs) \
+            if not ik(model, scratch, second, q_first, seed=q_first, **kwargs) \
                     or blocked(model, scratch):
                 continue
             q_second = scratch.qpos[rk.arm_qpos(model)].copy()
@@ -828,12 +951,62 @@ def plan_look(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
         The carriage station, the arm pose well above the view, and the arm pose
         at the view; or None when this bearing cannot be held.
     """
+    eye, gaze = look_view(target, bearing_deg)
+    return plan(model, scratch, carry, eye + (0.0, 0.0, CLEARANCE), eye,
+                approach=gaze, site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0))
+
+
+def look_view(target: np.ndarray, bearing_deg: float) -> tuple[np.ndarray, tuple]:
+    """Where the wrist camera stands to look at a target from a bearing, and its gaze."""
     rise, turn = math.radians(ELEVATION), math.radians(bearing_deg)
     offset = STANDOFF * np.array([math.cos(rise) * math.cos(turn),
                                   math.cos(rise) * math.sin(turn), math.sin(rise)])
-    eye, gaze = target + offset, tuple(-offset / np.linalg.norm(offset))
-    return plan(model, scratch, carry, eye + (0.0, 0.0, CLEARANCE), eye,
-                approach=gaze, site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0))
+    return target + offset, tuple(-offset / np.linalg.norm(offset))
+
+
+def hover_pose(model: mujoco.MjModel, scratch: mujoco.MjData, station: float,
+               q_look: np.ndarray, eye: np.ndarray, gaze: tuple, floor: float
+               ) -> np.ndarray | None:
+    """The view pose raised to clear ``floor``, camera aimed the same way.
+
+    It stands a little over the floor, as the hub does, since moving between
+    two poses sweeps the hand a centimetre or two below both.
+
+    Returns:
+        The arm pose, or None if it cannot be held or the way down to the view
+        is not clear; the caller then uses the view's usual pose above.
+    """
+    rk.set_rail(model, scratch, station)
+    scratch.qpos[rk.arm_qpos(model)] = q_look
+    mujoco.mj_forward(model, scratch)
+    rise = max(floor - lowest_point(model, scratch) + HUB_ABOVE[0], 0.03)
+    if not ik(model, scratch, eye + (0.0, 0.0, rise), q_look, seed=q_look, approach=gaze,
+              site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)) \
+            or blocked(model, scratch) or lowest_point(model, scratch) < floor:
+        return None
+    q = scratch.qpos[rk.arm_qpos(model)].copy()
+    return q if path_clear(model, scratch, (station, q), (station, q_look)) else None
+
+
+def hub_pose(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
+             floor: float) -> np.ndarray | None:
+    """The carry pose lowered until the arm's lowest point stands at ``floor``.
+
+    Returns:
+        The arm pose, or None if it is not lower than the carry pose or cannot
+        be held.
+    """
+    station = rk.set_rail(model, scratch, float(model.body('rail_carriage').pos[0]))
+    scratch.qpos[rk.arm_qpos(model)] = carry
+    mujoco.mj_forward(model, scratch)
+    drop = lowest_point(model, scratch) - floor
+    if drop <= 0.02:
+        return None
+    target = np.array([station, CARRY[0], CARRY[1] - drop])
+    if not ik(model, scratch, target, carry, seed=carry) or blocked(model, scratch) \
+            or lowest_point(model, scratch) < floor:
+        return None
+    return scratch.qpos[rk.arm_qpos(model)].copy()
 
 
 def plan_grasp(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
@@ -871,12 +1044,16 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         A short line describing what is happening.
     """
     ids = gt.actuators(model)
-    grip_id = model.actuator('arm_grip_fingers_actuator').id
+    # The pipetting scene has no gripper: it can scan and look, not pick.
+    grip_id = (model.actuator('arm_grip_fingers_actuator').id
+               if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_ACTUATOR,
+                                    'arm_grip_fingers_actuator') >= 0 else None)
     rail_id = model.actuator(rk.RAIL_JOINT).id
     home = model.body('rail_carriage').pos[0]
     steps_per_second = round(1 / model.opt.timestep)
     scratch = mujoco.MjData(model)
     carry = carry_pose(model, scratch, data.qpos[rk.arm_qpos(model)].copy())
+    general = camera_at(model, data, 'general')     # fixed: its calibration, once
     open_hand = lambda *_: gt.OPEN
 
     def drive(station, pose, grip, seconds, caption, *, guard=None,
@@ -885,7 +1062,9 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         # position servo lags, and reading anything before it has caught up is
         # what made the first grasps there close 20 to 47 mm off the vessel.
         start = np.array([data.ctrl[i] for i in ids])
-        goal = np.concatenate([[station - home], pose])
+        # The nearest way round: a pose planned against the carry pose can be a
+        # whole turn off the angles the arm has drifted to since.
+        goal = np.concatenate([[station - home], unwrap(model, pose, start[1:])])
         move = np.abs(goal - start)
         seconds = max(seconds, float(move[0]) / 0.6, float(move[1:].max()) / 0.9)
         total = max(int(seconds * steps_per_second), 1)
@@ -896,7 +1075,8 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             alpha = 0.5 - 0.5 * np.cos(np.pi * min(step + 1, ramp) / ramp)
             for i, value in zip(ids, start + alpha * (goal - start)):
                 data.ctrl[i] = value
-            data.ctrl[grip_id] = grip(step, total)
+            if grip_id is not None:
+                data.ctrl[grip_id] = grip(step, total)
             mujoco.mj_step(model, data)
             yield caption
             if stop_on_grip and step > total * 0.25 and \
@@ -908,6 +1088,81 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             mujoco.mj_step(model, data)
             yield caption
 
+    def glide(path, caption, guard=None):
+        """Drive through (station, pose) waypoints as one move, then settle.
+
+        One ramp over the whole path rather than one per waypoint, so a line of
+        close waypoints is a single smooth move and not a string of stops. Each
+        stretch takes its share of the time by how far its slowest joint or the
+        carriage has to go, at the same speed limits as :func:`drive`.
+        """
+        points = [np.array([data.ctrl[i] for i in ids])]
+        for station, pose in path:
+            points.append(np.concatenate([[station - home],
+                                          unwrap(model, pose, points[-1][1:])]))
+        spans = [max(abs(b[0] - a[0]) / 0.6, float(np.abs(b[1:] - a[1:]).max()) / 0.9, 1e-6)
+                 for a, b in itertools.pairwise(points)]
+        edges = np.concatenate([[0.0], np.cumsum(spans)]) / sum(spans)
+        total = max(int(max(sum(spans) * 1.4, 1.0) * steps_per_second), 1)
+        for step in range(total):
+            if guard is not None and guard.state == 'lost':
+                raise Retarget
+            f = 0.5 - 0.5 * math.cos(math.pi * (step + 1) / total)
+            i = min(int(np.searchsorted(edges, f, side='right')) - 1, len(spans) - 1)
+            local = (f - edges[i]) / (edges[i + 1] - edges[i])
+            for actuator, value in zip(ids, points[i] + local * (points[i + 1] - points[i]),
+                                       strict=True):
+                data.ctrl[actuator] = value
+            if grip_id is not None:
+                data.ctrl[grip_id] = gt.OPEN
+            mujoco.mj_step(model, data)
+            yield caption
+        yield from still(0.3, caption)
+
+    def straight(start, goal, gaze, floor):
+        """Waypoints that carry the camera along a straight line, turned one way.
+
+        Two views at one bearing look the same way, but a joint-space move
+        between them still swings the hand on the way: measured, up to 458
+        degrees across the back strip. Solving the camera's pose every
+        :data:`SLIDE_STEP` along the line, each from the one before, keeps the
+        hand's orientation fixed the whole way: it only translates.
+
+        Returns:
+            The waypoints after ``start``, or None if the line cannot be held,
+            or the two ends do not look the same way.
+        """
+        arm = rk.arm_qpos(model)
+        mujoco.mj_copyData(scratch, model, data)
+        ends = []
+        for station, pose in (start, goal):
+            rk.set_rail(model, scratch, station)
+            scratch.qpos[arm] = pose
+            mujoco.mj_kinematics(model, scratch)
+            mujoco.mj_camlight(model, scratch)
+            ends.append(scratch.site(rk.EIH_SITE).xpos.copy())
+            facing = -scratch.cam_xmat[model.camera(rk.EIH_CAMERA).id].reshape(3, 3)[:, 2]
+            if float(facing @ np.asarray(gaze)) < math.cos(math.radians(3)):
+                return None
+        (x0, q), (x1, _) = start, goal
+        steps = max(math.ceil(float(np.linalg.norm(ends[1] - ends[0])) / SLIDE_STEP), 1)
+        path, last = [], start
+        for k in range(1, steps + 1):
+            f = k / steps
+            station = rk.set_rail(model, scratch, x0 + f * (x1 - x0))
+            if k == steps:
+                point = goal
+            else:
+                if not ik(model, scratch, ends[0] + f * (ends[1] - ends[0]), q, seed=q,
+                          approach=gaze, site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)):
+                    return None
+                point = (station, scratch.qpos[arm].copy())
+            if not path_clear(model, scratch, last, point, floor=floor):
+                return None
+            path.append(point)
+            last, q = point, point[1]
+        return path
+
     def here() -> float:
         return float(home + data.ctrl[rail_id])
 
@@ -915,27 +1170,186 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         """To a station in the carry pose; on Retarget the arm is already safe."""
         yield from drive(station, carry, open_hand, 1.0, caption, guard=guard)
 
-    def look(track: Track):
+    def tallest() -> float:
+        """Height of the tallest flask on the bench: the ring's vessel, else the box's."""
+        heights = []
+        for track in world.snapshot():
+            if track.state == 'lost' or track.held:
+                continue
+            if track.sample:
+                vessel = perception.rows[track.confirmation.marker_id]['vessel_class']
+                heights.append(vessel_height(vessel))
+            elif track.bbox is not None:
+                heights.append(box_height(track, general))
+        return max(heights, default=FLASK_HEIGHT)
+
+    hubs: dict[float, np.ndarray | None] = {}
+
+    def hop(start, goal, floor):
+        """A way from one low pose to another that stays over ``floor``, or None.
+
+        Straight across if that is clear. Otherwise through the carry pose
+        lowered to just over the floor: the arm reshapes there, the carriage
+        runs along the rail with it, and it reshapes again for the next view.
+        Two views from opposite sides need that, since turning the wrist all
+        the way round sweeps the camera low.
+
+        Returns:
+            The (station, pose) waypoints after ``start``.
+        """
+        mujoco.mj_copyData(scratch, model, data)
+        if path_clear(model, scratch, start, goal, floor=floor):
+            return [goal]
+        # Reshaping between a view and the hub sweeps the hand a centimetre or
+        # two below both, so the hub stands a little over the floor.
+        for above in HUB_ABOVE:
+            key = round(floor + above, 2)
+            if key not in hubs:
+                hubs[key] = hub_pose(model, scratch, carry, key)
+            if hubs[key] is None:
+                continue
+            legs = [start, (start[0], hubs[key]), (goal[0], hubs[key]), goal]
+            if all(path_clear(model, scratch, a, b, floor=floor)
+                   for a, b in itertools.pairwise(legs)):
+                return legs[1:]
+        return None
+
+    def lifted(pose, rise, gaze):
+        """The same view pose with the camera ``rise`` higher, turned the same way."""
+        station, q = pose
+        mujoco.mj_copyData(scratch, model, data)
+        rk.set_rail(model, scratch, station)
+        scratch.qpos[rk.arm_qpos(model)] = q
+        mujoco.mj_kinematics(model, scratch)
+        eye = scratch.site(rk.EIH_SITE).xpos + (0.0, 0.0, rise)
+        if not ik(model, scratch, eye, q, seed=q, approach=gaze,
+                  site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)) or blocked(model, scratch):
+            return None
+        return station, scratch.qpos[rk.arm_qpos(model)].copy()
+
+    def over(start, goal, gaze, floor):
+        """Straight across; else straight up, across and down. The hand never turns.
+
+        Across the back strip a line at waiting height runs the tool into the
+        balances there, and one along the aisle edge into the arm itself.
+        Lifting the whole line clears both without giving up the orientation.
+
+        Returns:
+            The waypoints after ``start``, or None.
+        """
+        line = straight(start, goal, gaze, floor)
+        for rise in LIFTS:
+            if line is not None:
+                return line
+            up, across = lifted(start, rise, gaze), lifted(goal, rise, gaze)
+            if up is None or across is None:
+                continue
+            legs = [straight(a, b, gaze, floor) for a, b in
+                    itertools.pairwise((start, up, across, goal))]
+            line = None if None in legs else [point for leg in legs for point in leg]
+        return line
+
+    def plan_slide(hover, target, bearing, floor):
+        """A view the arm reaches from where it waits without turning the hand.
+
+        From one view to the next at the same bearing the camera looks the same
+        way, so the hand keeps its orientation. Solved from the waiting pose,
+        with the carriage where it stood relative to the camera, the arm also
+        keeps its shape: the rail does the travelling and the joints only take
+        up the difference in depth. That is the least the arm can move between
+        two views, and it is tried before anything else.
+
+        Returns:
+            (station, pose over the flasks, view pose, waypoints from where
+            the arm waits to the pose over the flasks), or None.
+        """
+        station0, q0 = hover
+        mujoco.mj_copyData(scratch, model, data)
+        rk.set_rail(model, scratch, station0)
+        scratch.qpos[rk.arm_qpos(model)] = q0
+        mujoco.mj_kinematics(model, scratch)
+        eye, gaze = look_view(target, bearing)
+        offset = station0 - float(scratch.site(rk.EIH_SITE).xpos[0])
+        for station_offset in (offset, *rk.STANDOFFS):
+            mujoco.mj_copyData(scratch, model, data)
+            station = rk.set_rail(model, scratch, float(eye[0]) + station_offset)
+            if not ik(model, scratch, eye, q0, seed=q0, approach=gaze,
+                      site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)) \
+                    or blocked(model, scratch):
+                continue
+            q_look = scratch.qpos[rk.arm_qpos(model)].copy()
+            q_hover = hover_pose(model, scratch, station, q_look, eye, gaze, floor)
+            if q_hover is None:
+                continue
+            line = over(hover, (station, q_hover), gaze, floor)
+            if line is not None:
+                return station, q_hover, q_look, line
+            mujoco.mj_copyData(scratch, model, data)
+            if path_clear(model, scratch, hover, (station, q_hover), floor=floor):
+                return station, q_hover, q_look, [(station, q_hover)]
+        return None
+
+    def back_row(track: Track) -> bool:
+        """Whether a flask stands on the back strip, seen from the aisle side."""
+        return track.seen_xy[1] + STANDOFF >= 0.10
+
+    def look(track: Track, low: bool = False, hover=None):
+        """Put the wrist camera on a track from its bearings until a ring reads.
+
+        Normally the arm comes from the carry pose and goes back to it. With
+        ``low`` it waits over the flasks instead, :data:`HOVER_MARGIN` above the
+        tallest, and ``hover`` is where it waits now: it hops from there to the
+        next view when the way is clear, and climbs to the carry pose only when
+        it is not.
+
+        Returns:
+            Where the arm waits afterwards, as (station, pose), or None if it
+            is back in the carry pose.
+        """
         x, y = track.seen_xy
         target = np.array([x, y, rk.BENCH_TOP + LOOK_ABOVE_BENCH])
         tag = f'track {track.id} at ({x:+.2f}, {y:+.2f})'
-        sides = RAIL_SIDE + AISLE_SIDE if y + STANDOFF < 0.10 else AISLE_SIDE + RAIL_SIDE
+        sides = AISLE_SIDE + RAIL_SIDE if back_row(track) else RAIL_SIDE + AISLE_SIDE
         looks, result, rings = 0, None, []
         for bearing in sides:
-            mujoco.mj_copyData(scratch, model, data)
-            found = plan_look(model, scratch, carry, target, bearing)
-            if found is None:
-                continue
-            station, q_high, q_look = found
+            floor = rk.BENCH_TOP + tallest() + HOVER_MARGIN
+            slid = plan_slide(hover, target, bearing, floor) if hover is not None else None
+            if slid is not None:
+                station, q_hover, q_look, line = slid
+                q_high = None
+            else:
+                mujoco.mj_copyData(scratch, model, data)
+                found = plan_look(model, scratch, carry, target, bearing)
+                if found is None:
+                    continue
+                station, q_high, q_look = found
+                q_hover = q_high
+                if low:
+                    q_low = hover_pose(model, scratch, station, q_look,
+                                       *look_view(target, bearing), floor)
+                    q_hover = q_high if q_low is None else q_low
             looks += 1
             track.note = f'wrist camera looking from {bearing:+d} deg'
             try:
-                yield from travel(station, f'travelling to {tag}', track)
-                yield from drive(station, q_high, open_hand, 1.5,
-                                 f'turning the camera to {tag}', guard=track)
+                if slid is not None:
+                    yield from glide(line, f'over the flasks to {tag}', guard=track)
+                elif hover is not None and (route := hop(hover, (station, q_hover), floor)):
+                    for leg_station, leg_pose in route:
+                        yield from drive(leg_station, leg_pose, open_hand, 1.2,
+                                         f'over the flasks to {tag}', guard=track)
+                else:
+                    # From the carry pose the way down was checked to q_high, not
+                    # to the low pose: enter through q_high.
+                    if hover is not None:
+                        hover = None
+                        yield from drive(here(), carry, open_hand, 1.5,
+                                         f'climbing clear to reach {tag}', guard=track)
+                    yield from travel(station, f'travelling to {tag}', track)
+                    yield from drive(station, q_high, open_hand, 1.5,
+                                     f'turning the camera to {tag}', guard=track)
             except Retarget:
                 yield from drive(here(), carry, open_hand, 1.5, f'{tag} is gone')
-                return
+                return None
             yield from drive(station, q_look, open_hand, 1.5, f'looking at {tag}')
             yield from still(0.3, f'reading the ring at {tag}')
             request = perception.read(target)
@@ -943,12 +1357,15 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
                 yield from still(0.05, f'reading the ring at {tag}')
             result = request.result
             rings += request.rings
-            yield from drive(station, q_high, open_hand, 1.2, f'backing off {tag}')
-            yield from drive(station, carry, open_hand, 1.5, f'backing off {tag}')
+            yield from drive(station, q_hover, open_hand, 1.2, f'backing off {tag}')
+            if low:
+                hover = (station, q_hover)
+            else:
+                yield from drive(station, carry, open_hand, 1.5, f'backing off {tag}')
             if result.sample_id or looks >= MAX_LOOKS:
                 break
         if track.state == 'lost':
-            return
+            return hover
         if result is None:
             track.state, track.note = 'unreachable', 'the wrist camera cannot get there'
         elif not result.sample_id:
@@ -962,8 +1379,12 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             f'ring reads {track.sample}, placed at ({track.xy[0]:+.4f}, '
             f'{track.xy[1]:+.4f})' if track.sample else track.note))
         world.sighted(rings, data.time, track)
+        return hover
 
     def pick(track: Track):
+        if grip_id is None:
+            world.log(data.time, f'{track.sample}: this arm carries no gripper')
+            return
         if not track.confirmation.refined_xy:
             # Put down since the ring last placed it: read it again first.
             yield from look(track)
@@ -1010,6 +1431,14 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         track.picks += 1
         track.held = False
 
+    def prefixed(prefix, job):
+        """Run a job with a prefix on its captions, and hand back what it returns."""
+        try:
+            while True:
+                yield prefix + next(job)
+        except StopIteration as done:
+            return done.value
+
     def survey(cycles, caption):
         """Hold still while the fixed camera looks at the bench this many times."""
         since = world.cycles
@@ -1033,7 +1462,9 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         yield from travel(start, 'initial scan: parking the arm at the end of the rail',
                           None)
         yield from survey(SURVEY_CYCLES, 'initial scan: the fixed camera surveys the bench')
-        frontier, looked, settled = start, 0, False
+        frontier, looked, settled, hover, row = start, 0, False, None, False
+        world.log(data.time, f'initial scan: the tallest flask stands {tallest() * 100:.0f} cm, '
+                             f'so between looks the arm keeps {HOVER_MARGIN * 100:.0f} cm over it')
         while True:
             todo = [t for t in world.snapshot() if t.state == 'proposed']
             if not todo:
@@ -1045,7 +1476,14 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
                 settled = True
                 continue
             settled = False
-            ahead = [t for t in todo if sweep * (t.seen_xy[0] - frontier) >= 0]
+            # One row at a time: the front of the bench on the way out, the back
+            # strip on the way back. The camera looks at the two rows from
+            # opposite sides, so mixing them would turn the hand round each time.
+            in_row = [t for t in todo if back_row(t) == row]
+            if not in_row:
+                row, sweep = not row, -sweep
+                continue
+            ahead = [t for t in in_row if sweep * (t.seen_xy[0] - frontier) >= 0]
             if not ahead:
                 sweep = -sweep
                 continue
@@ -1053,7 +1491,9 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             frontier = track.seen_xy[0]
             looked += 1
             prefix = f'initial scan {looked}/{looked + len(todo) - 1}: '
-            yield from (prefix + caption for caption in look(track))
+            hover = yield from prefixed(prefix, look(track, low=True, hover=hover))
+        if hover is not None:
+            yield from drive(here(), carry, open_hand, 1.5, 'initial scan: back to carry')
         world.scan = bench_map(world, began, float(data.time))
         bench_map_to.parent.mkdir(parents=True, exist_ok=True)
         bench_map_to.write_text(json.dumps(world.scan, indent=1) + '\n', encoding='utf-8')
@@ -1309,7 +1749,10 @@ def bench_map(world: World, began: float, ended: float) -> dict[str, object]:
     A named bottle is keyed by its sample id and carries the catalogue's row. A
     proposal no ring named is kept too, as ``UNK-*``: the arm has to know that
     something stands there even when it does not know what, so as not to hit it
-    and to try again. The truth only fills ``scored``, which grades the scan.
+    and to try again. A named bottle the fixed camera has since lost is kept as
+    ``missing``, not dropped: in a crowd a box merges with its neighbour's or
+    hides behind the arm, and losing it from the map would forget a flask that
+    is still there. The truth only fills ``scored``, which grades the scan.
 
     Args:
         world: The tracks as the scan left them.
@@ -1323,8 +1766,10 @@ def bench_map(world: World, began: float, ended: float) -> dict[str, object]:
     by_marker = {int(row['marker_id']): (code, row) for code, row in table.items()
                  if 'marker_id' in row}
     entries: dict[str, dict] = {}
-    tracks = sorted((t for t in world.snapshot() if t.state not in ('lost', 'tentative')),
-                    key=lambda t: t.xy[0])
+    tracks = [t for t in world.snapshot() if t.state != 'tentative']
+    present = {t.sample for t in tracks if t.sample and t.state != 'lost'}
+    tracks = sorted((t for t in tracks if t.state != 'lost'
+                     or (t.sample and t.sample not in present)), key=lambda t: t.xy[0])
     unknown, errors, right = 0, [], 0
     for track in tracks:
         entry = {
@@ -1340,11 +1785,12 @@ def bench_map(world: World, began: float, ended: float) -> dict[str, object]:
             key = track.sample
             entry = {'marker_id': track.confirmation.marker_id, 'barcode': code,
                      **{k: row[k] for k in CATALOGUE_FIELDS if k in row}, **entry,
-                     'votes': track.confirmation.votes, 'status': 'present'}
+                     'votes': track.confirmation.votes,
+                     'status': 'missing' if track.state == 'lost' else 'present'}
             correct = body is not None and str(body).endswith(track.sample)
             entry['scored'] = {'check': 'correct' if correct else 'wrong',
                                'error_mm': track.truth.get('error_mm')}
-            if correct:
+            if correct and track.state != 'lost':
                 right += 1
                 errors.append(track.truth['error_mm'])
         else:
@@ -1357,7 +1803,7 @@ def bench_map(world: World, began: float, ended: float) -> dict[str, object]:
     named = sum(1 for e in entries.values() if e['status'] == 'present')
     return {
         'version': 1,
-        'scene': GRIPPER_SCENE.relative_to(REPO).as_posix(),
+        'scene': world.scene,
         'frame': f'MuJoCo world, metres, +Z up; bench top z = {rk.BENCH_TOP}',
         'method': 'initial scan: the fixed camera proposes, the arm sweeps the rail '
                   'once and its wrist camera reads each proposal\'s ArUco ring',
@@ -1365,6 +1811,7 @@ def bench_map(world: World, began: float, ended: float) -> dict[str, object]:
             'id': 0, 'started_s': round(began, 1), 'finished_s': round(ended, 1),
             'seconds': round(ended - began, 1), 'proposals': len(entries),
             'named': named,
+            'missing': sum(1 for e in entries.values() if e['status'] == 'missing'),
             'unidentified': sum(1 for e in entries.values() if e['status'] == 'unidentified'),
             'unreachable': sum(1 for e in entries.values() if e['status'] == 'unreachable'),
             'found_by_wrist_only': sum(1 for e in entries.values()

@@ -2,8 +2,9 @@
 
 Frontend to watch the mini-Hannover MuJoCo scene live: main viewport switchable
 between the robot's onboard camera and the fixed scene-overview camera, a
-picture-in-picture subwindow showing the other one (click it to swap), and a
-right-hand panel with the robot's running task log, updated in real time.
+picture-in-picture subwindow showing the other one (click it to swap), and
+panels under it that follow the bench scan live, and a chat down the right-hand
+side to check a formula against what the scan found.
 
 - `backend/` — FastAPI server. The default rail scene runs the initial bench
   scan from `simulation/scripts/vision_pick.py` with the Robotiq gripper.
@@ -22,10 +23,24 @@ controller are shown in the viewport; they do not fall back to a scripted sweep.
 The scan runs independently of the Boxes toggle and the selected viewport mode.
 Its speed depends on local physics, rendering and inference performance.
 
-The Tasks, Robot, Balance and Pipeline panels still consume the shared lab state
-in both modes. Their scripted formulation is independent of the scan.
+The Balance, Robot tasks and Pipeline panels show this scan, in both modes
+(see Lab state panels below).
 
 ## Run it
+
+To select the current MuJoCo detector, copy `yolo26n_full_1920_e25.pt` into
+`computer-vision/weights/`, then put these settings in `view/backend/.env`
+(or export them before starting the backend):
+
+```sh
+VIEW_DETECTOR=full
+VIEW_DETECTOR_CONF=0.41
+```
+
+This selection applies to both live scan perception and the optional live box
+detector. Restart the backend after changing it. The scan uses the named
+backend's threshold unless `VIEW_DETECTOR_CONF` overrides it; a missing selected
+model produces an error instead of silently loading an older one.
 
 The viewer uses camera WebSockets so multiple open tabs do not exhaust the
 browser's per-host HTTP connection limit. Cameras reconnect automatically
@@ -113,13 +128,14 @@ and discards intermediate frames rather than queuing inference.
 
 It needs `ultralytics` in the backend's venv and the weights: `VIEW_DETECTOR`
 names a `labvision.detector` backend or a weights path, and the default,
-`rail`, is the YOLO26n trained on this camera in the rail scene, which the
-backend finds as `computer-vision/weights/yolo26n_rail_general.pt` (not in git;
-get it from the team Drive, `hackathon/yolo26n_rail_general`, and see
-`computer-vision/weights/README.md`). The boxes use its best-F1 threshold,
-0.47, rather than the backend's 0.10, which is set for `propose_confirm`'s
-proposals; `VIEW_DETECTOR_CONF` overrides it. Without the weights the button is
-greyed out and says why. On the rail scene's test frames the model finds 99 %
+`full`, is the YOLO26n trained on MuJoCo renders of this scene from every
+angle, which the backend finds as
+`computer-vision/weights/yolo26n_full_1920_e25.pt` (not in git; get it from the
+team Drive, `hackathon/weights/yolo26n_full_1920_e25`, and see
+`computer-vision/weights/README.md`). The boxes use that backend's own best-F1
+threshold, 0.41; `VIEW_DETECTOR_CONF` overrides it. Without the weights the
+button is greyed out and says why. Replay stays on
+`yolo26n_rail_general.pt`, the model scored against those Isaac videos. On the rail scene's test frames the model finds 99 %
 of the bottles on the bench at 99.6 % precision
 (`computer-vision/scripts/fixedcam_bench.py`, splits `rail_*`).
 
@@ -127,44 +143,110 @@ of the bottles on the bench at 99.6 % precision
 
 The same backend also publishes the full `LabState` (see
 `dashboard/bridge/README.md` for the protocol) on `ws://localhost:8765/state`.
-It is driven by the scripted formulation in
-`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four liquids,
-one recovery: the Eugenol flask is displaced in the demo state). This script
-uses separate MuJoCo data for the panels; it never moves bottles in the
-camera scene. The live scan remains independent. It needs `websockets` in the venv (listed
-in `backend/requirements.txt`).
+With the scan, that state is the scan itself (`backend/scan_state.py`, a few
+times a second): vision_pick's tracks and what their rings said, the arm's
+joints and gripper, the controller's caption, and its log as events. Nothing is
+scripted; a panel with nothing to show says it is waiting. Scenes without the
+scan still replay the scripted formulation of
+`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031). It needs
+`websockets` in the venv (listed in `backend/requirements.txt`).
 
-When that state is connected, the frontend shows it (`src/LabTaskPanel.jsx`,
-`src/LabPanels.jsx`); without it, the task panel falls back to the mocked log
-above.
+- **Robot tasks**: run id (`SCAN-P06` for seed pattern p06), status and
+  simulated clock; the scan's tally (flasks named by their ring out of those on
+  the bench, still to look at, not samples, out of reach); then the plan around
+  the current step: park, survey, each track's ring (named, not a sample, out
+  of reach, or next), and the bench map. A `SCRIPTED` badge marks the recorded
+  run, which plays when no backend is running.
+- **Balance**, the narrow panel at the left of the dock: `balance_2` and the
+  mass on its pan, nothing else; 0.000 g when nothing is being dosed.
+- **Pipeline**, the third panel in the dock: camera cycle, live YOLO time,
+  tracks on the bench and how many a ring placed, rings named, the controller,
+  the rail, and the bench map, as a chain running left to right. The footer is
+  the scan's latest log line.
 
-- **Robot tasks**: run id, status and clock, a `SCRIPTED` badge while the
-  sequence is not the real planner, then the formula with each ingredient
-  crossed off once added (with its deviation from target, and a progress bar on
-  the one being dosed), then the plan around the current step, grouped by
-  ingredient: the last few steps done, the active one (amber while it is
-  recovering), and the next three.
-- **Robot** and **Balance** under the viewport: the rail with the balances and
-  the carriage, and the current dose's net mass rising towards its target. A
-  panel lights its top edge while its module is working.
-- **Pipeline**, under the tasks: the modules from camera to mass check, each
-  with its status and live figure, and the latest event.
+## Formula chat
 
-The camera, tasks and Pipeline are always shown. Robot and Balance
-open and close from the buttons in the header, and the edges between views
-drag to resize them (double-click an edge to reset it). The layout is
-remembered in the browser.
+The **Formula** panel, which is the whole right-hand column, checks a formula
+against the flasks the scan has named by their rings, never against the
+simulator's list, and shows it as the JSON the robot will receive (the `{ }`
+button on the proposal, with copy):
 
-To rehearse a moment, start the backend part-way and slowed down:
+| Type | And |
+| --- | --- |
+| `What's on the bench?` | the compounds the scan has identified, with their sample ids |
+| `1.2 g geraniol, 0.5 g nerol` (either order, `1,2 g`, Spanish names) | the formula, each line with the flask the scan found or "not identified on the bench" |
+| `40 % geraniol, 60 % nerol, total 2 g` | the same from percentages |
+| `FRG-101`, `5 g of FRG-103` | one of the five formulas in `harness/formulas`, scaled (3 g by default) |
+| JSON, pasted, dropped on the panel or loaded with `{ }` | the same check; any `harness/formulas` file, this viewer's own order JSON, `[{"compound", "grams"}]` lines, or `{"id": "FRG-101", "batch_g": 3}` |
+| **Send to robot**, or `send` / `dale` | the formula becomes the robot's order (below) |
+| **Stop**, or `stop` / `para` | the order stops |
+
+Without `ANTHROPIC_API_KEY` a small parser (`backend/formula_chat.py`) reads
+the forms above and the panel says `OFFLINE PARSER`; with the key and
+`anthropic` in the venv, Claude (`VIEW_CHAT_MODEL`, default `claude-opus-5`)
+reads free-form requests and proposes formulas from the identified flasks.
+Once an order is running the robot narrates in the chat each step it crosses
+off, with the order's clock.
+
+## The order and its workflow
+
+A formula sent to the robot becomes an order (`backend/workflow.py`), `ORD-001`
+onwards, one at a time:
+
+    order:        Scan → Formula → Check → Dose → QC → Done
+    ingredient:   locate → pick → carry → dose → verify → return
+
+The panels follow it: the task panel's stage bar and one row per ingredient
+with its steps as dots, crossed off as they finish, and below it the plan with
+the done steps struck through; the header's status line (`ORD-001 · Dose 2/3 ·
+01:23`); the Balance panel with the ingredient being dosed against its target;
+the Pipeline's order, executor and QC rows; and the chat's narration.
+
+**For the executor.** The order is written to
+`simulation/out/formula_order.json` and served at `GET /api/formula`: the
+`harness/formulas` format (`material`, `cas`, `batch_g`, `concentrate_pct`,
+`samples`), plus for each line the flask the scan found (`sample_id`,
+`located: {x, y, track}`) or why there is none (`problem`), the balance
+(`balance_2`) and the tolerance (±0.010 g). The executor reports each step, in
+process with `scene.lab.workflow.report(...)` or over HTTP:
+
+```sh
+curl -X POST localhost:8000/api/workflow/report -H 'Content-Type: application/json' \
+  -d '{"ingredient": "SMP-0014", "step": "dose", "status": "active", "mass": 0.84, "note": "slow pour"}'
+```
+
+`ingredient` is the sample id, the compound or the ingredient id; `status` is
+active, completed, failed or skipped; `mass` is the net balance reading for that
+ingredient, which also draws the Balance chart. Reporting a step finishes the
+ones before it. The backend crosses off by itself what it can see: the scan
+naming the flask (locate), the controller's captions and the gripper (pick,
+return), and the reported mass against the target (verify). The order closes
+with QC when every step is done. `backend/example_executor.py` is a working
+client of all this that does not move the arm, for trying the panels:
+
+```sh
+VIEW_FORMULA_EXECUTOR=external python view/backend/server.py
+python view/backend/example_executor.py --speed 2
+```
+
+`VIEW_FORMULA_EXECUTOR` picks who takes the order: `fetch` (the default until
+the real executor exists) has the arm fetch each flask through the scan
+controller's own pick, locate → pick → return, and says it was fetched, not
+dosed; `external` leaves the order to an executor that reports.
+
+The camera fills the top of the left column and the dock sits under it, the
+Balance first and then Robot tasks and Pipeline splitting the rest half each;
+the Formula chat is the right-hand column, full height. Camera, tasks, chat and
+Pipeline are always shown; Balance opens and closes from the button in the
+header. The edges between views drag to resize them (double-click an edge to
+reset it), and the layout is remembered in the browser.
+
+To rehearse a moment of the scripted run (scenes without the scan), start the
+backend part-way and slowed down:
 
 ```sh
 LAB_STATE_START=100 LAB_STATE_SPEED=0.25 simulation/.venv/bin/python view/backend/server.py
 ```
-
-The recovery starts at about 101 s and the recipe completes at about 172 s.
-
-Replace `ScriptedRun` with the real planner when it exists; the state contract
-stays the same.
 
 Replay also supports **Boxes** on the general camera. With the backend running,
 `/ws/replay-detections` performs one inference at a time on the video's current

@@ -116,7 +116,7 @@ def load_twin_lab(scene_root: Path, fovy: float) -> rp.Lab:
             return "bench" if inside and abs(z - rp.WORKTOP_Z) < 0.03 else "room"
 
         rp.where_is = where_is
-        lab = rp.Lab(WIDTH, HEIGHT)
+        lab = rp.Lab(WIDTH, HEIGHT, scene=scene.path)
     finally:
         rp.SHELF_GEOM, rp.registry.build_registry = saved
     camera = lab.cameras["general"]

@@ -5,6 +5,7 @@ state and the original controller drives its physics. The lab panels retain
 their independent state publisher.
 """
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -15,6 +16,7 @@ import numpy as np
 REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO / 'simulation/scripts'))
 import vision_pick as vp
+from labvision.detector import resolve as resolve_detector
 
 
 def scan_scene():
@@ -80,10 +82,18 @@ class LiveScan:
             # rk.load normally selects the tool; the viewer compiles seed models itself.
             vp.rk.TCP_SITE = 'arm_grip_pinch'
             model.site(vp.rk.TCP_SITE)
-            selected = next((entry for entry in vp.DETECTORS if entry[0].is_file()), None)
+            spec = os.environ.get('VIEW_DETECTOR')
+            if spec:
+                path, threshold = resolve_detector(spec)
+                selected = (Path(path), threshold if threshold is not None else 0.10)
+            else:
+                selected = next((entry for entry in vp.DETECTORS if entry[0].is_file()), None)
             if selected is None:
                 raise FileNotFoundError('Copy yolo26n_rail_general.pt to computer-vision/weights/')
             self.weights, self.conf = selected
+            self.conf = float(os.environ.get('VIEW_DETECTOR_CONF', self.conf))
+            if not self.weights.is_file():
+                raise FileNotFoundError(f'Missing detector weights: {self.weights}')
             self.detector = ScanDetector(self.weights, self.conf)
             self.perception = ScanPerception(model, data, physics, self.world,
                                              self.detector, vp.Show(), None)

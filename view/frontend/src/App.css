@@ -153,9 +153,13 @@ body {
   paint-order: stroke;
   stroke: #111;
   stroke-width: 3px;
+  opacity: 0;
+  transition: opacity 0.08s ease;
 }
-.camera-frame__boxes .scan-identified rect { stroke: #70d695; }
+.camera-frame__boxes .scan-identified rect { stroke: #70d695; pointer-events: all; }
 .camera-frame__boxes .scan-identified text { fill: #70d695; }
+/* The identified code stays hidden until you point at its box. */
+.camera-frame__boxes .scan-identified:hover text { opacity: 1; }
 
 .camera-frame {
   position: relative;
@@ -248,8 +252,7 @@ body {
 }
 
 .task-panel {
-  width: 320px;
-  flex-shrink: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   background: var(--panel);
@@ -287,12 +290,16 @@ body {
   background: #6e7681;
 }
 
+.task-panel__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 .task-list {
   list-style: none;
   margin: 0;
   padding: 0.5rem 0;
-  overflow-y: auto;
-  flex: 1;
 }
 
 .task-item {
@@ -367,12 +374,26 @@ body {
   flex-direction: column;
 }
 
-.panels {
+/* The dock under the viewport: the balance, the tasks and the pipeline in a
+   row. The balance reads out one mass, so it takes a fixed narrow column and
+   the other two share what is left, half each. */
+
+.dock {
   flex-shrink: 0;
-  height: 230px;
+  height: 240px;
   min-height: 0;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.dock > .panel--balance {
+  flex: 0 0 9.5rem;
+}
+
+.dock > .task-panel,
+.dock > .panel--pipeline {
+  flex: 1 1 0;
+  min-width: 0;
 }
 
 /* Formula checklist heading the task panel */
@@ -585,19 +606,6 @@ body {
   color: var(--warn);
 }
 
-.panels--empty {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  height: auto;
-  padding: 0.6rem 0.9rem;
-  color: var(--text-dim);
-  font-size: 0.8rem;
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  border-radius: 10px;
-}
-
 .panel {
   display: flex;
   flex-direction: column;
@@ -643,23 +651,6 @@ body {
   color: var(--accent);
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   font-size: 0.7rem;
-  white-space: nowrap;
-}
-
-.kv {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 0.8rem;
-  line-height: 1.65;
-}
-
-.kv span:first-child {
-  color: var(--text-dim);
-}
-
-.kv span:last-child {
-  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
   white-space: nowrap;
 }
 
@@ -734,14 +725,9 @@ body {
   min-height: 0;
 }
 
-.side > .task-panel {
+.side > .panel--chat {
   flex: 1;
-  width: auto;
   min-height: 0;
-}
-
-.side > .panel {
-  flex-shrink: 0;
 }
 
 .splitter {
@@ -832,60 +818,6 @@ body.resizing-row * {
   background: linear-gradient(90deg, transparent, var(--active), transparent);
 }
 
-/* Robot: the rail with the balances along it and the carriage */
-
-.rail {
-  margin-top: 0.15rem;
-}
-
-.rail__track {
-  position: relative;
-  height: 14px;
-  margin: 0.1rem 0.35rem 0;
-}
-
-.rail__track::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  height: 2px;
-  margin-top: -1px;
-  border-radius: 1px;
-  background: repeating-linear-gradient(90deg, var(--panel-border) 0 6px, transparent 6px 9px);
-}
-
-.rail__balance {
-  position: absolute;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  margin: -3px 0 0 -3px;
-  border: 1px solid var(--text-dim);
-  border-radius: 1px;
-  background: var(--panel);
-}
-
-.rail__balance--active {
-  border-color: var(--accent);
-  background: rgba(88, 166, 255, 0.35);
-}
-
-.rail__carriage {
-  position: absolute;
-  top: 50%;
-  width: 14px;
-  height: 10px;
-  margin: -5px 0 0 -7px;
-  border-radius: 3px;
-  background: var(--text);
-  box-shadow: 0 0 8px rgba(230, 237, 243, 0.45);
-  transition: left 0.2s linear;
-}
-
-/* Balance: reading and trace side by side, the details under them */
-
 .panel--balance .panel__body {
   display: flex;
   flex-direction: column;
@@ -895,66 +827,28 @@ body.resizing-row * {
   flex: 1;
   min-height: 3rem;
   display: flex;
-  align-items: stretch;
-  gap: 0.9rem;
+  align-items: center;
+  justify-content: center;
 }
 
-.balance__readout .big {
-  align-self: center;
-}
-
-.trace {
-  flex: 1;
-  min-width: 0;
-  height: 100%;
-  overflow: visible;
-}
-
-.trace__line {
-  fill: none;
-  stroke: var(--accent);
-  stroke-width: 1.5;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 3px rgba(88, 166, 255, 0.7));
-}
-
-.trace__area {
-  fill: rgba(88, 166, 255, 0.1);
-}
-
-.trace--past .trace__line {
-  stroke: var(--text-dim);
-  filter: none;
-}
-
-.trace--past .trace__area {
-  fill: rgba(139, 148, 158, 0.08);
-}
-
-.trace__target {
-  stroke: var(--text-dim);
-  stroke-width: 1;
-  stroke-dasharray: 4 4;
-  vector-effect: non-scaling-stroke;
+.balance__readout--off {
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--text-dim);
 }
 
 .panel--live .big {
   text-shadow: 0 0 14px rgba(88, 166, 255, 0.45);
 }
 
-.kv-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  column-gap: 1.2rem;
-  margin-top: 0.4rem;
-}
-
 /* Pipeline: the modules as a chain, a signal running down the wire */
 
 .panel--pipeline .panel__body {
   padding: 0;
-  overflow-y: auto;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .pipeline__empty {
@@ -963,39 +857,46 @@ body.resizing-row * {
   font-size: 0.8rem;
 }
 
+/* In the dock the chain runs across the box, not down it: the wire is
+   horizontal, the signal travels left to right and each node stacks its title
+   over its metric so the row stays one line tall. */
+
 .chain {
   position: relative;
   list-style: none;
   margin: 0;
-  padding: 0.35rem 0;
+  padding: 0.5rem 0.9rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
 }
 
 .chain::before {
   content: "";
   position: absolute;
-  left: calc(1rem + 4px);
-  top: 1.2rem;
-  bottom: 1.2rem;
-  width: 1px;
+  top: calc(0.5rem + 4px);
+  left: 1.4rem;
+  right: 1.4rem;
+  height: 1px;
   background: var(--panel-border);
 }
 
 .chain--running::after {
   content: "";
   position: absolute;
-  left: calc(1rem + 3px);
-  top: 1.2rem;
-  width: 3px;
-  height: 18px;
+  top: calc(0.5rem + 3px);
+  left: 1.4rem;
+  width: 18px;
+  height: 3px;
   border-radius: 2px;
-  background: linear-gradient(transparent, var(--accent));
-  box-shadow: 0 2px 8px var(--accent);
+  background: linear-gradient(90deg, transparent, var(--accent));
+  box-shadow: 2px 0 8px var(--accent);
   animation: signal 3.2s linear infinite;
 }
 
 @keyframes signal {
   0% {
-    top: 1.2rem;
+    left: 1.4rem;
     opacity: 0;
   }
   8%,
@@ -1003,19 +904,26 @@ body.resizing-row * {
     opacity: 1;
   }
   100% {
-    top: calc(100% - 1.2rem - 18px);
+    left: calc(100% - 1.4rem - 18px);
     opacity: 0;
   }
 }
 
 .chain__node {
-  display: grid;
-  grid-template-columns: 9px auto 1fr;
-  align-items: center;
-  gap: 0.7rem;
-  padding: 0.28rem 1rem;
-  font-size: 0.8rem;
-  line-height: 1.35;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.chain__label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
 }
 
 .chain__dot {
@@ -1058,6 +966,15 @@ body.resizing-row * {
 
 .chain__node--warn {
   background: linear-gradient(90deg, rgba(210, 153, 34, 0.1), transparent 75%);
+}
+
+.chain__title,
+.chain__metric {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .chain__title {
@@ -1119,4 +1036,568 @@ body.resizing-row * {
   .formula-row--active .formula-row__check {
     animation: none;
   }
+}
+
+/* --- Formula chat -------------------------------------------------------------- */
+
+.panel--chat .panel__body {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.chat__log {
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  list-style: none;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chat__hint {
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.chat__suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0 0.9rem 0.55rem;
+}
+
+.chat-msg {
+  max-width: 100%;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.chat-msg__text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.chat-msg--user {
+  align-self: flex-end;
+  max-width: 85%;
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px 8px 2px 8px;
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--text);
+}
+
+.chat-msg--assistant {
+  align-self: stretch;
+  color: var(--text-dim);
+}
+
+.chat-msg--error .chat-msg__text {
+  color: var(--warn);
+}
+
+.chat-msg--pending {
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.proposal {
+  margin-top: 0.4rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 8px;
+  color: var(--text);
+}
+
+.proposal__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--panel-border);
+  font-weight: 600;
+}
+
+.proposal__list {
+  margin: 0;
+  padding: 0.25rem 0.6rem;
+  list-style: none;
+}
+
+.proposal-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.5rem;
+  padding: 0.15rem 0;
+}
+
+.proposal-row__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proposal-row__mass {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  align-self: center;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+.proposal-row__meta {
+  grid-column: 1;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.proposal-row--off {
+  opacity: 0.45;
+}
+
+.proposal-row--off .proposal-row__name {
+  text-decoration: line-through;
+}
+
+.proposal__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border-top: 1px solid var(--panel-border);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+.chat__composer {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0.5rem 0.9rem;
+  border-top: 1px solid var(--panel-border);
+}
+
+.chat__input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.35rem 0.55rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8rem;
+}
+
+.chat__input:focus {
+  outline: none;
+  border-color: rgba(88, 166, 255, 0.6);
+}
+
+.chat-button {
+  padding: 0.25rem 0.7rem;
+  border: 1px solid rgba(88, 166, 255, 0.4);
+  border-radius: 5px;
+  background: rgba(88, 166, 255, 0.15);
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.chat-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.chat-button--run {
+  border-color: rgba(63, 185, 80, 0.45);
+  background: rgba(63, 185, 80, 0.15);
+  color: var(--active);
+}
+
+.chat-button--stop {
+  padding: 0.1rem 0.5rem;
+  border-color: rgba(248, 81, 73, 0.45);
+  background: rgba(248, 81, 73, 0.12);
+  color: var(--error);
+  font-size: 0.7rem;
+}
+
+.scan-tally {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.1rem 0 0.35rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.scan-tally strong {
+  color: var(--text);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.95rem;
+}
+
+.scan-tally .mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.7rem;
+}
+
+
+/* --- Workflow ---------------------------------------------------------------- */
+
+.task-item--done .task-item__label,
+.task-item--skipped .task-item__label {
+  text-decoration: line-through;
+  text-decoration-color: rgba(139, 148, 158, 0.6);
+}
+
+.task-item--skipped .task-item__marker {
+  background: transparent;
+  border: 1px solid var(--done);
+}
+
+.stages {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.55rem 1rem 0;
+  list-style: none;
+}
+
+.stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding-top: 0.35rem;
+  border-top: 2px solid var(--panel-border);
+  color: var(--text-dim);
+  font-size: 0.68rem;
+}
+
+.stage__mark {
+  height: 0.8rem;
+  font-size: 0.7rem;
+  line-height: 0.8rem;
+}
+
+.stage__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage--completed {
+  border-top-color: var(--accent);
+  color: var(--text);
+}
+
+.stage--completed .stage__mark {
+  color: var(--accent);
+}
+
+.stage--active {
+  border-top-color: var(--active);
+  color: var(--active);
+}
+
+.stage--active .stage__mark::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--active);
+  box-shadow: 0 0 6px var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.stage--failed {
+  border-top-color: var(--error);
+  color: var(--error);
+}
+
+.order__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-row {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  column-gap: 0.4rem;
+  align-items: baseline;
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+.order-row__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-row__mass {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+.order-row__steps {
+  grid-column: 2;
+  display: flex;
+  gap: 4px;
+  padding-top: 0.15rem;
+}
+
+.order-row__note {
+  grid-column: 2 / -1;
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-row .formula-row__bar {
+  grid-column: 2 / -1;
+}
+
+.order-row--completed .order-row__name {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+.order-row--completed .formula-row__check {
+  color: var(--active);
+}
+
+.order-row--active .formula-row__check {
+  color: var(--active);
+}
+
+.order-row--failed .formula-row__check {
+  color: var(--error);
+}
+
+.order-row--skipped {
+  opacity: 0.45;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--done);
+}
+
+.dot--completed {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.dot--active {
+  border-color: var(--active);
+  background: var(--active);
+  box-shadow: 0 0 5px var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.dot--failed {
+  border-color: var(--error);
+  background: var(--error);
+}
+
+.dot--skipped {
+  border-style: dashed;
+}
+
+/* The header's one line on what the lab is doing. */
+.lab-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.lab-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6e7681;
+}
+
+.lab-status--busy {
+  border-color: rgba(63, 185, 80, 0.35);
+  color: var(--text);
+}
+
+.lab-status--busy::before {
+  background: var(--active);
+  box-shadow: 0 0 6px var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.lab-status--ok::before {
+  background: var(--accent);
+}
+
+.lab-status--warn {
+  border-color: rgba(210, 153, 34, 0.4);
+}
+
+.lab-status--warn::before {
+  background: var(--warn);
+}
+
+/* --- Chat additions ------------------------------------------------------------ */
+
+.chat__drop {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel--drop {
+  border-color: rgba(88, 166, 255, 0.6);
+}
+
+.chat-msg--robot {
+  align-self: stretch;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--panel-border);
+  color: var(--text-dim);
+  font-size: 0.74rem;
+}
+
+.chat-msg--robot.chat-msg--ok {
+  border-left-color: var(--accent);
+}
+
+.chat-msg--robot.chat-msg--warn {
+  border-left-color: var(--warn);
+  color: var(--warn);
+}
+
+.chat-msg__who {
+  margin-right: 0.4rem;
+  color: var(--accent);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.chat-msg__text.mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+.proposal__tags {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.chip-button {
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.chip-button:hover,
+.chip-button--on {
+  border-color: rgba(88, 166, 255, 0.5);
+  color: var(--accent);
+}
+
+.proposal__json {
+  position: relative;
+}
+
+.proposal__json pre {
+  max-height: 11rem;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  overflow: auto;
+  color: var(--text);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.proposal__copy {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.5rem;
+  background: var(--panel);
+}
+
+textarea.chat__input {
+  resize: none;
+  max-height: 5.5rem;
+  line-height: 1.35;
+  field-sizing: content;
+}
+
+.chat-button--ghost {
+  border-color: var(--panel-border);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+/* The Info panel: what the viewer is running, at the end of the dock. */
+
+.dock > .panel--info {
+  flex: 0 0 13rem;
+}
+
+.panel--info .panel__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.45rem 0.8rem;
+  overflow-y: auto;
+}
+
+.info-line {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.info-line__label {
+  color: var(--text-dim);
+  font-size: 0.65rem;
+  line-height: 1.3;
+}
+
+.info-line__value {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.72rem;
+  overflow-wrap: anywhere;
 }

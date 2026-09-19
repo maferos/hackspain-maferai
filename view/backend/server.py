@@ -5,7 +5,8 @@ The original YOLO / ArUco perception and robot controller drive the viewport;
 the scan's progress and sample identities accompany the camera streams.
 
 It also publishes the full `LabState` that the lab state panels render, on
-`ws://localhost:8765/state`, driven by the scripted
+`ws://localhost:8765/state`: the live scan's own state (scan_state.py), and the
+formula chat's requests (`/api/chat`). Scenes without the scan replay the scripted
 formulation of `labbridge.mock_run` on separate simulation data. The panel demo
 never moves containers in the camera scene.
 
@@ -16,7 +17,6 @@ Then open view/frontend (see its README) against this server's port (8000).
 from __future__ import annotations
 
 import asyncio
-import itertools
 import json
 import random
 import subprocess
@@ -25,18 +25,35 @@ import sys
 import threading
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from pathlib import Path
 
 import mujoco
 import numpy as np
 from jpeg_encoder import JpegEncoder, PREVIEW_SIZE
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import Body, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from scene_patterns import CATALOGUE, build_pattern
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+
+
+def load_env(path: Path) -> None:
+    """Read KEY=value lines from a local .env (gitignored) into the environment.
+
+    For ANTHROPIC_API_KEY, which turns on Claude in the formula chat. Anything
+    already set in the environment wins.
+    """
+    if not path.is_file():
+        return
+    for line in path.read_text(encoding="utf-8").splitlines():
+        key, sep, value = line.strip().partition("=")
+        if sep and key and not key.startswith("#"):
+            os.environ.setdefault(key.strip(), value.strip().strip("'\""))
+
+
+load_env(Path(__file__).with_name(".env"))
+
 # VIEW_SCENE picks the MuJoCo model to render: a bare name resolves under
 # simulation/models/, or pass an absolute path. Defaults to the rail bench scan.
 # A scene without the scripted run's samples (e.g. minihannover_open_scene.xml)
@@ -59,6 +76,20 @@ from labbridge.mock_run import ACTIVE_BALANCE, RAIL, ScriptedRun  # noqa: E402
 from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
 from labvision.detector import resolve as resolve_detector
+from catalogue import Catalogue, resolve, shelf_from_tracks  # noqa: E402
+from formula_chat import MODEL as CHAT_MODEL, FormulaChat  # noqa: E402
+
+
+def build_id() -> str:
+    """The commit the viewer is running, for the Info panel; "" outside git."""
+    try:
+        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=REPO_ROOT,
+                              capture_output=True, text=True, timeout=5).stdout.strip()
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+COMMIT = build_id()
 
 STATE_PORT = int(os.environ.get("VIEW_STATE_PORT", "8765"))
 STATE_RATE_HZ = 10
@@ -91,13 +122,28 @@ PREVIEW_FPS = 5
 
 # Bottle detector on the general camera's live frames, run only while a client
 # has the boxes on (see Detector). VIEW_DETECTOR is a labvision backend name or
-# a weights path; the default `rail` is the YOLO26n trained on this camera in
-# the rail scene, found as computer-vision/weights/yolo26n_rail_general.pt. The
-# boxes are drawn raw, so they use that model's best-F1 threshold on the rail
-# scene's validation frames, 0.47, not the backend's 0.10, which is set for
-# propose_confirm's proposals. VIEW_DETECTOR_CONF overrides the threshold.
-DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "rail")
-DETECTOR_CONF = float(os.environ.get("VIEW_DETECTOR_CONF", "0.47"))
+# a weights path; the default `full` is the YOLO26n trained on MuJoCo renders of
+# this scene from every angle (computer-vision/weights/README.md), which it
+# finds as computer-vision/weights/yolo26n_full_1920_e25.pt. The boxes are drawn
+# raw, at the backend's own best-F1 threshold; VIEW_DETECTOR_CONF overrides it,
+# and a bare weights path with no backend behind it falls back to DEFAULT_CONF.
+# The older `rail` backend carries 0.10 instead, the operating point
+# propose_confirm wants, so drawing its boxes wants VIEW_DETECTOR_CONF=0.47.
+DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "full")
+DETECTOR_CONF = os.environ.get("VIEW_DETECTOR_CONF")
+DEFAULT_CONF = 0.41
+# The live scan reads these from the environment (live_scan.py). Set them from
+# the same defaults, so the scan and the boxes drawn over it are one model --
+# but only when that model's weights are here, or a machine that has only the
+# older ones would get an error instead of the scan it used to run.
+if SCAN_ENABLED and not os.environ.get("VIEW_DETECTOR"):
+    try:
+        resolve_detector(DETECTOR_SPEC)
+        os.environ["VIEW_DETECTOR"] = DETECTOR_SPEC
+        os.environ.setdefault("VIEW_DETECTOR_CONF", str(DETECTOR_CONF or DEFAULT_CONF))
+    except FileNotFoundError as exc:
+        print(f"[view] {exc}; the scan keeps its own detector", file=sys.stderr)
+
 DETECTOR_CAMERA = "scene"  # logical id; the model only knows the fixed camera
 DETECTOR_FRAME_STRIDE = int(os.environ.get("VIEW_DETECTOR_FRAME_STRIDE", "5"))
 if DETECTOR_FRAME_STRIDE < 1:
@@ -110,63 +156,6 @@ DETECTOR_THREADS = int(os.environ.get("VIEW_DETECTOR_THREADS", "2"))
 # the carriage runs the length of the bench holding a hand-down scan pose. Posed
 # kinematically per frame so it stays smooth and can't knock the glassware over.
 RAIL_SWEEP_SPEED = 0.8  # carriage speed, m/s
-
-# --- Mock task log --------------------------------------------------------
-# Stands in for a real task/planner system (none exists in simulation/ yet).
-TASK_SCRIPT = [
-    "Locating amber bottle on the shelving",
-    "Picking up bottle amber_loose_3",
-    "Carrying bottle to balance 2",
-    "Weighing sample on balance 2",
-    "Reading the bottle's barcode",
-    "Logging weight to inventory",
-    "Returning bottle to the shelf",
-    "Moving to the standby position",
-]
-TASK_DURATION_S = 3.5
-MAX_TASK_LOG = 15
-
-
-class TaskLog:
-    """Cycles through TASK_SCRIPT, one task 'active' at a time, mock in real time."""
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self._entries: list[dict] = []
-        self._script = itertools.cycle(enumerate(TASK_SCRIPT))
-        self._next_id = 0
-        self._advance()
-
-    def _advance(self) -> None:
-        with self._lock:
-            for entry in self._entries:
-                if entry["status"] == "active":
-                    entry["status"] = "done"
-            _, label = next(self._script)
-            self._next_id += 1
-            self._entries.append(
-                {
-                    "id": self._next_id,
-                    "label": label,
-                    "status": "active",
-                    "started_at": datetime.now(timezone.utc).isoformat(),
-                }
-            )
-            if len(self._entries) > MAX_TASK_LOG:
-                self._entries.pop(0)
-
-    def snapshot(self) -> list[dict]:
-        with self._lock:
-            return [dict(e) for e in self._entries]
-
-    def run_forever(self) -> None:
-        while True:
-            time.sleep(TASK_DURATION_S)
-            self._advance()
-
-
-task_log = TaskLog()
-threading.Thread(target=task_log.run_forever, daemon=True).start()
 
 # --- MuJoCo scene, stepped continuously in a background thread -----------
 
@@ -376,7 +365,12 @@ class SceneRenderer:
         self.state_server.snapshot(self.run.initial_state(workcell(self.panel_model, self.panel_data, ACTIVE_BALANCE, RAIL)))
 
     def publish_state_forever(self) -> None:
-        """Replays the scripted formulation and publishes LabState patches at STATE_RATE_HZ."""
+        """Publishes LabState: the live scan's, or the scripted formulation at STATE_RATE_HZ."""
+        if SCAN_ENABLED:
+            from scan_state import ScanState
+            self.lab = ScanState(self, self.state_server, catalogue)
+            self.lab.run_forever()
+            return
         if self.run is None:
             return  # scene has no compatible scripted run; cameras still stream
         self.state_server.start()
@@ -397,6 +391,7 @@ class SceneRenderer:
                 time.sleep(remaining)
 
 
+catalogue = Catalogue()
 scene = SceneRenderer(SCENE_PATH)
 renderer_thread = threading.Thread(target=scene.run_forever, daemon=True)
 renderer_thread.start()
@@ -417,14 +412,15 @@ class Detector:
         self.renderer = renderer
         self.mj_camera = renderer.cameras[DETECTOR_CAMERA]["mj_name"]
         self.error = None
+        score = None
         try:
-            path, _ = resolve_detector(spec)
+            path, score = resolve_detector(spec)
         except FileNotFoundError as exc:
             path, self.error = "", str(exc)
         self.weights = Path(path)
         if self.error is None and not self.weights.exists():
             self.error = f"no weights at {path}"
-        self.conf = DETECTOR_CONF
+        self.conf = float(DETECTOR_CONF) if DETECTOR_CONF else (score or DEFAULT_CONF)
         self.watchers = 0
         self.latest: dict | None = None
         self._lock = threading.Lock()
@@ -558,6 +554,144 @@ async def randomize_scene(session: str = Query(min_length=1, max_length=100)):
         return info
 
 
+# --- Formula chat -------------------------------------------------------------
+
+
+def scanned_shelf() -> list[dict]:
+    """The flasks the live scan has named so far."""
+    scan = scene.scan
+    return shelf_from_tracks(scan.world.snapshot(), catalogue) if scan and scan.world else []
+
+
+def scan_progress() -> str:
+    scan = scene.scan
+    if not SCAN_ENABLED or scan is None or scan.world is None:
+        return " (The bench scan is not running.)"
+    if scan.world.scan is None:
+        return f" (The scan is still going: {len(scanned_shelf())} flasks named so far.)"
+    return ""
+
+
+chat = FormulaChat(catalogue, scanned_shelf, scan_progress)
+
+
+def lab_state():
+    """The scan's LabState publisher, which also holds the order; 409 without the scan."""
+    lab = getattr(scene, "lab", None)
+    if lab is None or scene.scan is None or scene.scan.world is None:
+        raise HTTPException(409, "The bench scan is not running, so there is no robot to send it to.")
+    return lab
+
+
+def dispatch(formula: dict | None) -> dict:
+    """Check a proposed formula against the bench as the scan knows it now, and send it."""
+    if not formula:
+        raise HTTPException(409, "There is no formula yet: type one, or paste its JSON.")
+    lab = lab_state()
+    lines = [{"compound": i.get("cas") or i.get("compound"), "grams": i.get("grams")}
+             for i in formula.get("ingredients", [])]
+    resolved = resolve(lines, scanned_shelf(), catalogue,
+                       str(formula.get("id") or "CHAT"), str(formula.get("name") or "Chat formula"))
+    try:
+        order = lab.dispatch(resolved, str(formula.get("source") or "chat"))
+    except RuntimeError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    waiting = " It starts once the scan has finished." if scene.scan.world.scan is None else ""
+    return {"order": order.id, "json": order.doc,
+            "reply": f"{order.id} sent to the robot: {resolved['name']}, "
+                     f"{len(order.active_items())} ingredients.{waiting}"}
+
+
+def with_json(answer: dict) -> dict:
+    """Attach the formula as the robot will receive it, for the chat to show."""
+    formula = answer.get("formula")
+    lab = getattr(scene, "lab", None)
+    if formula and lab is not None:
+        answer["json"] = lab.workflow.formula_json(formula, formula.get("source", "chat"))
+    return answer
+
+
+@app.get("/api/formulation")
+def formulation_info():
+    lab = getattr(scene, "lab", None)
+    order = lab.workflow.order if lab else None
+    return {"available": SCAN_ENABLED, "chat": chat.mode, "bench": scanned_shelf(),
+            "executor": lab.workflow.executor if lab else None,
+            "order": order.id if order else None, "status": order.status if order else None}
+
+
+@app.post("/api/chat")
+def chat_message(payload: dict = Body(...)):
+    """One chat message: the reply, the formula it proposes (and its JSON), what was done."""
+    message = str(payload.get("message") or "").strip()
+    if not message:
+        raise HTTPException(400, "Empty message")
+    answer = chat.reply(message, payload.get("history") or [])
+    if answer["action"] == "start":
+        try:
+            sent = dispatch(answer["formula"])
+            # Claude's own words when it wrote some, with the order they started.
+            reply = f"{answer['reply']} ({sent['order']})" if chat.mode == "claude" else sent["reply"]
+            answer.update(reply=reply, order=sent["order"], formula=None)
+        except HTTPException as exc:
+            answer.update(reply=exc.detail, action=None, formula=None)
+    elif answer["action"] == "stop":
+        lab = getattr(scene, "lab", None)
+        order = lab.workflow.order if lab else None
+        if order is None or order.status not in ("queued", "running"):
+            answer.update(reply="The robot has no order running.", action=None)
+        else:
+            lab.stop_order()
+            answer["reply"] = f"{order.id} stopped; the arm finishes what it is holding."
+    return with_json(answer)
+
+
+@app.get("/api/formula")
+def formula_current():
+    """The current order as the executor reads it (also in simulation/out/formula_order.json)."""
+    lab = lab_state()
+    order = lab.workflow.order
+    if order is None:
+        raise HTTPException(404, "No formula has been sent to the robot yet.")
+    return {**order.doc, "order": {**order.doc["order"], "status": order.status}}
+
+
+@app.post("/api/formula")
+def formula_submit(payload: dict = Body(...)):
+    """Send a formula to the robot: {"formula": <proposal>} from the chat, or the formula JSON itself."""
+    formula = payload.get("formula")
+    if formula is None:
+        answer = chat.reply(json.dumps(payload))
+        if not answer.get("formula"):
+            raise HTTPException(422, answer["reply"])
+        formula = answer["formula"]
+    return dispatch(formula)
+
+
+@app.post("/api/formula/stop")
+def formula_stop():
+    lab = lab_state()
+    order = lab.workflow.order
+    if order is None or order.status not in ("queued", "running"):
+        raise HTTPException(409, "The robot has no order running.")
+    lab.stop_order()
+    return {"reply": f"{order.id} stopped; the arm finishes what it is holding."}
+
+
+@app.post("/api/workflow/report")
+def workflow_report(payload: dict = Body(...)):
+    """The executor crosses a step off: {"ingredient", "step", "status", "mass"?, "note"?}."""
+    lab = lab_state()
+    try:
+        lab.workflow.report(payload.get("ingredient"), str(payload.get("step")), str(payload.get("status")),
+                            payload.get("mass"), payload.get("note"))
+    except KeyError as exc:
+        raise HTTPException(409, str(exc.args[0] if exc.args else exc)) from exc
+    return {"ok": True}
+
+
 def mjpeg_generator(mj_camera_name: str):
     boundary = b"frame"
     for jpeg in scene.frames(mj_camera_name):
@@ -577,6 +711,31 @@ def stream(camera_id: str):
         mjpeg_generator(mj_name),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
+
+
+@app.get("/api/info")
+def viewer_info():
+    """What this viewer is running: the models, the scene and the build.
+
+    The Info panel shows it, so that what is on screen can always be traced to
+    a model file and a commit.
+    """
+    lab = getattr(scene, "lab", None)
+    scan = scene.scan
+    return {
+        "detector": {"backend": DETECTOR_SPEC, "weights": detector.weights.name or None,
+                     "conf": detector.conf, "available": detector.available,
+                     "error": detector.error, "camera": DETECTOR_CAMERA,
+                     "input": f"{FRAME_WIDTH}x{FRAME_HEIGHT}"},
+        "scan": {"enabled": SCAN_ENABLED,
+                 "weights": Path(scan.weights).name if scan and scan.weights else None,
+                 "conf": round(scan.conf, 2) if scan else None},
+        "chat": {"mode": chat.mode, "model": CHAT_MODEL if chat.mode == "claude" else None},
+        "executor": lab.workflow.executor if lab else None,
+        "scene": {"file": SCENE_PATH.name, **(scene.pattern or {})},
+        "state": f"ws://localhost:{STATE_PORT}/state",
+        "build": COMMIT,
+    }
 
 
 @app.get("/api/detector")
@@ -606,6 +765,8 @@ async def ws_replay_detections(websocket: WebSocket, pattern: str | None = None)
     await websocket.accept()
     worker = None
     try:
+        # Replay plays Isaac renders, which the newer `full` model has not been
+        # scored on, so this stays on the model measured against these videos.
         weights = Path(os.environ.get("VIEW_REPLAY_WEIGHTS", str(
             REPO_ROOT / "computer-vision/weights/yolo26n_rail_general.pt")))
         renders = REPO_ROOT / "view/frontend/public/renders"
@@ -708,21 +869,6 @@ async def ws_detections(websocket: WebSocket):
         pass
     finally:
         detector.watch(-1)
-
-
-@app.websocket("/ws/tasks")
-async def ws_tasks(websocket: WebSocket):
-    await websocket.accept()
-    last_sent = None
-    try:
-        while True:
-            current = task_log.snapshot()
-            if current != last_sent:
-                await websocket.send_json({"tasks": current})
-                last_sent = current
-            await asyncio.sleep(0.3)
-    except WebSocketDisconnect:
-        pass
 
 
 if __name__ == "__main__":

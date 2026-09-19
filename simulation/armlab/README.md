@@ -80,12 +80,18 @@ loads from there.
 
 ## Known limits
 
-- **The balances cannot receive anything.** `assets/balance/balance.xml` is an
-  analytical balance with a closed glass draft shield, modelled as one collision
-  box over the whole 0.311 m instrument — no pan, no joint, no force sensor, so
-  weighing is not simulated either (`research/experiments.md` §1 flags the same).
-  `place` therefore brings the vessel to the named balance and sets it on the
-  bench beside it, which is what a technician would do before opening the shield.
+- **Three of the four balances cannot receive anything.** `assets/balance/
+  balance.xml` is an analytical balance with a closed glass draft shield,
+  modelled as one collision box over the whole 0.311 m instrument — no pan, no
+  joint, no force sensor, so weighing is not simulated either
+  (`research/experiments.md` §1 flags the same). `place` therefore brings the
+  vessel to the named balance and sets it on the bench beside it, which is what
+  a technician would do before opening the shield.
+
+  The exception is `balance_2_`, the middle front-row station, which
+  `generate_rail_scene.py` swaps for `assets/balance_open/` — no shield, a pan
+  that collides, and the beaker standing on it. Both tools' scenes get it: it is
+  the bench's weighing station, not the pipette's.
 - **Only the twelve `dyn_*` vessels are pickable.** The seven hand-placed
   `loose_*` work samples are free bodies too, but they sit at the bench's far
   edge or behind the gantry beam, outside the envelope the rail was sized for.

@@ -45,7 +45,9 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from perfumery_eval import WORKTOP_HALF, base_on_worktop, on_worktop  # noqa: E402
+import perfumery_eval  # noqa: E402
+import render_perfumery  # noqa: E402
+from perfumery_eval import base_on_worktop, on_worktop  # noqa: E402
 from render_perfumery import BENCH_X, SCENE, WORKTOP_Z, Lab, where_is  # noqa: E402
 from world_prompts import BOTTLES  # noqa: E402
 
@@ -144,10 +146,11 @@ def on_any_worktop(meta: dict, bbox: BBox) -> bool:
     ring's bottle stands on the proposal is what turns them away.
     """
     point = base_on_worktop(meta, bbox.as_tuple())
+    centre, half = perfumery_eval.WORKTOP_CENTER, perfumery_eval.WORKTOP_HALF
     return (
         point is not None
-        and abs(point[0]) <= WORKTOP_HALF[0]
-        and abs(point[1]) <= WORKTOP_HALF[1]
+        and abs(point[0] - centre[0]) <= half[0]
+        and abs(point[1] - centre[1]) <= half[1]
     )
 
 
@@ -322,6 +325,13 @@ def main() -> None:
         help="worktop filter: the camera's own half of the bench, or all of it",
     )
     parser.add_argument(
+        "--worktop", type=float, nargs=4, default=None,
+        metavar=("CX", "CY", "HALF_X", "HALF_Y"),
+        help="the worktop bottles are scored on: centre and half extents, in "
+             "metres. The default is the shelved minihannover's, centred on "
+             "the origin; the open desk the rail scene stands on is "
+             "-1.5 -0.4 3.0 1.0, and its front strip is outside the default")
+    parser.add_argument(
         "--as-built",
         action="store_true",
         help="one layout: the bottles where the scene file puts them",
@@ -337,6 +347,14 @@ def main() -> None:
     args = parser.parse_args()
 
     args.out.mkdir(parents=True, exist_ok=True)
+    if args.worktop:
+        # Both the truth (where_is) and the box filter (on_worktop) read these,
+        # so a bench that is not on the origin is set once, here.
+        centre, half = tuple(args.worktop[:2]), tuple(args.worktop[2:])
+        render_perfumery.BENCH_CENTER = centre
+        render_perfumery.BENCH_HALF = half
+        perfumery_eval.WORKTOP_CENTER = centre
+        perfumery_eval.WORKTOP_HALF = half
     rng = np.random.default_rng(args.seed)
     detector = GeneralDetector(args.weights, args.threshold)
     rows = rows_by_marker(registry.load_table(DEFAULT_TABLE))
@@ -443,6 +461,10 @@ def main() -> None:
                 "duplicates_dropped": len(world) - len(unique),
                 "dashboard": to_dashboard(unique),
                 "scored": scored,
+                # The fixed camera's pose, so a reader of this file can work in
+                # the camera's frame --- which is the frame the placement error
+                # is structured in --- without loading the scene again.
+                "camera": meta,
                 "seconds": {"render": t1 - t0, "propose": t2 - t1, "confirm": t3 - t2},
             }
         )

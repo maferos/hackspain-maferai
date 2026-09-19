@@ -1264,6 +1264,171 @@ the chord's offset left another 0.5 to 2.5 mm. Both errors are measured on the
 bottles named right. On this CPU a layout takes about 1.5 s to render, 6.5 s
 for the general camera's detector and 8 s for the wrist views.
 
+**On a catalogue seed.** Those layouts are the script's own random scatter. The
+ten seeded layouts of `simulation/scripts/bottle_patterns.py` --- the ones the
+viewer replays --- are the bench everybody else in the demo sees, so the same
+chain was run on one of them, `p05` (seed 1, 41 flasks in two rows, 57 mm of
+clear bench between neighbours, 27 of them 100 ml). `scene_patterns.py`
+writes that layout onto the rail scene, and `propose_confirm.py` scans it as
+built:
+
+```
+python ../view/backend/scene_patterns.py --pattern p05 --out ../simulation/out/scan_p05/minihannover_rail_scene_p05.xml
+python scripts/propose_confirm.py --scene ../simulation/out/scan_p05/minihannover_rail_scene_p05.xml \
+    --as-built --keep bench --weights rail --worktop -1.5 -0.4 3.0 1.0 \
+    --save-frames --out ../simulation/out/scan_p05
+python scripts/scan_plots.py ../simulation/out/scan_p05
+```
+
+**These numbers and figures are still `rail`'s.** The run above predates
+`yolo26n_full_1920_e25.pt` (backend `full`, threshold 0.41), which supersedes
+`rail` everywhere --- see `weights/README.md`. On the ten catalogue patterns at
+a free angle `full` is the stronger of the two, so the errors below are a floor,
+not the detector's current best; rerun the chain with `--weights full
+--threshold 0.41` and regenerate the figures before quoting them.
+
+`--worktop` is the bench the run is scored on, and a seeded layout needs it:
+the default window is the shelved minihannover's, 3.0 by 0.75 m on the world
+origin, while the open desk the rail scene stands on is centred at (-1.5, -0.4)
+and is 2 m deep. Left at the default, a flask standing on the front strip is
+outside the truth *and* outside the box filter, so it is silently not counted ---
+one of `p06`'s 46 is exactly there.
+
+| 41 bench flasks, seed p05 | `rail` (YOLO26n, trained) | `world-b` (YOLO-World L, zero-shot) |
+| --- | --- | --- |
+| proposed | 100 % (41/41) | 93 % (38/41) |
+| named correctly | 100 % (41/41) | 93 % (38/41) |
+| named wrongly | 0 | 0 |
+| stray proposals | 0 | 5, none read a ring |
+| position from the general camera, median / p90 | 6.7 / 8.0 mm | 6.7 / 8.4 mm |
+| position after the wrist, median / p90 | 0.11 / 0.46 mm | 0.12 / 0.33 mm |
+
+![Truth, the fixed camera's proposal and the wrist's refinement, offsets drawn 20x](docs/img/scan_p05_bench.png)
+
+The two detectors place the bottles equally well and differ only in how many
+they find. The wrist takes 6.7 mm down to 0.11 mm, a factor of 58.
+
+![Predicted minus true, per bottle](docs/img/scan_p05_residuals.png)
+
+`scan_plots.py` draws a fourth figure, `detail.png`, which is the same errors
+with nothing exaggerated, on the footprint of the flask each belongs to. It is
+the one that says what the millimetres are worth: no proposal on either seed
+leaves the glass it is aiming at.
+
+![The same errors at true scale, on the flask they belong to](docs/img/scan_p05_detail.png)
+
+**The fixed camera's error is bias, not detector noise.** Replacing every
+detector box with the renderer's own true silhouette box leaves the error where
+it was, 6.8 mm against 6.5 mm at the median: the box says *whether* there is a
+bottle, and the anchor geometry says *where*. What the residual plot shows is
+four clouds, and they are the four flask classes standing on this bench.
+
+The y half of the bias is `PROPOSAL_RADIUS_M`. The base anchor pushes the ray's
+landing point back from the near rim of the base circle to the axis, by the
+radius, along the in-plane normal to the iso-v line; this camera has no roll and
+looks down the bench's -y, so that normal is y and the anchor moves the estimate
+in y alone. 18 mm is what it assumes before the bottle is named, and the offset
+each class ends up with is what that assumption costs it:
+
+| flask | radius | assumed - true | mean error in y | n |
+| --- | --- | --- | --- | --- |
+| 10 ml | 11.2 mm | +6.8 mm | +4.9 mm | 6 |
+| 20 ml | 14.1 mm | +3.9 mm | +2.7 mm | 5 |
+| 50 ml | 19.0 mm | -1.0 mm | -1.5 mm | 3 |
+| 100 ml | 23.9 mm | -5.9 mm | -6.4 mm | 27 |
+
+Give each bottle its own radius and the y bias goes to +0.1 mm and the median to
+4.3 mm. Sweeping one radius for the whole bench cannot do that --- 21 mm centres
+this crowd and halves the median, but the p90 rises from 8 to 10 mm, because no
+single radius suits 10 ml and 100 ml at once, and the seed decides the mix
+(`p05` is two thirds 100 ml, which is why 18 mm reads short here).
+
+What is left is a drift along the bench, `dx = +2.7 mm per metre of x`, which
+survives the true box *and* the true radius. That is the other half of the
+anchor: the box's u-centre is not the bottle's axis for a bottle standing off
+the optical axis, because perspective makes the two silhouette tangents
+asymmetric. It changes sign near the camera's own x and grows outwards, and only
+fitting the whole box removes it.
+
+**Why the arrows swing round halfway along the bench.** On `bench.png` the
+offsets lean towards the camera over the left two thirds of the bench and then,
+from about x = -0.25, turn and lean away from it at an angle that is not quite
+the line of sight either. Nothing about the camera changes there.
+`scan_plots.py`'s fourth figure, `anatomy.png`, splits each offset into the
+anchor's two mistakes, and the answer is the middle panel:
+
+![The two mistakes the anchor makes, and where each one shows](docs/img/scan_p05_anatomy.png)
+
+The first mistake is **along the line of sight**, and its size is exactly
+`assumed radius - true radius`, so the flask's size sets its sign:
+
+| flask | radius | 18 mm - radius | measured along the sight |
+| --- | --- | --- | --- |
+| 10 ml | 11.2 mm | +6.8 mm | +7.1 mm |
+| 20 ml | 14.1 mm | +3.9 mm | +4.6 mm |
+| 50 ml | 19.0 mm | -1.0 mm | +0.5 mm |
+| 100 ml | 23.9 mm | -5.9 mm | -5.8 mm |
+
+A flask fatter than the assumption is under-corrected and the estimate stops
+short of the axis, on the camera's side; a thinner one is over-corrected and
+sails past it. The hinge is the flask whose radius *is* the assumption --- here
+the three 50 ml, out by half a millimetre along the sight, standing at
+x = -0.38 to -0.27, which is exactly where the figure turns.
+
+That the hinge is a *place* at all is the layout's doing, not the camera's.
+`bottle_patterns.place()` sorts by descending radius and `_rows` fills each lane
+from one end, so a `rows` layout stands its flasks big to small along the bench:
+`corr(x, container_ml)` is -0.84 on `p05` and -0.89 on `p10`, against -0.06,
+-0.21 and -0.08 on the scatter, crowd and cluster seeds. The same two mistakes
+are on every seed; only `rows` lines them up into a hinge.
+
+The second mistake is **across** the line of sight --- the u-centre asymmetry.
+It vanishes on the camera's own x, changes sign either side of it, grows
+outwards, and scales with the bottle's radius squared: fitted as
+`r^2 sin(off-axis) / distance` it accounts for the leftover with a correlation
+of 0.93 and 1.1 mm of scatter. That is why the right-hand arrows are not the
+left-hand ones reversed --- there the first mistake points away from the camera
+while the second still points along +x, and the sum leans between the two.
+
+None of this reaches the lab. The wrist reads the ring from 0.30 m and its
+refinement is unbiased: mean offset (-0.01, -0.01) mm, 0.17 mm of scatter, worst
+bottle 0.64 mm. The proposal only has to be good enough for the wrist to find
+the ring it is aimed at, which `confirm` allows 5 cm for, so 6.7 mm of bias
+costs the pass nothing --- it took 1.15 views per bottle to read all 41 rings.
+
+**A second seed, and the model holds.** `p06` is the opposite bench: seed 31,
+46 flasks crowded into 1.6 m with 8 mm between footprints, and 82 % of them
+50 ml where `p05` was two thirds 100 ml.
+
+| | p05 (seed 1, rows) | p06 (seed 31, crowd) |
+| --- | --- | --- |
+| flasks on the bench | 41 | 46 |
+| proposed | 100 % (41/41) | 98 % (45/46) |
+| named correctly | 100 % (41/41) | 96 % (44/46) |
+| named wrongly | 0 | 1 |
+| fixed camera, median / p90 | 6.7 / 8.0 mm | 2.7 / 5.8 mm |
+| after the wrist, median / p90 | 0.11 / 0.46 mm | 0.13 / 0.26 mm |
+
+![The crowded bench: one flask never boxed, one named from its neighbour's ring](docs/img/scan_p06_bench.png)
+
+The fixed camera does two and a half times better on `p06`, and neither the
+detector nor the scene changed. Both halves of the bias explain it. The crowd is
+50 ml, radius 19.0 mm against the 18 mm the anchor assumes, so the y term nearly
+vanishes --- those 36 flasks land 2.5 mm out at the median, while the five 100 ml
+ones beside them land 4.5 mm out. And the crowd sits at x = -1.9 m rather than
+`p05`'s -0.9, where the drift along the bench is smaller: `p05`'s fitted field
+predicts +1.2 mm of x bias there and the measurement is +1.16 mm. A model fitted
+on one seed predicting the next one's bias to a twentieth of a millimetre is the
+strongest evidence that this is geometry and not noise.
+
+The two failures on `p06` are the ones a crowd produces, and the bench figure
+marks both. `SMP-0014` stands behind a neighbour, was never boxed, and no wrist
+look happened to catch its ring: **nothing the fixed camera misses gets a second
+chance**, because the wrist only goes where the proposals send it. `SMP-0194` was
+boxed, but the ring read at it belonged to `SMP-0039` 3 cm away, so the pass
+holds a true pair of sample and position --- just not that bottle's, and
+`world.one_per_sample` dropped the second sighting of `SMP-0039`.
+
 **How the wrist has to look.** `scripts/wrist_identify_bench.py` asks the
 same question of the wrist camera alone, over 100 frames taken at random
 poses 0.25 to 1 m from a bench bottle: of the 381 bench bottles at least half
