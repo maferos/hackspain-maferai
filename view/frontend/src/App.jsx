@@ -13,6 +13,15 @@ const DEFAULT_CAMERAS = [
   { id: "scene", label: "General camera" },
 ];
 
+// By default the viewport shows Eloi's Isaac Sim RTX renders of the scene's
+// cameras (simulation/renders/isaac/full); ?live=1 shows the backend's live
+// MuJoCo streams instead.
+const LIVE = new URLSearchParams(window.location.search).get("live") === "1";
+const STILL_CAMERAS = [
+  { id: "scene", label: "General camera · Isaac RTX render", src: "/renders/general.jpg" },
+  { id: "aisle", label: "Aisle camera · Isaac RTX render", src: "/renders/room_aisle.jpg" },
+];
+
 function statusLabel(status) {
   return status === "active" ? "In progress" : "Done";
 }
@@ -51,8 +60,8 @@ function TaskPanel({ tasks, connected }) {
   );
 }
 
-function CameraStream({ cameraId, label, className, onClick, big }) {
-  const src = `${BACKEND_URL}/stream/${cameraId}`;
+function CameraStream({ cameraId, label, className, onClick, big, still }) {
+  const src = still ?? `${BACKEND_URL}/stream/${cameraId}`;
   return (
     <div className={`camera-frame ${className ?? ""}`} onClick={onClick}>
       <img key={cameraId} src={src} alt={label} className="camera-frame__img" />
@@ -63,14 +72,15 @@ function CameraStream({ cameraId, label, className, onClick, big }) {
 }
 
 export default function App() {
-  const [cameras, setCameras] = useState(DEFAULT_CAMERAS);
-  const [mainCameraId, setMainCameraId] = useState("robot");
+  const [cameras, setCameras] = useState(LIVE ? DEFAULT_CAMERAS : STILL_CAMERAS);
+  const [mainCameraId, setMainCameraId] = useState(LIVE ? "robot" : "scene");
   const [tasks, setTasks] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
   const lab = useLabState(STATE_URL);
 
   useEffect(() => {
+    if (!LIVE) return;
     fetch(`${BACKEND_URL}/api/cameras`)
       .then((res) => res.json())
       .then((data) => {
@@ -117,6 +127,8 @@ export default function App() {
   const pipCameraId = cameras.find((c) => c.id !== mainCameraId)?.id ?? mainCameraId;
   const mainLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
   const pipLabel = cameras.find((c) => c.id === pipCameraId)?.label ?? pipCameraId;
+  const mainStill = cameras.find((c) => c.id === mainCameraId)?.src;
+  const pipStill = cameras.find((c) => c.id === pipCameraId)?.src;
 
   const swapCameras = useCallback(() => setMainCameraId(pipCameraId), [pipCameraId]);
 
@@ -132,12 +144,13 @@ export default function App() {
       <main className="app__body">
         <div className="main-column">
           <section className="viewport">
-            <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big />
+            <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big still={mainStill} />
             <CameraStream
               cameraId={pipCameraId}
               label={pipLabel}
               className="camera-frame--pip"
               onClick={swapCameras}
+              still={pipStill}
             />
           </section>
           <LabPanels state={lab.state} connected={lab.connected} />

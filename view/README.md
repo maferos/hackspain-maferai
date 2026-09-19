@@ -40,6 +40,14 @@ npm run dev
 Then open http://localhost:5173. Set `VITE_BACKEND_URL` if the backend runs
 somewhere other than `http://localhost:8000`.
 
+By default the viewport shows the Isaac Sim RTX renders of the `general` and
+`room_aisle` cameras (`frontend/public/renders/`, converted from
+`simulation/renders/isaac/full/`), which need no backend. Open
+http://localhost:5173/?live=1 to show the live MuJoCo streams instead. The lab
+state panels only need the state publisher on :8765: either this backend, or
+`python -m labbridge.mock_run --fps 0 --loop` from `dashboard/bridge`, which
+renders nothing and uses far less memory.
+
 ## Lab state panels
 
 The same backend also publishes the full `LabState` of the dashboard console
