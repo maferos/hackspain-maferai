@@ -141,3 +141,19 @@ The recovery starts at about 101 s and the recipe completes at about 172 s.
 
 Replace `ScriptedRun` with the real planner when it exists; the state contract
 stays the same.
+
+Replay also supports **Boxes** on the general camera. With the backend running,
+`/ws/replay-detections` performs one inference at a time on the video's current
+time plus the previous request's measured round-trip latency (capped at one
+second). A separate process decodes the future frame; the displayed video never
+waits for inference. Early results wait for their video timestamp, and boxes
+older than 500 ms disappear. Loops and seeking invalidate obsolete results.
+The viewport label shows measured inference and round-trip times; the side
+panels continue to read live lab state.
+
+Copy the Drive `General MAFER AI/hackathon/yolo26n_rail_general/yolo26n_rail_general.pt` weights to
+`computer-vision/weights/yolo26n_rail_general.pt` (or set `VIEW_REPLAY_WEIGHTS`).
+Replay detection uses rail weights at 1920 px and confidence 0.47, and requires
+Ultralytics in the backend environment. The backend and frontend must use the
+same `view/frontend/public/renders/rail_global.mp4`. Videos still play without
+the backend or weights; only detection becomes unavailable.

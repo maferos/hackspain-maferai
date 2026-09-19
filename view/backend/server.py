@@ -491,6 +491,52 @@ def detector_info():
     }
 
 
+@app.websocket("/ws/replay-detections")
+async def ws_replay_detections(websocket: WebSocket):
+    """One requested future video frame at a time; never blocks live rendering."""
+    await websocket.accept()
+    worker = None
+    try:
+        weights = Path(os.environ.get("VIEW_REPLAY_WEIGHTS", str(
+            REPO_ROOT / "computer-vision/weights/yolo26n_rail_general.pt")))
+        video = REPO_ROOT / "view/frontend/public/renders/rail_global.mp4"
+        if not weights.is_file() or not video.is_file():
+            await websocket.send_json({"error": "Replay video or YOLO weights missing"})
+            return
+        worker = await asyncio.create_subprocess_exec(
+            sys.executable, str(Path(__file__).with_name("replay_worker.py")),
+            str(weights), str(video), stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+        )
+        while True:
+            line = await asyncio.wait_for(worker.stdout.readline(), timeout=60)
+            if not line:
+                raise RuntimeError("Replay detector stopped")
+            await websocket.send_json(json.loads(line))
+            request = await websocket.receive_json()
+            worker.stdin.write((json.dumps({"time": float(request["time"])}) + "\n").encode())
+            await worker.stdin.drain()
+    except WebSocketDisconnect:
+        pass
+    except Exception as exc:
+        try:
+            await websocket.send_json({"error": str(exc)})
+        except (RuntimeError, WebSocketDisconnect):
+            pass
+    finally:
+        if worker is not None and worker.returncode is None:
+            worker.terminate()
+            try:
+                await asyncio.wait_for(worker.wait(), timeout=3)
+            except asyncio.TimeoutError:
+                worker.kill()
+                await worker.wait()
+        try:
+            await websocket.close()
+        except RuntimeError:
+            pass
+
+
 @app.websocket("/ws/camera/{camera_id}")
 async def ws_camera(websocket: WebSocket, camera_id: str, preview: bool = False):
     """Binary JPEG frames without occupying a browser's HTTP connection pool."""

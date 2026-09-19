@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
+import useReplayDetections from "./useReplayDetections";
 import LabPanels from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
 import PipelinePanel from "./PipelinePanel";
@@ -222,8 +223,9 @@ function CameraStream({ cameraId, label, className, onClick, big, detections }) 
   );
 }
 
-function ReplayViewport({ mainCameraId, onSwap }) {
+function ReplayViewport({ mainCameraId, onSwap, showBoxes }) {
   const videos = useRef({});
+  const replay = useReplayDetections(videos, showBoxes, BACKEND_URL);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -261,7 +263,8 @@ function ReplayViewport({ mainCameraId, onSwap }) {
       <video ref={(video) => { videos.current[id] = video; }} src={src}
         className="camera-frame__img" aria-label={label} muted loop playsInline
         preload="auto" onError={() => setError(true)} />
-      <span className="camera-frame__label">{label}</span>
+      {id === "scene" && replay.boxes && <DetectionBoxes detections={replay.boxes} />}
+      <span className="camera-frame__label">{label}{id === "scene" && replay.status ? ` · ${replay.status}` : ""}</span>
       {error && <span className="camera-frame__connection" role="status">Replay unavailable. Reload to try again.</span>}
       {!big && <span className="camera-frame__swap">⇄ swap</span>}
     </div>;
@@ -472,14 +475,14 @@ export default function App() {
                 {v.label}
               </button>
             ))}
-            {realtime && (
+            {(
               <button
                 type="button"
-                className={`view-toggle ${showBoxes && detector?.available ? "view-toggle--on" : ""}`}
+                className={`view-toggle ${showBoxes && (!realtime || detector?.available) ? "view-toggle--on" : ""}`}
                 aria-pressed={showBoxes}
-                disabled={!detector?.available}
+                disabled={realtime && !detector?.available}
                 title={
-                  detector?.available
+                  !realtime ? "Predictive YOLO boxes on the replay general camera" : detector?.available
                     ? `Bottle boxes on the general camera (${detector.weights})`
                     : detector?.error ?? "Bottle detector not reachable"
                 }
@@ -512,7 +515,7 @@ export default function App() {
                 onClick={swapCameras}
                 detections={detections}
               />
-            </> : <ReplayViewport mainCameraId={mainCameraId} onSwap={swapCameras} />}
+            </> : <ReplayViewport mainCameraId={mainCameraId} onSwap={swapCameras} showBoxes={showBoxes} />}
           </section>
           {showPanels && (
             <Splitter direction="row" onStart={dragPanels} onReset={() => resize({ panelsHeight: DEFAULT_SIZES.panelsHeight })} />
