@@ -28,6 +28,20 @@ The Tasks, Robot, Balance and Pipeline panels show this scan, in both modes
 
 ## Run it
 
+To select the current MuJoCo detector, copy `yolo26n_full_1920_e25.pt` into
+`computer-vision/weights/`, then put these settings in `view/backend/.env`
+(or export them before starting the backend):
+
+```sh
+VIEW_DETECTOR=full
+VIEW_DETECTOR_CONF=0.41
+```
+
+This selection applies to both live scan perception and the optional live box
+detector. Restart the backend after changing it. The scan uses the named
+backend's threshold unless `VIEW_DETECTOR_CONF` overrides it; a missing selected
+model produces an error instead of silently loading an older one.
+
 The viewer uses camera WebSockets so multiple open tabs do not exhaust the
 browser's per-host HTTP connection limit. Cameras reconnect automatically
 after a backend restart and show “Connecting camera…” until a frame arrives.

@@ -1,5 +1,7 @@
 """Failure cases must leave the viewport responsive, without synthetic motion."""
 import threading
+import os
+from pathlib import Path
 from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
@@ -8,6 +10,27 @@ from live_scan import LiveScan, vp
 
 
 class LiveScanTest(unittest.TestCase):
+    def test_selected_backend_and_threshold_reach_scan_worker(self):
+        weights = Path(__file__)
+        for override, expected in (({}, 0.41), ({'VIEW_DETECTOR_CONF': '0.35'}, 0.35)):
+            with self.subTest(override=override), \
+                 patch.dict(os.environ, {'VIEW_DETECTOR': 'full', **override}, clear=True), \
+                 patch('live_scan.resolve_detector', return_value=(str(weights), 0.41)) as resolve, \
+                 patch('live_scan.ScanDetector') as detector, \
+                 patch('live_scan.ScanPerception'), patch.object(vp, 'controller'):
+                scan = LiveScan(Mock(), SimpleNamespace(time=0), threading.Lock(), 3)
+                self.assertIsNone(scan.error)
+                resolve.assert_called_once_with('full')
+                detector.assert_called_once_with(weights, expected)
+
+    def test_missing_selected_backend_does_not_fall_back_to_old_model(self):
+        with patch.dict(os.environ, {'VIEW_DETECTOR': 'full'}, clear=True), \
+             patch('live_scan.resolve_detector', side_effect=FileNotFoundError('missing full weights')), \
+             patch('live_scan.ScanDetector') as detector:
+            scan = LiveScan(Mock(), SimpleNamespace(time=0), threading.Lock(), 3)
+        self.assertIn('missing full weights', scan.error)
+        detector.assert_not_called()
+
     def test_missing_weights_is_visible_without_starting_perception(self):
         with patch.object(vp, 'DETECTORS', []):
             scan = LiveScan(Mock(), SimpleNamespace(time=0), threading.Lock(), 3)
