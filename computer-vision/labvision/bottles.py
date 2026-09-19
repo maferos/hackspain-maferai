@@ -821,6 +821,10 @@ def main() -> None:
         if args.phase not in (None, kit.phase):
             continue
         rows = [e for e in entries if e.sample.phase == kit.phase]
+        if not rows:
+            # A kit whose phase is not in the current catalogue (powder, since
+            # registry v6) has nothing to label; skip it rather than crash.
+            continue
         paths = write_labelled_bottles(rows, args.assets, label=args.label)
         print(f"{len(paths)} {kit.phase} bottles -> {paths[0].parent}")
         for container_ml in kit.files:
