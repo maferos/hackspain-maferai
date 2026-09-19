@@ -13,8 +13,9 @@ i5-12450H, 8 cores, 16 GB, no GPU).
 **In one line:** a YOLO26n fine-tuned for a single epoch on the CPU, on
 simulator-labelled crops, finds bottles on the bench as well as the best
 detector that needs no training (YOLO-World L), finds more of the smallest
-ones, tells amber from HDPE, and costs a fraction of the compute. Neither
-survives a change of scene unharmed.
+ones, tells amber from HDPE, costs a fraction of the compute, and is the
+most robust to a degraded camera. On a scene it never saw, YOLO-World L holds
+up slightly better.
 
 ### Main test
 
@@ -77,34 +78,38 @@ time in four by the best model: that is a camera limit, not a model one (see
 
 `test_open` is the open-desk scene, never seen in training; `test_shift` is
 the gantry scene under strong light changes with the frame degraded like a
-real camera. The fine-tuned model was scored on 60 frames of each, YOLO26s
-COCO on the first 30 (YOLO-World L was too slow to score here on the
-throttled CPU).
+real camera. The table compares the three models on the same first 30
+frames of each split.
 
 | split | model | frames | AP50 [95 % CI] | AP50:95 | recall [95 % CI] | precision | false boxes / frame |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | `test` | YOLO26n fine-tuned | 30 | 0.864 [0.83-0.89] | 0.639 | 0.886 [0.84-0.92] | 0.836 | 1.93 |
+| `test` | YOLO-World L | 30 | 0.871 [0.84-0.89] | 0.669 | 0.847 [0.81-0.88] | 0.797 | 2.40 |
 | `test` | YOLO26s COCO | 30 | 0.687 [0.64-0.73] | 0.548 | 0.722 [0.68-0.76] | 0.873 | 1.17 |
 | `test_open` | YOLO26n fine-tuned | 30 | 0.675 [0.64-0.71] | 0.500 | 0.870 [0.83-0.91] | 0.662 | 6.83 |
+| `test_open` | YOLO-World L | 30 | 0.715 [0.67-0.76] | 0.553 | 0.857 [0.82-0.89] | 0.560 | 10.33 |
 | `test_open` | YOLO26s COCO | 30 | 0.500 [0.45-0.55] | 0.422 | 0.770 [0.72-0.82] | 0.486 | 12.50 |
 | `test_shift` | YOLO26n fine-tuned | 30 | 0.767 [0.73-0.81] | 0.566 | 0.810 [0.75-0.86] | 0.840 | 1.57 |
+| `test_shift` | YOLO-World L | 30 | 0.685 [0.58-0.76] | 0.488 | 0.675 [0.57-0.76] | 0.786 | 1.87 |
 | `test_shift` | YOLO26s COCO | 30 | 0.260 [0.17-0.35] | 0.195 | 0.295 [0.19-0.40] | 0.789 | 0.80 |
 
 On all 60 frames the fine-tuned model scores 0.674 AP50 on `test_open` and
 0.776 on `test_shift`.
 
-- **Other scene.** Both models lose precision, not recall: the open desk puts
+- **Other scene.** All three lose precision, not recall: the open desk puts
   props in view that the gantry scene's camera never showed (the drying rack,
-  the sink, more glassware), and they draw false boxes. The fine-tuned model
-  keeps its lead, so training on one scene did not make it more brittle than a
-  model trained on no scene of ours at all, but it is no substitute for
-  training on the scene it will run in.
-- **Shifted camera.** The COCO model collapses (recall 0.72 to 0.30): blur,
-  noise and JPEG erase what little an 8 px bottle offers to a model that never
-  saw one. The fine-tuned model loses 8 points of recall. It was trained with
-  light and camera-pose randomisation but no blur or noise, so this is the
-  randomisation paying off; degradation augmentation
-  (`fixedcam_crops.py --degrade`) is the obvious next step.
+  the sink, more glassware), and they draw false boxes. Here the model with no
+  training of ours holds up best: YOLO-World L keeps 0.715 AP50 against the
+  fine-tuned model's 0.675, though with more false boxes (10.3 per frame
+  against 6.8). Fine-tuning on one scene bought accuracy on that scene, not on
+  others; the robot's own scene has to be in the training data.
+- **Shifted camera.** Blur, noise and JPEG erase what little an 8 px bottle
+  offers. The COCO model collapses (recall 0.72 to 0.30), YOLO-World L drops
+  from 0.85 to 0.68, and the fine-tuned model from 0.89 to 0.81, the smallest
+  loss of the three. It was trained with light and camera-pose randomisation
+  but no blur or noise, so this is the randomisation paying off, and
+  degradation augmentation (`fixedcam_crops.py --degrade`) is the obvious next
+  step.
 
 ### What the examples show
 
