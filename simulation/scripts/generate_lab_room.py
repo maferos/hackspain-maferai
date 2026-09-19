@@ -181,6 +181,7 @@ MATERIALS = {
     "cream": 'rgba="0.93 0.91 0.84 1" specular="0.3"',
     "hdpe_white": 'rgba="0.93 0.93 0.90 0.85" specular="0.2"',
     "kraft": 'rgba="0.60 0.45 0.28 1" specular="0.05"',
+    "tape": 'rgba="0.65 0.48 0.28 1" specular="0.3" shininess="0.2"',
     "cardboard": 'rgba="0.72 0.58 0.40 1" specular="0.05"',
     "red_rack": 'rgba="0.75 0.10 0.08 1" specular="0.3"',
     "navy_rack": 'rgba="0.10 0.14 0.32 1" specular="0.3"',
@@ -202,6 +203,7 @@ class Mjcf:
         self.lines = []
         self.assets = []   # extra <asset> lines: meshes and textures from other folders
         self.n = {}
+        self.bevel_meshes = {}
 
     def uid(self, stem):
         self.n[stem] = self.n.get(stem, -1) + 1
@@ -216,11 +218,75 @@ class Mjcf:
 
     def box(self, stem, center, half, mat, solid=False, group=1, euler=None, name=True):
         """Axis-aligned box from centre and half-sizes. solid=True keeps a collider."""
+        if stem == "pull":
+            # Stand-off stainless handle with two mounting posts.
+            cx, cy, cz = center
+            hx, hy, hz = half
+            axis = 0 if hx > hz else 2
+            a, b = list(center), list(center)
+            a[axis] -= half[axis] * 0.85
+            b[axis] += half[axis] * 0.85
+            self.rod("handle_grip", a, b, 0.006, mat)
+            for end in (a, b):
+                back = list(end)
+                back[1] -= hy
+                front = list(end)
+                front[1] += hy
+                self.rod("handle_mount", back, front, 0.008, mat)
+            return
+        if stem == "box":
+            self.carton(center, half, mat, solid, euler)
+            return
         col = "" if solid else ' contype="0" conaffinity="0"'
         rot = f' euler="{" ".join(f"{a:g}" for a in euler)}"' if euler else ""
         nm = f'name="{self.uid(stem)}" ' if name else ""
-        self.add(f'<geom {nm}type="box" pos="{fmt(center)}" size="{fmt(half)}"{rot} '
+        # Millimetre bevels catch highlights without changing placement or collision.
+        beveled = min(half) >= 0.009 and mat in {
+            "white", "white_matte", "worktop", "desk", "grey_device", "cardboard", "cream", "dark"}
+        shape = f'type="box" size="{fmt(half)}"'
+        if beveled:
+            key = tuple(float(h) for h in half)
+            if key not in self.bevel_meshes:
+                radius = min(0.006, min(half) * 0.22)
+                vertices = []
+                for axis in range(3):
+                    for sx in (-1, 1):
+                        for sy in (-1, 1):
+                            for sz in (-1, 1):
+                                vertices.extend(sign * (h if i == axis else h - radius)
+                                                for i, (sign, h) in enumerate(zip((sx, sy, sz), half)))
+                self.bevel_meshes[key] = (f"bevel_{len(self.bevel_meshes)}", vertices)
+            mesh_name = self.bevel_meshes[key][0]
+            shape = f'type="mesh" mesh="{mesh_name}"'
+            if solid:
+                self.add(f'<geom type="box" pos="{fmt(center)}" size="{fmt(half)}"{rot} '
+                         'group="3" rgba="0 0 0 0"/>')
+            col = ' contype="0" conaffinity="0"'
+        self.add(f'<geom {nm}{shape} pos="{fmt(center)}"{rot} '
                  f'material="{mat}"{col} group="{group}"/>')
+
+    def carton(self, center, half, mat, solid, euler):
+        """Sealed shipping carton, with all details in the rotated local frame."""
+        hx, hy, hz = half
+        rot = f' euler="{fmt(euler)}"' if euler else ""
+        self.add(f'<frame pos="{fmt(center)}"{rot}>')
+        self.box("carton_shell", (0, 0, 0), half, mat, solid=solid)
+        self.box("carton_seam", (0, 0, hz + 0.0003), (0.001, hy - 0.004, 0.0003), "kraft")
+        self.box("packing_tape", (0, 0, hz + 0.0007), (0.025, hy - 0.003, 0.0003), "tape")
+        for side in (-1, 1):
+            self.box("tape_end", (0, side * (hy + 0.0006), hz - 0.026), (0.025, 0.0004, 0.026), "tape")
+            self.box("shipping_label", (hx * 0.32, side * (hy + 0.001), 0), (hx * 0.43, 0.0004, hz * 0.35), "paper")
+            for k in range(17):
+                self.box("barcode", (hx * 0.02 + k * hx * 0.035, side * (hy + 0.0016), -hz * 0.05),
+                         (0.0007 if k % 3 else 0.0014, 0.0002, hz * 0.15), "dark")
+            for k in range(2):
+                self.box("label_line", (hx * 0.32, side * (hy + 0.0016), hz * (0.18 + k * 0.08)),
+                         (hx * (0.27 - k * 0.05), 0.0002, 0.001), "grille")
+        self.add('</frame>')
+
+    def ellipsoid(self, stem, center, radii, mat):
+        self.add(f'<geom name="{self.uid(stem)}" type="ellipsoid" pos="{fmt(center)}" '
+                 f'size="{fmt(radii)}" material="{mat}" contype="0" conaffinity="0" group="1"/>')
 
     def span(self, stem, lo, hi, mat, **kw):
         """Box between two corners."""
@@ -703,6 +769,12 @@ def instrument_bench(m):
     for x in np.linspace(x0 + 0.05, x1 - 0.05, 4):
         m.span("ib_leg", (x - 0.03, Y1 - 0.7, 0), (x + 0.03, Y1 - 0.64, BENCH_TOP - 0.04), "white")
         m.span("ib_leg", (x - 0.03, Y1 - 0.1, 0), (x + 0.03, Y1 - 0.04, BENCH_TOP - 0.04), "white")
+        for yy in (Y1 - 0.67, Y1 - 0.07):
+            m.cyl("ib_leveling_foot", (x, yy, 0.016), 0.042, 0.016, "dark")
+            m.cyl("ib_foot_stem", (x, yy, 0.044), 0.013, 0.025, "steel")
+        m.span("ib_crossmember", (x - 0.022, Y1 - 0.7, 0.77), (x + 0.022, Y1 - 0.04, 0.82), "white")
+    for yy in (Y1 - 0.67, Y1 - 0.07):
+        m.span("ib_apron", (x0 + 0.03, yy - 0.022, 0.78), (x1 - 0.03, yy + 0.022, 0.855), "white")
     m.span("ib_rail", (x0, Y1 - 0.1, 0.12), (x1, Y1 - 0.04, 0.16), "white")
 
 
@@ -752,14 +824,52 @@ def office_beyond(m):
 
 
 def person(m, x, y, facing):
-    """A stand-in figure: lab coat, trousers, head, disposable cap."""
-    for s in (-1, 1):
-        ox, oy = -math.sin(facing) * 0.1 * s, math.cos(facing) * 0.1 * s
-        m.rod("person_leg", (x + ox, y + oy, 0.05), (x + ox, y + oy, 0.8), 0.06, "trousers")
-        m.rod("person_arm", (x + 2.2 * ox, y + 2.2 * oy, 1.4), (x + 2.4 * ox, y + 2.4 * oy, 0.9), 0.045, "coat")
-    m.rod("person_coat", (x, y, 0.75), (x, y, 1.4), 0.19, "coat")
-    m.cyl("person_head", (x, y, 1.62), 0.1, 0.0, "skin", kind="sphere")
-    m.cyl("person_cap", (x, y, 1.68), 0.105, 0.0, "cap_blue", kind="sphere")
+    """Static staff figure in a local +X-facing frame, with a relaxed bent-arm pose."""
+    m.add(f'<frame pos="{x:g} {y:g} 0" euler="0 0 {math.degrees(facing):g}">')
+    for side in (-1, 1):
+        yy = side * 0.095
+        m.ellipsoid("shoe", (0.055, yy, 0.055), (0.145, 0.064, 0.05), "dark")
+        m.rod("trouser_calf", (0, yy, 0.13), (-0.025, yy, 0.47), 0.059, "trousers")
+        m.rod("trouser_thigh", (-0.025, yy, 0.47), (0, yy, 0.86), 0.075, "trousers")
+        shoulder = (0, side * 0.19, 1.39)
+        elbow = (0.035, side * 0.235, 1.16)
+        wrist = (0.17, side * 0.20, 1.05 + 0.06 * (side > 0))
+        m.rod("sleeve_upper", shoulder, elbow, 0.066, "coat")
+        m.rod("sleeve_lower", elbow, wrist, 0.048, "coat")
+        m.ellipsoid("hand", (wrist[0] + 0.036, wrist[1], wrist[2] - 0.026), (0.052, 0.028, 0.061), "skin")
+        m.ellipsoid("thumb", (wrist[0] + 0.055, wrist[1] - side * 0.027, wrist[2]), (0.024, 0.017, 0.031), "skin")
+        m.box("coat_pocket", (0.128, side * 0.105, 1.04), (0.004, 0.045, 0.055), "white_matte")
+        m.rod("pocket_stitch", (0.134, side * 0.105 - 0.044, 1.084), (0.134, side * 0.105 + 0.044, 1.084), 0.0015, "seam")
+    # One continuous coat silhouette instead of separate capsule body segments.
+    if "coat_mesh" not in m.bevel_meshes:
+        vertices = []
+        for z, rx, ry in ((0.78, 0.125, 0.19), (0.83, 0.14, 0.195),
+                           (1.12, 0.13, 0.17), (1.36, 0.13, 0.195),
+                           (1.43, 0.10, 0.17), (1.47, 0.065, 0.075)):
+            for i in range(32):
+                a = math.tau * i / 32
+                vertices.extend((rx * math.cos(a), ry * math.sin(a), z))
+        m.bevel_meshes["coat_mesh"] = ("staff_coat", vertices)
+    m.mesh("coat_body", "staff_coat", (0, 0, 0), "coat")
+    m.rod("coat_seam", (0.142, 0, 0.84), (0.134, 0, 1.37), 0.002, "seam")
+    for z in (1.0, 1.10, 1.20, 1.30):
+        m.ellipsoid("coat_button", (0.14, 0, z), (0.003, 0.007, 0.007), "white_matte")
+    for side in (-1, 1):
+        m.rod("collar", (0.075, side * 0.065, 1.47), (0.131, side * 0.055, 1.35), 0.024, "white")
+    m.box("id_badge", (0.135, -0.09, 1.32), (0.004, 0.032, 0.043), "stripe_blue")
+    m.box("id_insert", (0.14, -0.09, 1.32), (0.001, 0.026, 0.026), "paper")
+    m.rod("neck", (0, 0, 1.44), (0, 0, 1.54), 0.048, "skin")
+    m.ellipsoid("head", (0, 0, 1.615), (0.087, 0.078, 0.119), "skin")
+    m.ellipsoid("jaw", (0.026, 0, 1.556), (0.068, 0.061, 0.048), "skin")
+    m.ellipsoid("nose", (0.088, 0, 1.614), (0.027, 0.018, 0.028), "skin")
+    for side in (-1, 1):
+        m.ellipsoid("ear", (0, side * 0.078, 1.61), (0.022, 0.012, 0.033), "skin")
+        m.ellipsoid("eye", (0.077, side * 0.034, 1.644), (0.009, 0.016, 0.008), "white")
+        m.ellipsoid("pupil", (0.085, side * 0.034, 1.644), (0.003, 0.006, 0.006), "dark")
+        m.rod("eyebrow", (0.079, side * 0.019, 1.661), (0.073, side * 0.051, 1.663), 0.003, "trousers")
+    m.rod("mouth", (0.085, -0.021, 1.579), (0.085, 0.021, 1.579), 0.002, "kraft")
+    m.ellipsoid("disposable_cap", (-0.013, 0, 1.713), (0.09, 0.087, 0.048), "cap_blue")
+    m.add('</frame>')
 
 
 def cameras(m):
@@ -804,6 +914,9 @@ def main() -> None:
     materials = "\n".join(f'    <material name="{k}" {v}/>' for k, v in MATERIALS.items())
     meshes = "\n".join([f'    <mesh name="{n}" file="meshes/{n}.obj" inertia="shell"/>' for n in mesh_names]
                        + [f"    {line}" for line in m.assets])
+    meshes += "\n" + "\n".join(
+        f'    <mesh name="{name}" vertex="{fmt(vertices)}"/>'
+        for name, vertices in m.bevel_meshes.values())
     xml = f"""<?xml version="1.0" encoding="utf-8"?>
 <!-- Generated by scripts/generate_lab_room.py - do not edit by hand.
      Perfumery lab around the minihannover bench: interior {X1 - X0:g} x {Y1 - Y0:g} x {H:g} m,

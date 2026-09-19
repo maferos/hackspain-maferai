@@ -25,14 +25,17 @@ so they can start; the polished pipeline (Isaac Sim + Replicator on RunPod) foll
   `minihannover` bench scene (lab-relevant and verified on MuJoCo 3.13) — no
   cloud, no AutoBio Linux plugin. See `scripts/render_dataset.py`.
 - **Real labelled dataset = Isaac Sim + Replicator on RunPod**, built in parallel.
+- **No interactive Isaac Sim on RunPod.** WebRTC (the official path) needs a UDP
+  media port and RunPod blocks UDP; noVNC works over TCP but NVIDIA doesn't
+  support the GUI over a virtual display (fragile, RTX-4090/Isaac-4.0 only). So:
+  interact in **local MuJoCo**, keep Isaac Sim on RunPod **headless** (render to
+  disk); noVNC-over-SSH only as a throwaway. See `runpod-interactive.md`.
 
 ## Open
 
 - [ ] **Batch 2 — usable detection data**: objects on the bench (instruments /
       simple primitives) + **segmentation masks** + **depth** from the same
       `render_dataset.py`. Turns bench-only frames into a real CV dataset.
-- [ ] **Stand up Isaac Sim on RunPod**: provision the pod (Isaac Sim template),
-      render one RGB camera frame to disk. De-risks the cloud pipeline.
 
 ## Not yet specified (fog)
 
@@ -51,6 +54,14 @@ so they can start; the polished pipeline (Isaac Sim + Replicator on RunPod) foll
 
 ## Done
 
+- [x] **Isaac Sim on RunPod de-risked** (2026-09-18) — official image
+      `nvcr.io/nvidia/isaac-sim:4.5.0` runs headless on an RTX A5000; one 1280×720
+      RGB frame rendered to disk via Replicator and pulled back (~$0.15, ~11 min
+      end to end). Key unlock: the image's ENTRYPOINT is fixed (streaming app) and
+      RunPod's GraphQL/`runpodctl` can't override it, but **REST v2** (`POST
+      https://rest.runpod.io/v1/pods`) exposes `dockerEntrypoint` — set it to
+      `bash -lc` + an sshd bootstrap and you get a shell. Recipe in
+      `runpod-isaac.md`; `scripts/render_isaac.py` + `scripts/runpod_isaac_sshd_boot.sh`.
 - [x] **Batch 1 shipped to CV** — 128 RGB frames (640×480) of the `minihannover`
       bench from randomised camera poses + `frames.json`. Generated with
       `scripts/render_dataset.py`; zipped at `out/minihannover_batch1.zip`.
