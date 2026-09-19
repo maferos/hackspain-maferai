@@ -210,6 +210,29 @@ def build_arm() -> Path:
             f'{source} missing --- run: bash scripts/fetch_menagerie.sh')
 
     xml = source.read_text()
+    # A thin visual-only wrap on both sides of the upper arm. Keep the supplied
+    # vector wordmark in assets/branding; UVs preserve its original proportions.
+    vertices, uv, faces = [], [], []
+    segments = 32
+    for i in range(segments + 1):
+        v = i / segments
+        angle = (v - 0.5) * (0.28 * 350 / 1540) / 0.061
+        for u in (0, 1):
+            vertices.extend((0.061 * np.sin(angle),
+                             -0.061 * np.cos(angle), 0.3065 + (u - 0.5) * 0.28))
+            uv.extend((1 - u, 1 - v))
+    for i in range(segments):
+        a = 2 * i
+        faces.extend((a, a + 2, a + 1, a + 1, a + 2, a + 3))
+    xml = xml.replace('<asset>', '<asset>\n'
+        '    <texture name="mafer_logo" type="2d" file="../branding/mafer-label.png"/>\n'
+        '    <material name="mafer_label" texture="mafer_logo" specular="0.1" shininess="0.1"/>\n'
+        f'    <mesh name="mafer_wrap" vertex="{_fmt(vertices)}" '
+        f'texcoord="{_fmt(uv)}" face="{" ".join(map(str, faces))}"/>', 1)
+    anchor = '<geom mesh="upperarm_3" material="linkgray" class="visual"/>'
+    xml = xml.replace(anchor, anchor + '\n'
+        '          <geom name="mafer_front" mesh="mafer_wrap" material="mafer_label" class="visual" mass="0"/>\n'
+        '          <geom name="mafer_back" mesh="mafer_wrap" material="mafer_label" class="visual" mass="0" quat="0 0 0 1"/>')
     rel = '../../third_party/mujoco_menagerie'
     xml = xml.replace('meshdir="assets"',
                       f'meshdir="{rel}/universal_robots_ur10e/assets"')
