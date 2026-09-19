@@ -96,10 +96,51 @@ shadows the back edge instead of the samples. The arm base ends up 0.55 m over t
 worktop, roughly the height its own gripper works at, which is what keeps the full
 1.30 m available horizontally instead of spending it on the drop to the bench.
 
+### Wrist camera, live
+
+The arm carries an eye-in-hand camera 90 mm to the side of the tool axis and
+30 mm under the flange --- on the wrist, just below it. `scripts/wrist_view.py`
+opens the interactive MuJoCo window and streams that camera to a browser tab at
+the same time, so the room and the robot's own view sit side by side:
+
+```bash
+.venv/bin/mjpython scripts/wrist_view.py                 # sweep the bench
+.venv/bin/mjpython scripts/wrist_view.py --mode label    # read one label after another
+```
+
+The tab opens by itself at `http://localhost:8008`; the stream is multipart
+JPEG off the standard library's HTTP server, so nothing extra is installed. The
+MuJoCo window stays interactive throughout, and `[` / `]` cycles its own camera
+if you would rather have the wrist view large and the room small.
+
+**The camera looks parallel to the tool axis, not converging on it.** That is
+deliberate and was a bug first: the gripper sits on the tool axis, so a camera
+that converges there aims straight at the back of its own fingers. Parallel puts
+the gripper at the frame edge and whatever the camera is aimed at in the middle.
+
+**Reading a label is an aiming problem, not an angle problem.**
+`computer-vision/scripts/wrist_scan.py` wants about 0.30 m of standoff and no
+more than ~25 degrees of elevation, because the ArUco bars are rings round the
+bottle and from above a ring is an arc. But 93 vessels stand about 9 mm apart on
+this bench, so a neighbour is usually in the way. Casting a ray at every label
+and counting what the camera can actually see:
+
+| Camera elevation | Approaching every vessel from the rail side | Choosing the bearing per vessel |
+| --- | --- | --- |
+| 8 degrees | 56/93 (60%) | **93/93** |
+| 25 degrees | 82/93 (88%) | 93/93 |
+| 45 degrees | 93/93 | 93/93 |
+
+Coming at a vessel from the right side beats climbing above it. `--mode label`
+does exactly that: it tries bearings in turn, skips the ones a neighbour blocks,
+and takes the first the arm can hold --- 92 of the 93 labels, at the 8 degrees
+the reader prefers.
+
 **Motion.** `scripts/rail_demo.py --mode sweep` runs the carriage end to end in a
 hand-down scan pose; `--mode visit` picks vessels along the bench and drops the
 gripper over each cap in turn. Playback is kinematic by default so it is
-deterministic and cannot knock the glassware over; `--physics` drives the position
+deterministic and cannot knock the glassware over; `--mode label` parks the wrist
+camera on one label after another; `--physics` drives the position
 actuators and steps the simulator instead, where the arm sags up to 4 degrees at
 the shoulder under Menagerie's stock gains. Render with `--video out/rail.mp4`
 (needs `ffmpeg`) or `--frames <dir>`, from `--camera general`, `carriage` or `eih`.
@@ -141,6 +182,7 @@ use `scripts/view_autobio.py` instead.
 | `scripts/generate_rail_scene.py` | Builds `assets/ur10e_2f85/` and `models/minihannover_rail_scene.xml` (open desk + gantry + arm) |
 | `scripts/rail_kinematics.py` | Bench-vessel lookup and top-down damped-least-squares IK, shared by the two rail scripts |
 | `scripts/rail_demo.py` | Drives the carriage along the rail: sweep or per-vessel visit, viewer or offscreen render |
+| `scripts/wrist_view.py` | Interactive scene plus a live browser stream of the wrist camera |
 | `scripts/rail_reach.py` | Reachability report: rail vs one fixed station, over every vessel on the bench |
 | `models/minihannover_rail_scene.xml` | The open-desk scene plus a 6 m gantry carrying a UR10e + Robotiq 2F-85 with an eye-in-hand camera |
 | `scripts/check_install.py` | Headless check that loads and steps the model |

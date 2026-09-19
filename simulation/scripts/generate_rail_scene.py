@@ -33,6 +33,8 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import numpy as np
+
 SIM = Path(__file__).resolve().parents[1]
 MENAGERIE = SIM / 'third_party/mujoco_menagerie'
 ARM_DIR = SIM / 'assets/ur10e_2f85'
@@ -68,6 +70,20 @@ ARM_BASE_Z = BEAM_Z + ARM_BASE_DZ
 # arm folded toward -Y so it leans over the bench rather than the back wall.
 SCAN_POSE = (-1.5708, -1.9199, 2.0944, -1.7453, -1.5708, 0.0)
 
+# Eye-in-hand camera, in the tool frame (+Z is the approach direction).
+EIH_OFFSET = 0.09   # to the side of the tool axis, clear of the fingers
+EIH_DROP = 0.03     # below the flange: on the wrist, just under it
+EIH_TILT = 0.0      # degrees of convergence toward the tool axis. Zero on
+                    # purpose: the gripper sits ON that axis, so a converging
+                    # camera aims straight at the back of its own fingers.
+                    # Parallel puts the gripper at the frame edge instead and
+                    # whatever the camera is aimed at in the middle.
+
+
+def _fmt(vector) -> str:
+    """Format a 3-vector for an MJCF attribute."""
+    return ' '.join(f'{v:.4f}' for v in vector)
+
 
 def build_arm() -> Path:
     """Write the UR10e + Robotiq 2F-85 model used by the scene.
@@ -92,16 +108,26 @@ def build_arm() -> Path:
         f'<asset>\n    <model name="robotiq_2f85" file="{rel}/robotiq_2f85/2f85.xml"/>',
         1)
     # The flange site is where UR documents the tool frame; put the gripper on it,
-    # and an eye-in-hand camera beside it looking down the same approach axis.
-    # A MuJoCo camera looks along its own -Z, hence the 180-degree flip.
+    # and the eye-in-hand camera beside it. Both live in a frame whose +Z is the
+    # tool's approach direction.
+    #
+    # The camera sits EIH_OFFSET to the side and EIH_DROP below the flange --- on
+    # the wrist, just under it, clear of the fingers --- looking EIH_TILT off the
+    # tool axis. A MuJoCo camera looks along its own -Z; `eih_site` is the same
+    # pose with +Z along the view instead, which is what solve_ik expects.
+    view = np.array([-np.sin(np.radians(EIH_TILT)), 0.0,
+                     np.cos(np.radians(EIH_TILT))])
+    up = np.cross(-view, (0.0, 1.0, 0.0))
     xml = xml.replace(
         '<site name="attachment_site" pos="0 0.1 0" quat="-1 1 0 0"/>',
         '<site name="attachment_site" pos="0 0.1 0" quat="-1 1 0 0"/>\n'
         '                  <frame pos="0 0.1 0" quat="-1 1 0 0">\n'
         '                    <attach model="robotiq_2f85" body="base_mount" prefix="grip_"/>\n'
-        '                    <camera name="eih" pos="0.105 0 -0.02"\n'
-        '                            xyaxes="0 1 0 0.874 0 0.486"\n'
+        f'                    <camera name="eih" pos="{EIH_OFFSET} 0 {EIH_DROP}"\n'
+        f'                            xyaxes="0 1 0 {_fmt(up)}"\n'
         '                            fovy="60.44" resolution="1920 1080"/>\n'
+        f'                    <site name="eih_site" pos="{EIH_OFFSET} 0 {EIH_DROP}"\n'
+        f'                          xyaxes="0 1 0 {_fmt(-up)}" size="0.004" group="4"/>\n'
         '                  </frame>')
     # The arm's own keyframe no longer matches nq once the gripper is on, and the
     # scene sets poses from Python anyway.

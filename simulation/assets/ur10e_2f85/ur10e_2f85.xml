@@ -125,9 +125,11 @@
                   <site name="attachment_site" pos="0 0.1 0" quat="-1 1 0 0"/>
                   <frame pos="0 0.1 0" quat="-1 1 0 0">
                     <attach model="robotiq_2f85" body="base_mount" prefix="grip_"/>
-                    <camera name="eih" pos="0.105 0 -0.02"
-                            xyaxes="0 1 0 0.874 0 0.486"
+                    <camera name="eih" pos="0.09 0 0.03"
+                            xyaxes="0 1 0 1.0000 -0.0000 0.0000"
                             fovy="60.44" resolution="1920 1080"/>
+                    <site name="eih_site" pos="0.09 0 0.03"
+                          xyaxes="0 1 0 -1.0000 0.0000 -0.0000" size="0.004" group="4"/>
                   </frame>
                 </body>
               </body>
