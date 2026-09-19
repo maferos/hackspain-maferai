@@ -45,6 +45,9 @@ MIN_VISIBLE = 0.5
 COVER_INSIDE = 0.7
 """A box this much inside an ignored bottle's full silhouette lands on it."""
 
+NEAR_REQUIRED = 0.1
+"""IoU with a required bottle above which the silhouette rule no longer applies."""
+
 IOU_THRESHOLDS: tuple[float, ...] = tuple(round(0.5 + 0.05 * k, 2) for k in range(10))
 """COCO's IoU thresholds, 0.50 to 0.95."""
 
@@ -228,9 +231,16 @@ def match_frame(
             result.scores.append(det.score)
             result.hits.append(True)
             continue
+        # A box inside a hidden bottle's silhouette is on that bottle, unless it
+        # also touches a required bottle standing in front of it: then it is a
+        # duplicate or a bad box on the required one, and counts against.
+        near_required = any(iou(det.box, t.box) >= NEAR_REQUIRED for t in required)
         if any(
             iou(det.box, t.box) >= iou_min
-            or fraction_inside(det.box, t.full_box) >= COVER_INSIDE
+            or (
+                not near_required
+                and fraction_inside(det.box, t.full_box) >= COVER_INSIDE
+            )
             for t in ignored
         ):
             continue
@@ -271,6 +281,36 @@ def average_precision(
         index < len(precision), precision[np.minimum(index, len(precision) - 1)], 0.0
     )
     return float(sampled.mean())
+
+
+def kit_ap(
+    frames: Sequence[tuple[Sequence[Truth], Sequence[Detection]]],
+    iou_min: float = 0.5,
+) -> float:
+    """Return the AP of telling the kits apart, averaged over the kits as COCO does
+
+    For each kit, only boxes that name that kit are scored, against the required
+    bottles of that kit; bottles that are not required still absorb boxes, and a
+    box on a required bottle of the other kit is false. Boxes that name no kit
+    (``cls`` of -1) take no part.
+
+    Args:
+        frames: One ``(truths, detections)`` pair per frame.
+        iou_min: IoU threshold for a hit.
+
+    Returns:
+        The mean over kits of each kit's AP; NaN when no kit had to be found.
+    """
+    per_kit = []
+    for kit in range(len(CLASS_NAMES)):
+        results = []
+        for truths, detections in frames:
+            kept = [t for t in truths if t.cls == kit or not t.required]
+            boxes = [d for d in detections if d.cls == kit]
+            results.append(match_frame(kept, boxes, iou_min))
+        per_kit.append(ap_at(results))
+    values = [v for v in per_kit if v == v]
+    return float(np.mean(values)) if values else float("nan")
 
 
 def pooled(results: Sequence[FrameResult]) -> tuple[list[float], list[bool], int]:

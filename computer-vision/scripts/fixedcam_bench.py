@@ -131,7 +131,7 @@ def build(name: str, gt: dict | None = None) -> object:
             build_inner(match["base"]), roi=roi_for(gt) if gt else None, upscale=scale
         )
     if name.startswith("rfdetr:"):
-        _, weights, size, resolution = name.split(":", 3)
+        weights, size, resolution = name.removeprefix("rfdetr:").rsplit(":", 2)
         inner = fm.RfDetrPredictor(weights, size=size, resolution=int(resolution))
         return fm.TiledPredictor(
             inner, tile=int(resolution), roi=roi_for(gt) if gt else None
@@ -166,6 +166,21 @@ def frame_stamp(folder: Path, frames: list[dict]) -> dict[str, list[int]]:
     return stamp
 
 
+def weights_stamp(name: str) -> list[int] | None:
+    """Size and date of a fine-tuned model's weights file, to spot a new checkpoint"""
+    base = re.sub(r"\+(tile|roi).*$", "", name)
+    if base.startswith("ft:"):
+        path = Path(base[3:])
+    elif base.startswith("rfdetr:"):
+        path = Path(base.removeprefix("rfdetr:").rsplit(":", 2)[0])
+    else:
+        return None
+    if not path.exists():
+        return None
+    st = path.stat()
+    return [st.st_size, st.st_mtime_ns]
+
+
 def load_split(split: str) -> tuple[Path, dict]:
     """Return a split's folder and its ground truth"""
     folder = DATA / split
@@ -176,12 +191,13 @@ def load_split(split: str) -> tuple[Path, dict]:
 
 
 def predict_split(
-    name: str, split: str, limit: int | None, redo: bool
-) -> tuple[dict, list[dict]]:
+    name: str, split: str, limit: int | None, redo: bool, cached_only: bool = False
+) -> tuple[dict | None, list[dict]]:
     """Run a model over a split, or read its cached boxes
 
     Returns:
         The cache (frame file to boxes and milliseconds) and the frames scored.
+        With ``cached_only``, the cache is None when it does not cover them all.
     """
     folder, gt = load_split(split)
     frames = gt["frames"][:limit] if limit else gt["frames"]
@@ -189,13 +205,19 @@ def predict_split(
     out.mkdir(parents=True, exist_ok=True)
     cache_path = out / "predictions.json"
     stamp = frame_stamp(folder, frames)
-    cache = {}
+    fresh = {"_model": weights_stamp(name)}
+    cache: dict = dict(fresh)
     if cache_path.exists() and not redo:
         cache = json.loads(cache_path.read_text(encoding="utf-8"))
         old = cache.get("_frames", {})
         if any(f in old and old[f] != s for f, s in stamp.items()):
             print(f"{cache_path} was made on other frames, running again")
-            cache = {}
+            cache = dict(fresh)
+        elif cache.get("_model") != fresh["_model"]:
+            print(f"{cache_path} was made with other weights, running again")
+            cache = dict(fresh)
+    if cached_only and any(f["file"] not in cache for f in frames):
+        return None, frames
     todo = [f for f in frames if f["file"] not in cache]
     if todo:
         predictor = build(name, gt)
@@ -279,7 +301,7 @@ def score(
     """
     top = ev.Worktop.from_gt(gt)
     by_iou: dict[float, list[ev.FrameResult]] = {t: [] for t in ev.IOU_THRESHOLDS}
-    kit_aware: list[ev.FrameResult] = []
+    kit_frames: list[tuple[list[ev.Truth], list[ev.Detection]]] = []
     has_kits = False
     ms = []
     for frame in frames:
@@ -292,7 +314,7 @@ def score(
         truths = ev.truths_of(frame)
         for t in ev.IOU_THRESHOLDS:
             by_iou[t].append(ev.match_frame(truths, dets, t))
-        kit_aware.append(ev.match_frame(truths, dets, 0.5, class_aware=True))
+        kit_frames.append((truths, dets))
     at50 = by_iou[0.5]
     chosen = threshold
     best_f1 = None
@@ -310,7 +332,7 @@ def score(
         "frames": len(frames),
         "ap50": ev.ap_at(at50),
         "ap": float(np.nanmean([ev.ap_at(by_iou[t]) for t in ev.IOU_THRESHOLDS])),
-        "kit_ap50": ev.ap_at(kit_aware) if has_kits else None,
+        "kit_ap50": ev.kit_ap(kit_frames) if has_kits else None,
         "threshold": chosen,
         "threshold_from": "this split (best F1)" if threshold is None else "val",
         "best_f1_here": best_f1,
@@ -319,7 +341,9 @@ def score(
             k: v
             for k, v in sorted(
                 ev.breakdown(at50, chosen, lambda t: t.kind).items(),
-                key=lambda kv: ev.KINDS.index(kv[0]),
+                key=lambda kv: (
+                    ev.KINDS.index(kv[0]) if kv[0] in ev.KINDS else len(ev.KINDS)
+                ),
             )
         },
         "by_side": {
@@ -364,9 +388,31 @@ def draw_overlay(
     cv2.imwrite(str(path), image, [cv2.IMWRITE_JPEG_QUALITY, 85])
 
 
+def score_both(
+    split: str, frames: list[dict], cache: dict, gt: dict, metrics: dict, args
+) -> dict:
+    """Score a split raw and filtered, with the val thresholds unless it is val"""
+    entry = {}
+    for mode in ("raw", "worktop"):
+        threshold = None
+        if split != "val":
+            threshold = metrics.get("val", {}).get(mode, {}).get("threshold")
+            if threshold is None and not args.threshold_here:
+                raise SystemExit(
+                    f"score val first: {split} takes its threshold from val "
+                    "(or pass --threshold-here to pick it on this split)"
+                )
+        entry[mode] = score(
+            split, frames, cache, gt, worktop=mode == "worktop",
+            threshold=threshold, boot=args.boot,
+        )  # fmt: skip
+    return entry
+
+
 def run(args: argparse.Namespace) -> None:
     """Predict, score and write metrics for one model over the given splits"""
     splits = [s.strip() for s in args.splits.split(",") if s.strip()]
+    splits.sort(key=lambda s: s != "val")  # val first: it sets the thresholds
     root = RESULTS / slug(args.model)
     metrics_path = root / "metrics.json"
     metrics = (
@@ -378,17 +424,7 @@ def run(args: argparse.Namespace) -> None:
     for split in splits:
         cache, frames = predict_split(args.model, split, args.max, args.redo)
         folder, gt = load_split(split)
-        entry = {}
-        for mode in ("raw", "worktop"):
-            threshold = None
-            if split != "val":
-                threshold = metrics.get("val", {}).get(mode, {}).get("threshold")
-                if threshold is None:
-                    print(f"no val threshold for {mode}; picking it on {split}")
-            entry[mode] = score(
-                split, frames, cache, gt, worktop=mode == "worktop",
-                threshold=threshold, boot=args.boot,
-            )  # fmt: skip
+        entry = score_both(split, frames, cache, gt, metrics, args)
         metrics[split] = entry
         if args.overlays:
             over = root / split / "overlays"
@@ -412,6 +448,16 @@ def run(args: argparse.Namespace) -> None:
             f"at {w['threshold']:.3f}, {w['ms_median']:.0f} ms/frame\n",
             flush=True,
         )
+    if "val" in splits:
+        # New val thresholds: rescore the other splits already on file.
+        for split in [k for k in metrics if k not in ("model", "val", *splits)]:
+            cache, frames = predict_split(args.model, split, None, False, True)
+            if cache is None:
+                print(f"{split}: cached boxes incomplete, not rescored")
+                continue
+            _, gt = load_split(split)
+            metrics[split] = score_both(split, frames, cache, gt, metrics, args)
+            print(f"{split}: rescored with the new val thresholds")
     root.mkdir(parents=True, exist_ok=True)
     metrics_path.write_text(json.dumps(metrics, indent=1), encoding="utf-8")
 
@@ -446,7 +492,14 @@ def summary(args: argparse.Namespace) -> None:
                      f"{found / need:.2f}" if need else "-",
                      f"{m['threshold']:.3f}", f"{m['ms_median']:.0f}")
                 )  # fmt: skip
-    rows.sort(key=lambda r: (r[0], r[1], -float(r[4].split()[0] or 0)))
+
+    def ap_of(row: tuple) -> float:
+        try:
+            return -float(row[4].split()[0])
+        except ValueError:
+            return 0.0
+
+    rows.sort(key=lambda r: (r[0], r[1], ap_of(r)))
     header = (
         "| split | filter | model | frames | AP50 [95 % CI] | AP50:95 | recall "
         "[95 % CI] | precision | false/frame | amber 10-20 ml recall | "
@@ -473,6 +526,11 @@ def main() -> None:
     p_run.add_argument("--redo", action="store_true", help="ignore cached boxes")
     p_run.add_argument("--overlays", type=int, default=6, help="frames to draw")
     p_run.add_argument("--boot", type=int, default=1000, help="bootstrap resamples")
+    p_run.add_argument(
+        "--threshold-here",
+        action="store_true",
+        help="pick the threshold on a test split when val is not scored",
+    )
     p_sum = sub.add_parser("summary", help="table over every scored model")
     p_sum.add_argument("--splits", nargs="*", default=None)
     p_sum.add_argument("--raw", action="store_true", help="also the unfiltered rows")

@@ -53,6 +53,8 @@ REPO = Path(__file__).resolve().parents[2]
 DATA = REPO / "simulation" / "out" / "fixedcam"
 SAMPLE_ID = re.compile(r"(SMP|PWD)-\d{4}")
 SIZE_ML = re.compile(r"(\d+(?:\.\d+)?)\s*ml", re.IGNORECASE)
+LIQUID = re.compile(r"(?<![a-z])(amber|liquid)(?![a-z])", re.IGNORECASE)
+POWDER = re.compile(r"(?<![a-z])(hdpe|powder)(?![a-z])", re.IGNORECASE)
 
 
 def frame_numbers(folder: Path) -> list[str]:
@@ -107,7 +109,11 @@ def read_boxes(folder: Path, kind: str, number: str) -> list[dict]:
 
 
 def bottle_of(label: str, prim: str | None, samples: dict) -> dict | None:
-    """Return the kit and size a semantic label names, or None if not a bottle"""
+    """Return the kit and size a semantic label names, or None if not a bottle
+
+    A sample id is looked for in the label and the prim path; the kit words
+    only in the label, as whole words (``amber``, not ``chamber``).
+    """
     text = f"{label} {prim or ''}"
     match = SAMPLE_ID.search(text)
     if match and match.group(0) in samples:
@@ -117,14 +123,13 @@ def bottle_of(label: str, prim: str | None, samples: dict) -> dict | None:
             "phase": sample.phase,
             "container_ml": sample.container_ml,
         }
-    low = text.lower()
-    if "amber" in low or "liquid" in low:
+    if LIQUID.search(label):
         phase = "liquid"
-    elif "hdpe" in low or "powder" in low:
+    elif POWDER.search(label):
         phase = "powder"
     else:
         return None
-    size = SIZE_ML.search(low)
+    size = SIZE_ML.search(label)
     return {
         "sample_id": None,
         "phase": phase,
@@ -140,6 +145,11 @@ def camera_of(
     Replicator's ``cameraViewTransform`` is a flattened 4 x 4 world-to-camera
     matrix for row vectors (USD's convention); its transpose acts on columns.
     The camera looks down its -Z axis with +Y up, as MuJoCo's does.
+
+    The vertical field of view comes from ``cameraProjection`` when present
+    (``1 / P[1][1]`` is ``tan(fovy / 2)``), else from the horizontal aperture
+    and the image's aspect: the renderer uses square pixels and ignores the
+    USD vertical aperture.
     """
     view = np.asarray(params["cameraViewTransform"], dtype=float).reshape(4, 4)
     if np.allclose(view[:3, 3], 0.0) and not np.allclose(view[3, :3], 0.0):
@@ -147,14 +157,13 @@ def camera_of(
     to_world = np.linalg.inv(view)
     rotation = to_world[:3, :3]
     position = to_world[:3, 3] * metres_per_unit
-    focal = float(params["cameraFocalLength"])
-    aperture = params["cameraAperture"]
-    vertical = (
-        float(aperture[1])
-        if float(aperture[1]) > 0
-        else float(aperture[0]) * height / width
-    )
-    fovy = math.degrees(2 * math.atan(vertical / 2 / focal))
+    projection = params.get("cameraProjection")
+    if projection is not None and abs(float(projection[5])) > 1e-9:
+        fovy = math.degrees(2 * math.atan(1.0 / abs(float(projection[5]))))
+    else:
+        focal = float(params["cameraFocalLength"])
+        vertical = float(params["cameraAperture"][0]) * height / width
+        fovy = math.degrees(2 * math.atan(vertical / 2 / focal))
     return position.tolist(), rotation.reshape(-1).tolist(), fovy
 
 
@@ -198,9 +207,10 @@ def convert(
             kind = bottle_of(t["label"], t["prim"], samples)
             if kind is None:
                 continue
-            partner = loose_by_prim.get(t["prim"]) if t["prim"] else None
-            if partner is None and i < len(loose):
-                partner = loose[i]
+            if t["prim"] and loose_by_prim:
+                partner = loose_by_prim.get(t["prim"])
+            else:
+                partner = loose[i] if i < len(loose) else None
             full = partner["box"] if partner else t["box"]
             box = [t["box"][0], t["box"][1], t["box"][2] + pad, t["box"][3] + pad]
             full = [full[0], full[1], full[2] + pad, full[3] + pad]

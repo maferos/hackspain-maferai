@@ -86,7 +86,25 @@ def test_camera_pose_round_trips_through_the_row_vector_view():
     pos, xmat, fovy = conv.camera_of(params, 1280, 720, 1.0)
     assert pos == pytest.approx(position.tolist())
     assert xmat == pytest.approx(rotation.reshape(-1).tolist())
-    assert fovy == pytest.approx(math.degrees(2 * math.atan(15.2908 / 2 / 18.0)))
+    # Square pixels: the vertical aperture follows the image, not the USD value.
+    vertical = 20.955 * 720 / 1280
+    assert fovy == pytest.approx(math.degrees(2 * math.atan(vertical / 2 / 18.0)))
+
+
+def test_fovy_comes_from_the_projection_matrix_when_there_is_one():
+    position, rotation = look_down_camera()
+    tan_half = math.tan(math.radians(40.0) / 2)
+    projection = [0.0] * 16
+    projection[0] = 1.0 / (tan_half * 16 / 9)
+    projection[5] = 1.0 / tan_half
+    params = {
+        "cameraViewTransform": row_vector_view(position, rotation),
+        "cameraProjection": projection,
+        "cameraFocalLength": 18.0,
+        "cameraAperture": [20.955, 15.2908],
+    }
+    _, _, fovy = conv.camera_of(params, 1280, 720, 1.0)
+    assert fovy == pytest.approx(40.0)
 
 
 def test_convert_keeps_bottles_pairs_tight_with_loose_and_drops_the_rest(tmp_path):
@@ -115,3 +133,6 @@ def test_convert_keeps_bottles_pairs_tight_with_loose_and_drops_the_rest(tmp_pat
 def test_an_unknown_class_is_not_a_bottle():
     assert conv.bottle_of("balance", "/World/balance_1", {}) is None
     assert conv.bottle_of("hdpe", None, {})["phase"] == "powder"
+    # "chamber" holds "amber"; only whole words in the label name a kit.
+    assert conv.bottle_of("beaker", "/World/Chamber/beaker_01", {}) is None
+    assert conv.bottle_of("amber_50ml", None, {})["container_ml"] == 50.0
