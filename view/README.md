@@ -51,6 +51,20 @@ recorded scripted run in `frontend/public/scripted-run.json`, so the panels
 show the same formulation with only `npm run dev`. After changing the scripted
 run, regenerate it with `python -m labbridge.record_run` from `dashboard/bridge`.
 
+## Bottle boxes
+
+In Real time, the header's **Boxes** button draws the bottle detector's boxes
+over the general camera, wherever that camera is shown; the choice is
+remembered in this browser. The backend runs the detector only while a viewer
+has the boxes on, on the newest frame, at most `VIEW_DETECTOR_HZ` (4) times a
+second, with `VIEW_DETECTOR_THREADS` (2) torch threads so the streams keep
+their frame rate; the boxes lag the picture by one inference (about 0.4 s on a
+laptop CPU). It needs `ultralytics` in the backend's venv and the weights at
+`computer-vision/runs/rail/yolo26n_rail_general.pt` (YOLO26n trained on this
+camera in the rail scene; the team Drive has them, and the path is gitignored)
+or wherever `VIEW_DETECTOR_WEIGHTS` points. Without them the button is greyed
+out and says why. `VIEW_DETECTOR_CONF` sets the score threshold (0.25).
+
 ## Lab state panels
 
 The same backend also publishes the full `LabState` (see
