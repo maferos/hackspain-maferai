@@ -145,8 +145,8 @@ scan still replay the scripted formulation of
 - **Robot** under the viewport: the controller's state and caption, the track
   or sample it is working on, the ring it read, the gripper (open or holding),
   and the carriage on the rail.
-- **Balance**: `balance_2`. Nothing is weighed yet: the arm carries the gripper,
-  not the pipette, so it reads 0.000 g.
+- **Balance**: `balance_2`, with the mass the executor reports for the
+  ingredient being dosed, against its target; 0.000 g when nothing is.
 - **Pipeline**, under the chat: camera cycle, live YOLO time, tracks on the
   bench and how many a ring placed, rings named, the controller, the rail, and
   the bench map. The footer is the scan's latest log line.
@@ -155,7 +155,8 @@ scan still replay the scripted formulation of
 
 The **Formula** panel between the tasks and the Pipeline checks a formula
 against the flasks the scan has named by their rings, never against the
-simulator's list:
+simulator's list, and shows it as the JSON the robot will receive (the `{ }`
+button on the proposal, with copy):
 
 | Type | And |
 | --- | --- |
@@ -163,14 +164,62 @@ simulator's list:
 | `1.2 g geraniol, 0.5 g nerol` (either order, `1,2 g`, Spanish names) | the formula, each line with the flask the scan found or "not identified on the bench" |
 | `40 % geraniol, 60 % nerol, total 2 g` | the same from percentages |
 | `FRG-101`, `5 g of FRG-103` | one of the five formulas in `harness/formulas`, scaled (3 g by default) |
-| **Pick**, or `pick` / `dale` | the arm fetches each flask in turn through the controller's own pick (ring, grasp on force feedback, lift, put back); the task panel follows it. It waits for the initial scan to finish. |
-| **Stop**, or `stop` / `para` | no more picks |
+| JSON, pasted, dropped on the panel or loaded with `{ }` | the same check; any `harness/formulas` file, this viewer's own order JSON, `[{"compound", "grams"}]` lines, or `{"id": "FRG-101", "batch_g": 3}` |
+| **Send to robot**, or `send` / `dale` | the formula becomes the robot's order (below) |
+| **Stop**, or `stop` / `para` | the order stops |
 
-The arm has the gripper, so a formula is fetched, not dosed; the task panel
-says so. Without `ANTHROPIC_API_KEY` a small parser (`backend/formula_chat.py`)
-reads the forms above and the panel says `OFFLINE PARSER`; with the key and
+Without `ANTHROPIC_API_KEY` a small parser (`backend/formula_chat.py`) reads
+the forms above and the panel says `OFFLINE PARSER`; with the key and
 `anthropic` in the venv, Claude (`VIEW_CHAT_MODEL`, default `claude-opus-5`)
 reads free-form requests and proposes formulas from the identified flasks.
+Once an order is running the robot narrates in the chat each step it crosses
+off, with the order's clock.
+
+## The order and its workflow
+
+A formula sent to the robot becomes an order (`backend/workflow.py`), `ORD-001`
+onwards, one at a time:
+
+    order:        Scan → Formula → Check → Dose → QC → Done
+    ingredient:   locate → pick → carry → dose → verify → return
+
+The panels follow it: the task panel's stage bar and one row per ingredient
+with its steps as dots, crossed off as they finish, and below it the plan with
+the done steps struck through; the header's status line (`ORD-001 · Dose 2/3 ·
+01:23`); the Balance panel with the ingredient being dosed against its target;
+the Pipeline's order, executor and QC rows; and the chat's narration.
+
+**For the executor.** The order is written to
+`simulation/out/formula_order.json` and served at `GET /api/formula`: the
+`harness/formulas` format (`material`, `cas`, `batch_g`, `concentrate_pct`,
+`samples`), plus for each line the flask the scan found (`sample_id`,
+`located: {x, y, track}`) or why there is none (`problem`), the balance
+(`balance_2`) and the tolerance (±0.010 g). The executor reports each step, in
+process with `scene.lab.workflow.report(...)` or over HTTP:
+
+```sh
+curl -X POST localhost:8000/api/workflow/report -H 'Content-Type: application/json' \
+  -d '{"ingredient": "SMP-0014", "step": "dose", "status": "active", "mass": 0.84, "note": "slow pour"}'
+```
+
+`ingredient` is the sample id, the compound or the ingredient id; `status` is
+active, completed, failed or skipped; `mass` is the net balance reading for that
+ingredient, which also draws the Balance chart. Reporting a step finishes the
+ones before it. The backend crosses off by itself what it can see: the scan
+naming the flask (locate), the controller's captions and the gripper (pick,
+return), and the reported mass against the target (verify). The order closes
+with QC when every step is done. `backend/example_executor.py` is a working
+client of all this that does not move the arm, for trying the panels:
+
+```sh
+VIEW_FORMULA_EXECUTOR=external python view/backend/server.py
+python view/backend/example_executor.py --speed 2
+```
+
+`VIEW_FORMULA_EXECUTOR` picks who takes the order: `fetch` (the default until
+the real executor exists) has the arm fetch each flask through the scan
+controller's own pick, locate → pick → return, and says it was fetched, not
+dosed; `external` leaves the order to an executor that reports.
 
 The camera, tasks and Pipeline are always shown. Robot and Balance
 open and close from the buttons in the header, and the edges between views

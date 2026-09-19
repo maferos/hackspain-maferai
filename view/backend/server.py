@@ -529,71 +529,119 @@ def scan_progress() -> str:
 chat = FormulaChat(catalogue, scanned_shelf, scan_progress)
 
 
-def start_fetch(formula: dict | None):
-    """Have the arm fetch a proposed formula's flasks, as the scan knows them now."""
+def lab_state():
+    """The scan's LabState publisher, which also holds the order; 409 without the scan."""
     lab = getattr(scene, "lab", None)
     if lab is None or scene.scan is None or scene.scan.world is None:
-        raise HTTPException(409, "The bench scan is not running, so the arm cannot fetch anything.")
+        raise HTTPException(409, "The bench scan is not running, so there is no robot to send it to.")
+    return lab
+
+
+def dispatch(formula: dict | None) -> dict:
+    """Check a proposed formula against the bench as the scan knows it now, and send it."""
     if not formula:
-        raise HTTPException(409, "There is no formula yet: type one first.")
-    if lab.fetch is not None and lab.fetch.status == "running":
-        raise HTTPException(409, "The arm is already fetching a formula; stop it first.")
+        raise HTTPException(409, "There is no formula yet: type one, or paste its JSON.")
+    lab = lab_state()
     lines = [{"compound": i.get("cas") or i.get("compound"), "grams": i.get("grams")}
              for i in formula.get("ingredients", [])]
     resolved = resolve(lines, scanned_shelf(), catalogue,
                        str(formula.get("id") or "CHAT"), str(formula.get("name") or "Chat formula"))
-    if not resolved["runnable"]:
-        raise HTTPException(409, "The scan has not identified any flask of this formula.")
-    from scan_state import Fetch
-    lab.fetch = Fetch(resolved, scene.scan.world)
-    lab.fetch.start()
-    found = [i for i in resolved["ingredients"] if not i["problem"]]
-    waiting = " once the scan is done" if scene.scan.world.scan is None else ""
-    return f"The arm will pick {', '.join(i['sampleId'] for i in found)}{waiting}, one after the other."
+    try:
+        order = lab.dispatch(resolved, str(formula.get("source") or "chat"))
+    except RuntimeError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    waiting = " It starts once the scan has finished." if scene.scan.world.scan is None else ""
+    return {"order": order.id, "json": order.doc,
+            "reply": f"{order.id} sent to the robot: {resolved['name']}, "
+                     f"{len(order.active_items())} ingredients.{waiting}"}
+
+
+def with_json(answer: dict) -> dict:
+    """Attach the formula as the robot will receive it, for the chat to show."""
+    formula = answer.get("formula")
+    lab = getattr(scene, "lab", None)
+    if formula and lab is not None:
+        answer["json"] = lab.workflow.formula_json(formula, formula.get("source", "chat"))
+    return answer
 
 
 @app.get("/api/formulation")
 def formulation_info():
     lab = getattr(scene, "lab", None)
-    fetch = lab.fetch if lab else None
-    return {"available": SCAN_ENABLED, "running": bool(fetch and fetch.status == "running"),
-            "chat": chat.mode, "bench": scanned_shelf()}
+    order = lab.workflow.order if lab else None
+    return {"available": SCAN_ENABLED, "chat": chat.mode, "bench": scanned_shelf(),
+            "executor": lab.workflow.executor if lab else None,
+            "order": order.id if order else None, "status": order.status if order else None}
 
 
 @app.post("/api/chat")
 def chat_message(payload: dict = Body(...)):
-    """One chat message: the reply, the formula it proposes and what was done."""
+    """One chat message: the reply, the formula it proposes (and its JSON), what was done."""
     message = str(payload.get("message") or "").strip()
     if not message:
         raise HTTPException(400, "Empty message")
     answer = chat.reply(message, payload.get("history") or [])
     if answer["action"] == "start":
         try:
-            answer["reply"] = start_fetch(answer["formula"])
+            sent = dispatch(answer["formula"])
+            answer.update(reply=sent["reply"], order=sent["order"], formula=None)
         except HTTPException as exc:
-            answer["reply"], answer["action"], answer["formula"] = exc.detail, None, None
+            answer.update(reply=exc.detail, action=None, formula=None)
     elif answer["action"] == "stop":
         lab = getattr(scene, "lab", None)
-        if lab is None or lab.fetch is None or lab.fetch.status != "running":
-            answer["reply"], answer["action"] = "Nothing is being fetched.", None
+        order = lab.workflow.order if lab else None
+        if order is None or order.status not in ("queued", "running"):
+            answer.update(reply="The robot has no order running.", action=None)
         else:
-            lab.fetch.stop()
-            answer["reply"] = "Stopped; the arm finishes what it is holding and goes back to watching."
-    return answer
+            lab.stop_order()
+            answer["reply"] = f"{order.id} stopped; the arm finishes what it is holding."
+    return with_json(answer)
 
 
-@app.post("/api/formulation/start")
-def formulation_start(payload: dict = Body(default={})):
-    return {"reply": start_fetch(payload.get("formula") or chat.last)}
+@app.get("/api/formula")
+def formula_current():
+    """The current order as the executor reads it (also in simulation/out/formula_order.json)."""
+    lab = lab_state()
+    order = lab.workflow.order
+    if order is None:
+        raise HTTPException(404, "No formula has been sent to the robot yet.")
+    return {**order.doc, "order": {**order.doc["order"], "status": order.status}}
 
 
-@app.post("/api/formulation/stop")
-def formulation_stop():
-    lab = getattr(scene, "lab", None)
-    if lab is None or lab.fetch is None or lab.fetch.status != "running":
-        raise HTTPException(409, "Nothing is being fetched.")
-    lab.fetch.stop()
-    return {"reply": "Stopped; the arm finishes what it is holding and goes back to watching."}
+@app.post("/api/formula")
+def formula_submit(payload: dict = Body(...)):
+    """Send a formula to the robot: {"formula": <proposal>} from the chat, or the formula JSON itself."""
+    formula = payload.get("formula")
+    if formula is None:
+        answer = chat.reply(json.dumps(payload))
+        if not answer.get("formula"):
+            raise HTTPException(422, answer["reply"])
+        formula = answer["formula"]
+    return dispatch(formula)
+
+
+@app.post("/api/formula/stop")
+def formula_stop():
+    lab = lab_state()
+    order = lab.workflow.order
+    if order is None or order.status not in ("queued", "running"):
+        raise HTTPException(409, "The robot has no order running.")
+    lab.stop_order()
+    return {"reply": f"{order.id} stopped; the arm finishes what it is holding."}
+
+
+@app.post("/api/workflow/report")
+def workflow_report(payload: dict = Body(...)):
+    """The executor crosses a step off: {"ingredient", "step", "status", "mass"?, "note"?}."""
+    lab = lab_state()
+    try:
+        lab.workflow.report(payload.get("ingredient"), str(payload.get("step")), str(payload.get("status")),
+                            payload.get("mass"), payload.get("note"))
+    except KeyError as exc:
+        raise HTTPException(409, str(exc.args[0] if exc.args else exc)) from exc
+    return {"ok": True}
 
 
 def mjpeg_generator(mj_camera_name: str):

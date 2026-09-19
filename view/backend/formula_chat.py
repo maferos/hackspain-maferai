@@ -10,26 +10,29 @@ the direct forms, so the demo never depends on the network:
     5 g of FRG-102                    the same, scaled to a batch
     1.2 g linalool, 0.8 g hedione     explicit lines; Spanish names work too
     40 % limonene, 60 % linalool, total 2 g
-    pick / stop / what's on the bench?
+    {"ingredients": [{"material": "Geraniol", "batch_g": 1.2}]}   JSON, see workflow.py
+    send / stop / what's on the bench?
 
 Either way the proposal goes through catalogue.resolve, so nothing is proposed
-that the scan has not found. "Pick" has the arm fetch each flask in turn; the
-live arm carries a gripper, so it lifts each one and puts it back.
+that the scan has not found, and each proposal carries its ``source`` (chat,
+json or catalogue). "Send to robot" makes it the order (workflow.py).
 """
 from __future__ import annotations
 
+import json
 import os
 import re
 from typing import Callable
 
 from catalogue import MAX_BATCH_G, MIN_DOSE_G, Catalogue, normalise, resolve
+from workflow import lines_from_json
 
 MODEL = os.environ.get("VIEW_CHAT_MODEL", "claude-opus-5")
 DEFAULT_BATCH_G = 3.0
 DEFAULT_PERCENT_TOTAL_G = 2.0
 HISTORY = 12
 
-START = re.compile(r"^\s*(pick|fetch|run|start|go|execute|yes|ok|okay|confirm|dale|s[ií]|empieza|ejecuta|coge|"
+START = re.compile(r"^\s*(send|pick|fetch|run|start|go|execute|yes|ok|okay|confirm|dale|s[ií]|empieza|ejecuta|coge|"
                    r"adelante|venga|hazlo|lanza|arranca)\b", re.I)
 STOP = re.compile(r"\b(stop|abort|cancel|halt|para|parar|det[eé]n|detente|cancela|aborta)\b", re.I)
 BENCH = re.compile(r"\b(bench|inventory|available|stock|shelf|ingredients|qu[eé] hay|disponibles?|"
@@ -50,11 +53,6 @@ def _grams(value: str, unit: str) -> float:
     return float(value) / 1000 if unit.lower() == "mg" else float(value)
 
 
-def _clock(seconds: float) -> str:
-    seconds = int(round(seconds))
-    return f"{seconds // 60} min {seconds % 60:02d} s" if seconds >= 60 else f"{seconds} s"
-
-
 def describe(formula: dict) -> str:
     """One or two sentences for a proposal; the chat shows the table itself."""
     ings = formula["ingredients"]
@@ -68,8 +66,7 @@ def describe(formula: dict) -> str:
                        else f"the scan found all {len(ok)} ingredients")
     else:
         text = head + f"the scan found {len(ok)} of {len(ings)} ingredients"
-    text += (f". Press Pick to have the arm fetch {'it' if len(ok) == 1 else 'them'} "
-             f"(~{_clock(formula['estimate']['seconds'])}).")
+    text += ". Send it to the robot when it looks right."
     if formula["unknown"]:
         text += f" I don't know {', '.join(formula['unknown'])}."
     return text
@@ -120,6 +117,8 @@ class FormulaChat:
         Returns:
             ``{"reply": str, "formula": dict | None, "action": "start" | "stop" | None}``.
         """
+        if message.lstrip().startswith(("{", "[")):
+            return self._json(message)
         if self._client is not None:
             try:
                 return self._claude(message, history or [])
@@ -131,6 +130,24 @@ class FormulaChat:
 
     # --- offline ----------------------------------------------------------
 
+    def _json(self, message: str) -> dict:
+        """A formula pasted or dropped as JSON: checked the same way as typed ones."""
+        try:
+            lines, head = lines_from_json(json.loads(message))
+        except (ValueError, TypeError) as exc:
+            return {"reply": f"That JSON is not a formula I can read: {exc}.", "formula": None, "action": None}
+        if not lines:
+            formula = self._catalogue_formula(head.get("id", ""), head.get("batch_g"))
+            if formula is None:
+                return {"reply": f"That JSON names no ingredients and no catalogue formula "
+                                 f"({', '.join(self.catalogue.formulas)}).", "formula": None, "action": None}
+        else:
+            formula = resolve(lines, self.shelf(), self.catalogue, head.get("id", "JSON"),
+                              head.get("name", "JSON formula"))
+        formula["source"] = "json"
+        self.last = formula
+        return {"reply": describe(formula) + self.progress(), "formula": formula, "action": None}
+
     def _offline(self, message: str) -> dict:
         text = re.sub(r"(\d),(\d)", r"\1.\2", message.strip())
         words = len(text.split())
@@ -141,13 +158,14 @@ class FormulaChat:
 
         formula = self._catalogue_formula(text) or self._lines_formula(text)
         if formula is not None:
+            formula.setdefault("source", "chat")
             self.last = formula
             return {"reply": describe(formula) + self.progress(), "formula": formula, "action": None}
         if BENCH.search(text):
             return {"reply": describe_bench(self.shelf()) + self.progress(), "formula": None, "action": None}
         return {"reply": HELP, "formula": None, "action": None}
 
-    def _catalogue_formula(self, text: str) -> dict | None:
+    def _catalogue_formula(self, text: str, batch_g: float | None = None) -> dict | None:
         match = FRG.search(text)
         ref = f"FRG-{match.group(1)}" if match else None
         if ref is None:
@@ -161,12 +179,14 @@ class FormulaChat:
             known = ", ".join(self.catalogue.formulas)
             return {"id": ref, "name": "unknown formula", "ingredients": [], "unknown": [f"{ref} (try {known})"],
                     "targetMass": 0.0, "runnable": False, "estimate": {"picks": 0, "seconds": 0}}
-        rest = FRG.sub(" ", text)
-        batch = BATCH.search(rest)
-        grams = min(float(batch.group(1)), MAX_BATCH_G) if batch else DEFAULT_BATCH_G
+        batch = BATCH.search(FRG.sub(" ", text))
+        grams = batch_g or (float(batch.group(1)) if batch else DEFAULT_BATCH_G)
+        grams = min(grams, MAX_BATCH_G)
         lines = [{"compound": i["cas"], "grams": round(i["concentrate_pct"] / 100 * grams, 3)}
                  for i in source["ingredients"]]
-        return resolve(lines, self.shelf(), self.catalogue, source["id"], f"{source['name']} · {grams:g} g")
+        formula = resolve(lines, self.shelf(), self.catalogue, source["id"], f"{source['name']} · {grams:g} g")
+        formula["source"] = "catalogue"
+        return formula
 
     def _lines_formula(self, text: str) -> dict | None:
         total = TOTAL.search(text)
@@ -237,10 +257,10 @@ class FormulaChat:
                 "required": ["name", "ingredients"],
             },
         },
-        {"name": "start_run", "description": "Have the arm fetch the proposed formula's flasks, "
+        {"name": "start_run", "description": "Send the proposed formula to the robot as an order, "
                                               "when the operator asks for it.",
          "input_schema": {"type": "object", "properties": {}}},
-        {"name": "stop_run", "description": "Stop fetching the formula's flasks.",
+        {"name": "stop_run", "description": "Stop the order the robot is working on.",
          "input_schema": {"type": "object", "properties": {}}},
     ]
 
@@ -254,8 +274,8 @@ class FormulaChat:
             "You are the formulation assistant of a robotic perfumery lab. A UR10e arm with a gripper "
             "rides a rail over a bench of flasks. A fixed camera finds the flasks with YOLO and the arm's "
             "wrist camera names each one by its ArUco ring. Formulas are checked against the flasks "
-            "named so far; on request the arm fetches each flask in turn (it lifts it and puts it back: "
-            "dosing needs the pipette tool, which is not on the arm).\n\n"
+            "named so far. A formula sent to the robot becomes an order: the arm locates each flask, "
+            "picks it, doses it on the balance and puts it back.\n\n"
             f"On the bench now: {shelf}\n\n"
             f"Catalogue formulas (percent of the concentrate):\n{formulas}\n\n"
             "Rules:\n"
@@ -266,7 +286,7 @@ class FormulaChat:
             "and say which are missing.\n"
             "- Call propose_formula whenever you suggest or change a formula; the table is shown to the "
             "operator, so do not repeat it in prose. Call start_run only when the operator asks to "
-            "fetch or run it, stop_run when they ask to stop.\n"
+            "send or run it, stop_run when they ask to stop.\n"
             "- Answer in the operator's language, in one to three short sentences."
         )
 
@@ -306,6 +326,7 @@ class FormulaChat:
                 lines = list(block.input.get("ingredients") or [])
                 formula = resolve(lines, self.shelf(), self.catalogue, "CHAT",
                                   str(block.input.get("name") or "Chat formula"))
+                formula["source"] = "chat"
                 self.last = formula
             elif block.name == "start_run":
                 action, formula = "start", formula or self.last

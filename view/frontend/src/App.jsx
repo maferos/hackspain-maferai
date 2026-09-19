@@ -66,6 +66,41 @@ function loadLayout() {
 
 const clamp = (x, lo, hi) => Math.min(Math.max(x, lo), Math.max(lo, hi));
 
+const clock = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
+
+// One line in the header saying what the lab is doing: the order and its stage,
+// else the scan, else that it is idle.
+function LabStatus({ state, connected }) {
+  if (!connected || !state) {
+    return <span className="lab-status lab-status--off">Lab offline</span>;
+  }
+  const order = state.order;
+  if (order && (order.status === "queued" || order.status === "running")) {
+    const stage = order.stages.find((s) => s.status === "active");
+    return (
+      <span className="lab-status lab-status--busy">
+        {order.id} · {stage ? stage.label : "Queued"} {order.done}/{order.total} · {clock(order.elapsedSeconds)}
+      </span>
+    );
+  }
+  const scan = state.scan;
+  if (scan && !scan.done) {
+    return (
+      <span className="lab-status lab-status--busy">
+        Scanning · {scan.named}/{scan.tracked} named
+      </span>
+    );
+  }
+  if (order && order.qc) {
+    return (
+      <span className={`lab-status ${order.qc.passed ? "lab-status--ok" : "lab-status--warn"}`}>
+        {order.id} {order.qc.passed ? "complete" : "finished with problems"} · ready
+      </span>
+    );
+  }
+  return <span className="lab-status lab-status--ok">{scan ? `Bench mapped · ${scan.named} flasks · ready` : "Ready"}</span>;
+}
+
 // The detector's boxes over a camera, in the frame's own pixels: the viewBox is
 // the frame and "slice" crops it exactly as the image's object-fit: cover does.
 function DetectionBoxes({ detections }) {
@@ -394,11 +429,8 @@ export default function App() {
 
   const swapCameras = useCallback(() => setMainCameraId(pipCameraId), [pipCameraId]);
 
-  // With the lab state connected, the task panel shows the formula and the
-  // plan; without it, the backend's mocked task log as before.
-  // The arm is fetching the chat's formula while any of its flasks is still to pick.
-  const recipe = lab.connected ? lab.state?.recipe : null;
-  const fetching = recipe?.mode === "fetch" && recipe.ingredients.some((i) => i.status === "active" || i.status === "queued");
+  // The chat and the header follow the live lab state only, never the recording.
+  const live = lab.connected ? lab.state : null;
 
   const { views } = layout;
   const showPanels = views.robot || views.balance;
@@ -437,6 +469,7 @@ export default function App() {
         <div className="app__brand">
           <img src="/mafer-logo.svg" alt="Mafer" className="app__logo" />
           <h1>Robot monitor — mini-Hannover</h1>
+          <LabStatus state={live} connected={lab.connected} />
         </div>
         <div className="header-controls">
           <div className="mode-toggle" role="group" aria-label="Source">
@@ -534,7 +567,7 @@ export default function App() {
         <div className="side" style={{ width: layout.tasksWidth }}>
           <LabTaskPanel state={lab.state} connected={lab.connected} />
           <Splitter direction="row" onStart={dragChat} onReset={() => resize({ chatHeight: DEFAULT_SIZES.chatHeight })} />
-          <FormulaChat backendUrl={BACKEND_URL} fetching={fetching} style={{ height: layout.chatHeight }} />
+          <FormulaChat backendUrl={BACKEND_URL} lab={live} style={{ height: layout.chatHeight }} />
           <Splitter direction="row" onStart={dragPipeline} onReset={() => resize({ pipelineHeight: DEFAULT_SIZES.pipelineHeight })} />
           <PipelinePanel
             state={lab.state}

@@ -1317,27 +1317,338 @@ body.resizing-row * {
 .scan-tally {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.2rem 0 0.4rem;
-}
-
-.scan-tally .big {
-  font-size: 1.8rem;
-}
-
-.scan-tally small {
-  color: var(--text-dim);
+  gap: 0.1rem;
+  padding: 0.1rem 0 0.35rem;
   font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.scan-tally strong {
+  color: var(--text);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.95rem;
 }
 
 .scan-tally .mono {
   font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
-  font-size: 0.72rem;
-  color: var(--text-dim);
+  font-size: 0.7rem;
 }
 
-.formula-row__note {
-  grid-column: 2 / -1;
-  font-size: 0.68rem;
+
+/* --- Workflow ---------------------------------------------------------------- */
+
+.task-item--done .task-item__label,
+.task-item--skipped .task-item__label {
+  text-decoration: line-through;
+  text-decoration-color: rgba(139, 148, 158, 0.6);
+}
+
+.task-item--skipped .task-item__marker {
+  background: transparent;
+  border: 1px solid var(--done);
+}
+
+.stages {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.55rem 1rem 0;
+  list-style: none;
+}
+
+.stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  padding-top: 0.35rem;
+  border-top: 2px solid var(--panel-border);
   color: var(--text-dim);
+  font-size: 0.68rem;
+}
+
+.stage__mark {
+  height: 0.8rem;
+  font-size: 0.7rem;
+  line-height: 0.8rem;
+}
+
+.stage__label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.stage--completed {
+  border-top-color: var(--accent);
+  color: var(--text);
+}
+
+.stage--completed .stage__mark {
+  color: var(--accent);
+}
+
+.stage--active {
+  border-top-color: var(--active);
+  color: var(--active);
+}
+
+.stage--active .stage__mark::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--active);
+  box-shadow: 0 0 6px var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.stage--failed {
+  border-top-color: var(--error);
+  color: var(--error);
+}
+
+.order__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-row {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr) auto;
+  column-gap: 0.4rem;
+  align-items: baseline;
+  padding: 0.2rem 0;
+  font-size: 0.85rem;
+}
+
+.order-row__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-row__mass {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.78rem;
+}
+
+.order-row__steps {
+  grid-column: 2;
+  display: flex;
+  gap: 4px;
+  padding-top: 0.15rem;
+}
+
+.order-row__note {
+  grid-column: 2 / -1;
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: 0.7rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-row .formula-row__bar {
+  grid-column: 2 / -1;
+}
+
+.order-row--completed .order-row__name {
+  color: var(--text-dim);
+  text-decoration: line-through;
+}
+
+.order-row--completed .formula-row__check {
+  color: var(--active);
+}
+
+.order-row--active .formula-row__check {
+  color: var(--active);
+}
+
+.order-row--failed .formula-row__check {
+  color: var(--error);
+}
+
+.order-row--skipped {
+  opacity: 0.45;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  border: 1px solid var(--done);
+}
+
+.dot--completed {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.dot--active {
+  border-color: var(--active);
+  background: var(--active);
+  box-shadow: 0 0 5px var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.dot--failed {
+  border-color: var(--error);
+  background: var(--error);
+}
+
+.dot--skipped {
+  border-style: dashed;
+}
+
+/* The header's one line on what the lab is doing. */
+.lab-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: 0.4rem;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  color: var(--text-dim);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.lab-status::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #6e7681;
+}
+
+.lab-status--busy {
+  border-color: rgba(63, 185, 80, 0.35);
+  color: var(--text);
+}
+
+.lab-status--busy::before {
+  background: var(--active);
+  box-shadow: 0 0 6px var(--active);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+.lab-status--ok::before {
+  background: var(--accent);
+}
+
+.lab-status--warn {
+  border-color: rgba(210, 153, 34, 0.4);
+}
+
+.lab-status--warn::before {
+  background: var(--warn);
+}
+
+/* --- Chat additions ------------------------------------------------------------ */
+
+.chat__drop {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel--drop {
+  border-color: rgba(88, 166, 255, 0.6);
+}
+
+.chat-msg--robot {
+  align-self: stretch;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--panel-border);
+  color: var(--text-dim);
+  font-size: 0.74rem;
+}
+
+.chat-msg--robot.chat-msg--ok {
+  border-left-color: var(--accent);
+}
+
+.chat-msg--robot.chat-msg--warn {
+  border-left-color: var(--warn);
+  color: var(--warn);
+}
+
+.chat-msg__who {
+  margin-right: 0.4rem;
+  color: var(--accent);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+}
+
+.chat-msg__text.mono {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+
+.proposal__tags {
+  display: flex;
+  gap: 0.3rem;
+  align-items: center;
+}
+
+.chip-button {
+  padding: 0.05rem 0.4rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-dim);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 0.68rem;
+  cursor: pointer;
+}
+
+.chip-button:hover,
+.chip-button--on {
+  border-color: rgba(88, 166, 255, 0.5);
+  color: var(--accent);
+}
+
+.proposal__json {
+  position: relative;
+}
+
+.proposal__json pre {
+  max-height: 11rem;
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  overflow: auto;
+  color: var(--text);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.proposal__copy {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.5rem;
+  background: var(--panel);
+}
+
+textarea.chat__input {
+  resize: none;
+  max-height: 5.5rem;
+  line-height: 1.35;
+  field-sizing: content;
+}
+
+.chat-button--ghost {
+  border-color: var(--panel-border);
+  background: transparent;
+  color: var(--text-dim);
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
 }

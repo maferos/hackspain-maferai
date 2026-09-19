@@ -1,10 +1,16 @@
-// Task panel driven by the LabState: at the top the bench scan's tally, or the
-// formula (crossed off as each ingredient is added, or fetched), and below it
-// the plan around the current step (a few done, the active one, the next
-// ones), grouped by the step's group or ingredient.
+// Task panel driven by the LabState. At the top, where the lab is in its
+// workflow (scan → formula → check → dose → QC → done); then the order, one row
+// per ingredient with its steps as dots, or the bench scan's tally before the
+// first order; and below, the plan around the current step (a few done and
+// crossed off, the active one, the next ones), grouped by ingredient.
+//
+// Without a backend the viewer plays the recorded scripted run, which has no
+// workflow or order: the formula checklist shows it as before.
 
 const KEEP_DONE = 4;
 const SHOW_NEXT = 3;
+const DONE = new Set(["completed", "failed", "skipped"]);
+const STEP_NAMES = { locate: "Locate", pick: "Pick", carry: "Carry", dose: "Dose", verify: "Verify", return: "Return" };
 
 const g = (x, digits = 3) => (typeof x === "number" ? x.toFixed(digits) : "—");
 const signed = (x, digits = 3) => `${x < 0 ? "−" : "+"}${Math.abs(x).toFixed(digits)}`;
@@ -13,6 +19,20 @@ const fmtClock = (seconds) => {
   const s = Math.max(0, Math.floor(seconds ?? 0));
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 };
+
+// The whole workflow as a row of stages.
+function WorkflowBar({ stages }) {
+  return (
+    <ol className="stages" aria-label="Workflow">
+      {stages.map((stage) => (
+        <li key={stage.id} className={`stage stage--${stage.status}`} title={`${stage.label}: ${stage.status}`}>
+          <span className="stage__mark">{stage.status === "completed" ? "✓" : stage.status === "failed" ? "✗" : ""}</span>
+          <span className="stage__label">{stage.label}</span>
+        </li>
+      ))}
+    </ol>
+  );
+}
 
 // What the live scan has found so far.
 function ScanSummary({ scan }) {
@@ -23,10 +43,9 @@ function ScanSummary({ scan }) {
         <span className={`chip ${scan.error ? "chip--warn" : ""}`}>{scan.error ? "ERROR" : scan.done ? "MAPPED" : "SCANNING"}</span>
       </div>
       <div className="scan-tally">
-        <div>
-          <span className="big">{scan.named}</span>
-          <small> / {scan.tracked} named by their ring</small>
-        </div>
+        <span>
+          <strong>{scan.named}</strong>/{scan.tracked} named by their ring
+        </span>
         <span className="mono">
           {scan.waiting} to look at · {scan.empty} not samples · {scan.unreachable} out of reach
         </span>
@@ -36,9 +55,97 @@ function ScanSummary({ scan }) {
   );
 }
 
+function ingredientStatus(ing) {
+  if (ing.problem) return "skipped";
+  if (ing.steps.some((s) => s.status === "failed")) return "failed";
+  if (ing.steps.every((s) => DONE.has(s.status))) return "completed";
+  return ing.steps.some((s) => s.status !== "queued") ? "active" : "queued";
+}
+
+// The order: one row per ingredient, its steps as dots.
+function OrderCard({ order }) {
+  const current = (ing) => ing.steps.find((s) => s.status === "active");
+  const remaining = Math.max(0, order.estimateSeconds - order.elapsedSeconds);
+  const qc = order.qc;
+  return (
+    <div className="formula">
+      <div className="formula__title">
+        <span title={order.formula.name}>{order.formula.name}</span>
+        <span className="chip" title={`from the ${order.source}, run by the ${order.executor} executor`}>
+          {order.id}
+        </span>
+      </div>
+      <ol className="order__list">
+        {order.ingredients.map((ing) => {
+          const status = ingredientStatus(ing);
+          const step = current(ing);
+          const dose = ing.steps.find((s) => s.id === "dose");
+          const weighing = ing.mass !== null && dose && dose.status === "active";
+          return (
+            <li key={ing.id} className={`order-row order-row--${status}`}>
+              <span className="formula-row__check">
+                {status === "completed" ? "✓" : status === "failed" ? "✗" : status === "active" ? "●" : "○"}
+              </span>
+              <span className="order-row__name">
+                {ing.compound}
+                <span className="formula-row__meta"> {ing.sampleId ?? ""}</span>
+              </span>
+              <span className="order-row__mass">
+                {ing.mass !== null ? (
+                  <>
+                    {g(ing.mass)} {weighing ? `/ ${g(ing.grams)} g` : <span className="formula-row__delta">{signed(ing.mass - ing.grams)}</span>}
+                  </>
+                ) : (
+                  `${g(ing.grams)} g`
+                )}
+              </span>
+              <span className="order-row__steps">
+                {ing.steps.map((s) => (
+                  <span
+                    key={s.id}
+                    className={`dot dot--${s.status}`}
+                    title={`${STEP_NAMES[s.id] ?? s.id}: ${s.status}${s.note ? ` · ${s.note}` : ""}`}
+                  />
+                ))}
+              </span>
+              <span className="order-row__note">
+                {ing.problem ?? (step ? `${STEP_NAMES[step.id] ?? step.id}${step.note ? ` · ${step.note}` : "…"}` : status === "queued" ? "queued" : "")}
+              </span>
+              {weighing ? (
+                <span className="formula-row__bar">
+                  <span style={{ width: `${Math.min(1, ing.mass / ing.grams) * 100}%` }} />
+                </span>
+              ) : null}
+            </li>
+          );
+        })}
+      </ol>
+      {qc ? (
+        <div className={`formula__summary ${qc.passed ? "formula__summary--pass" : "formula__summary--fail"}`}>
+          <span>{qc.passed ? `✓ ${order.id} complete` : `✗ ${order.id} finished with problems`}</span>
+          <span className="mono">
+            {qc.finalMass !== null ? `${g(qc.finalMass)} / ${g(qc.targetMass)} g · ` : ""}
+            {fmtClock(qc.seconds)}
+            {qc.note ? ` · ${qc.note}` : ""}
+          </span>
+        </div>
+      ) : (
+        <div className="formula__total">
+          <span>
+            {order.status === "aborted" ? "Stopped" : `${order.done}/${order.total} done`}
+          </span>
+          <span className="mono">
+            {order.status === "queued" ? "waiting for the arm" : `${fmtClock(order.elapsedSeconds)} · ETA ~${fmtClock(remaining)}`}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// The recorded scripted run, when no backend is running.
 function FormulaChecklist({ state }) {
   const { recipe, balance, summary } = state;
-  const fetch = recipe.mode === "fetch";
   const done = recipe.ingredients.filter((i) => i.status === "completed").length;
   return (
     <div className="formula">
@@ -58,9 +165,7 @@ function FormulaChecklist({ state }) {
                 {ing.containerId ? <span className="formula-row__meta"> {ing.containerId}</span> : null}
               </span>
               <span className="formula-row__mass">
-                {fetch ? (
-                  `${g(ing.targetMass)} g`
-                ) : ing.status === "completed" && dispensed !== null ? (
+                {ing.status === "completed" && dispensed !== null ? (
                   <>
                     {g(dispensed)} g <span className="formula-row__delta">{signed(dispensed - ing.targetMass)}</span>
                   </>
@@ -70,8 +175,7 @@ function FormulaChecklist({ state }) {
                   `${g(ing.targetMass)} g`
                 )}
               </span>
-              {fetch && ing.note ? <span className="formula-row__note">{ing.note}</span> : null}
-              {ing.status === "active" && !fetch ? (
+              {ing.status === "active" ? (
                 <span className="formula-row__bar">
                   <span style={{ width: `${progress * 100}%` }} />
                 </span>
@@ -90,10 +194,10 @@ function FormulaChecklist({ state }) {
       ) : (
         <div className="formula__total">
           <span>
-            {done}/{recipe.ingredients.length} {fetch ? "fetched" : "added"}
+            {done}/{recipe.ingredients.length} added
           </span>
           <span className="mono">
-            {fetch ? `${g(recipe.targetMass)} g formula · not dosed` : `${g(balance.totalMass)} / ${g(recipe.targetMass)} g`}
+            {g(balance.totalMass)} / {g(recipe.targetMass)} g
           </span>
         </div>
       )}
@@ -112,10 +216,15 @@ function groupTitle(step, steps, recipe) {
 }
 
 function stepMeta(step, now) {
-  const detail = step.detail.map(([k, v]) => `${k} ${v}`).join(" · ");
+  const detail = step.detail
+    .map(([k, v]) => `${k} ${v}`.trim())
+    .filter(Boolean)
+    .join(" · ");
   switch (step.status) {
     case "completed":
-      return `Done · ${fmtClock(step.completedAt)}`;
+      return `Done · ${fmtClock(step.completedAt)}${detail ? ` · ${detail}` : ""}`;
+    case "skipped":
+      return `Skipped${detail ? ` · ${detail}` : ""}`;
     case "retrying":
       return `Retrying · ${step.detail.map(([, v]) => v).join(" · ")}`;
     case "active":
@@ -130,10 +239,12 @@ function stepMeta(step, now) {
 function PlanList({ state }) {
   const { steps } = state.execution;
   const current = steps.findIndex((s) => s.status === "active" || s.status === "retrying");
-  const pivot = current === -1 ? steps.length : current;
-  const doneBefore = steps.slice(0, pivot).filter((s) => s.status === "completed");
+  const pivot = current === -1 ? steps.findIndex((s) => s.status === "queued") : current;
+  const cut = pivot === -1 ? steps.length : pivot;
+  const doneBefore = steps.slice(0, cut).filter((s) => DONE.has(s.status));
   const hidden = Math.max(0, doneBefore.length - KEEP_DONE);
-  const visible = [...doneBefore.slice(hidden), ...(current === -1 ? [] : [steps[current]]), ...steps.slice(pivot + 1).filter((s) => s.status === "queued").slice(0, SHOW_NEXT)];
+  const next = steps.slice(cut + (current === -1 ? 0 : 1)).filter((s) => s.status === "queued").slice(0, SHOW_NEXT);
+  const visible = [...doneBefore.slice(hidden), ...(current === -1 ? [] : [steps[current]]), ...next];
 
   const rows = [];
   let lastGroup;
@@ -183,7 +294,6 @@ export default function LabTaskPanel({ state, connected }) {
     );
   }
   const { run } = state;
-  const scanOnly = state.scan && state.recipe.ingredients.length === 0;
   return (
     <aside className="task-panel">
       <header className="task-panel__header">
@@ -191,18 +301,26 @@ export default function LabTaskPanel({ state, connected }) {
           <h2>Robot tasks</h2>
           <span className="task-panel__run">
             {run.id} · {run.status.toUpperCase()} · {fmtClock(run.elapsedSeconds)}
+            {run.status === "running" && run.progress > 0 ? ` · ${Math.round(run.progress * 100)} %` : ""}
           </span>
         </div>
         <div className="task-panel__badges">
           {run.scripted ? (
-            <span className="chip chip--warn" title="The sequence is scripted; the real planner is not connected yet">
+            <span className="chip chip--warn" title="A recorded run: no backend is publishing the lab state">
               SCRIPTED
             </span>
           ) : null}
           <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
         </div>
       </header>
-      {scanOnly ? <ScanSummary scan={state.scan} /> : <FormulaChecklist state={state} />}
+      {state.workflow ? <WorkflowBar stages={state.workflow.stages} /> : null}
+      {state.order ? (
+        <OrderCard order={state.order} />
+      ) : state.scan ? (
+        <ScanSummary scan={state.scan} />
+      ) : (
+        <FormulaChecklist state={state} />
+      )}
       <PlanList state={state} />
     </aside>
   );
