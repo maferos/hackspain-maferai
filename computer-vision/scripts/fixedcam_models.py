@@ -14,6 +14,8 @@ Families:
 - **Transformers** (:class:`GroundingDinoPredictor`): Grounding DINO with the
   same bottle prompts.
 - **RF-DETR** (:class:`RfDetrPredictor`): fine-tuned weights.
+- **Roboflow hosted** (:class:`RoboflowPredictor`): a model with no local
+  weights, called over Roboflow's inference API.
 - **Tiling** (:class:`TiledPredictor`): wraps any of the above and runs it over
   overlapping tiles of the worktop's image region, optionally upsampled, then
   merges with non-maximum suppression. This is how a model trained on native
@@ -36,6 +38,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from labvision import evaluation as ev  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[2]
+
+MAX_DET = 300
+"""Most boxes an Ultralytics model returns per image. Raise it for crowded
+benches: the populated open desk shows over 350 bottles at once."""
 
 GENERIC_PROMPTS: dict[str, int | None] = {
     p: -1
@@ -68,6 +74,18 @@ COCO_VESSELS: dict[str, int | None] = {
     "bowl": -1,
 }
 """COCO classes that stand for a vessel, as in ``labvision.detector.COCO_KEEP``."""
+
+CHEMEX_BOTTLES: dict[str, int | None] = {
+    "Reagent_Bottle": -1,
+    "Wash_Bottle": -1,
+    "Weighing_Bottle": -1,
+    "Nessler_Reagent_Bottle": -1,
+}
+"""Bottle-like classes of Chemex's "Chemistry Lab Object Detection" (Roboflow
+Universe, ``chemex/chemistry-lab-object-detection``, YOLOv12n, 26 classes of
+real chemistry apparatus). Everything else it names (beaker, flask, funnel...)
+is a real lab object but not a bottle, so it is dropped, as
+:data:`COCO_VESSELS` drops COCO's non-vessel classes."""
 
 
 def find_weights(name: str) -> str:
@@ -150,7 +168,7 @@ class UltralyticsPredictor:
             conf=self.conf,
             iou=0.6,
             agnostic_nms=True,
-            max_det=300,
+            max_det=MAX_DET,
             verbose=False,
         )[0]
         out = []
@@ -265,6 +283,90 @@ class RfDetrPredictor:
             strict=True,
         ):  # fmt: skip
             out.append(ev.Detection(tuple(box), float(score), int(cls) % 2))
+        return out
+
+
+class RoboflowPredictor:
+    """A model with no local weights, called over Roboflow's hosted inference API
+
+    Every frame is JPEG-encoded and posted to Roboflow's serverless hosted
+    endpoint (the same one a project's "Try in your code" snippet uses), so no
+    extra package is installed (``rfdetr``'s notes on the ``roboflow`` package
+    downgrading numpy apply here too, and are avoided by using ``requests``
+    directly). Needs ``ROBOFLOW_API_KEY`` in the environment: a free account's
+    key, from https://app.roboflow.com/settings/api.
+
+    Args:
+        model_id: The project slug alone, without the workspace that owns it
+            (the Universe URL is ``workspace/project``, but the classic
+            inference endpoint resolves a public project by its slug alone).
+        version: Model version number shown on the project's page.
+        classes: Map from the model's class name to a kit index, as for
+            :class:`UltralyticsPredictor`; None keeps every class as kit -1.
+        confidence: Lowest score kept, 0-100 (Roboflow's own scale for this
+            parameter; returned scores are still 0-1).
+    """
+
+    ENDPOINT = "https://detect.roboflow.com"
+
+    def __init__(
+        self,
+        model_id: str,
+        version: int,
+        classes: dict[str, int | None] | None = None,
+        confidence: float = 1.0,
+    ) -> None:
+        """Read the API key from the environment; fail now, not on the first frame"""
+        import os
+
+        api_key = os.environ.get("ROBOFLOW_API_KEY")
+        if not api_key:
+            raise SystemExit(
+                "ROBOFLOW_API_KEY is not set; get a free key at "
+                "https://app.roboflow.com/settings/api"
+            )
+        self.api_key = api_key
+        self.model_id = model_id
+        self.version = version
+        self.classes = classes
+        self.confidence = confidence
+
+    def predict(self, image: np.ndarray) -> list[ev.Detection]:
+        """Detect bottles in a BGR frame by posting it to the hosted model"""
+        import base64
+
+        import requests
+
+        ok, buf = cv2.imencode(".jpg", image, [cv2.IMWRITE_JPEG_QUALITY, 95])
+        if not ok:
+            return []
+        response = requests.post(
+            f"{self.ENDPOINT}/{self.model_id}/{self.version}",
+            params={
+                "api_key": self.api_key,
+                "confidence": self.confidence,
+                "overlap": 60,
+                "format": "json",
+            },
+            data=base64.b64encode(buf).decode("ascii"),
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=30,
+        )
+        response.raise_for_status()
+        out = []
+        for pred in response.json().get("predictions", []):
+            kit = -1
+            if self.classes is not None:
+                mapped = self.classes.get(pred["class"])
+                if mapped is None:
+                    continue
+                kit = mapped
+            half_w, half_h = pred["width"] / 2.0, pred["height"] / 2.0
+            box = (
+                pred["x"] - half_w, pred["y"] - half_h,
+                pred["x"] + half_w, pred["y"] + half_h,
+            )  # fmt: skip
+            out.append(ev.Detection(box, float(pred["confidence"]), kit))
         return out
 
 

@@ -199,6 +199,42 @@ def truths_of(frame: dict, min_visible: float = MIN_VISIBLE) -> list[Truth]:
     return out
 
 
+def _boxes(items: Sequence) -> np.ndarray:
+    """Stack boxes into an (n, 4) float array, (0, 4) when there are none"""
+    return np.asarray(list(items), dtype=float).reshape(-1, 4)
+
+
+def _overlap(a: np.ndarray, b: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Return intersections of every box of ``a`` with each of ``b``, and a's areas"""
+    w = np.minimum(a[:, None, 2], b[None, :, 2]) - np.maximum(
+        a[:, None, 0], b[None, :, 0]
+    )
+    h = np.minimum(a[:, None, 3], b[None, :, 3]) - np.maximum(
+        a[:, None, 1], b[None, :, 1]
+    )
+    inter = np.where((w > 0) & (h > 0), w * h, 0.0)
+    area_a = (a[:, 2] - a[:, 0]) * (a[:, 3] - a[:, 1])
+    return inter, area_a
+
+
+def iou_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Return the IoU of every box of ``a`` (rows) with every box of ``b`` (columns)"""
+    inter, area_a = _overlap(a, b)
+    area_b = (b[:, 2] - b[:, 0]) * (b[:, 3] - b[:, 1])
+    union = area_a[:, None] + area_b[None, :] - inter
+    with np.errstate(divide="ignore", invalid="ignore"):
+        out = np.where(union > 0, inter / union, 0.0)
+    return np.where(inter > 0, out, 0.0)
+
+
+def inside_matrix(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+    """Return the share of each box of ``a`` that lies inside each box of ``b``"""
+    inter, area_a = _overlap(a, b)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        out = np.where(area_a[:, None] > 0, inter / area_a[:, None], 0.0)
+    return np.where(inter > 0, out, 0.0)
+
+
 def match_frame(
     truths: Sequence[Truth],
     detections: Sequence[Detection],
@@ -210,6 +246,8 @@ def match_frame(
     A detection takes the unmatched required bottle it overlaps most, at
     ``iou_min`` or more (and of its class when ``class_aware``). Failing that it
     is ignored if it lands on a bottle that is not required, else it is false.
+    Overlaps are computed once as matrices, so a crowded bench with hundreds of
+    bottles and boxes scores in milliseconds.
 
     Returns:
         The frame's :class:`FrameResult`.
@@ -218,31 +256,42 @@ def match_frame(
     ignored = [t for t in truths if not t.required]
     taken: list[float | None] = [None] * len(required)
     result = FrameResult(truths=required)
-    for det in sorted(detections, key=lambda d: -d.score):
-        best, best_iou = -1, iou_min
-        for i, truth in enumerate(required):
-            if taken[i] is not None or (class_aware and det.cls != truth.cls):
+    dets = sorted(detections, key=lambda d: -d.score)
+    if not dets:
+        result.found = taken
+        return result
+    boxes = _boxes(d.box for d in dets)
+    to_required = iou_matrix(boxes, _boxes(t.box for t in required))
+    if class_aware and required:
+        det_cls = np.array([d.cls for d in dets])[:, None]
+        truth_cls = np.array([t.cls for t in required])[None, :]
+        matchable = np.where(det_cls == truth_cls, to_required, -1.0)
+    else:
+        matchable = to_required
+    # A box inside a hidden bottle's silhouette is on that bottle, unless it
+    # also touches a required bottle standing in front of it: then it is a
+    # duplicate or a bad box on the required one, and counts against.
+    near_required = (to_required >= NEAR_REQUIRED).any(axis=1)
+    on_ignored = np.zeros(len(dets), bool)
+    if ignored:
+        to_ignored = iou_matrix(boxes, _boxes(t.box for t in ignored))
+        inside = inside_matrix(boxes, _boxes(t.full_box for t in ignored))
+        on_ignored = (to_ignored >= iou_min).any(axis=1) | (
+            ~near_required & (inside >= COVER_INSIDE).any(axis=1)
+        )
+    free = np.ones(len(required), bool)
+    for k, det in enumerate(dets):
+        if len(required):
+            row = np.where(free, matchable[k], -1.0)
+            # The last of equal best overlaps wins, as a scan with >= would pick.
+            best = len(row) - 1 - int(np.argmax(row[::-1]))
+            if row[best] >= iou_min:
+                taken[best] = det.score
+                free[best] = False
+                result.scores.append(det.score)
+                result.hits.append(True)
                 continue
-            overlap = iou(det.box, truth.box)
-            if overlap >= best_iou:
-                best, best_iou = i, overlap
-        if best >= 0:
-            taken[best] = det.score
-            result.scores.append(det.score)
-            result.hits.append(True)
-            continue
-        # A box inside a hidden bottle's silhouette is on that bottle, unless it
-        # also touches a required bottle standing in front of it: then it is a
-        # duplicate or a bad box on the required one, and counts against.
-        near_required = any(iou(det.box, t.box) >= NEAR_REQUIRED for t in required)
-        if any(
-            iou(det.box, t.box) >= iou_min
-            or (
-                not near_required
-                and fraction_inside(det.box, t.full_box) >= COVER_INSIDE
-            )
-            for t in ignored
-        ):
+        if on_ignored[k]:
             continue
         result.scores.append(det.score)
         result.hits.append(False)
