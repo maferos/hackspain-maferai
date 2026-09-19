@@ -27,6 +27,13 @@ import pipetting as pip
 import rail_kinematics as rk
 
 CLEARANCE = 0.06        # tip height over the rim on the way in and out
+# The tip travels down the rail at this height. Without it the move to the
+# beaker interpolates the rail and the joints together, so the tip crosses the
+# bench at the height it left the flask at --- about 1.05 m, which is the
+# height of every other flask on it. At twelve vessels it mostly got away with
+# it; at thirty it ploughed through the field and twelve deliveries out of
+# sixteen failures were really collisions on the way.
+TRANSIT_Z = 1.25
 # How far down the liquid column to aim, as a fraction of its height. A real
 # pipette dips 2 to 3 mm to keep the outside of the tip dry; here the servos
 # land within a few millimetres of the target, so aiming just under the surface
@@ -106,6 +113,10 @@ def run(model: mujoco.MjModel, data: mujoco.MjData, vessel: pip.Container,
                      float(mouth[2]) - 0.01])
     clear = into + np.array([0.0, 0.0, CLEARANCE + 0.05])
     saved = (data.qpos.copy(), data.qvel.copy())
+    here = rk.set_rail(model, data, float(axis[0]))
+    lift = np.array([float(axis[0]), float(axis[1]), TRANSIT_Z])
+    q_lift = (data.qpos[rk.arm_qpos(model)].copy()
+              if rk.solve_any(model, data, lift) else None)
     station = rk.reach(model, data, clear)
     q_clear = data.qpos[rk.arm_qpos(model)].copy()
     q_into = None
@@ -118,6 +129,8 @@ def run(model: mujoco.MjModel, data: mujoco.MjData, vessel: pip.Container,
     if station is None or q_into is None:
         record['stage'] = 'drew but cannot reach the beaker'
         return record
+    if q_lift is not None:
+        gt.hold(model, data, ids, here, q_lift, None, 1.0)
     # Come in over the beaker and drop into it, rather than swinging straight
     # at it: a direct move sweeps the arm through the balance and knocks the
     # beaker off its pan.
@@ -125,8 +138,25 @@ def run(model: mujoco.MjModel, data: mujoco.MjData, vessel: pip.Container,
     gt.hold(model, data, ids, station, q_into, None, 1.2)
     gave = pip.dispense(model, data, beaker, pipette)
     pip.show_mass(model, beaker.mass)
+    if not gave:
+        # Purge. A tip that could not deliver still holds its 0.5 ml, and
+        # carrying it to the next flask fills the pipette after two failures
+        # and refuses every aspiration after that --- one bad approach
+        # becomes a whole bench of them. A real cell blows the tip out over
+        # the waste and carries on.
+        pipette.volume = 0.0
+        pipette.events.append(f'{vessel.name}: purged what it could not deliver')
+        pip.sync(model, {}, pipette)
     record['moved'] = before - vessel.volume
-    record['stage'] = 'TRANSFERRED' if gave else 'drew but could not deliver'
+    if gave:
+        record['stage'] = 'TRANSFERRED'
+    else:
+        # Say which half went wrong. The tip being far from the beaker means
+        # the arm never arrived, which is a path problem; being at the beaker
+        # and still refusing is a geometry one.
+        reach_miss, _ = pip.entry(model, data, beaker)
+        record['stage'] = (f'arm never reached the beaker ({reach_miss * 1000:.0f} mm)'
+                           if reach_miss > 0.05 else 'at the beaker but refused')
     return record
 
 

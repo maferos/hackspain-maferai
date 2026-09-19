@@ -27,6 +27,7 @@ from pathlib import Path
 
 import cv2
 import mujoco
+import numpy as np
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -42,9 +43,11 @@ if not SCENE_PATH.is_absolute():
     SCENE_PATH = REPO_ROOT / "simulation" / "models" / SCENE_PATH
 
 sys.path.insert(0, str(REPO_ROOT / "dashboard" / "bridge"))
+sys.path.insert(0, str(REPO_ROOT / "computer-vision"))
 from labbridge.mock_run import ACTIVE_BALANCE, RAIL, ScriptedRun  # noqa: E402
 from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
+from labvision.detector import resolve as resolve_detector
 
 STATE_PORT = 8765
 STATE_RATE_HZ = 10
@@ -73,6 +76,20 @@ FRAME_WIDTH = 1920
 FRAME_HEIGHT = 1080
 RENDER_FPS = 15
 JPEG_QUALITY = 80
+
+# Bottle detector on the general camera's live frames, run only while a client
+# has the boxes on (see Detector). VIEW_DETECTOR is a labvision backend name or
+# a weights path; the default `rail` is the YOLO26n trained on this camera in
+# the rail scene, found as computer-vision/weights/yolo26n_rail_general.pt. The
+# boxes are drawn raw, so they use that model's best-F1 threshold on the rail
+# scene's validation frames, 0.47, not the backend's 0.10, which is set for
+# propose_confirm's proposals. VIEW_DETECTOR_CONF overrides the threshold.
+DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "rail")
+DETECTOR_CONF = float(os.environ.get("VIEW_DETECTOR_CONF", "0.47"))
+DETECTOR_CAMERA = "scene"  # logical id; the model only knows the fixed camera
+DETECTOR_MAX_HZ = float(os.environ.get("VIEW_DETECTOR_HZ", "4"))
+# Torch threads: few enough that the renderer keeps its frame rate.
+DETECTOR_THREADS = int(os.environ.get("VIEW_DETECTOR_THREADS", "2"))
 
 # When the loaded scene is the railed arm (no LabState-compatible scripted run),
 # the viewport would otherwise stand still. Instead it plays rail_demo's `sweep`:
@@ -155,6 +172,9 @@ class SceneRenderer:
         self.data = mujoco.MjData(self.model)
         mujoco.mj_forward(self.model, self.data)
         self._latest_jpeg: dict[str, bytes] = {}
+        # The RGB behind each camera's latest JPEG, for the detector.
+        self._latest_rgb: dict[str, np.ndarray] = {}
+        self._frame_seq = 0
         self._condition = threading.Condition()
         # Guards `data` between the physics/render thread and the state thread.
         self._data_lock = threading.Lock()
@@ -232,6 +252,7 @@ class SceneRenderer:
         with self._data_lock:
             renderer.update_scene(self.data, camera=mj_camera_name, scene_option=self._scene_options[mj_camera_name])
         frame = renderer.render()  # RGB
+        self._latest_rgb[mj_camera_name] = frame
         bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         ok, buf = cv2.imencode(".jpg", bgr, [cv2.IMWRITE_JPEG_QUALITY, JPEG_QUALITY])
         if not ok:
@@ -252,10 +273,16 @@ class SceneRenderer:
             with self._condition:
                 for mj_name in mj_camera_names:
                     self._latest_jpeg[mj_name] = self._encode(mj_name, renderer)
+                self._frame_seq += 1
                 self._condition.notify_all()
             remaining = period - (time.time() - start)
             if remaining > 0:
                 time.sleep(remaining)
+
+    def latest_rgb(self, mj_camera_name: str) -> tuple[np.ndarray | None, int]:
+        """The camera's newest rendered RGB frame and the render loop's frame count."""
+        with self._condition:
+            return self._latest_rgb.get(mj_camera_name), self._frame_seq
 
     def frames(self, mj_camera_name: str):
         """Yields each newly rendered JPEG for the given camera, blocking between them."""
@@ -297,6 +324,94 @@ scene = SceneRenderer(SCENE_PATH)
 threading.Thread(target=scene.run_forever, daemon=True).start()
 threading.Thread(target=scene.publish_state_forever, daemon=True).start()
 
+
+class Detector:
+    """Finds the bottles in the general camera's live frames while anyone watches.
+
+    The model loads on first use and runs only while a /ws/detections client is
+    connected, at most DETECTOR_MAX_HZ, on the newest frame the render loop has
+    made; the boxes lag the picture by one inference, which the static bottles
+    do not show. Without ultralytics or the weights, the viewer just offers no
+    boxes.
+    """
+
+    def __init__(self, renderer: SceneRenderer, spec: str) -> None:
+        self.renderer = renderer
+        self.mj_camera = renderer.cameras[DETECTOR_CAMERA]["mj_name"]
+        self.error = None
+        try:
+            path, _ = resolve_detector(spec)
+        except FileNotFoundError as exc:
+            path, self.error = "", str(exc)
+        self.weights = Path(path)
+        if self.error is None and not self.weights.exists():
+            self.error = f"no weights at {path}"
+        self.conf = DETECTOR_CONF
+        self.watchers = 0
+        self.latest: dict | None = None
+        self._lock = threading.Lock()
+
+    @property
+    def available(self) -> bool:
+        return self.error is None
+
+    def watch(self, delta: int) -> None:
+        with self._lock:
+            self.watchers += delta
+
+    def run_forever(self) -> None:
+        if not self.available:
+            return
+        try:
+            import torch
+            from ultralytics import YOLO
+
+            torch.set_num_threads(DETECTOR_THREADS)
+            model = YOLO(str(self.weights))
+        except Exception as exc:  # noqa: BLE001
+            self.error = f"detector failed to load: {exc!r}"
+            print(f"[view] {self.error}", file=sys.stderr)
+            return
+        last_seq = -1
+        while True:
+            if self.watchers == 0:
+                time.sleep(0.2)
+                continue
+            frame, seq = self.renderer.latest_rgb(self.mj_camera)
+            if frame is None or seq == last_seq:
+                time.sleep(0.02)
+                continue
+            start = time.time()
+            result = model.predict(
+                np.ascontiguousarray(frame[:, :, ::-1]),  # ultralytics wants BGR
+                imgsz=max(frame.shape[:2]),
+                conf=self.conf,
+                verbose=False,
+            )[0]
+            took = time.time() - start
+            boxes = [
+                [round(float(v), 1) for v in xyxy] + [round(float(score), 3)]
+                for xyxy, score in zip(
+                    result.boxes.xyxy.cpu().numpy(), result.boxes.conf.cpu().numpy(), strict=True
+                )
+            ]
+            self.latest = {
+                "camera": DETECTOR_CAMERA,
+                "frame": seq,
+                "width": int(frame.shape[1]),
+                "height": int(frame.shape[0]),
+                "boxes": boxes,
+                "inference_ms": round(took * 1000),
+            }
+            last_seq = seq
+            remaining = 1.0 / DETECTOR_MAX_HZ - (time.time() - start)
+            if remaining > 0:
+                time.sleep(remaining)
+
+
+detector = Detector(scene, DETECTOR_SPEC)
+threading.Thread(target=detector.run_forever, daemon=True).start()
+
 # --- FastAPI app -----------------------------------------------------------
 
 app = FastAPI(title="Robot viewer backend")
@@ -332,6 +447,36 @@ def stream(camera_id: str):
         mjpeg_generator(mj_name),
         media_type="multipart/x-mixed-replace; boundary=frame",
     )
+
+
+@app.get("/api/detector")
+def detector_info():
+    return {
+        "available": detector.available,
+        "camera": DETECTOR_CAMERA,
+        "weights": detector.weights.name,
+        "conf": detector.conf,
+        "error": detector.error,
+    }
+
+
+@app.websocket("/ws/detections")
+async def ws_detections(websocket: WebSocket):
+    """Streams the detector's newest boxes; the detector runs while anyone listens."""
+    await websocket.accept()
+    detector.watch(+1)
+    last_frame = None
+    try:
+        while True:
+            latest = detector.latest
+            if latest is not None and latest["frame"] != last_frame:
+                await websocket.send_json(latest)
+                last_frame = latest["frame"]
+            await asyncio.sleep(0.05)
+    except WebSocketDisconnect:
+        pass
+    finally:
+        detector.watch(-1)
 
 
 @app.websocket("/ws/tasks")

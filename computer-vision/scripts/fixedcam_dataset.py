@@ -18,6 +18,12 @@ Two scenes can be loaded:
     ``simulation/models/minihannover_open_scene.xml``: the shelf-free variant
     with a 6 x 2 m desk centred at (-1.5, -0.4), same ``general`` camera. Used
     as the out-of-distribution test: a detector never sees it in training.
+``rail``
+    ``simulation/models/minihannover_rail_scene.xml``: the open desk with the
+    UR10e on its 6 m rail and the liftable vessels, same ``general`` camera.
+    The scene the robot works in; its ``rail_*`` splits pose the arm with the
+    rail scene's own IK (:func:`pose_arm`) so it crosses and hides the bench
+    the way it will while working.
 
 Splits, each rendered from its own seeds so no layout is shared:
 
@@ -33,6 +39,10 @@ Splits, each rendered from its own seeds so no layout is shared:
     Gantry scene, nominal camera, strong light randomisation, and the frame
     degraded as a real camera would (blur, noise, JPEG, gamma). A proxy for
     the step to Isaac's renderer and to a real GoPro.
+``rail_train`` / ``rail_val`` / ``rail_test`` / ``rail_test_shift``
+    The same four roles on the rail scene, with the arm posed in every frame
+    and some frames keeping the scene's own twelve vessels where it puts them.
+    ``rail_train`` degrades a share of its frames too.
 
 Bottles are laid out on free worktop by ray casts, sometimes spread out and
 sometimes in a cluster where they hide each other. Every sample bottle in view
@@ -41,11 +51,14 @@ is truth, wherever it stands (bench, gantry shelf, room); each record says
 
     python scripts/fixedcam_dataset.py --splits test --frames 150
     python scripts/fixedcam_dataset.py --splits train,val --frames 600,60
+    python scripts/fixedcam_dataset.py --splits rail_train --part 3/8
 
 Output: ``<out>/<split>/<split>_0000.png``, ``..._cat.png`` (per-pixel
 category map) and ``<out>/<split>/gt.json``, in the format of
 ``render_perfumery.py`` plus ``scene``, ``split``, ``seed`` and the
-randomisation drawn for each frame.
+randomisation drawn for each frame. ``--part i/n`` renders every n-th frame
+from the i-th, to run n processes side by side, and writes
+``gt.part<i>of<n>.json``; :func:`merge_parts` joins them into ``gt.json``.
 """
 
 import argparse
@@ -62,6 +75,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "simulation" / "scripts"))
+import rail_kinematics as rk  # noqa: E402
 import render_perfumery as rp  # noqa: E402
 
 from labvision import registry  # noqa: E402
@@ -113,6 +128,13 @@ SCENES: dict[str, Scene] = {
         x_range=(-4.4, 1.4),
         y_ranges=((-1.35, 0.55, 1.0),),
     ),
+    "rail": Scene(
+        REPO / "simulation" / "models" / "minihannover_rail_scene.xml",
+        centre=(-1.5, -0.4),
+        half=(3.0, 1.0),
+        x_range=(-4.4, 1.4),
+        y_ranges=((-1.35, 0.55, 1.0),),
+    ),
 }
 
 
@@ -126,7 +148,10 @@ class Split:
         light: Largest relative change of light intensity, 0 for nominal.
         tint: Chance of tinting the worktop.
         camera_jitter: Whether to move the camera off its mount.
-        degrade: Whether to degrade the frame as a real camera would.
+        degrade: Share of frames degraded as a real camera would; 1 for all.
+        arm: Whether to pose the rail scene's arm in every frame.
+        as_built: Share of frames that keep the scene's own bottle layout.
+        max_bottles: Most bottles laid out in one frame.
         frames: Default number of frames.
     """
 
@@ -135,9 +160,16 @@ class Split:
     light: float = 0.0
     tint: float = 0.0
     camera_jitter: bool = False
-    degrade: bool = False
+    degrade: float = 0.0
+    arm: bool = False
+    as_built: float = 0.0
+    max_bottles: int = 28
     frames: int = 100
 
+
+RAIL = {"arm": True, "max_bottles": 34}
+"""What every rail split shares: the arm in the picture and every movable
+bottle of the scene available, the twelve vessels and the extras."""
 
 SPLITS: dict[str, Split] = {
     "train": Split("gantry", 100_000, light=0.45, tint=0.5, camera_jitter=True,
@@ -146,8 +178,15 @@ SPLITS: dict[str, Split] = {
                  frames=60),
     "test": Split("gantry", 300_000, frames=150),
     "test_open": Split("open", 400_000, frames=100),
-    "test_shift": Split("gantry", 500_000, light=0.6, tint=0.7, degrade=True,
+    "test_shift": Split("gantry", 500_000, light=0.6, tint=0.7, degrade=1.0,
                         frames=100),
+    "rail_train": Split("rail", 600_000, light=0.45, tint=0.5, camera_jitter=True,
+                        degrade=0.3, as_built=0.1, frames=1500, **RAIL),
+    "rail_val": Split("rail", 700_000, light=0.45, tint=0.5, camera_jitter=True,
+                      degrade=0.3, as_built=0.1, frames=150, **RAIL),
+    "rail_test": Split("rail", 800_000, as_built=0.2, frames=150, **RAIL),
+    "rail_test_shift": Split("rail", 900_000, light=0.6, tint=0.7, degrade=1.0,
+                             frames=100, **RAIL),
 }  # fmt: skip
 
 
@@ -250,6 +289,10 @@ class Randomiser:
             drawn["worktop_tint"] = np.round(shade, 3).tolist()
         if split.camera_jitter:
             shift = np.clip(rng.normal(0, 0.07, 3), -0.15, 0.15)
+            # The mount is flush with the aisle wall (-y) and the ceiling (+z):
+            # a shift behind or above it puts the lens inside them, and the
+            # frame comes out a flat grey with every bottle at zero pixels.
+            shift[1], shift[2] = abs(shift[1]), -abs(shift[2])
             axis = rng.normal(size=3)
             axis /= np.linalg.norm(axis)
             angle = math.radians(float(np.clip(rng.normal(0, 2.0), -5, 5)))
@@ -299,6 +342,37 @@ def lay_out(
     return placed, cluster
 
 
+def pose_arm(lab: rp.Lab, rng: np.random.Generator, scene: Scene) -> dict:
+    """Put the rail scene's arm where it could be while working
+
+    Mostly reaching a random point 5 to 40 cm above the worktop with the rail
+    scene's own IK (``rail_kinematics.reach``), so the arm leans over the bench
+    and hides bottles the way it will; otherwise parked somewhere along the
+    rail, as between tasks.
+
+    Returns:
+        What was drawn: the carriage's X and the target, if one was reached.
+    """
+    m, d = lab.model, lab.data
+    d.qpos[rk.arm_qpos(m)] = 0.0
+    if rng.random() < 0.75:
+        target = np.array(
+            [
+                rng.uniform(*scene.x_range),
+                rng.uniform(-0.9, 0.1),
+                rp.WORKTOP_Z + rng.uniform(0.05, 0.40),
+            ]
+        )
+        station = rk.reach(m, d, target)
+        if station is not None:
+            mujoco.mj_kinematics(m, d)
+            return {"rail_x": round(station, 3), "target": np.round(target, 3).tolist()}
+        d.qpos[rk.arm_qpos(m)] = 0.0
+    station = rk.set_rail(m, d, float(rng.uniform(*scene.x_range)))
+    mujoco.mj_kinematics(m, d)
+    return {"rail_x": round(float(station), 3), "target": None}
+
+
 def degrade(image: np.ndarray, rng: np.random.Generator) -> tuple[np.ndarray, dict]:
     """Degrade a clean render the way a real camera and its encoder would
 
@@ -335,8 +409,14 @@ def degrade(image: np.ndarray, rng: np.random.Generator) -> tuple[np.ndarray, di
     return out, drawn
 
 
-def render_split(name: str, frames: int, out_root: Path) -> None:
-    """Render ``frames`` frames of one split and write them with ``gt.json``"""
+def render_split(
+    name: str, frames: int, out_root: Path, part: int = 0, parts: int = 1
+) -> None:
+    """Render frames ``part, part + parts, ...`` below ``frames`` of one split
+
+    The whole split with the default ``part`` and ``parts``, written to
+    ``gt.json``; one share of it otherwise, written to its own part file.
+    """
     split = SPLITS[name]
     scene = SCENES[split.scene]
     out = out_root / name
@@ -349,17 +429,33 @@ def render_split(name: str, frames: int, out_root: Path) -> None:
     print(f"[{name}] {scene.path.name}: {len(lab.samples)} samples, "
           f"{movable} movable", flush=True)  # fmt: skip
     records: list[dict] = []
-    gt_path = out / "gt.json"
+    gt_path = out / ("gt.json" if parts == 1 else f"gt.part{part}of{parts}.json")
     started = time.perf_counter()
-    for k in range(frames):
+    todo = range(part, frames, parts)
+    for done, k in enumerate(todo, start=1):
         seed = split.seed + k
         rng = np.random.default_rng(seed)
         drawn = randomiser.draw(rng, split)
-        placed, cluster = lay_out(lab, rng, scene, int(rng.integers(8, 29)))
+        as_built = split.as_built > 0 and bool(rng.random() < split.as_built)
+        if as_built:
+            lab.reset()
+        if split.arm:
+            drawn["arm"] = pose_arm(lab, rng, scene)
+        if as_built:
+            mujoco.mj_kinematics(m, lab.data)
+            placed = sum(
+                s["movable"] and lab.data.xpos[s["body"], 2] > 0 for s in lab.samples
+            )
+            cluster = False
+        else:
+            count = int(rng.integers(8, split.max_bottles + 1))
+            placed, cluster = lay_out(lab, rng, scene, count)
         mujoco.mj_kinematics(m, lab.data)
         rgb, bottles, categories = lab.render(camera, WIDTH, HEIGHT)
         bgr = rgb[:, :, ::-1]
-        if split.degrade:
+        if split.degrade >= 1 or (
+            split.degrade > 0 and rng.random() < split.degrade
+        ):
             bgr, drawn["degrade"] = degrade(np.ascontiguousarray(bgr), rng)
         stem = f"{name}_{k:04d}"
         cv2.imwrite(str(out / f"{stem}.png"), bgr)
@@ -378,8 +474,9 @@ def render_split(name: str, frames: int, out_root: Path) -> None:
                 "fovy_deg": round(float(m.cam_fovy[camera]), 3),
                 "cam_pos": [round(float(v), 4) for v in lab.data.cam_xpos[camera]],
                 "cam_xmat": [round(float(v), 6) for v in lab.data.cam_xmat[camera]],
-                "placed": placed,
+                "placed": int(placed),
                 "cluster": cluster,
+                "as_built": as_built,
                 "randomisation": drawn,
                 "bottles": bottles,
             }
@@ -387,13 +484,30 @@ def render_split(name: str, frames: int, out_root: Path) -> None:
         bench = sum(b["where"] == "bench" for b in bottles)
         elapsed = time.perf_counter() - started
         print(
-            f"[{name}] {k + 1}/{frames} {stem}: {placed} placed, {bench} on the "
-            f"bench in view, {elapsed / (k + 1):.1f} s/frame",
+            f"[{name}] {done}/{len(todo)} {stem}: {placed} placed, {bench} on the "
+            f"bench in view, {elapsed / done:.1f} s/frame",
             flush=True,
         )
-        if (k + 1) % 25 == 0 or k + 1 == frames:
+        if done % 25 == 0 or done == len(todo):
             write_gt(gt_path, scene, name, records)
     randomiser.reset()
+
+
+def merge_parts(split_dir: Path) -> int:
+    """Join a split's ``gt.part*of*.json`` files into its ``gt.json``
+
+    Returns:
+        How many frames the merged file holds.
+    """
+    parts = sorted(split_dir.glob("gt.part*of*.json"))
+    gts = [json.loads(p.read_text(encoding="utf-8")) for p in parts]
+    merged = {**gts[0], "frames": sorted(
+        (f for gt in gts for f in gt["frames"]), key=lambda f: f["file"]
+    )}  # fmt: skip
+    tmp = split_dir / "gt.tmp"
+    tmp.write_text(json.dumps(merged, indent=1), encoding="utf-8")
+    tmp.replace(split_dir / "gt.json")
+    return len(merged["frames"])
 
 
 def write_gt(path: Path, scene: Scene, split: str, records: list[dict]) -> None:
@@ -426,11 +540,24 @@ def main() -> None:
         help="comma-separated frame counts, one per split; default per split",
     )
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
+    parser.add_argument(
+        "--part", default="0/1", help="i/n: render every n-th frame from the i-th"
+    )
+    parser.add_argument(
+        "--merge", action="store_true", help="join the splits' part files into gt.json"
+    )
     args = parser.parse_args()
     names = [s.strip() for s in args.splits.split(",") if s.strip()]
     unknown = [n for n in names if n not in SPLITS]
     if unknown:
         parser.error(f"unknown split(s) {unknown}; choose from {list(SPLITS)}")
+    if args.merge:
+        for name in names:
+            print(f"[{name}] merged {merge_parts(args.out / name)} frames")
+        return
+    part, parts = (int(v) for v in args.part.split("/"))
+    if not 0 <= part < parts:
+        parser.error("--part must be i/n with 0 <= i < n")
     counts = (
         [int(c) for c in args.frames.split(",")]
         if args.frames
@@ -439,7 +566,7 @@ def main() -> None:
     if len(counts) != len(names):
         parser.error("--frames needs one count per split")
     for name, count in zip(names, counts, strict=True):
-        render_split(name, count, args.out)
+        render_split(name, count, args.out, part, parts)
 
 
 if __name__ == "__main__":

@@ -8,6 +8,8 @@ import { useLabState } from "./labState";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:8000";
 const WS_URL = BACKEND_URL.replace(/^http/, "ws") + "/ws/tasks";
+const DETECTIONS_URL = BACKEND_URL.replace(/^http/, "ws") + "/ws/detections";
+const BOXES_KEY = "robot-viewer.boxes";
 const STATE_URL = import.meta.env.VITE_STATE_URL ?? "ws://localhost:8765/state";
 
 const DEFAULT_CAMERAS = [
@@ -93,12 +95,70 @@ function TaskPanel({ tasks, connected }) {
   );
 }
 
-function CameraStream({ cameraId, label, className, onClick, big, still }) {
+// The detector's boxes over a camera, in the frame's own pixels: the viewBox is
+// the frame and "slice" crops it exactly as the image's object-fit: cover does.
+function DetectionBoxes({ detections }) {
+  return (
+    <svg
+      className="camera-frame__boxes"
+      viewBox={`0 0 ${detections.width} ${detections.height}`}
+      preserveAspectRatio="xMidYMid slice"
+      aria-hidden="true"
+    >
+      {detections.boxes.map(([x0, y0, x1, y1], i) => (
+        <rect key={i} x={x0 - 3} y={y0 - 3} width={x1 - x0 + 6} height={y1 - y0 + 6} />
+      ))}
+    </svg>
+  );
+}
+
+// Live boxes from the backend's detector, while `enabled`; the backend runs the
+// model only while someone is connected.
+function useDetections(enabled) {
+  const [detections, setDetections] = useState(null);
+  useEffect(() => {
+    if (!enabled) return;
+    let cancelled = false;
+    let retryTimer;
+    let ws;
+    const connect = () => {
+      ws = new WebSocket(DETECTIONS_URL);
+      ws.onmessage = (event) => {
+        if (cancelled) return;
+        try {
+          const payload = JSON.parse(event.data);
+          if (Array.isArray(payload.boxes)) setDetections(payload);
+        } catch {
+          /* ignore malformed frame */
+        }
+      };
+      ws.onclose = () => {
+        if (!cancelled) retryTimer = setTimeout(connect, 1500);
+      };
+      ws.onerror = () => ws.close();
+    };
+    connect();
+    return () => {
+      cancelled = true;
+      clearTimeout(retryTimer);
+      ws?.close();
+      setDetections(null);
+    };
+  }, [enabled]);
+  return enabled ? detections : null;
+}
+
+function CameraStream({ cameraId, label, className, onClick, big, still, detections }) {
   const src = still ?? `${BACKEND_URL}/stream/${cameraId}`;
+  const boxes = detections && detections.camera === cameraId ? detections : null;
   return (
     <div className={`camera-frame ${className ?? ""}`} onClick={onClick}>
       <img key={cameraId} src={src} alt={label} className="camera-frame__img" />
-      <span className="camera-frame__label">{label}</span>
+      {boxes && <DetectionBoxes detections={boxes} />}
+      <span className="camera-frame__label">
+        {label}
+        {boxes && ` · ${boxes.boxes.length} bottles`}
+      </span>
       {!big && <span className="camera-frame__swap">⇄ swap</span>}
     </div>
   );
@@ -118,6 +178,32 @@ export default function App() {
   // recorded scripted run (see labState.js).
   const lab = useLabState(STATE_URL);
   const [layout, setLayout] = useState(loadLayout);
+  // Boxes are on unless this browser turned them off.
+  const [showBoxes, setShowBoxes] = useState(() => {
+    try {
+      return localStorage.getItem(BOXES_KEY) !== "0";
+    } catch {
+      return true;
+    }
+  });
+  const [detector, setDetector] = useState(null);
+  const detections = useDetections(realtime && showBoxes && detector?.available === true);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(BOXES_KEY, showBoxes ? "1" : "0");
+    } catch {
+      /* the choice just isn't remembered */
+    }
+  }, [showBoxes]);
+
+  useEffect(() => {
+    if (!realtime) return;
+    fetch(`${BACKEND_URL}/api/detector`)
+      .then((res) => res.json())
+      .then(setDetector)
+      .catch(() => setDetector(null));
+  }, [realtime]);
 
   useEffect(() => {
     try {
@@ -227,7 +313,10 @@ export default function App() {
   return (
     <div className="app">
       <header className="app__header">
-        <h1>Robot monitor — mini-Hannover</h1>
+        <div className="app__brand">
+          <img src="/mafer-logo.svg" alt="Mafer" className="app__logo" />
+          <h1>Robot monitor — mini-Hannover</h1>
+        </div>
         <div className="header-controls">
           <div className="mode-toggle" role="group" aria-label="Source">
             <button
@@ -260,19 +349,43 @@ export default function App() {
                 {v.label}
               </button>
             ))}
+            {realtime && (
+              <button
+                type="button"
+                className={`view-toggle ${showBoxes && detector?.available ? "view-toggle--on" : ""}`}
+                aria-pressed={showBoxes}
+                disabled={!detector?.available}
+                title={
+                  detector?.available
+                    ? `Bottle boxes on the general camera (${detector.weights})`
+                    : detector?.error ?? "Bottle detector not reachable"
+                }
+                onClick={() => setShowBoxes((on) => !on)}
+              >
+                Boxes
+              </button>
+            )}
           </nav>
         </div>
       </header>
       <main className="app__body">
         <div className="main-column">
           <section className="viewport">
-            <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big still={mainStill} />
+            <CameraStream
+              cameraId={mainCameraId}
+              label={mainLabel}
+              className="camera-frame--main"
+              big
+              still={mainStill}
+              detections={detections}
+            />
             <CameraStream
               cameraId={pipCameraId}
               label={pipLabel}
               className="camera-frame--pip"
               onClick={swapCameras}
               still={pipStill}
+              detections={detections}
             />
           </section>
           {showPanels && (
