@@ -114,7 +114,11 @@ function DetectionBoxes({ detections }) {
       {detections.boxes.map(([x0, y0, x1, y1], i) => (
         <g key={i} className={detections.labels?.[i]?.startsWith("SMP-") ? "scan-identified" : ""}>
           <rect x={x0 - 3} y={y0 - 3} width={x1 - x0 + 6} height={y1 - y0 + 6} />
-          {detections.labels?.[i] && <text x={x0 - 3} y={y0 - 10}>{detections.labels[i]}</text>}
+          {/* Only the identified code, revealed on hover (see App.css); the
+              pre-identification track numbers (#1, #2 …) are never drawn. */}
+          {detections.labels?.[i]?.startsWith("SMP-") && (
+            <text x={x0 - 3} y={y0 - 10}>{detections.labels[i]}</text>
+          )}
         </g>
       ))}
     </svg>

@@ -153,9 +153,13 @@ body {
   paint-order: stroke;
   stroke: #111;
   stroke-width: 3px;
+  opacity: 0;
+  transition: opacity 0.08s ease;
 }
-.camera-frame__boxes .scan-identified rect { stroke: #70d695; }
+.camera-frame__boxes .scan-identified rect { stroke: #70d695; pointer-events: all; }
 .camera-frame__boxes .scan-identified text { fill: #70d695; }
+/* The identified code stays hidden until you point at its box. */
+.camera-frame__boxes .scan-identified:hover text { opacity: 1; }
 
 .camera-frame {
   position: relative;
