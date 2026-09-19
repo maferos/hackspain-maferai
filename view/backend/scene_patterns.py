@@ -1,4 +1,13 @@
-"""Build the rail viewport from the shared ten-pattern catalogue in memory."""
+"""Build the rail viewport from the shared ten-pattern catalogue in memory.
+
+``build_pattern`` is what the viewer and the USD export call: the rail scene
+with one catalogue layout on its bench, compiled without touching the disk.
+``pattern_scene`` is the same composition one step earlier, as XML, for the
+callers that need a file --- the vision scan loads its scene by path:
+
+    python view/backend/scene_patterns.py --pattern p05 --out out/p05_scene.xml
+"""
+import argparse
 import json
 from pathlib import Path
 import xml.etree.ElementTree as ET
@@ -10,7 +19,20 @@ PATTERNS = SIM / 'assets/minihannover_open/patterns'
 CATALOGUE = json.loads((PATTERNS / 'index.json').read_text())['patterns']
 
 
-def build_pattern(scene_path, name):
+def pattern_scene(scene_path, name):
+    """Compose the rail scene with one catalogue layout standing on its bench.
+
+    Every reference to another file is rewritten absolute, so the tree compiles
+    from a string or from a file written anywhere.
+
+    Args:
+        scene_path: The rail scene to start from.
+        name: A catalogue pattern, ``p01`` through ``p10``.
+
+    Returns:
+        The composed XML root and the layout's ``pattern``, ``seed``, ``count``
+        and ``style``.
+    """
     entry = next(p for p in CATALOGUE if p['pattern'] == name)
     population = json.loads((PATTERNS / entry['file']).read_text())
     root = ET.parse(scene_path).getroot()
@@ -42,5 +64,37 @@ def build_pattern(scene_path, name):
                              euler=f"0 0 {item['yaw']}")
         ET.SubElement(body, 'freejoint')
         ET.SubElement(body, 'attach', model=name, body=sample, prefix=f'{name}_')
+    return root, {k: population[k] for k in ('pattern', 'seed', 'count', 'style')}
+
+
+def build_pattern(scene_path, name):
+    """The compiled model of one catalogue layout on the rail bench."""
+    root, metadata = pattern_scene(scene_path, name)
     model = mujoco.MjModel.from_xml_string(ET.tostring(root, encoding='unicode'))
-    return model, {k: population[k] for k in ('pattern', 'seed', 'count', 'style')}
+    return model, metadata
+
+
+def main():
+    """Write one pattern's scene to a file, for the callers that need a path.
+
+    The file carries absolute asset paths, so it is a scratch build of this
+    machine's checkout, not something to commit: write it under
+    ``simulation/out/``, which is gitignored.
+    """
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--pattern', required=True, help='p01 through p10')
+    parser.add_argument('--scene', type=Path,
+                        default=SIM / 'models/minihannover_rail_scene.xml')
+    parser.add_argument('--out', type=Path, required=True)
+    args = parser.parse_args()
+    root, metadata = pattern_scene(args.scene, args.pattern)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    ET.indent(root, space='  ')
+    args.out.write_text('<?xml version="1.0" encoding="utf-8"?>\n'
+                        + ET.tostring(root, encoding='unicode') + '\n')
+    print(f"wrote {args.out}: {metadata['pattern']} (seed {metadata['seed']}, "
+          f"{metadata['count']} flasks, {metadata['style']})")
+
+
+if __name__ == '__main__':
+    main()

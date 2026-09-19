@@ -52,7 +52,9 @@ KINDS = [f"amber {v} ml" for v in (10, 20, 30, 50, 100)] + [
 WORKTOP_Z = 0.90
 """Top of the minihannover worktop, as in ``render_perfumery.py``."""
 WORKTOP_HALF = (3.0, 0.75)
-"""Half the worktop's length and width; it is centred on the scene origin."""
+"""Half the worktop's length and width."""
+WORKTOP_CENTER = (0.0, 0.0)
+"""Where the worktop is centred, as in ``render_perfumery.BENCH_CENTER``."""
 VISION_SETS = ("perception", "general", "wrist")
 """Sets rendered from the vision system's own GoPros, which look down at the bench.
 ``perception`` is the close camera of the first perfumery benchmark."""
@@ -89,12 +91,13 @@ def on_worktop(frame: dict, box) -> bool:
     the far half of the bench, so a box has to land on the camera's own half.
     """
     point = base_on_worktop(frame, box)
-    if point is None or abs(point[0]) > WORKTOP_HALF[0]:
+    if point is None or abs(point[0] - WORKTOP_CENTER[0]) > WORKTOP_HALF[0]:
         return False
+    across = point[1] - WORKTOP_CENTER[1]
     if frame["set"] in VISION_SETS:
-        side = math.copysign(1.0, frame["cam_pos"][1])
-        return 0.02 <= side * point[1] <= WORKTOP_HALF[1]
-    return abs(point[1]) <= WORKTOP_HALF[1]
+        side = math.copysign(1.0, frame["cam_pos"][1] - WORKTOP_CENTER[1])
+        return 0.02 <= side * across <= WORKTOP_HALF[1]
+    return abs(across) <= WORKTOP_HALF[1]
 
 
 def kind(bottle: dict) -> str:
