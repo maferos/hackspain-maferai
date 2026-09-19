@@ -180,6 +180,69 @@ the arm must not hit it. `scored` grades each entry against the simulator and
 is the only field that reads it. The plan's merge rules for a second pass are
 not implemented: this is the first pass only.
 
+**The hand stays still.** The arm moves as little as it can between views,
+and the hand hardly turns. This was measured from the camera's orientation
+through the whole scan, recorded at 15 fps on the default bench with the same
+19 flasks:
+
+| | first version | now |
+| --- | --- | --- |
+| total turning of the hand | 4299 degrees | 1114 degrees |
+| wrist joints, summed | 5778 degrees | 2279 degrees |
+| scan time | 148 s | 109 s |
+| named | 19 of 19 | 19 of 19 |
+
+Four changes do it:
+
+* **One way of looking per row.** Every flask in the front row is looked at
+  from the rail side, with the same gaze, and the back strip from the aisle
+  side. The scan does the front row on the way out and the back strip on the
+  way back, so the hand turns round once, not every time the route crosses
+  between the rows.
+* **Slide, don't reshape.** A view is solved from the pose the arm is waiting
+  in, with the carriage standing where it stood relative to the camera
+  (`plan_slide`). The camera then moves along a straight line with its
+  orientation fixed (`straight`): IK every 10 cm, each from the one before.
+  Where that line would hit something, such as the balances on the back strip,
+  it goes straight up, across and down instead (`over`), still without
+  turning. The rail does most of the travelling.
+* **Never a full turn.** The UR10e's joints turn through two full turns, so
+  IK can return an angle 360 degrees away from where the joint stands. A servo
+  sent there spins the hand round to arrive where it almost was: 341 degrees
+  in one move, measured. Every IK answer, and every servo goal in `drive` and
+  `glide`, is taken the nearest way round (`unwrap`).
+* **Stay over the flasks.** Between views the arm waits just over the tallest
+  flask on the bench: its lowest point is at least 3 cm over the top of it
+  (`HOVER_MARGIN`), about 20 cm lower than the carry pose. The tallest comes
+  from the ring's vessel once a flask is named, and from the height of the
+  fixed camera's box before that, which comes out a little tall on purpose.
+  The moves are checked against that height, because `blocked()` ignores the
+  free flasks. When a slide cannot be made, the arm tries once through the
+  carry pose lowered to that height (`hub_pose`), and only after that climbs
+  to the carry pose.
+
+What still turns the hand, in that run:
+* **177 degrees, once:** from the hand-down carry pose to the first view.
+* **150 degrees, once:** between the two rows.
+* **455 degrees:** SMP-0048, which stands at y = -0.28, close to the rail. The camera
+  has no room to look at it from the rail side at 0.36 m, so it looks from
+  60 degrees round, and it reaches that through the carry pose. A closer,
+  steeper view from the rail side (0.26 m, 35 degrees) reads its ring. As the
+  scan's second choice, though, it left the next views in another orientation,
+  and the scan named 18 of 19 instead of 19, so it is not used.
+* **94 degrees:** the flask on the aisle edge at full reach.
+Fixing those needs a planner that works in the camera's space around
+obstacles, not joint-space moves checked afterwards.
+
+A ring misread is guarded against. Measured once: a single bit error on
+SMP-0044's ring read as SMP-0018, 5 mm from it. Two rings placed within 3 cm of
+each other in one frame are one bottle. The one with more markers read wins,
+and a tie names neither. A ring that lands on a bottle already named something
+else is ignored.
+
+The viewer (`view/`) runs this same scan on its rail scene; see
+`view/README.md`.
+
 **What the scan cannot find.** A flask gets on the map in one of two ways: the
 fixed camera boxes it, or its ring shows up in the wrist frame of a look at
 some other flask. One that neither happens to is never found. The scan has no
