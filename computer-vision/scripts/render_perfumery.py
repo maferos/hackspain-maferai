@@ -225,9 +225,19 @@ def category_of(name: str) -> str:
 class Lab:
     """Eki's scene plus the extra bottles, compiled once"""
 
-    def __init__(self, width: int = 1920, height: int = 1080) -> None:
-        """Compile the scene with the additions and index its sample bottles"""
-        spec = mujoco.MjSpec.from_file(str(SCENE))
+    def __init__(self, width: int = 1920, height: int = 1080,
+                 scene: Path | str = SCENE) -> None:
+        """Compile the scene with the additions and index its sample bottles
+
+        Args:
+            width: Offscreen buffer width the scene must support.
+            height: Offscreen buffer height.
+            scene: Which scene to load. The default is the shelved
+                minihannover; the rail scene is the other one worth pointing
+                this at, and its vessels are found the same way because their
+                body names still end in the sample id.
+        """
+        spec = mujoco.MjSpec.from_file(str(scene))
         for k, sample_id in enumerate(EXTRA_SAMPLES):
             child = mujoco.MjSpec.from_file(str(BOTTLES / f"{sample_id}.xml"))
             body = spec.worldbody.add_body(
@@ -255,6 +265,12 @@ class Lab:
             while m.body_parentid[root] != 0:
                 root = m.body_parentid[root]
             geoms = np.flatnonzero(m.geom_bodyid == b)
+            if not geoms.size:
+                # A wrapper that carries the free joint and nothing else: the
+                # rail scene builds its vessels as dyn_<id> holding an attached
+                # <id>, so both names end in the sample id and only the inner
+                # one has geometry.
+                continue
             radius = max(float(m.geom_aabb[g, 3:5].max()) for g in geoms)
             self.samples.append(
                 {

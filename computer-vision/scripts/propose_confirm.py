@@ -46,7 +46,7 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from perfumery_eval import WORKTOP_HALF, base_on_worktop, on_worktop  # noqa: E402
-from render_perfumery import BENCH_X, WORKTOP_Z, Lab, where_is  # noqa: E402
+from render_perfumery import BENCH_X, SCENE, WORKTOP_Z, Lab, where_is  # noqa: E402
 from world_prompts import BOTTLES  # noqa: E402
 
 from labvision import registry  # noqa: E402
@@ -288,6 +288,15 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
     )
+    parser.add_argument(
+        "--scene", type=Path, default=None,
+        help="scene to load; the shelved minihannover by default, or "
+             "simulation/models/minihannover_rail_scene.xml for the rail bench")
+    parser.add_argument(
+        "--general-size", type=int, nargs=2, default=None,
+        metavar=("W", "H"),
+        help="override the fixed camera's resolution; the flasks the detector "
+             "misses are the small ones, so this is the first thing to try")
     parser.add_argument("--layouts", type=int, default=12)
     parser.add_argument(
         "--bottles", type=int, nargs=2, default=(6, 10), metavar=("MIN", "MAX")
@@ -323,8 +332,14 @@ def main() -> None:
     detector = GeneralDetector(args.weights, args.threshold)
     rows = rows_by_marker(registry.load_table(DEFAULT_TABLE))
     reader = MarkerReader()
-    lab = Lab()
+    # The offscreen buffer is sized when the scene compiles, so a bigger
+    # fixed camera has to be asked for here, not after.
+    size = args.general_size or (1920, 1080)
+    lab = Lab(width=max(size[0], 1920), height=max(size[1], 1080),
+              scene=args.scene or SCENE)
     general, wrist = lab.cameras["general"], lab.cameras["wrist"]
+    if args.general_size:
+        lab.model.cam_resolution[general] = args.general_size
     gw, gh = (int(v) for v in lab.model.cam_resolution[general])
     ww, wh = (int(v) for v in lab.model.cam_resolution[wrist])
 

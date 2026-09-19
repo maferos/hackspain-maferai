@@ -32,6 +32,7 @@ Why the rail sits where it does, all measured off the open scene:
   its own gripper works at, so the full 1.30 m stays available horizontally
   instead of being spent on the drop to the bench.
 """
+import argparse
 import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -84,9 +85,11 @@ SCAN_POSE = (-1.5708, -1.9199, 2.0944, -1.7453, -1.5708, 0.0)
 # the bench is cleared down to a handful so the manipulation case is simple to
 # watch and to debug. All of them are free bodies that can be picked up.
 #
-# Raising this is the way to make the task harder: more clutter to reach
-# through, less room for the fingers, and every vessel costs 7 qpos and a pile
-# of contacts. Ten vessels take the scene from 15x realtime to about 9x.
+# Twelve is the manipulation scene. Raising it makes the task harder, and the
+# two jobs want different benches: at thirty the vision scan is a good test
+# --- more targets, still 98 mm apart --- and the pipette starts clipping
+# neighbours on the way in, 12 mm of mean tip error against 1.1 at twelve.
+# Pass --vessels to regenerate at another count.
 BENCH_VESSELS = 12
 
 # Which tool hangs on the flange. 'pipette' is the pipetting scene; 'gripper'
@@ -510,6 +513,12 @@ def check_camera_clearance() -> float:
 
 
 def main() -> None:
+    global BENCH_VESSELS
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--vessels', type=int, default=BENCH_VESSELS,
+                        help='vessels to leave standing on the bench')
+    BENCH_VESSELS = parser.parse_args().vessels
+
     tool = build_gripper() if TOOL == 'gripper' else build_pipette()
     arm = build_arm()
     scene = build_scene()
