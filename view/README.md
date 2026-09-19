@@ -2,8 +2,9 @@
 
 Frontend to watch the mini-Hannover MuJoCo scene live: main viewport switchable
 between the robot's onboard camera and the fixed scene-overview camera, a
-picture-in-picture subwindow showing the other one (click it to swap), and a
-right-hand panel with the robot's running task log, updated in real time.
+picture-in-picture subwindow showing the other one (click it to swap), and
+side panels that follow the bench scan live, with a chat to check a formula
+against what the scan found.
 
 - `backend/` — FastAPI server. The default rail scene runs the initial bench
   scan from `simulation/scripts/vision_pick.py` with the Robotiq gripper.
@@ -22,8 +23,8 @@ controller are shown in the viewport; they do not fall back to a scripted sweep.
 The scan runs independently of the Boxes toggle and the selected viewport mode.
 Its speed depends on local physics, rendering and inference performance.
 
-The Tasks, Robot, Balance and Pipeline panels still consume the shared lab state
-in both modes. Their scripted formulation is independent of the scan.
+The Tasks, Robot, Balance and Pipeline panels show this scan, in both modes
+(see Lab state panels below).
 
 ## Run it
 
@@ -127,44 +128,61 @@ of the bottles on the bench at 99.6 % precision
 
 The same backend also publishes the full `LabState` (see
 `dashboard/bridge/README.md` for the protocol) on `ws://localhost:8765/state`.
-It is driven by the scripted formulation in
-`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four liquids,
-one recovery: the Eugenol flask is displaced in the demo state). This script
-uses separate MuJoCo data for the panels; it never moves bottles in the
-camera scene. The live scan remains independent. It needs `websockets` in the venv (listed
-in `backend/requirements.txt`).
+With the scan, that state is the scan itself (`backend/scan_state.py`, a few
+times a second): vision_pick's tracks and what their rings said, the arm's
+joints and gripper, the controller's caption, and its log as events. Nothing is
+scripted; a panel with nothing to show says it is waiting. Scenes without the
+scan still replay the scripted formulation of
+`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031). It needs
+`websockets` in the venv (listed in `backend/requirements.txt`).
 
-When that state is connected, the frontend shows it (`src/LabTaskPanel.jsx`,
-`src/LabPanels.jsx`); without it, the task panel falls back to the mocked log
-above.
+- **Robot tasks**: run id (`SCAN-P06` for seed pattern p06), status and
+  simulated clock; the scan's tally (flasks named by their ring out of those on
+  the bench, still to look at, not samples, out of reach); then the plan around
+  the current step: park, survey, each track's ring (named, not a sample, out
+  of reach, or next), and the bench map. A `SCRIPTED` badge marks the recorded
+  run, which plays when no backend is running.
+- **Robot** under the viewport: the controller's state and caption, the track
+  or sample it is working on, the ring it read, the gripper (open or holding),
+  and the carriage on the rail.
+- **Balance**: `balance_2`. Nothing is weighed yet: the arm carries the gripper,
+  not the pipette, so it reads 0.000 g.
+- **Pipeline**, under the chat: camera cycle, live YOLO time, tracks on the
+  bench and how many a ring placed, rings named, the controller, the rail, and
+  the bench map. The footer is the scan's latest log line.
 
-- **Robot tasks**: run id, status and clock, a `SCRIPTED` badge while the
-  sequence is not the real planner, then the formula with each ingredient
-  crossed off once added (with its deviation from target, and a progress bar on
-  the one being dosed), then the plan around the current step, grouped by
-  ingredient: the last few steps done, the active one (amber while it is
-  recovering), and the next three.
-- **Robot** and **Balance** under the viewport: the rail with the balances and
-  the carriage, and the current dose's net mass rising towards its target. A
-  panel lights its top edge while its module is working.
-- **Pipeline**, under the tasks: the modules from camera to mass check, each
-  with its status and live figure, and the latest event.
+## Formula chat
+
+The **Formula** panel between the tasks and the Pipeline checks a formula
+against the flasks the scan has named by their rings, never against the
+simulator's list:
+
+| Type | And |
+| --- | --- |
+| `What's on the bench?` | the compounds the scan has identified, with their sample ids |
+| `1.2 g geraniol, 0.5 g nerol` (either order, `1,2 g`, Spanish names) | the formula, each line with the flask the scan found or "not identified on the bench" |
+| `40 % geraniol, 60 % nerol, total 2 g` | the same from percentages |
+| `FRG-101`, `5 g of FRG-103` | one of the five formulas in `harness/formulas`, scaled (3 g by default) |
+| **Pick**, or `pick` / `dale` | the arm fetches each flask in turn through the controller's own pick (ring, grasp on force feedback, lift, put back); the task panel follows it. It waits for the initial scan to finish. |
+| **Stop**, or `stop` / `para` | no more picks |
+
+The arm has the gripper, so a formula is fetched, not dosed; the task panel
+says so. Without `ANTHROPIC_API_KEY` a small parser (`backend/formula_chat.py`)
+reads the forms above and the panel says `OFFLINE PARSER`; with the key and
+`anthropic` in the venv, Claude (`VIEW_CHAT_MODEL`, default `claude-opus-5`)
+reads free-form requests and proposes formulas from the identified flasks.
 
 The camera, tasks and Pipeline are always shown. Robot and Balance
 open and close from the buttons in the header, and the edges between views
 drag to resize them (double-click an edge to reset it). The layout is
 remembered in the browser.
 
-To rehearse a moment, start the backend part-way and slowed down:
+To rehearse a moment of the scripted run (scenes without the scan), start the
+backend part-way and slowed down:
 
 ```sh
 LAB_STATE_START=100 LAB_STATE_SPEED=0.25 simulation/.venv/bin/python view/backend/server.py
 ```
-
-The recovery starts at about 101 s and the recipe completes at about 172 s.
-
-Replace `ScriptedRun` with the real planner when it exists; the state contract
-stays the same.
 
 Replay also supports **Boxes** on the general camera. With the backend running,
 `/ws/replay-detections` performs one inference at a time on the video's current

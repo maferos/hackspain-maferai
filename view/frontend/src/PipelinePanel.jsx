@@ -29,7 +29,7 @@ export default function PipelinePanel({ state, connected, style, detections, det
   if (!state || state.run.status === "idle") {
     return (
       <Panel title="Pipeline" style={style} className="panel--pipeline">
-        <p className="pipeline__empty">{connected ? "Waiting for lab state…" : "Lab state offline"}</p>
+        <p className="pipeline__empty">{connected ? "Waiting for the scan to start…" : "Lab state offline"}</p>
       </Panel>
     );
   }

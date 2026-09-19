@@ -1,6 +1,7 @@
-// Task panel driven by the LabState: the formula at the top, crossed off as
-// each ingredient is added, and below it the plan around the current step
-// (a few done, the active one, the next ones), grouped by ingredient.
+// Task panel driven by the LabState: at the top the bench scan's tally, or the
+// formula (crossed off as each ingredient is added, or fetched), and below it
+// the plan around the current step (a few done, the active one, the next
+// ones), grouped by the step's group or ingredient.
 
 const KEEP_DONE = 4;
 const SHOW_NEXT = 3;
@@ -13,8 +14,31 @@ const fmtClock = (seconds) => {
   return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 };
 
+// What the live scan has found so far.
+function ScanSummary({ scan }) {
+  return (
+    <div className="formula">
+      <div className="formula__title">
+        <span>Bench scan</span>
+        <span className={`chip ${scan.error ? "chip--warn" : ""}`}>{scan.error ? "ERROR" : scan.done ? "MAPPED" : "SCANNING"}</span>
+      </div>
+      <div className="scan-tally">
+        <div>
+          <span className="big">{scan.named}</span>
+          <small> / {scan.tracked} named by their ring</small>
+        </div>
+        <span className="mono">
+          {scan.waiting} to look at · {scan.empty} not samples · {scan.unreachable} out of reach
+        </span>
+      </div>
+      {scan.error ? <div className="formula__summary formula__summary--fail">{scan.error}</div> : null}
+    </div>
+  );
+}
+
 function FormulaChecklist({ state }) {
   const { recipe, balance, summary } = state;
+  const fetch = recipe.mode === "fetch";
   const done = recipe.ingredients.filter((i) => i.status === "completed").length;
   return (
     <div className="formula">
@@ -34,7 +58,9 @@ function FormulaChecklist({ state }) {
                 {ing.containerId ? <span className="formula-row__meta"> {ing.containerId}</span> : null}
               </span>
               <span className="formula-row__mass">
-                {ing.status === "completed" && dispensed !== null ? (
+                {fetch ? (
+                  `${g(ing.targetMass)} g`
+                ) : ing.status === "completed" && dispensed !== null ? (
                   <>
                     {g(dispensed)} g <span className="formula-row__delta">{signed(dispensed - ing.targetMass)}</span>
                   </>
@@ -44,7 +70,8 @@ function FormulaChecklist({ state }) {
                   `${g(ing.targetMass)} g`
                 )}
               </span>
-              {ing.status === "active" ? (
+              {fetch && ing.note ? <span className="formula-row__note">{ing.note}</span> : null}
+              {ing.status === "active" && !fetch ? (
                 <span className="formula-row__bar">
                   <span style={{ width: `${progress * 100}%` }} />
                 </span>
@@ -63,10 +90,10 @@ function FormulaChecklist({ state }) {
       ) : (
         <div className="formula__total">
           <span>
-            {done}/{recipe.ingredients.length} added
+            {done}/{recipe.ingredients.length} {fetch ? "fetched" : "added"}
           </span>
           <span className="mono">
-            {g(balance.totalMass)} / {g(recipe.targetMass)} g
+            {fetch ? `${g(recipe.targetMass)} g formula · not dosed` : `${g(balance.totalMass)} / ${g(recipe.targetMass)} g`}
           </span>
         </div>
       )}
@@ -75,6 +102,7 @@ function FormulaChecklist({ state }) {
 }
 
 function groupTitle(step, steps, recipe) {
+  if (step.group) return step.group;
   if (step.ingredientId) {
     const ing = recipe.ingredients.find((i) => i.id === step.ingredientId);
     return ing ? `${ing.compound} · ${g(ing.targetMass)} g` : step.ingredientId;
@@ -141,7 +169,21 @@ function PlanList({ state }) {
 }
 
 export default function LabTaskPanel({ state, connected }) {
+  if (!state || state.run.status === "idle") {
+    return (
+      <aside className="task-panel">
+        <header className="task-panel__header">
+          <h2>Robot tasks</h2>
+          <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
+        </header>
+        <ol className="task-list">
+          <li className="task-item task-item--empty">{connected ? "Waiting for the scan to start…" : "Lab state offline"}</li>
+        </ol>
+      </aside>
+    );
+  }
   const { run } = state;
+  const scanOnly = state.scan && state.recipe.ingredients.length === 0;
   return (
     <aside className="task-panel">
       <header className="task-panel__header">
@@ -160,7 +202,7 @@ export default function LabTaskPanel({ state, connected }) {
           <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
         </div>
       </header>
-      <FormulaChecklist state={state} />
+      {scanOnly ? <ScanSummary scan={state.scan} /> : <FormulaChecklist state={state} />}
       <PlanList state={state} />
     </aside>
   );

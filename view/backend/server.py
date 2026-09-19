@@ -5,7 +5,8 @@ The original YOLO / ArUco perception and robot controller drive the viewport;
 the scan's progress and sample identities accompany the camera streams.
 
 It also publishes the full `LabState` that the lab state panels render, on
-`ws://localhost:8765/state`, driven by the scripted
+`ws://localhost:8765/state`: the live scan's own state (scan_state.py), and the
+formula chat's requests (`/api/chat`). Scenes without the scan replay the scripted
 formulation of `labbridge.mock_run` on separate simulation data. The panel demo
 never moves containers in the camera scene.
 
@@ -16,7 +17,6 @@ Then open view/frontend (see its README) against this server's port (8000).
 from __future__ import annotations
 
 import asyncio
-import itertools
 import json
 import random
 import subprocess
@@ -25,13 +25,12 @@ import sys
 import threading
 import time
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from pathlib import Path
 
 import mujoco
 import numpy as np
 from jpeg_encoder import JpegEncoder, PREVIEW_SIZE
-from fastapi import FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi import Body, FastAPI, HTTPException, Query, WebSocket, WebSocketDisconnect
 from scene_patterns import CATALOGUE, build_pattern
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
@@ -59,6 +58,8 @@ from labbridge.mock_run import ACTIVE_BALANCE, RAIL, ScriptedRun  # noqa: E402
 from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
 from labvision.detector import resolve as resolve_detector
+from catalogue import Catalogue, resolve, shelf_from_tracks  # noqa: E402
+from formula_chat import FormulaChat  # noqa: E402
 
 STATE_PORT = int(os.environ.get("VIEW_STATE_PORT", "8765"))
 STATE_RATE_HZ = 10
@@ -110,63 +111,6 @@ DETECTOR_THREADS = int(os.environ.get("VIEW_DETECTOR_THREADS", "2"))
 # the carriage runs the length of the bench holding a hand-down scan pose. Posed
 # kinematically per frame so it stays smooth and can't knock the glassware over.
 RAIL_SWEEP_SPEED = 0.8  # carriage speed, m/s
-
-# --- Mock task log --------------------------------------------------------
-# Stands in for a real task/planner system (none exists in simulation/ yet).
-TASK_SCRIPT = [
-    "Locating amber bottle on the shelving",
-    "Picking up bottle amber_loose_3",
-    "Carrying bottle to balance 2",
-    "Weighing sample on balance 2",
-    "Reading the bottle's barcode",
-    "Logging weight to inventory",
-    "Returning bottle to the shelf",
-    "Moving to the standby position",
-]
-TASK_DURATION_S = 3.5
-MAX_TASK_LOG = 15
-
-
-class TaskLog:
-    """Cycles through TASK_SCRIPT, one task 'active' at a time, mock in real time."""
-
-    def __init__(self) -> None:
-        self._lock = threading.Lock()
-        self._entries: list[dict] = []
-        self._script = itertools.cycle(enumerate(TASK_SCRIPT))
-        self._next_id = 0
-        self._advance()
-
-    def _advance(self) -> None:
-        with self._lock:
-            for entry in self._entries:
-                if entry["status"] == "active":
-                    entry["status"] = "done"
-            _, label = next(self._script)
-            self._next_id += 1
-            self._entries.append(
-                {
-                    "id": self._next_id,
-                    "label": label,
-                    "status": "active",
-                    "started_at": datetime.now(timezone.utc).isoformat(),
-                }
-            )
-            if len(self._entries) > MAX_TASK_LOG:
-                self._entries.pop(0)
-
-    def snapshot(self) -> list[dict]:
-        with self._lock:
-            return [dict(e) for e in self._entries]
-
-    def run_forever(self) -> None:
-        while True:
-            time.sleep(TASK_DURATION_S)
-            self._advance()
-
-
-task_log = TaskLog()
-threading.Thread(target=task_log.run_forever, daemon=True).start()
 
 # --- MuJoCo scene, stepped continuously in a background thread -----------
 
@@ -376,7 +320,12 @@ class SceneRenderer:
         self.state_server.snapshot(self.run.initial_state(workcell(self.panel_model, self.panel_data, ACTIVE_BALANCE, RAIL)))
 
     def publish_state_forever(self) -> None:
-        """Replays the scripted formulation and publishes LabState patches at STATE_RATE_HZ."""
+        """Publishes LabState: the live scan's, or the scripted formulation at STATE_RATE_HZ."""
+        if SCAN_ENABLED:
+            from scan_state import ScanState
+            self.lab = ScanState(self, self.state_server, catalogue)
+            self.lab.run_forever()
+            return
         if self.run is None:
             return  # scene has no compatible scripted run; cameras still stream
         self.state_server.start()
@@ -397,6 +346,7 @@ class SceneRenderer:
                 time.sleep(remaining)
 
 
+catalogue = Catalogue()
 scene = SceneRenderer(SCENE_PATH)
 renderer_thread = threading.Thread(target=scene.run_forever, daemon=True)
 renderer_thread.start()
@@ -558,6 +508,94 @@ async def randomize_scene(session: str = Query(min_length=1, max_length=100)):
         return info
 
 
+# --- Formula chat -------------------------------------------------------------
+
+
+def scanned_shelf() -> list[dict]:
+    """The flasks the live scan has named so far."""
+    scan = scene.scan
+    return shelf_from_tracks(scan.world.snapshot(), catalogue) if scan and scan.world else []
+
+
+def scan_progress() -> str:
+    scan = scene.scan
+    if not SCAN_ENABLED or scan is None or scan.world is None:
+        return " (The bench scan is not running.)"
+    if scan.world.scan is None:
+        return f" (The scan is still going: {len(scanned_shelf())} flasks named so far.)"
+    return ""
+
+
+chat = FormulaChat(catalogue, scanned_shelf, scan_progress)
+
+
+def start_fetch(formula: dict | None):
+    """Have the arm fetch a proposed formula's flasks, as the scan knows them now."""
+    lab = getattr(scene, "lab", None)
+    if lab is None or scene.scan is None or scene.scan.world is None:
+        raise HTTPException(409, "The bench scan is not running, so the arm cannot fetch anything.")
+    if not formula:
+        raise HTTPException(409, "There is no formula yet: type one first.")
+    if lab.fetch is not None and lab.fetch.status == "running":
+        raise HTTPException(409, "The arm is already fetching a formula; stop it first.")
+    lines = [{"compound": i.get("cas") or i.get("compound"), "grams": i.get("grams")}
+             for i in formula.get("ingredients", [])]
+    resolved = resolve(lines, scanned_shelf(), catalogue,
+                       str(formula.get("id") or "CHAT"), str(formula.get("name") or "Chat formula"))
+    if not resolved["runnable"]:
+        raise HTTPException(409, "The scan has not identified any flask of this formula.")
+    from scan_state import Fetch
+    lab.fetch = Fetch(resolved, scene.scan.world)
+    lab.fetch.start()
+    found = [i for i in resolved["ingredients"] if not i["problem"]]
+    waiting = " once the scan is done" if scene.scan.world.scan is None else ""
+    return f"The arm will pick {', '.join(i['sampleId'] for i in found)}{waiting}, one after the other."
+
+
+@app.get("/api/formulation")
+def formulation_info():
+    lab = getattr(scene, "lab", None)
+    fetch = lab.fetch if lab else None
+    return {"available": SCAN_ENABLED, "running": bool(fetch and fetch.status == "running"),
+            "chat": chat.mode, "bench": scanned_shelf()}
+
+
+@app.post("/api/chat")
+def chat_message(payload: dict = Body(...)):
+    """One chat message: the reply, the formula it proposes and what was done."""
+    message = str(payload.get("message") or "").strip()
+    if not message:
+        raise HTTPException(400, "Empty message")
+    answer = chat.reply(message, payload.get("history") or [])
+    if answer["action"] == "start":
+        try:
+            answer["reply"] = start_fetch(answer["formula"])
+        except HTTPException as exc:
+            answer["reply"], answer["action"], answer["formula"] = exc.detail, None, None
+    elif answer["action"] == "stop":
+        lab = getattr(scene, "lab", None)
+        if lab is None or lab.fetch is None or lab.fetch.status != "running":
+            answer["reply"], answer["action"] = "Nothing is being fetched.", None
+        else:
+            lab.fetch.stop()
+            answer["reply"] = "Stopped; the arm finishes what it is holding and goes back to watching."
+    return answer
+
+
+@app.post("/api/formulation/start")
+def formulation_start(payload: dict = Body(default={})):
+    return {"reply": start_fetch(payload.get("formula") or chat.last)}
+
+
+@app.post("/api/formulation/stop")
+def formulation_stop():
+    lab = getattr(scene, "lab", None)
+    if lab is None or lab.fetch is None or lab.fetch.status != "running":
+        raise HTTPException(409, "Nothing is being fetched.")
+    lab.fetch.stop()
+    return {"reply": "Stopped; the arm finishes what it is holding and goes back to watching."}
+
+
 def mjpeg_generator(mj_camera_name: str):
     boundary = b"frame"
     for jpeg in scene.frames(mj_camera_name):
@@ -708,21 +746,6 @@ async def ws_detections(websocket: WebSocket):
         pass
     finally:
         detector.watch(-1)
-
-
-@app.websocket("/ws/tasks")
-async def ws_tasks(websocket: WebSocket):
-    await websocket.accept()
-    last_sent = None
-    try:
-        while True:
-            current = task_log.snapshot()
-            if current != last_sent:
-                await websocket.send_json({"tasks": current})
-                last_sent = current
-            await asyncio.sleep(0.3)
-    except WebSocketDisconnect:
-        pass
 
 
 if __name__ == "__main__":
