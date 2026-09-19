@@ -294,8 +294,12 @@ def solve_any(model: mujoco.MjModel, data: mujoco.MjData, target: np.ndarray,
     distance = float(np.linalg.norm(target - data.body('arm_base').xpos))
     if not ENVELOPE[0] <= distance <= ENVELOPE[1]:
         return False
-    for seed in SEED_POSES:
-        if solve_ik(model, data, target, seed=np.array(seed), **kwargs):
+    # Where the arm already is, first. Damped least squares finds whichever
+    # branch its seed is nearest, and two poses solved from a fixed seed can
+    # land in branches half a metre of joint travel apart --- the servos then
+    # cannot get from one to the other, and the gripper closes on nothing.
+    for seed in (data.qpos[arm_qpos(model)].copy(), *map(np.array, SEED_POSES)):
+        if solve_ik(model, data, target, seed=seed, **kwargs):
             return True
     return False
 

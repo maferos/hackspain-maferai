@@ -78,11 +78,15 @@ ARM_BASE_Z = BEAM_Z + ARM_BASE_DZ
 # arm folded toward -Y so it leans over the bench rather than the back wall.
 SCAN_POSE = (-1.5708, -1.9199, 2.0944, -1.7453, -1.5708, 0.0)
 
-# Vessels lifted off the bench into free bodies, so the arm can actually pick
-# them up. The other 300-odd stay as static geometry: they collide, so the arm
-# cannot reach through them, but they cannot be moved. Raise this once grasping
-# is shown to work; every one costs 7 qpos and a pile of contacts.
-DYNAMIC_VESSELS = 10
+# How many vessels stand on the bench in this scene, spread along it. The open
+# scene the computer-vision work renders from keeps its full population; here
+# the bench is cleared down to a handful so the manipulation case is simple to
+# watch and to debug. All of them are free bodies that can be picked up.
+#
+# Raising this is the way to make the task harder: more clutter to reach
+# through, less room for the fingers, and every vessel costs 7 qpos and a pile
+# of contacts. Ten vessels take the scene from 15x realtime to about 9x.
+BENCH_VESSELS = 12
 
 # Eye-in-hand camera, in the tool frame (+Z is the approach direction).
 EIH_OFFSET = 0.09   # to the side of the tool axis, clear of the fingers
@@ -229,8 +233,8 @@ def build_arm() -> Path:
     return out
 
 
-def build_dynamic_stock(count: int) -> list[dict[str, str]]:
-    """Cut `count` catalogued vessels out of the lab room so the scene can own them.
+def build_bench(keep: int) -> list[dict[str, str]]:
+    """Clear the bench down to `keep` vessels, and hand them to the scene.
 
     The bench population is baked into the room model as static geometry: five
     geoms per vessel, one of them a collision cylinder. That makes every vessel
@@ -239,6 +243,10 @@ def build_dynamic_stock(count: int) -> list[dict[str, str]]:
     picked up have to become bodies with a free joint in the *scene*, because
     MuJoCo only allows a free joint on a child of the world, and the room is
     attached as a body.
+
+    Everything not kept is deleted rather than left standing, so the survivors
+    have room for the fingers. The open scene keeps its full population; this
+    only thins the copy the rail scene loads.
 
     Each catalogued sample already exists as its own model under
     assets/labelled_bottles/, which is how the scene's seven loose vessels are
@@ -264,19 +272,31 @@ def build_dynamic_stock(count: int) -> list[dict[str, str]]:
                  for child in parent}
     vessels: dict[str, list[ET.Element]] = {}
     for geom in tree.getroot().iter('geom'):
-        match = re.match(r'stock_(SMP-\d+)_', geom.get('name', ''))
+        match = re.match(r'stock_(.+?)_(?:glass|cap|label|label_back|collision)',
+                         geom.get('name', ''))
         if match:
             vessels.setdefault(match.group(1), []).append(geom)
 
-    ordered = sorted(vessels, key=lambda k: float(vessels[k][0].get('pos').split()[0]))
-    step = max(len(ordered) // max(count, 1), 1)
-    picked = ordered[::step][:count]
+    # Only catalogued samples have a model of their own to re-attach; the
+    # unbarcoded reserve stock is scenery either way, so it always goes.
+    catalogued = [s for s in vessels
+                  if (SIM / f'assets/labelled_bottles/{s}.xml').exists()]
+    ordered = sorted(catalogued,
+                     key=lambda k: float(vessels[k][0].get('pos').split()[0]))
+    step = max(len(ordered) // max(keep, 1), 1)
+    picked = ordered[::step][:keep]
 
     import mujoco
 
     base = mujoco.MjModel.from_xml_path(str(SIM / 'models' / BASE_SCENE))
     state = mujoco.MjData(base)
     mujoco.mj_forward(base, state)
+
+    for sample, geoms in vessels.items():
+        if sample in picked:
+            continue
+        for geom in geoms:
+            parent_of[geom].remove(geom)
 
     lifted = []
     for sample in picked:
@@ -333,7 +353,7 @@ def build_scene() -> Path:
 
     # Swap the room for the one without the vessels the scene now owns, and
     # declare each of those as its own model.
-    lifted = build_dynamic_stock(DYNAMIC_VESSELS)
+    lifted = build_bench(BENCH_VESSELS)
     asset.find('model[@name="lab_room"]').set(
         'file', f'../{DYNAMIC_ROOM.relative_to(SIM)}')
     for vessel in lifted:
@@ -443,8 +463,7 @@ def main() -> None:
           f'({2 * TRAVEL:.2f} m), bench spans {BENCH_X[0]} .. {BENCH_X[1]} m')
     print(f'camera: modelled body clears its own lens by '
           f'{check_camera_clearance() * 1000:.1f} mm')
-    print(f'dynamic vessels: {DYNAMIC_VESSELS} liftable, the rest stay as '
-          f'collidable scenery')
+    print(f'bench: cleared to {BENCH_VESSELS} vessels, all of them liftable')
 
 
 if __name__ == '__main__':

@@ -77,7 +77,9 @@ python scripts/rail_reach.py                 # what it can actually reach, in nu
 **Why a rail.** The UR10e reaches 1.30 m, the longest arm in Menagerie, and the
 desk is 6 x 2 m. Bolted down it covers a 1.30 m disc; on a rail it covers the lot.
 `scripts/rail_reach.py` solves top-down IK for the pinch point 20 mm over every
-cap on the bench and counts:
+cap on the bench and counts. The table below was taken over the **full** bench
+population, which is the interesting case; the scene as shipped is thinned to
+`BENCH_VESSELS` and scores 12/12 trivially. Raise that constant to reproduce it:
 
 | Mounting | Vessels reachable |
 | --- | --- |
@@ -150,6 +152,10 @@ Coming at a vessel from the right side beats climbing above it. `--mode label`
 does exactly that: it tries bearings in turn, skips the ones a neighbour blocks,
 and takes the first the arm can hold, at the 8 degrees the reader prefers.
 
+Those figures are for the full bench too. On the thinned scene every label is
+visible from every bearing, because there is nothing left to hide behind --- so
+do not read the shipped scene as evidence the problem went away.
+
 The population is regenerated upstream and has changed size twice already, so
 take the proportions rather than the counts. One thing to know if the unbarcoded
 reserve stock comes back: the vessel lookup used to match sample ids with
@@ -177,12 +183,13 @@ demo that must not knock the glassware over, and useless for manipulation.
 through the position actuators, `mj_step` runs the whole way, the arm is stopped
 by the bench, vessels it brushes move, and the gripper closes on force feedback.
 
-**Most of the bench is scenery, on purpose.** Every vessel carries a collision
-cylinder, so the arm cannot reach through any of them, but only
-`DYNAMIC_VESSELS` of them (10) are free bodies with mass that can be picked up.
-The rest are static geometry baked into the lab room. Raising that number is one
-constant in `generate_rail_scene.py`; it costs 7 qpos and a pile of contacts
-each, and the scene drops from 15x realtime to 9x for the first ten.
+**The bench is cleared down to `BENCH_VESSELS` (12), all of them liftable.**
+The open scene the computer-vision work renders from keeps its full population;
+`generate_rail_scene.py` thins the copy the rail scene loads so the manipulation
+case is simple to watch and to debug. Raising that constant is how to make the
+task harder --- more clutter to reach through, less room for the fingers --- and
+each vessel costs 7 qpos and a pile of contacts. Twelve run at about 11x
+realtime, and they sit 278 to 453 mm apart.
 
 **The gripper can feel what it holds.** Menagerie's 2F-85 already behaves like
 the real one when it closes on something --- the actuator is a position servo on
@@ -206,16 +213,17 @@ over Modbus:
 physics and scores it:
 
 ```
-gripper reported an object: 7/10
-picked up and still held:   7/10
-sensor agreed with reality: 10/10
+gripper reported an object: 12/12
+picked up and still held:   12/12
+sensor agreed with reality: 12/12
 ```
 
 The agreement is the useful column: the gripper's own senses say the same thing
 as the vessel's true height, which the test used to peek at and a real cell
-cannot see. The three failures are approach, not grip --- two closed on thin air
-and one wedged its pads on two neighbouring vessels at 600 N, which is the arm
-shoving, not the gripper gripping.
+cannot see. On the full bench it scores 7 in 10, and those failures are approach
+rather than grip --- two closed on thin air and one wedged its pads on two
+neighbouring vessels at 600 N, which is the arm shoving, not the gripper
+gripping.
 
 Three things that cost time and are easy to hit again:
 
@@ -228,6 +236,11 @@ Three things that cost time and are easy to hit again:
 * **The pads press on each other at full close** and register a few newtons of
   their own, so "force on the pads" alone reports a hold on nothing. The
   closure threshold has to sit well short of the stop.
+* **Damped least squares solves whichever branch its seed is nearest.** Two
+  poses 120 mm apart, solved from the same fixed seed, came back in branches the
+  servos could not travel between: the arm ended 555 mm from where it was told
+  to go and the gripper closed on air. `solve_any` seeds from the arm's current
+  pose first now, which took the grasp score from 11 in 12 to 12 in 12.
 
 ## AutoBio lab scenes
 
