@@ -78,13 +78,11 @@ from labvision.perception import (
     vessel_height,
 )
 from labvision.scene import BBox, gopro_intrinsics
-from wrist_view import Feed
 
 # The fixed camera's detectors, best first, each with its threshold; the first
 # whose weights are on disk is used. ``rail`` was trained on this scene's own
 # general-camera renders and runs at labvision's operating point: on this bench
-# it finds the same 12 of 19 bottles as ``fixedcam`` with no false box against
-# ten. ``fixedcam`` runs lower than the 0.07 its benchmark settled on: there a
+# it finds the same bottles as ``fixedcam`` with no false box against ten. ``fixedcam`` runs lower than the 0.07 its benchmark settled on: there a
 # false box was an error, here it costs the arm a look that reads no ring, while
 # a missed bottle is never picked, and 0.03 finds 12 where 0.07 finds 9.
 DETECTORS = (
@@ -410,6 +408,30 @@ def truth(model: mujoco.MjModel, data: mujoco.MjData) -> dict[str, np.ndarray]:
     return out
 
 
+class Feed:
+    """The latest JPEG of one camera, handed from the perception thread to the page.
+
+    wrist_view.py has one of these too and this script used to borrow it, until
+    that one grew a second view and the page's streams died with it. Twelve
+    lines are cheaper than the coupling.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._jpeg: bytes | None = None
+        self._tick = 0
+
+    def publish(self, picture: bytes) -> None:
+        """Replace the current frame."""
+        with self._lock:
+            self._jpeg, self._tick = picture, self._tick + 1
+
+    def latest(self) -> tuple[bytes | None, int]:
+        """The current frame and a counter that changes when it does."""
+        with self._lock:
+            return self._jpeg, self._tick
+
+
 class Read:
     """A request for the wrist camera to read the ring at a target."""
 
@@ -502,9 +524,9 @@ class Perception(threading.Thread):
                         np.array([xy[0], xy[1], rk.BENCH_TOP + 0.03]))))
                 self.score()
                 drawn = annotate(general, self.world.snapshot())
-                self.show.general.publish(jpeg(drawn), {})
+                self.show.general.publish(jpeg(drawn))
                 small = eyes.frame('arm_eih', (960, 540))
-                self.show.wrist.publish(jpeg(small), {})
+                self.show.wrist.publish(jpeg(small))
                 self.world.cycle_seconds = time.time() - started
                 if self.video:
                     if writer is None:
