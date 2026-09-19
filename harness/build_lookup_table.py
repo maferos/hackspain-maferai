@@ -5,8 +5,8 @@ Two methods:
 
 ``vision`` (default)
     What a robot would see. Every fixed camera is rendered with depth, the
-    YOLO26n trained on MuJoCo renders (``labvision.detector`` backend
-    ``mujoco``) proposes bottle boxes, ``labvision.markers`` soft-decodes the ArUco ring
+    YOLO26n Martí trained on MuJoCo renders (``labvision.detector`` backend
+    ``rail``) proposes bottle boxes, ``labvision.markers`` soft-decodes the ArUco ring
     inside them into a posterior over sample ids, and the depth under the ring
     places the bottle in the world. Each entry carries that posterior as its
     ``probability``, with ``decision`` accept / rescan / reject. See
@@ -27,9 +27,10 @@ truth, two ways a sample label shows up in a compiled scene are recognised:
 Each label is matched to its registry row in computer-vision/barcodes/lookup_table.json
 (EAN-13, ArUco marker, material, ...).
 
-The ``mujoco`` weights are trained, not downloaded, and not in git: take the
-file from the team Drive and drop it in computer-vision/weights/ as
-``yolo_mujoco.pt`` (see the README there), or pass ``--weights``. Cameras the
+The ``rail`` weights are trained, not downloaded, and not in git: take
+``yolo26n_rail_general.pt`` from the team Drive and drop it in
+computer-vision/weights/ (see the README there), or pass ``--weights``. It was
+trained on the rail scene's ``general`` camera. Cameras the
 model was not trained on show up in ``metrics.per_camera``.
 
 Run with the venv that has mujoco, OpenCV and ultralytics, headless:
@@ -42,6 +43,7 @@ Run with the venv that has mujoco, OpenCV and ultralytics, headless:
 """
 
 import argparse
+import hashlib
 import json
 import re
 import statistics
@@ -270,7 +272,7 @@ def main():
                         help="keep only this phase (default: both)")
     parser.add_argument("--cameras", nargs="+",
                         help="cameras to render (default: every fixed camera in the scene)")
-    parser.add_argument("--backend", default="mujoco", help="labvision.detector backend")
+    parser.add_argument("--backend", default="rail", help="labvision.detector backend")
     parser.add_argument("--weights", type=Path, help="override the backend's weights file")
     parser.add_argument("--device", help="torch device, e.g. cuda:0 (default: a GPU if any)")
     parser.add_argument("--score", type=float, help="override the detector threshold")
@@ -332,11 +334,14 @@ def main():
 
         weights = Path(scanner.detector.model.ckpt_path or args.weights
                        or BACKENDS[args.backend].weights)
+        digest = hashlib.sha256(weights.read_bytes()).hexdigest() if weights.exists() else None
         if weights.is_absolute() and weights.is_relative_to(ROOT):
             weights = weights.relative_to(ROOT)
         header.update(
             detector=f"labvision.detector backend {args.backend!r}, weights {weights}, "
                      f"score >= {scanner.detector.score}",
+            detector_weights={"backend": args.backend, "file": weights.name, "path": str(weights),
+                              "sha256": digest, "score": scanner.detector.score},
             decoder=(f"labvision.markers: soft ArUco posterior over the catalogue, every copy "
                      f"of the ring fused across cameras (TEMPER={markers.TEMPER}); "
                      f"accept >= {markers.ACCEPT_P}, rescan >= {markers.REJECT_P}, else reject"),

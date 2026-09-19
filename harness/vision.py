@@ -1,8 +1,8 @@
 """Locate sample labels the way the robot would: camera, detector, ring, depth
 
 For every fixed camera in a scene the frame is rendered with its depth buffer.
-The YOLO26n trained on MuJoCo renders of this scene (``labvision.detector``
-backend ``mujoco``) proposes bottle boxes. Every box counts, the shelves'
+Martí's YOLO26n trained on the rail scene's general-camera renders
+(``labvision.detector`` backend ``rail``) proposes bottle boxes. Every box counts, the shelves'
 included, since the lookup table wants every sample: no worktop filter
 (``labvision.evaluation.on_worktop``) is applied. Every candidate ArUco
 quad in the frame, the ones OpenCV rejected included, is soft-decoded by
@@ -226,7 +226,7 @@ def merge_same_id(bottles: list[Bottle]) -> list[Bottle]:
 class VisionScanner:
     """Detector and ring decoder, loaded once and used across scenes"""
 
-    def __init__(self, table: dict, *, backend="mujoco", weights=None, score=None,
+    def __init__(self, table: dict, *, backend="rail", weights=None, score=None,
                  device=None, read_ean=False, frames_dir: Path | None = None):
         self.detector = Detector(backend, score=score, weights=weights, device=device)
         self.marker_detector = markers.make_detector()
