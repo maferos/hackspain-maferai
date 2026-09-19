@@ -65,10 +65,12 @@ mjpython scripts/view_model.py models/minihannover_open_scene.xml  # macOS
 
 The open-desk scene gets a UR10e riding a 6 m linear rail over the bench. The arm
 is [Menagerie's](https://github.com/google-deepmind/mujoco_menagerie) UR10e with a
-Robotiq 2F-85 on the flange and an eye-in-hand camera beside it.
+Robotiq 2F-85 on the flange and an eye-in-hand camera beside it. Menagerie is a git
+submodule at `third_party/mujoco_menagerie`; init it once (below), or run
+`git clone --recursive` when first cloning the repo.
 
 ```bash
-bash scripts/fetch_menagerie.sh              # UR10e + 2F-85 only, ~47 MB, gitignored
+git submodule update --init third_party/mujoco_menagerie  # UR10e + 2F-85 meshes (shallow submodule)
 python scripts/generate_rail_scene.py        # writes the arm model and the scene
 mjpython scripts/rail_demo.py --viewer       # watch it run the bench (macOS)
 python scripts/rail_reach.py                 # what it can actually reach, in numbers
@@ -340,7 +342,8 @@ use `scripts/view_autobio.py` instead.
 | `install.sh` | One-shot environment setup + verification |
 | `models/hello.xml` | Demo scene: floor + falling box, sphere, capsule |
 | `models/minihannover_scene.xml` | Demo scene: a perfumery lab (14 x 5 x 3 m) around the `minihannover` bench: a shelving library of 187 barcoded sample bottles, one sink, five balances, GC-MS and UV-Vis-NIR, and thirteen hand-placed barcoded sample bottles, powders and liquids mixed: six in the entrance corner, seven loose and movable on the bench. Nothing is sorted, on purpose: where a bottle stands says nothing about what it is. Two cameras belong to the vision system, both a GoPro in Linear mode at 1080p (`fovy` 60.44, `resolution` 1920 x 1080): `general`, fixed on the right wall at ceiling height at (-1.5, -2.9, 3), which is (7, 0, 3) in `computer-vision`'s room frame, and `wrist`, on a mocap body 0.30 m in front of a bottle on the bench, standing in for the arm's wrist camera |
-| `scripts/fetch_menagerie.sh` | Sparse-fetches the UR10e and Robotiq 2F-85 from MuJoCo Menagerie into `third_party/` |
+| `third_party/mujoco_menagerie` | MuJoCo Menagerie git submodule (shallow); provides the UR10e + Robotiq 2F-85 meshes the rail scene needs |
+| `scripts/fetch_menagerie.sh` | Optional: sparse-fetches only the UR10e and Robotiq 2F-85 (~47 MB) in place of the full submodule checkout |
 | `scripts/generate_rail_scene.py` | Builds `assets/ur10e_2f85/` and `models/minihannover_rail_scene.xml` (open desk + gantry + arm) |
 | `scripts/rail_kinematics.py` | Bench-vessel lookup and top-down damped-least-squares IK, shared by the two rail scripts |
 | `scripts/rail_demo.py` | Drives the carriage along the rail: sweep or per-vessel visit, viewer or offscreen render |
