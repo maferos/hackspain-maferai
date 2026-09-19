@@ -11,10 +11,8 @@ Run from ``dashboard/bridge`` with the repo's virtual environment::
 
     python -m labbridge.mock_run --fps 1
 
-Then open the console with::
-
-    http://localhost:5173/?mode=live&url=ws://localhost:8765/state
-        &sim=ws://localhost:8766/frames/general&simWrist=ws://localhost:8766/frames/wrist
+Then open the robot viewer (``view/frontend``, ``npm run dev``) at
+http://localhost:5173; its panels read the state on :8765.
 
 This file is also the reference for the real integration: the simulation
 loop replaces ``ScriptedRun`` with its planner and keeps everything else.

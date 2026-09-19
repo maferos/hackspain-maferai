@@ -4,7 +4,8 @@ Hackathon project. Two components:
 
 - `simulation/` — **Eki**, **Eloi**
 - `computer-vision/` — **Nacho**, **Martí**
-- `dashboard/` — demo console (React + TypeScript + Vite); `npm run dev` inside it, see its README
+- `view/` — robot viewer for the demo (React + Vite frontend, FastAPI backend), see its README
+- `dashboard/bridge/` — `labbridge`, publishes the lab state the viewer's panels read
 
 ## Team
 

@@ -1,6 +1,6 @@
 """Builders for the console's ``LabState`` document.
 
-This is the Python side of ``dashboard/src/state/types.ts``. Everything is a
+The robot viewer (``view/``) reads it. Everything is a
 plain ``dict`` so it serialises to JSON as is and merges with ``deep_merge``
 the same way the console merges a ``state_update`` patch: objects merge,
 arrays and scalars replace.

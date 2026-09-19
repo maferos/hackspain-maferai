@@ -81,13 +81,15 @@ cap on the bench and counts:
 
 | Mounting | Vessels reachable |
 | --- | --- |
-| Rail, free to stand anywhere along the travel | **93/93** |
-| Rail, but the carriage must stand over the cap | 85/93 |
-| Best single fixed station (scanned over the travel) | 52/93 |
+| Rail, free to stand anywhere along the travel | **187/187** (100%) |
+| Rail, but the carriage must stand over the cap | 174/187 (93%) |
+| Best single fixed station (scanned over the travel) | 98/187 (52%) |
 
 The middle row is the arm's own inner dead zone rather than a reach limit: it
 cannot fold onto a point directly under its shoulder, so the carriage stands off
-along the rail --- 26 mm on average, 300 mm at worst --- and the misses vanish.
+along the rail --- 21 mm on average, 300 mm at worst --- and the misses vanish.
+Run `scripts/rail_reach.py` after any change to the bench population: the
+counts move with it, the proportions have not.
 
 **Where the rail sits.** The beam runs along y = 0.30, the desk's back edge strip,
 with its underside at 1.36 m: 60 mm over the two balances that stand there. The
@@ -99,7 +101,13 @@ worktop, roughly the height its own gripper works at, which is what keeps the fu
 ### Wrist camera, live
 
 The arm carries an eye-in-hand camera 90 mm to the side of the tool axis and
-30 mm under the flange --- on the wrist, just below it. `scripts/wrist_view.py`
+30 mm under the flange --- on the wrist, just below it. It is a real object in
+the scene, not a bare viewpoint: `scripts/generate_wrist_camera.py` builds a
+compact GigE machine-vision camera (Basler ace class body, 29 x 29 x 42 mm, C-mount
+lens, heat-sink ribs, connectors and cable) on a steel L-bracket bolted to an
+adapter plate at the UR10e's 90 mm tool flange, and `generate_rail_scene.py`
+attaches it at exactly the pose the MJCF camera has. So the overview shows the
+hardware the pictures come from. `scripts/wrist_view.py`
 opens the interactive MuJoCo window and streams that camera to a browser tab at
 the same time, so the room and the robot's own view sit side by side:
 
@@ -112,6 +120,13 @@ The tab opens by itself at `http://localhost:8008`; the stream is multipart
 JPEG off the standard library's HTTP server, so nothing extra is installed. The
 MuJoCo window stays interactive throughout, and `[` / `]` cycles its own camera
 if you would rather have the wrist view large and the room small.
+
+**The model's origin is the front face of its lens.** Every part of the camera
+sits behind that, so none of it can appear in its own picture --- a camera that
+sees its own lens hood shows a black crescent on every frame. It is an easy thing
+to break by nudging a mount offset, so `generate_rail_scene.py` compiles the scene
+and asserts the clearance on every run, and prints it:
+`camera: modelled body clears its own lens by 1.0 mm`.
 
 **The camera looks parallel to the tool axis, not converging on it.** That is
 deliberate and was a bug first: the gripper sits on the tool axis, so a camera
@@ -127,14 +142,20 @@ and counting what the camera can actually see:
 
 | Camera elevation | Approaching every vessel from the rail side | Choosing the bearing per vessel |
 | --- | --- | --- |
-| 8 degrees | 56/93 (60%) | **93/93** |
-| 25 degrees | 82/93 (88%) | 93/93 |
-| 45 degrees | 93/93 | 93/93 |
+| 8 degrees | 139/187 (74%) | **187/187** |
+| 25 degrees | 167/187 (89%) | 187/187 |
+| 45 degrees | 178/187 (95%) | 187/187 |
 
 Coming at a vessel from the right side beats climbing above it. `--mode label`
 does exactly that: it tries bearings in turn, skips the ones a neighbour blocks,
-and takes the first the arm can hold --- 92 of the 93 labels, at the 8 degrees
-the reader prefers.
+and takes the first the arm can hold, at the 8 degrees the reader prefers.
+
+The population is regenerated upstream and has changed size twice already, so
+take the proportions rather than the counts. One thing to know if the unbarcoded
+reserve stock comes back: the vessel lookup used to match sample ids with
+`[A-Za-z0-9-]+`, which does not match `reserve_000`, and silently measured only
+the catalogued samples. The blockers were always all present, so the proportions
+held, but the counts were quietly halved. It anchors on the part suffix now.
 
 **Motion.** `scripts/rail_demo.py --mode sweep` runs the carriage end to end in a
 hand-down scan pose; `--mode visit` picks vessels along the bench and drops the
@@ -144,6 +165,69 @@ camera on one label after another; `--physics` drives the position
 actuators and steps the simulator instead, where the arm sags up to 4 degrees at
 the shoulder under Menagerie's stock gains. Render with `--video out/rail.mp4`
 (needs `ffmpeg`) or `--frames <dir>`, from `--camera general`, `carriage` or `eih`.
+
+### Physics, and picking things up
+
+The demo modes above play back kinematically: poses are written straight to
+`qpos` and `mj_forward` resolves them, so MuJoCo detects contacts and does
+nothing with them --- the arm passes through the bench. That is deliberate for a
+demo that must not knock the glassware over, and useless for manipulation.
+
+`scripts/wrist_view.py --mode pick` is the other thing: every motion goes
+through the position actuators, `mj_step` runs the whole way, the arm is stopped
+by the bench, vessels it brushes move, and the gripper closes on force feedback.
+
+**Most of the bench is scenery, on purpose.** Every vessel carries a collision
+cylinder, so the arm cannot reach through any of them, but only
+`DYNAMIC_VESSELS` of them (10) are free bodies with mass that can be picked up.
+The rest are static geometry baked into the lab room. Raising that number is one
+constant in `generate_rail_scene.py`; it costs 7 qpos and a pile of contacts
+each, and the scene drops from 15x realtime to 9x for the first ten.
+
+**The gripper can feel what it holds.** Menagerie's 2F-85 already behaves like
+the real one when it closes on something --- the actuator is a position servo on
+a tendon with `forcerange="-5 5"`, so the pads stall against the object and keep
+squeezing at the limit instead of crushing through. What the scene had no way of
+doing was *reporting* it: `nsensor` was 0. `generate_rail_scene.py` now writes a
+sensed copy of the gripper carrying the three things the real 2F-85 publishes
+over Modbus:
+
+| Sensor | What it gives |
+| --- | --- |
+| `arm_grip_{right,left}_pad_force` | normal force on each pad |
+| `arm_grip_finger_drive` | what the finger servo is putting out |
+| `arm_grip_{right,left}_finger` | how far the fingers actually closed |
+
+`rk.read_grip()` turns those into the 2F-85's own object-detected condition:
+**fingers stalled short of shut, with force on both pads**. Watch
+`finger_drive` during a grasp and it sits at exactly 5.0, the forcerange limit.
+
+`scripts/grasp_test.py` drives the whole approach-close-lift sequence with
+physics and scores it:
+
+```
+gripper reported an object: 7/10
+picked up and still held:   7/10
+sensor agreed with reality: 10/10
+```
+
+The agreement is the useful column: the gripper's own senses say the same thing
+as the vessel's true height, which the test used to peek at and a real cell
+cannot see. The three failures are approach, not grip --- two closed on thin air
+and one wedged its pads on two neighbouring vessels at 600 N, which is the arm
+shoving, not the gripper gripping.
+
+Three things that cost time and are easy to hit again:
+
+* **`solve_ik` writes its iterates into `qpos`.** Harmless in a test that resets
+  afterwards; in a live loop the arm teleports to the solution and drags
+  whatever it was touching. Save and restore around the call.
+* **A mesh geom's `xpos` is the mesh's centre, not its authored origin.** The
+  compiler re-centres mesh vertices and records the shift in `mesh_pos`. Lifting
+  a vessel out of the room without undoing that shift floats it 25 to 47 mm.
+* **The pads press on each other at full close** and register a few newtons of
+  their own, so "force on the pads" alone reports a hold on nothing. The
+  closure threshold has to sit well short of the stop.
 
 ## AutoBio lab scenes
 
@@ -182,7 +266,9 @@ use `scripts/view_autobio.py` instead.
 | `scripts/generate_rail_scene.py` | Builds `assets/ur10e_2f85/` and `models/minihannover_rail_scene.xml` (open desk + gantry + arm) |
 | `scripts/rail_kinematics.py` | Bench-vessel lookup and top-down damped-least-squares IK, shared by the two rail scripts |
 | `scripts/rail_demo.py` | Drives the carriage along the rail: sweep or per-vessel visit, viewer or offscreen render |
+| `scripts/generate_wrist_camera.py` | Builds `assets/wrist_camera/`, the machine-vision camera modelled on the wrist |
 | `scripts/wrist_view.py` | Interactive scene plus a live browser stream of the wrist camera |
+| `scripts/grasp_test.py` | Drives approach, force-feedback close and lift on every dynamic vessel, and scores it |
 | `scripts/rail_reach.py` | Reachability report: rail vs one fixed station, over every vessel on the bench |
 | `models/minihannover_rail_scene.xml` | The open-desk scene plus a 6 m gantry carrying a UR10e + Robotiq 2F-85 with an eye-in-hand camera |
 | `scripts/check_install.py` | Headless check that loads and steps the model |
@@ -193,6 +279,8 @@ use `scripts/view_autobio.py` instead.
 | `scripts/view_model.py` | Opens a model in the interactive viewer and simulates it in real time |
 | `assets/sink/` | Lab sink for MuJoCo (converted OBJ meshes + MJCF + vendor .3ds) |
 | `assets/balance/` | Analytical balance for MuJoCo (converted OBJ meshes + MJCF) |
+| `assets/robotiq_2f85_sensed/` | Menagerie's 2F-85 with touch sites and the sensors that report a grasp (generated) |
+| `assets/wrist_camera/` | The eye-in-hand camera as geometry: lens, body, bracket and flange plate (generated) |
 | `assets/lab_room/` | The perfumery-lab room (generated by `scripts/generate_lab_room.py`) |
 | `assets/gc_ms/`, `assets/uv_vis_nir/` | The two instruments, converted for MuJoCo |
 | `assets/labelled_bottles/` | All 200 catalogued samples as MuJoCo bodies, each bottle carrying a ring of eight ArUco markers as a texture (`marker_id` in the lookup table; it was an EAN-13 label before) (built by `tools/build_labelled_bottles.py`). These are what the scene uses |

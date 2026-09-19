@@ -40,7 +40,8 @@
   </default>
 
   <asset>
-    <model name="robotiq_2f85" file="../../third_party/mujoco_menagerie/robotiq_2f85/2f85.xml"/>
+    <model name="robotiq_2f85" file="../robotiq_2f85_sensed/2f85_sensed.xml"/>
+    <model name="wrist_camera" file="../wrist_camera/wrist_camera.xml"/>
     <material class="ur10e" name="black" rgba="0.033 0.033 0.033 1"/>
     <material class="ur10e" name="jointgray" rgba="0.278 0.278 0.278 1"/>
     <material class="ur10e" name="linkgray" rgba="0.82 0.82 0.82 1"/>
@@ -70,18 +71,18 @@
 
   <worldbody>
     <light name="spotlight" mode="targetbodycom" target="wrist_2_link" pos="0 -1 2"/>
-    <body name="base" quat="0 0 0 -1" childclass="ur10e">
+    <body gravcomp="1" name="base" quat="0 0 0 -1" childclass="ur10e">
       <inertial mass="4.0" pos="0 0 0" diaginertia="0.0061063308908 0.0061063308908 0.01125"/>
       <geom mesh="base_0" material="black" class="visual"/>
       <geom mesh="base_1" material="jointgray" class="visual"/>
-      <body name="shoulder_link" pos="0 0 0.181">
+      <body gravcomp="1" name="shoulder_link" pos="0 0 0.181">
         <inertial pos="0 0 0" mass="7.778" diaginertia="0.0314743 0.0314743 0.0218756"/>
         <joint name="shoulder_pan_joint" class="size4" axis="0 0 1"/>
         <geom mesh="shoulder_0" material="urblue" class="visual"/>
         <geom mesh="shoulder_1" material="black" class="visual"/>
         <geom mesh="shoulder_2" material="jointgray" class="visual"/>
         <geom class="collision" size="0.078 0.05" pos="0 0 -0.02"/>
-        <body name="upper_arm_link" pos="0 0.176 0" quat="1 0 1 0">
+        <body gravcomp="1" name="upper_arm_link" pos="0 0.176 0" quat="1 0 1 0">
           <inertial pos="0 0 0.3065" mass="12.93" diaginertia="0.423074 0.423074 0.0363656"/>
           <joint name="shoulder_lift_joint" class="size4"/>
           <geom mesh="upperarm_0" material="black" class="visual"/>
@@ -90,7 +91,7 @@
           <geom mesh="upperarm_3" material="linkgray" class="visual"/>
           <geom class="collision" pos="0 -0.05 0" quat="1 1 0 0" size="0.078 0.08"/>
           <geom class="collision" size="0.06 0.3" pos="0 0 0.3"/>
-          <body name="forearm_link" pos="0 -0.137 0.613">
+          <body gravcomp="1" name="forearm_link" pos="0 -0.137 0.613">
             <inertial pos="0 0 0.2855" mass="3.87" diaginertia="0.11059 0.11059 0.0108844"/>
             <joint name="elbow_joint" class="size3_limited"/>
             <geom mesh="forearm_0" material="urblue" class="visual"/>
@@ -99,7 +100,7 @@
             <geom mesh="forearm_3" material="linkgray" class="visual"/>
             <geom class="collision" pos="0 0.08 0" quat="1 1 0 0" size="0.058 0.065"/>
             <geom class="collision" size="0.043 0.28" pos="0 0 0.29"/>
-            <body name="wrist_1_link" pos="0 0 0.571" quat="1 0 1 0">
+            <body gravcomp="1" name="wrist_1_link" pos="0 0 0.571" quat="1 0 1 0">
               <inertial pos="0 0.135 0" quat="0.5 0.5 -0.5 0.5" mass="1.96"
                 diaginertia="0.0055125 0.00510825 0.00510825"/>
               <joint name="wrist_1_joint" class="size2"/>
@@ -107,7 +108,7 @@
               <geom mesh="wrist1_1" material="urblue" class="visual"/>
               <geom mesh="wrist1_2" material="jointgray" class="visual"/>
               <geom class="collision" pos="0 0.06 0" quat="1 1 0 0" size="0.05 0.07"/>
-              <body name="wrist_2_link" pos="0 0.135 0">
+              <body gravcomp="1" name="wrist_2_link" pos="0 0.135 0">
                 <inertial pos="0 0 0.12" quat="0.5 0.5 -0.5 0.5" mass="1.96"
                   diaginertia="0.0055125 0.00510825 0.00510825"/>
                 <joint name="wrist_2_joint" axis="0 0 1" class="size2"/>
@@ -116,7 +117,7 @@
                 <geom mesh="wrist2_2" material="jointgray" class="visual"/>
                 <geom class="collision" size="0.046 0.065" pos="0 0 0.05"/>
                 <geom class="collision" pos="0 0.028 0.12" quat="1 1 0 0" size="0.046 0.043"/>
-                <body name="wrist_3_link" pos="0 0 0.12">
+                <body gravcomp="1" name="wrist_3_link" pos="0 0 0.12">
                   <inertial pos="0 0.092 0" quat="0 1 -1 0" mass="0.202"
                     diaginertia="0.000204525 0.000144346 0.000144346"/>
                   <joint name="wrist_3_joint" class="size2"/>
@@ -130,6 +131,11 @@
                             fovy="60.44" resolution="1920 1080"/>
                     <site name="eih_site" pos="0.09 0 0.03"
                           xyaxes="0 1 0 -1.0000 0.0000 -0.0000" size="0.004" group="4"/>
+                    <frame pos="0.09 0 0.03"
+                           xyaxes="0 1 0 -1.0000 0.0000 -0.0000">
+                      <attach model="wrist_camera" body="wrist_camera"
+                              prefix="cam_"/>
+                    </frame>
                   </frame>
                 </body>
               </body>

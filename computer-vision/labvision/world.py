@@ -6,9 +6,9 @@ each stage was and whether the position was refined from the wrist. Nothing
 in it comes from the simulator's state.
 
 :func:`to_dashboard` turns a list of them into the ``vessels`` array of the
-console's ``perception`` block (``dashboard/src/state/types.ts``,
-``PerceivedVessel``), so the bridge can publish what the cameras really saw
-in place of its mock:
+lab state's ``perception`` block (``perception_state`` in
+``dashboard/bridge/labbridge/state.py``), so the bridge can publish what the
+cameras really saw in place of its mock:
 
     from labbridge import state as S
     from labvision.world import to_dashboard

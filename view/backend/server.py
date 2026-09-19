@@ -5,8 +5,8 @@ MuJoCo model (the onboard robot camera and the fixed scene-overview camera),
 plus a websocket feed of a mock task log standing in for the robot's real
 task planner (none exists in the repo yet).
 
-It also publishes the full `LabState` that the dashboard console
-(`dashboard/`) renders, on `ws://localhost:8765/state`, driven by the scripted
+It also publishes the full `LabState` that the lab state panels render, on
+`ws://localhost:8765/state`, driven by the scripted
 formulation of `labbridge.mock_run` over this same scene. The script moves the
 free containers kinematically, so the camera streams show it too.
 
