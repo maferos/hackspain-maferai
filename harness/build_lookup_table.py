@@ -4,14 +4,23 @@ by where its label sits in the world.
 Two methods:
 
 ``vision`` (default)
-    What a robot would see. Every fixed camera is rendered with depth, the
-    YOLO26n Martí trained on MuJoCo renders (``labvision.detector`` backend
-    ``rail``) proposes bottle boxes, ``labvision.markers`` soft-decodes the ArUco ring
-    inside them into a posterior over sample ids, and the depth under the ring
-    places the bottle in the world. Each entry carries that posterior as its
-    ``probability``, with ``decision`` accept / rescan / reject. See
-    ``harness/vision.py``. Entries are scored against the ground truth below,
-    and every scene gets a ``metrics`` block.
+    What a robot would see, in two passes. **The room proposes:** every fixed
+    camera is rendered with depth, the YOLO26n Martí trained on MuJoCo renders
+    (``labvision.detector`` backend ``rail``) proposes bottle boxes,
+    ``labvision.markers`` soft-decodes the ArUco ring inside them into a
+    posterior over sample ids, and the depth under the ring places the bottle
+    in the world. **The wrist confirms:** every bottle the room did not accept
+    is looked at again from 0.30 m by the scene's wrist camera, which is the
+    only range at which a flask's ring resolves --- across the room a flask is
+    12 to 24 pixels across, too few for a 4x4 marker, and on the rail bench the
+    proposing pass alone identifies none of them. The second pass feeds the
+    same decoder and the same posterior, so nothing downstream can tell which
+    camera earned an identity; ``confirmed`` on each entry says which did. Pass
+    ``--no-confirm`` for the proposing pass alone. See ``harness/vision.py``
+    and ``harness/wrist.py``. Each entry carries the posterior as its
+    ``probability``, with ``decision`` accept / rescan / reject. Entries are
+    scored against the ground truth below, and every scene gets a ``metrics``
+    block.
 ``gt``
     Ground truth, read from the compiled model: no camera involved.
 
@@ -33,11 +42,17 @@ computer-vision/weights/ (see the README there), or pass ``--weights``. It was
 trained on the rail scene's ``general`` camera. Cameras the
 model was not trained on show up in ``metrics.per_camera``.
 
+The confirming pass costs a render per view, and it flies at every proposal the
+room does not already name, so a full rebuild of the three default scenes takes
+about a quarter of an hour on a laptop --- the rail scene alone is 20 seconds.
+Give it one scene while working on one scene.
+
 Run with the venv that has mujoco, OpenCV and ultralytics, headless:
 
     MUJOCO_GL=egl simulation/.venv-act/bin/python harness/build_lookup_table.py
     ... build_lookup_table.py --weights path/to/best.pt --device cuda:0
     ... build_lookup_table.py path/to/scene.xml --cameras general room_desk
+    ... build_lookup_table.py --no-confirm         # the fixed cameras alone
     ... build_lookup_table.py --method gt          # only needs mujoco
     ... build_lookup_table.py --save-frames /tmp/frames   # annotated renders
 """
@@ -191,14 +206,18 @@ def vision_labels(scan, truth, registry, by_marker, diameters):
     buckets = {d: {"count": 0, "correct": 0, "wrong": 0, "unverified": 0}
                for d in ("accept", "rescan", "reject")}
     for bottle in scan.bottles:
-        surface = bottle.point
+        # Where the wrist confirmed, it alone places the bottle: a ring read
+        # from 0.30 m and a box seen from across the room are not worth
+        # averaging, and the room's point is the one carrying the error.
+        views = bottle.views
+        surface = np.median([s.point for s in views], axis=0)
         sample_id = sample_of(bottle.marker_id)
         row = registry.get(sample_id, {}) if sample_id else {}
         diameter = diameters.get(row.get("vessel_class"))
         position = (np.median([to_axis(s.camera_position, s.point, diameter)
-                               for s in bottle.sightings], axis=0)
+                               for s in views], axis=0)
                     if diameter else surface)
-        spread = max(float(np.linalg.norm(s.point - surface)) for s in bottle.sightings)
+        spread = max(float(np.linalg.norm(s.point - surface)) for s in views)
         readings = bottle.readings
         entry = {
             "position": rounded(position),
@@ -211,6 +230,7 @@ def vision_labels(scan, truth, registry, by_marker, diameters):
                       "accepted_by_opencv": sum(r.accepted for r in readings)},
             "position_spread_m": round(spread, 4),
             "cameras": sorted({s.camera for s in bottle.sightings}),
+            "confirmed": bottle.confirmed,
         }
         seen_id, seen_distance = truth_near(position)
         if readings:
@@ -254,12 +274,14 @@ def vision_labels(scan, truth, registry, by_marker, diameters):
         "quads": sum(c["quads"] for c in scan.per_camera.values()),
         "bottles": len(scan.bottles),
         "identified": len(labels),
+        "confirmed_by_wrist": sum(1 for e in labels if e["confirmed"]),
         "by_decision": buckets,
         "missed": len(set(gt_ids) - {e["sample_id"] for e in labels}),
         "unidentified_vessels": len(unidentified),
         "median_error_m": round(statistics.median(errors), 4) if errors else None,
         "max_error_m": round(max(errors), 4) if errors else None,
         "per_camera": scan.per_camera,
+        "confirm": scan.confirm,
     }
     return labels, unidentified, metrics
 
@@ -277,6 +299,10 @@ def main():
     parser.add_argument("--device", help="torch device, e.g. cuda:0 (default: a GPU if any)")
     parser.add_argument("--score", type=float, help="override the detector threshold")
     parser.add_argument("--ean", action="store_true", help="also read EAN-13 inside boxes")
+    parser.add_argument("--no-confirm", dest="confirm", action="store_false",
+                        help="skip the wrist pass: the fixed cameras alone")
+    parser.add_argument("--wrist-camera", default="wrist",
+                        help="the movable camera the wrist pass flies (default: wrist)")
     parser.add_argument("--save-frames", type=Path, help="write annotated frames here")
     parser.add_argument("--out", type=Path, default=OUT)
     args = parser.parse_args()
@@ -292,7 +318,8 @@ def main():
         scanner = VisionScanner(table, backend=args.backend,
                                 weights=str(args.weights) if args.weights else None,
                                 score=args.score, device=args.device,
-                                read_ean=args.ean, frames_dir=args.save_frames)
+                                read_ean=args.ean, frames_dir=args.save_frames,
+                                confirm=args.confirm, wrist_camera=args.wrist_camera)
 
     def keep(entries):
         return [e for e in entries if not args.phase or e.get("phase") == args.phase]
@@ -319,6 +346,7 @@ def main():
             print(f"{path.stem}: {metrics['identified']} identified of {metrics['gt_labels']}, "
                   f"median error {metrics['median_error_m']} m, {metrics['boxes']} boxes, "
                   f"{metrics['quads']} quads, {metrics['unidentified_vessels']} unidentified")
+            print(f"    confirm {metrics['confirm']}")
             for decision, bucket in metrics["by_decision"].items():
                 print(f"    {decision:7s} {bucket}")
             for cam, stats in metrics["per_camera"].items():
@@ -329,6 +357,8 @@ def main():
     if args.method == "gt":
         header["position"] = "centre of the label mesh's world bounding box, at the initial state"
     else:
+        import wrist
+
         from labvision import markers
         from labvision.detector import BACKENDS
 
@@ -345,11 +375,19 @@ def main():
             decoder=(f"labvision.markers: soft ArUco posterior over the catalogue, every copy "
                      f"of the ring fused across cameras (TEMPER={markers.TEMPER}); "
                      f"accept >= {markers.ACCEPT_P}, rescan >= {markers.REJECT_P}, else reject"),
+            confirm=("the fixed cameras propose; every bottle they do not accept is looked "
+                     f"at again from {wrist.STANDOFF_M} m by the scene's "
+                     f"{args.wrist_camera!r} camera, at each of "
+                     f"{len(wrist.AZIMUTHS_DEG)} azimuths until the ring reads, and those "
+                     "quads join the same posterior. Entries say which pass named them "
+                     "in `confirmed`")
+                    if args.confirm else "off: the fixed cameras alone",
             probability="posterior that sample_id is the bottle at position, under "
                         "labvision.markers' noise model. NOT calibrated yet: see "
                         "computer-vision/docs/READ_CONFIDENCE.md and metrics.by_decision",
             position="bottle axis at label height: depth under the ring quads, pushed back "
-                     "by the bottle radius; surface_point is the raw point",
+                     "by the bottle radius; surface_point is the raw point. From the "
+                     "wrist's views alone where it confirmed the bottle",
             position_spread_m="largest distance of one view's point from surface_point",
             gt_position="the ground-truth label centre (method gt), for scoring",
         )

@@ -7,6 +7,15 @@ changing under it.
 Owners: Nacho, Martí (vision), with the rail scene from Eki, Eloi. See
 `AGENTS.md`.
 
+> **Status, 2026-09-19.** Gap 1 below, "there is no memory", is closed, but not
+> by the new file this plan proposed. The propose-then-confirm pass now lives
+> inside the harness's own generator, `harness/build_lookup_table.py`, which
+> writes `harness/lookup_table.json` --- the fixed cameras propose, the wrist
+> camera confirms from 0.30 m, and both feed the same decoder. Gaps 2 (the arm
+> is not in the loop: the wrist camera is still a mocap mount, not the UR10e)
+> and 3 (no update policy: every pass rebuilds the table from scratch) are
+> open, and so is everything under "The memory format" and "The merge rules".
+
 ## The goal in one line
 
 ```
