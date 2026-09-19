@@ -256,10 +256,28 @@ export default function App() {
 
   useEffect(() => {
     if (!realtime) return;
-    fetch(`${BACKEND_URL}/api/detector`)
-      .then((res) => res.json())
-      .then(setDetector)
-      .catch(() => setDetector(null));
+    let cancelled = false;
+    let timer;
+    const controller = new AbortController();
+    const poll = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/detector`, {
+          signal: AbortSignal.any([controller.signal, AbortSignal.timeout(4000)]),
+        });
+        if (!res.ok) throw new Error("Detector unavailable");
+        const info = await res.json();
+        if (!cancelled) setDetector(info);
+      } catch {
+        if (!cancelled) setDetector(null);
+      }
+      if (!cancelled) timer = setTimeout(poll, 2000);
+    };
+    poll();
+    return () => {
+      cancelled = true;
+      controller.abort();
+      clearTimeout(timer);
+    };
   }, [realtime]);
 
   useEffect(() => {
@@ -417,7 +435,10 @@ export default function App() {
                     ? `Bottle boxes on the general camera (${detector.weights})`
                     : detector?.error ?? "Bottle detector not reachable"
                 }
-                onClick={() => setShowBoxes((on) => !on)}
+                onClick={() => {
+                  if (!showBoxes) setMainCameraId("scene");
+                  setShowBoxes((on) => !on);
+                }}
               >
                 Boxes
               </button>
