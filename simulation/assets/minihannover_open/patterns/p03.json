@@ -1,0 +1,315 @@
+{
+  "seed": 21,
+  "pattern": "p03",
+  "style": "crowd",
+  "count": 29,
+  "gap_m": 0.03793,
+  "gap_requested_m": 0.03793,
+  "span": 0.3833,
+  "x_window": [
+    -2.42,
+    -0.7643
+  ],
+  "size_mix": {
+    "flask_10ml": 0.0013,
+    "flask_20ml": 0.2124,
+    "flask_30ml": 0.2087,
+    "flask_50ml": 0.5689,
+    "flask_100ml": 0.0087
+  },
+  "clusters": 0,
+  "rows": 0,
+  "coordinate_frame": "desk local, origin at floor; containers rest at z=0.90 m",
+  "containers": [
+    {
+      "sample_id": "SMP-0200",
+      "vessel_class": "flask_100ml",
+      "radius": 0.023915,
+      "x": -2.054848990850366,
+      "y": -0.37745173716978453,
+      "yaw": 85.0121540808349,
+      "phase": "liquid",
+      "container_ml": 100.0
+    },
+    {
+      "sample_id": "SMP-0069",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -1.3304330268726128,
+      "y": -0.3302471412570845,
+      "yaw": -52.88086504042104,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0054",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -2.0977086704071417,
+      "y": 0.2724726754380144,
+      "yaw": -56.27276827865404,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0104",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -1.9375676998200067,
+      "y": 0.26083232232787384,
+      "yaw": 119.9037535998276,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0144",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -2.004536040208736,
+      "y": -0.028414156249532512,
+      "yaw": -106.99634612376808,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0149",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -2.277235899315286,
+      "y": 0.3015898514032865,
+      "yaw": 20.40454690296589,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0064",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -1.0987338251222034,
+      "y": 0.22188492117400513,
+      "yaw": -52.1959450227334,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0019",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -0.8823107392967822,
+      "y": -0.11488025612508962,
+      "yaw": 25.538909381348343,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0109",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -1.6913253548081486,
+      "y": 0.0726781356681619,
+      "yaw": -109.99688084241163,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0119",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -1.1112018395157839,
+      "y": -0.16056930799080252,
+      "yaw": -39.691648887527265,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0094",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -1.9243263385354294,
+      "y": 0.10780146245750437,
+      "yaw": -35.920836558202055,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0129",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -1.6539411650104412,
+      "y": 0.3713513606809903,
+      "yaw": -140.2978554279873,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0024",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -2.274177244524959,
+      "y": 0.061064771388899305,
+      "yaw": 8.931093094376724,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0029",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -0.8856684160874467,
+      "y": 0.20662498512338917,
+      "yaw": 168.7776675612091,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0089",
+      "vessel_class": "flask_50ml",
+      "radius": 0.01902,
+      "x": -1.9855813673171434,
+      "y": -0.10765277972948148,
+      "yaw": 48.39541272982386,
+      "phase": "liquid",
+      "container_ml": 50.0
+    },
+    {
+      "sample_id": "SMP-0053",
+      "vessel_class": "flask_30ml",
+      "radius": 0.016075,
+      "x": -0.9122651552411905,
+      "y": 0.3404527941493726,
+      "yaw": 44.9765653436967,
+      "phase": "liquid",
+      "container_ml": 30.0
+    },
+    {
+      "sample_id": "SMP-0113",
+      "vessel_class": "flask_30ml",
+      "radius": 0.016075,
+      "x": -0.7886244934802834,
+      "y": -0.10122069078927405,
+      "yaw": 154.8164871145601,
+      "phase": "liquid",
+      "container_ml": 30.0
+    },
+    {
+      "sample_id": "SMP-0138",
+      "vessel_class": "flask_30ml",
+      "radius": 0.016075,
+      "x": -2.349034031408144,
+      "y": -0.30503863256784564,
+      "yaw": 157.24916119643453,
+      "phase": "liquid",
+      "container_ml": 30.0
+    },
+    {
+      "sample_id": "SMP-0093",
+      "vessel_class": "flask_30ml",
+      "radius": 0.016075,
+      "x": -2.1485317901264334,
+      "y": -0.17412787227100443,
+      "yaw": 64.837311457305,
+      "phase": "liquid",
+      "container_ml": 30.0
+    },
+    {
+      "sample_id": "SMP-0123",
+      "vessel_class": "flask_30ml",
+      "radius": 0.016075,
+      "x": -1.0689156294487774,
+      "y": 0.35760002769475663,
+      "yaw": -7.89026188994602,
+      "phase": "liquid",
+      "container_ml": 30.0
+    },
+    {
+      "sample_id": "SMP-0023",
+      "vessel_class": "flask_30ml",
+      "radius": 0.016075,
+      "x": -1.1103484768858822,
+      "y": -0.05026797896107693,
+      "yaw": 63.09836163873737,
+      "phase": "liquid",
+      "container_ml": 30.0
+    },
+    {
+      "sample_id": "SMP-0073",
+      "vessel_class": "flask_30ml",
+      "radius": 0.016075,
+      "x": -1.447729172144851,
+      "y": -0.07073972723876912,
+      "yaw": 53.80335671136932,
+      "phase": "liquid",
+      "container_ml": 30.0
+    },
+    {
+      "sample_id": "SMP-0087",
+      "vessel_class": "flask_20ml",
+      "radius": 0.014065,
+      "x": -1.0392338816106663,
+      "y": -0.383862870735823,
+      "yaw": -147.72052427289535,
+      "phase": "liquid",
+      "container_ml": 20.0
+    },
+    {
+      "sample_id": "SMP-0062",
+      "vessel_class": "flask_20ml",
+      "radius": 0.014065,
+      "x": -1.8384542249693603,
+      "y": -0.07448981451380074,
+      "yaw": -108.38120767799023,
+      "phase": "liquid",
+      "container_ml": 20.0
+    },
+    {
+      "sample_id": "SMP-0092",
+      "vessel_class": "flask_20ml",
+      "radius": 0.014065,
+      "x": -1.000404511074031,
+      "y": 0.04162596623534152,
+      "yaw": -114.07201900728357,
+      "phase": "liquid",
+      "container_ml": 20.0
+    },
+    {
+      "sample_id": "SMP-0057",
+      "vessel_class": "flask_20ml",
+      "radius": 0.014065,
+      "x": -1.315586694493308,
+      "y": -0.17839356663640094,
+      "yaw": -132.50471043856749,
+      "phase": "liquid",
+      "container_ml": 20.0
+    },
+    {
+      "sample_id": "SMP-0182",
+      "vessel_class": "flask_20ml",
+      "radius": 0.014065,
+      "x": -2.1142621865539084,
+      "y": -0.013887572486236012,
+      "yaw": -71.33230501755558,
+      "phase": "liquid",
+      "container_ml": 20.0
+    },
+    {
+      "sample_id": "SMP-0142",
+      "vessel_class": "flask_20ml",
+      "radius": 0.014065,
+      "x": -1.6930988326836933,
+      "y": -0.06480526934934218,
+      "yaw": -155.2322823565447,
+      "phase": "liquid",
+      "container_ml": 20.0
+    },
+    {
+      "sample_id": "SMP-0102",
+      "vessel_class": "flask_20ml",
+      "radius": 0.014065,
+      "x": -1.9832856960786762,
+      "y": 0.04387205842222583,
+      "yaw": 130.6827294518277,
+      "phase": "liquid",
+      "container_ml": 20.0
+    }
+  ]
+}

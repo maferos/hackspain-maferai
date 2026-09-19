@@ -29,6 +29,62 @@ X = -2.42 to 1.90 m, Y = -0.43 to 0.43 m, leaving the work stations and wash zon
 end. Room walls and perimeter furniture retain their original positions. Clearance
 between the worktop and adjacent wall worktops is about 0.75 m on +Y and 0.78 m on -Y.
 
+## Seeded flask patterns
+
+The bench above is one crowd: every catalogue flask, scattered with seed 29.
+That is a single distribution, and anything trained or demoed on it only ever
+sees that one. A **pattern** is a whole worktop layout derived from one integer
+(`scripts/bottle_patterns.py`):
+
+| Drawn from the seed | Range |
+| ------------------- | ----- |
+| How many flasks stand on the bench | 10 – 75 |
+| Spacing between footprints | 4 – 60 mm |
+| Layout style | `scatter`, `clusters`, `rows`, `crowd` (everything in one stretch) |
+| Stretch of the strip used, and where it sits | 22 – 100 % of 4.32 m |
+| Size mix | weights over the five flask classes, 10 – 100 ml |
+
+Yaw stays fully random, as it always was: nothing about a bottle's facing says
+what it is. Flasks keep their catalogue identity — a pattern draws a *class* by
+its size mix and then takes an unused sample of that class, so every bottle on
+the bench is still a uniquely barcoded sample.
+
+Ten patterns are catalogued, chosen so the counts and the spacings spread out
+and all four styles appear (`bottle_patterns.py --search` re-runs that walk):
+
+| Pattern | Seed | Flasks | Style | Spacing | Stretch of bench used |
+| ------- | ---- | ------ | ----- | ------- | --------------------- |
+| `p01` | 30 | 16 | scatter | 28 mm | 2.56 m (x = -1.14 … 1.42) |
+| `p02` | 176 | 24 | crowd | 12 mm | 1.88 m (x = 0.02 … 1.90) |
+| `p03` | 21 | 29 | crowd | 38 mm | 1.66 m (x = -2.42 … -0.76) |
+| `p04` | 327 | 35 | rows | 17 mm | 3.51 m (x = -2.42 … 1.09) |
+| `p05` | 1 | 41 | rows | 57 mm | 2.66 m (x = -0.76 … 1.90) |
+| `p06` | 31 | 46 | crowd | 8 mm | 1.62 m (x = -1.19 … 0.43) |
+| `p07` | 70 | 52 | clusters | 45 mm | 3.00 m (x = -1.10 … 1.90) |
+| `p08` | 4 | 57 | crowd | 33 mm | 1.92 m (x = -2.42 … -0.50) |
+| `p09` | 2 | 65 | clusters | 21 mm | 3.96 m (x = -2.42 … 1.54) |
+| `p10` | 15 | 71 | rows | 50 mm | 3.05 m (x = -2.42 … 0.63) |
+
+Same seed, same bench, down to the millimetre. Spacing is what the seed asked
+for; if a crowd cannot fit, it is relaxed in steps and the population file
+records what was actually reached (`gap_m` against `gap_requested_m`).
+
+```bash
+python scripts/bottle_patterns.py --list                      # the ten
+python scripts/bottle_patterns.py --seed 314                  # any other seed
+python scripts/generate_minihannover_open.py --all-patterns   # rewrite patterns/*.json
+python scripts/generate_minihannover_open.py --pattern p06    # build that scene
+python scripts/generate_minihannover_open.py --pattern s314   # ... or an off-catalogue seed
+mjpython scripts/view_model.py models/minihannover_open_scene_p06.xml
+```
+
+`patterns/<name>.json` is the definition and is committed: the same schema as
+`population.json` plus the pattern's own header. The room and scene XML a seed
+expands into (`lab_room_p06.xml`, `models/minihannover_open_scene_p06.xml`) are
+generated files, gitignored, and cost about a fifth of a second to rebuild. The
+default build is untouched — no flags means the same 187-flask bench as before,
+byte for byte.
+
 From `simulation/`:
 
 ```bash
@@ -37,8 +93,8 @@ mjpython scripts/view_model.py models/minihannover_open_scene.xml  # macOS
 # Linux: use python instead of mjpython
 ```
 
-Generated files are `bench.xml`, `lab_room.xml`, `population.json` and
-`models/minihannover_open_scene.xml`. Shared props reference the original room's
+Generated files are `bench.xml`, `lab_room.xml`, `population.json`,
+`patterns/*.json` and `models/minihannover_open_scene.xml`. Shared props reference the original room's
 meshes. Regenerate this variant after updating the source scene or room builders.
 
 Named cameras: `room_entrance`, `room_aisle`, `room_desk`, `room_wash`,
