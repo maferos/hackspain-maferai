@@ -41,8 +41,15 @@ cd "$R/computer-vision" || fail "no repository at $R"
 [ -f "$START" ] || fail "no starting weights at $START"
 
 stage select
-[ -f "$SRC/sel_train/gt.json" ] || python scripts/select_frames.py --src "$SRC" || fail select
-cp "$SRC/selection.json" "$OUT/"
+# The selection lives on the pod's own disk and is linked into SRC, so it costs
+# the volume nothing: SRC may be a network volume with a quota.
+SEL=${SEL:-/root/sel}
+if [ ! -f "$SEL/sel_train/gt.json" ]; then
+  rm -rf "$SEL" "$SRC/sel_train" "$SRC/sel_val" && mkdir -p "$SEL"
+  python scripts/select_frames.py --src "$SRC" --out "$SEL" || fail select
+fi
+for s in sel_train sel_val; do rm -rf "$SRC/$s"; ln -sfn "$SEL/$s" "$SRC/$s" || fail "link $s"; done
+cp "$SEL/selection.json" "$OUT/"
 python scripts/pose_map.py sel_train --src "$SRC" --title "the training set" \
   --out "$OUT/plots/pose_map_train.png" || fail "pose map"
 

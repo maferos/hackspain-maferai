@@ -102,10 +102,17 @@ def write(out: Path, name: str, src: Path, header: dict, frames: list[dict],
             source, target = src / frame["split"] / frame[key], folder / frame[key]
             if target.exists():
                 continue
-            try:
-                os.link(source, target)
-            except OSError:
-                shutil.copy2(source, target)
+            # A hard link where the file system has them, else a symbolic one; a
+            # copy is the last resort: it doubles the frames on a volume with a
+            # quota, which is how a run died on the pod's network volume.
+            for place in (os.link, os.symlink, shutil.copy2):
+                try:
+                    place(source.resolve(), target)
+                    break
+                except OSError:
+                    continue
+            else:
+                raise OSError(f"cannot link or copy {source} to {target}")
 
 
 def main() -> None:

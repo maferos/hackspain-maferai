@@ -41,16 +41,22 @@ close_train:1500 close_val:150 close_test:150 \
 low_train:800 low_val:100 low_test:100 \
 dark_test:150 orbit_dark_test:150 overhead_test:150 \
 pattern_test:100 pattern_orbit_test:100 lab_test:150 lab_rail_test:100"
+complete() {  # split frames: is its merged gt.json already there, whole?
+  [ "$(python -c "import json,sys; print(len(json.load(open(sys.argv[1]))['frames']))"        "$DATA/$1/gt.json" 2>/dev/null)" = "$2" ]
+}
+TODO=""
+for spec in $SPECS; do complete "${spec%%:*}" "${spec#*:}" || TODO="$TODO $spec"; done
+echo "to render:${TODO:- nothing, every split is complete}"
 render_part() {  # split frames part
   python scripts/fixedcam_dataset.py --splits "$1" --frames "$2" --part "$3/$PARTS" \
       --out "$DATA" > "/root/out/render_logs/$1_$3.log" 2>&1
 }
 export -f render_part; export PARTS DATA
-for spec in $SPECS; do
+for spec in $TODO; do
   for i in $(seq 0 $((PARTS - 1))); do echo "${spec%%:*} ${spec#*:} $i"; done
 done | xargs -P "$PARTS" -n 3 bash -c 'render_part "$0" "$1" "$2" || echo "render failed: $0 part $2"'
 # A part that died keeps no gt file past its last write: render it again, alone.
-for spec in $SPECS; do
+for spec in $TODO; do
   s=${spec%%:*}; n=${spec#*:}
   for i in $(seq 0 $((PARTS - 1))); do
     want=$(( (n - i + PARTS - 1) / PARTS ))
@@ -61,8 +67,8 @@ for spec in $SPECS; do
     fi
   done
 done
-ALL=$(for spec in $SPECS; do printf '%s,' "${spec%%:*}"; done)
-python scripts/fixedcam_dataset.py --splits "${ALL%,}" --merge --out "$DATA" || fail merge
+ALL=$(for spec in $TODO; do printf '%s,' "${spec%%:*}"; done)
+[ -z "$ALL" ] || python scripts/fixedcam_dataset.py --splits "${ALL%,}" --merge --out "$DATA" || fail merge
 for spec in $SPECS; do
   s=${spec%%:*}; n=${spec#*:}
   have=$(python -c "import json,sys; print(len(json.load(open(sys.argv[1]))['frames']))" "$DATA/$s/gt.json")
@@ -72,8 +78,13 @@ done
 du -sh "$DATA"
 
 stage report
-python scripts/dataset_report.py "$DATA" "$OUT/report" --workers "$PARTS" || fail report
-tar czf "$OUT/report.tgz" -C "$OUT" report
+rm -rf "$DATA/sel_train" "$DATA/sel_val"   # a selection is not a split of the render
+if [ -f /workspace/out_v2/report.tgz ] && [ -z "$TODO" ]; then
+  cp /workspace/out_v2/report.tgz "$OUT/report.tgz"
+else
+  python scripts/dataset_report.py "$DATA" "$OUT/report" --workers "$PARTS" || fail report
+  tar czf "$OUT/report.tgz" -C "$OUT" report
+fi
 tar czf "$OUT/gt.tgz" -C "$(dirname "$DATA")" $(cd "$(dirname "$DATA")" && ls "$(basename "$DATA")"/*/gt.json)
 
 # Train, score and draw. train_pod.sh writes its own stages from here on.
