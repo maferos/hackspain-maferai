@@ -276,6 +276,26 @@ gives the Linear field of view --- and MuJoCo computes `fovy` from it,
 overriding the attribute. Pointing it with `mode="targetbody"` beats writing
 a quaternion, and `Camera.from_mujoco` reads whatever pose comes out.
 
+That camera is now mounted in `simulation/models/minihannover_scene.xml` as
+`general`, with a second GoPro, `wrist`, beside it. The MuJoCo room puts its
+origin under the bench, not at a floor corner: the corner this package
+measures from is world (-8.5, -2.9, 0) there, so room (7, 0, 3) is world
+(-1.5, -2.9, 3) --- on the right wall at ceiling height --- and
+`test_scene.py` pins pose, field of view and resolution to `default_camera()`
+under that shift. `wrist` stands in for the camera that will ride on the arm:
+it hovers 0.30 m in front of the label of a 250 ml powder bottle on the bench,
+about as close as a GoPro's fixed focus stays sharp, on a mocap body so it can
+be flown around. Its 1080p frame decodes that bottle's barcode as rendered;
+`general`'s frame, 2.5 m and more from every label, decodes none, which is the
+division of labour: the fixed camera proposes, the wrist camera confirms.
+
+Two numbers do **not** carry over yet. The simulated bench is centred on room
+(8.5, 2.9), not (7, 2.5), and its top is at z = 0.90, not 0.95. So `general`
+frames the bench off-centre --- about the last metre towards the glass
+partition is out of shot --- and intersecting rays with z = 0.95 would misplace a bottle by
+6 cm at this elevation. `TABLE_CENTRE` and `TABLE_TOP_Z` have to be settled
+against the simulation before `locate` is run on its frames.
+
 What the frame actually contains, with a 92 x 60.4 degree lens aimed there:
 
 | Image row | What is there |
@@ -447,7 +467,7 @@ placed.residual_px       # how well the box matches that vessel standing there
 | `labvision/camera.py` | Pinhole model, ray-plane intersection, homography |
 | `labvision/scene.py` | The room, box anchors, box-to-position |
 | `labvision/bottles.py` | Sticks each label onto the bottle of its phase and size |
-| `tests/` | 280 tests, plus 25 doctests |
+| `tests/` | 281 tests, plus 25 doctests |
 | `barcodes/lookup_table.json` | The committed lookup table, 200 entries |
 
 ## Usage

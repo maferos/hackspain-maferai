@@ -11,7 +11,9 @@
 
      The viewer opens at the entrance, looking down the room. Press "2" to hide the
      ceiling and look in from above. Named cameras follow the lab walkthrough:
-     entrance, aisle, library, wash, drying_rack, far_end, overview.
+     entrance, aisle, library, wash, drying_rack, far_end, overview (prefixed room_).
+     Two more are the vision system's GoPros at 1080p, general and wrist; see the end
+     of the worldbody.
 
      python scripts/view_model.py models/minihannover_scene.xml -->
 <mujoco model="minihannover_scene">
@@ -19,7 +21,7 @@
 
   <visual>
     <headlight diffuse="0.26 0.26 0.27" ambient="0.36 0.36 0.38" specular="0.05 0.05 0.05"/>
-    <global azimuth="8" elevation="-10" offwidth="1280" offheight="720"/>
+    <global azimuth="8" elevation="-10" offwidth="1920" offheight="1080"/>
     <quality shadowsize="4096"/>
   </visual>
 
@@ -110,5 +112,28 @@
     <body name="loose_5" pos="0.1 0.58 0.9" euler="0 0 2.9671"><freejoint/><attach model="smp_0013" body="SMP-0013" prefix="loose_5_"/></body>
     <body name="loose_6" pos="0.2 0.45 0.9" euler="0 0 3.4907"><freejoint/><attach model="pwd_0008" body="PWD-0008" prefix="loose_6_"/></body>
     <body name="loose_7" pos="1.95 0.62 0.9" euler="0 0 3.2289"><freejoint/><attach model="smp_0017" body="SMP-0017" prefix="loose_7_"/></body>
+
+    <!-- The vision system's two cameras. Both are a GoPro in Linear mode at 1080p: a
+         92 degree horizontal field of view at 16:9 is fovy = 60.44, f = 927 px, the
+         pinhole that computer-vision/labvision/scene.py assumes (gopro_intrinsics).
+
+         general: the fixed room camera. labvision.scene puts it at (7, 0, 3) aimed at
+         (7, 2.5, 0.95) in its room frame, whose origin is the floor corner where the
+         entrance wall meets the right wall. That corner is (-8.5, -2.9, 0) here, so
+         room (7, 0, 3) is world (-1.5, -2.9, 3): on the right wall at ceiling height,
+         halfway along the room, looking across and 39 degrees down at the bench. -->
+    <camera name="general" pos="-1.5 -2.9 3" xyaxes="1 0 0 0 0.6341 0.7733"
+            fovy="60.44" resolution="1920 1080"/>
+
+    <!-- wrist: a stand-in for the camera that will ride on the arm's wrist. It hovers
+         9 cm over the bench edge, 0.30 m in front of the label of loose_2 (PWD-0012,
+         Coumarin 250 ml) - 0.30 m is about as close as a GoPro's fixed focus stays
+         sharp - and its barcode decodes from this frame. The mount is a mocap body,
+         so the view can be flown around (data.mocap_pos / mocap_quat) until the
+         camera moves onto the robot. -->
+    <body name="wrist_camera_mount" mocap="true" pos="-2.459 -0.7639 0.99">
+      <camera name="wrist" xyaxes="0.9205 -0.3907 0 0.0412 0.0970 0.9944"
+              fovy="60.44" resolution="1920 1080"/>
+    </body>
   </worldbody>
 </mujoco>

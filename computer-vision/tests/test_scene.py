@@ -429,3 +429,35 @@ def test_no_pixel_in_this_frame_is_above_the_horizon(
 
     a, b, c = horizon_line(camera, bench)
     assert -(a * camera.intrinsics.cx + c) / b < 0.0
+
+
+def test_the_mujoco_scene_mounts_this_camera() -> None:
+    """The simulated room's ``general`` camera is this module's wall camera
+
+    The MuJoCo room has its origin under the bench rather than at a floor
+    corner: the corner this module measures from is world (-8.5, -2.9, 0)
+    there. Apart from that shift the pose, the field of view and the
+    resolution must be the same, or a frame rendered by the simulation is not
+    the projection :func:`~labvision.scene.locate` inverts.
+    """
+    from pathlib import Path
+    from xml.etree import ElementTree
+
+    path = (Path(__file__).resolve().parents[2]
+            / "simulation" / "models" / "minihannover_scene.xml")
+    node = ElementTree.parse(path).find(".//camera[@name='general']")
+    assert node is not None
+    expected = scene.default_camera()
+    room_origin = np.array([-8.5, -2.9, 0.0])
+
+    position = np.array(node.get("pos").split(), dtype=float)
+    assert position == pytest.approx(expected.position + room_origin)
+    # MuJoCo's xyaxes are the camera's right and up; this module keeps right and down.
+    axes = np.array(node.get("xyaxes").split(), dtype=float).reshape(2, 3)
+    assert axes[0] == pytest.approx(expected.rotation[:, 0], abs=1e-4)
+    assert axes[1] == pytest.approx(-expected.rotation[:, 1], abs=1e-4)
+
+    width, height = (int(v) for v in node.get("resolution").split())
+    assert (width, height) == (scene.DEFAULT_WIDTH, scene.DEFAULT_HEIGHT)
+    fovy = 2.0 * math.degrees(math.atan(height / 2.0 / expected.intrinsics.fy))
+    assert float(node.get("fovy")) == pytest.approx(fovy, abs=0.01)

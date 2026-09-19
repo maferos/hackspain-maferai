@@ -85,7 +85,7 @@ use `scripts/view_autobio.py` instead.
 | `requirements.txt` | Python dependencies (`mujoco`, `numpy`) |
 | `install.sh` | One-shot environment setup + verification |
 | `models/hello.xml` | Demo scene: floor + falling box, sphere, capsule |
-| `models/minihannover_scene.xml` | Demo scene: a perfumery lab (14 x 5 x 3 m) around the `minihannover` bench: a shelving library of 187 barcoded sample bottles, one sink, five balances, GC-MS and UV-Vis-NIR, and thirteen hand-placed barcoded sample bottles, powders and liquids mixed: six in the entrance corner, seven loose and movable on the bench. Nothing is sorted, on purpose: where a bottle stands says nothing about what it is |
+| `models/minihannover_scene.xml` | Demo scene: a perfumery lab (14 x 5 x 3 m) around the `minihannover` bench: a shelving library of 187 barcoded sample bottles, one sink, five balances, GC-MS and UV-Vis-NIR, and thirteen hand-placed barcoded sample bottles, powders and liquids mixed: six in the entrance corner, seven loose and movable on the bench. Nothing is sorted, on purpose: where a bottle stands says nothing about what it is. Two cameras belong to the vision system, both a GoPro in Linear mode at 1080p (`fovy` 60.44, `resolution` 1920 x 1080): `general`, fixed on the right wall at ceiling height at (-1.5, -2.9, 3), which is (7, 0, 3) in `computer-vision`'s room frame, and `wrist`, on a mocap body 0.30 m in front of a bottle on the bench, standing in for the arm's wrist camera |
 | `scripts/check_install.py` | Headless check that loads and steps the model |
 | `requirements-autobio.txt` | Pinned MuJoCo 3.3.0 env for AutoBio |
 | `third_party/AutoBio` | AutoBio git submodule (models, meshes, plugin) |
