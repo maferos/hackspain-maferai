@@ -98,7 +98,9 @@ the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
 the selected seed; Replay waits for that selection instead of showing a
 different layout. The ten provisional camera pairs loop at 960×540, 10 fps
-(20.3 seconds), with normal lighting and three render updates per frame.
+with normal lighting and three render updates per frame. Seed 30 (`p01`)
+plays the recorded initial scan (87.9 seconds); the other seeds retain their
+20.3-second rail sweeps. The p01 scan identified 15 of its 16 flasks.
 The worktop is one white satin mesh within the USD Table component. Click the small view to swap cameras
 without restarting playback. Files live in `frontend/public/renders/seeds/p01/`
 through `p10/`; `src/replayPatterns.json` maps seeds to the videos. Replay's

@@ -4,15 +4,17 @@
     "seed": 30,
     "count": 16,
     "fps": 10,
-    "frames": 203,
+    "frames": 879,
     "resolution": [
       960,
       540
     ],
     "global_video": "p01/rail_global.mp4",
     "robot_video": "p01/rail_robot.mp4",
-    "revision": "satin-table-v1",
-    "render_updates_per_frame": 3
+    "revision": "scan-p01-v1",
+    "render_updates_per_frame": 3,
+    "duration_seconds": 87.9,
+    "mode": "scan"
   },
   {
     "pattern": "p02",
