@@ -114,8 +114,9 @@ export default function App() {
   const [tasks, setTasks] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
-  // The lab-state socket only exists in real time; replay needs no backend.
-  const lab = useLabState(realtime ? STATE_URL : null);
+  // The lab state feeds the side panels in both modes: the mode only picks the
+  // viewport's source. Without a publisher on :8765 the panels say so.
+  const lab = useLabState(STATE_URL);
   const [layout, setLayout] = useState(loadLayout);
 
   useEffect(() => {
