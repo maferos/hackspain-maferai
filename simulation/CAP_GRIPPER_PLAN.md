@@ -101,16 +101,26 @@ a video into evidence.
 Each step ends somewhere runnable and something measurably better, the same
 discipline as `PIPETTING_PLAN.md`.
 
-### Step 1 — Thread the cap (Blender, local, no GPU)
+### Step 1 — Thread the cap (no GPU, no Blender install) — **done**
 
-Extend `generate_amber_bottles.py`: a `helix_thread_internal()` beside the
-existing one, mating pitch and turns, profile facing inward, with
-`THREAD_CLEARANCE` exposed as a module constant. Emit `amber_cap_XXmm.glb` with
-the thread and keep the smooth-bore variant, so nothing downstream breaks.
+`generate_amber_bottles.py` now has `helix_thread_internal()` beside the
+existing helix, `make_cap(N, threaded=True)`, and a `--pair <ml>` mode that
+writes the mating pair and checks it. Output and numbers in
+[`assets/amber-bottles/thread_pair/`](../assets/amber-bottles/thread_pair/).
 
-*Done when:* the cap and the PP20 neck, dropped into Blender at the same axis,
-mesh without interpenetration at nominal clearance, and 2.0 turns of rotation
-advances the cap exactly 4.4 mm.
+`bpy` is a pip package — Blender does not need installing:
+
+    uv run --python 3.11 --with bpy python generate_amber_bottles.py --pair 30 --out thread_pair
+
+Two clearances were added as module constants, both sweepable:
+`THREAD_CLEARANCE = 0.15 mm` (radial, the one that decides cross-threading) and
+`SEAT_CLEARANCE = 0.15 mm` (axial over the lip — without it the cap's ceiling
+and the lip are coincident faces, which a rigid solver reads as
+interpenetration rather than contact).
+
+*Done:* all four neck sizes screw through 720° in 72 steps with **no BVH face
+overlap at any step**. PP20 travels **4.40 mm**, as predicted. The catalogue is
+untouched — every kit mesh hashes identically to before the change.
 
 ### Step 2 — The thread alone, in Isaac (first GPU day)
 

@@ -43,6 +43,8 @@ RIBS = 36                 # costillas del tapón (30–40)
 SEGS_PER_RIB = 4          # 4 → costilla cuadrada (2 cresta + 2 valle)
 RIB_DEPTH = 0.5           # mm
 THREAD_TURNS = 2.0
+THREAD_CLEARANCE = 0.15   # mm, holgura radial entre la cresta del tapón y la raíz del cuello
+SEAT_CLEARANCE = 0.15     # mm, hueco axial sobre el labio con el tapón cerrado (solo roscado)
 LAYOUT_GAP = 0.03         # m, separación entre tamaños en la escena
 
 MM = 0.001
@@ -120,6 +122,41 @@ def helix_thread(bm, r_root, pitch, turns, z0, depth, width, segs_per_turn=48):
     bm.faces.new(rings[-1])
 
 
+def helix_thread_internal(bm, r_bore, pitch, turns, z0, depth, width, segs_per_turn=48):
+    """
+    Rosca interior: el mismo barrido helicoidal que `helix_thread`, con el perfil
+    trapezoidal apuntando hacia dentro. La cresta queda en r_bore - depth.
+
+    Misma hélice (z crece con el ángulo) que la del cuello, así que la
+    lateralidad coincide y las dos roscan juntas. Para que el filete del tapón
+    caiga en el valle del cuello, `z0` va desplazado media rosca respecto al del
+    cuello --- lo hace `cap_dims`, no esta función.
+
+    r_bore: radio interior del tapón (mm); z0: z (mm) del inicio de la hélice.
+    """
+    emb = 0.25  # cuánto se hunde el perfil en la pared del tapón (evita huecos)
+    prof = [(emb, -width / 2), (-depth, -width * 0.18), (-depth, width * 0.18), (emb, width / 2)]
+    n = int(turns * segs_per_turn)
+    rings = []
+    for s in range(n + 1):
+        t = s / segs_per_turn                    # vueltas recorridas
+        th = 2 * math.pi * t
+        fade = min(1.0, t / 0.5, (turns - t) / 0.5)
+        fade = max(fade, 0.0)
+        z = z0 + pitch * t
+        ring = []
+        for (u, v) in prof:
+            rr = r_bore + (u if u > 0 else u * fade)
+            ring.append(bm.verts.new((rr * math.cos(th) * MM, rr * math.sin(th) * MM, (z + v) * MM)))
+        rings.append(ring)
+    m = len(prof)
+    for a, b in zip(rings, rings[1:]):
+        for k in range(m):
+            bm.faces.new((a[k], b[k], b[(k + 1) % m], a[(k + 1) % m]))
+    bm.faces.new(rings[0])
+    bm.faces.new(rings[-1][::-1])
+
+
 def finish_mesh(bm, name, sharp_rows=(), sharp_vertical_rows=(), rows=None):
     """Convierte bmesh en objeto, normales fuera, suavizado + aristas marcadas."""
     if rows:
@@ -175,13 +212,26 @@ def bottle_dims(ml):
 
 def cap_dims(N):
     rv = N / 2 + 1.5 - RIB_DEPTH           # radio valle (zona estriada)
+    Hc, tt = 0.62 * N + 3.0, 1.6
+    ri = N / 2 - 0.3 + 0.35                # radio interior (holgura sobre la cresta del cuello)
+    pitch, tdepth = 0.11 * N, 0.04 * N     # los mismos que `bottle_dims`
+    rn = N / 2 - 0.3 - tdepth              # raíz de la rosca del cuello
+    # El cuello rosca entre z = H - 1.6 - T·pitch y H - 1.6 (coordenadas del
+    # frasco) y el tapón cierra a z = H - (Hc - tt), así que en coordenadas del
+    # tapón la rosca del cuello empieza a Hc - tt - 1.6 - T·pitch --- H se
+    # cancela, es independiente del tamaño. Media rosca de desfase pone el
+    # filete del tapón en el valle del cuello.
     return dict(N=N, rv=rv, rc=rv + RIB_DEPTH,
-                Hc=0.62 * N + 3.0,          # altura total
-                hband=(0.62 * N + 3.0) * 0.22,  # anillo precinto
+                Hc=Hc,                      # altura total
+                hband=Hc * 0.22,            # anillo precinto
                 hg=0.8, gdepth=0.6,         # ranura
                 ch=0.8,                     # chaflán superior
-                tt=1.6,                     # espesor de la tapa
-                ri=N / 2 - 0.3 + 0.35)      # radio interior (holgura sobre la rosca)
+                tt=tt,                      # espesor de la tapa
+                ri=ri,
+                pitch=pitch,
+                tdepth=ri - (rn + THREAD_CLEARANCE),   # profundidad del filete interior
+                twidth=pitch * 0.62,        # el mismo ancho que el del cuello
+                zthr=Hc - tt - 1.6 - THREAD_TURNS * pitch + pitch / 2)
 
 
 # ----------------------------------------------------------------------------
@@ -236,11 +286,22 @@ def make_bottle(d):
 # ----------------------------------------------------------------------------
 # TAPÓN
 # ----------------------------------------------------------------------------
-def make_cap(N):
+def make_cap(N, threaded=False):
+    """El tapón. Con threaded=True lleva rosca interior y engrana con el cuello.
+
+    Por defecto sale liso, que es como se generó el catálogo: un taladro con
+    holgura sobre la cresta del cuello, que se posa pero no agarra. La rosca es
+    para la simulación del desenroscado, no para los renders del catálogo.
+    """
     c = cap_dims(N)
     rv, rc, Hc, hband, hg, gd, ch, tt, ri = (c[k] for k in ('rv', 'rc', 'Hc', 'hband', 'hg', 'gdepth', 'ch', 'tt', 'ri'))
     rband = rc + 0.4                       # el precinto es algo más ancho que el estriado
     zg = hband + hg                        # techo de la ranura
+    # El tapón cierra con su techo interior a ras del labio del cuello. Eso son
+    # dos caras coincidentes, que en un simulador rígido es interpenetración,
+    # no contacto. El tapón roscado sube el techo lo justo para dejar hueco: el
+    # filete lo sostiene y el labio se toca por contacto, como el liner real.
+    seat = SEAT_CLEARANCE if threaded else 0.0
     P = [
         (0, Hc, ''),
         (rv - ch, Hc, 'top'),
@@ -255,8 +316,8 @@ def make_cap(N):
         (rband, 0.5, 'band'),
         (rband - 0.5, 0.0, 'bandbot'),
         (ri, 0.0, 'inner'),
-        (ri, Hc - tt, 'inner'),
-        (0, Hc - tt, ''),
+        (ri, Hc - tt + seat, 'inner'),
+        (0, Hc - tt + seat, ''),
     ]
     segs = RIBS * SEGS_PER_RIB
     half = SEGS_PER_RIB // 2
@@ -268,9 +329,12 @@ def make_cap(N):
 
     bm = bmesh.new()
     rows = lathe(bm, P, segs, mod)
+    if threaded:
+        helix_thread_internal(bm, ri, c['pitch'], THREAD_TURNS, c['zthr'], c['tdepth'], c['twidth'])
     sharp_rows = [i for i, p in enumerate(P) if p[2] in ('groove', 'band', 'bandbot', 'inner')]
     sharp_v = [i for i, p in enumerate(P) if p[2] == 'rib'][:-1]
     ob = finish_mesh(bm, f"Cap_PP{N}", sharp_rows=sharp_rows, sharp_vertical_rows=sharp_v, rows=rows)
+    ob['threaded'] = threaded
     ob['neck_mm'] = N
     ob['height_mm'] = round(Hc, 1)
     ob['diameter_mm'] = round(2 * rband, 1)
@@ -389,7 +453,76 @@ def main(out_dir):
     bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out_dir, 'amber_bottles_kit.blend'))
 
 
+# ----------------------------------------------------------------------------
+# PAR ROSCADO (para la simulación del desenroscado)
+# ----------------------------------------------------------------------------
+def screw_clearance(bottle, cap, cap_z, pitch, turns, steps=72):
+    """Enrosca el tapón sobre el frasco y busca interpenetración.
+
+    Rotar α alrededor de Z y subir pitch·α/2π mapea la hélice sobre sí misma,
+    así que ese es exactamente el movimiento de desenroscado. Si las dos roscas
+    tienen holgura, ningún paso debe dar solape.
+
+    Devuelve (pasos_con_solape, avance_axial_total_mm).
+    """
+    from mathutils import Matrix
+    from mathutils.bvhtree import BVHTree
+
+    def tree(ob, mat):
+        bm = bmesh.new()
+        bm.from_mesh(ob.data)
+        bm.transform(mat)
+        t = BVHTree.FromBMesh(bm)
+        bm.free()
+        return t
+
+    fixed = tree(bottle, Matrix.Identity(4))
+    clashes = []
+    for s in range(steps + 1):
+        a = 2 * math.pi * turns * s / steps
+        mat = (Matrix.Translation((0, 0, (cap_z + pitch * turns * s / steps) * MM))
+               @ Matrix.Rotation(a, 4, 'Z'))
+        if fixed.overlap(tree(cap, mat)):
+            clashes.append(round(math.degrees(a), 1))
+    return clashes, pitch * turns
+
+
+def main_pair(out_dir, ml):
+    """Escribe solo el par cuello/tapón roscado y comprueba que engrana."""
+    os.makedirs(out_dir, exist_ok=True)
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    scene = bpy.context.scene
+    scene.unit_settings.system = 'METRIC'
+    scene.unit_settings.length_unit = 'MILLIMETERS'
+
+    d = bottle_dims(ml)
+    c = cap_dims(d['N'])
+    bottle = make_bottle(d)
+    bottle.data.materials.append(mat_amber())
+    cap = make_cap(d['N'], threaded=True)
+    cap.data.materials.append(mat_white_pp())
+    for o in (bottle, cap):
+        scene.collection.objects.link(o)
+    cap.location = (0, 0, bottle['cap_z_mm'] * MM)
+
+    print(f"PP{d['N']}  paso {c['pitch']:.2f} mm  {THREAD_TURNS:.1f} vueltas  "
+          f"filete cuello {d['tdepth']:.2f} mm  filete tapón {c['tdepth']:.2f} mm  "
+          f"holgura radial {THREAD_CLEARANCE:.2f} mm")
+    clashes, travel = screw_clearance(bottle, cap, bottle['cap_z_mm'], c['pitch'], THREAD_TURNS)
+    print(f"desenroscado: {THREAD_TURNS * 360:.0f} grados, {travel:.2f} mm de avance axial")
+    print("solapes:", "ninguno" if not clashes else f"{len(clashes)} en {clashes[:8]}")
+
+    export_glb([bottle], os.path.join(out_dir, f"neck_PP{d['N']}.glb"))
+    export_glb([cap], os.path.join(out_dir, f"cap_PP{d['N']}_threaded.glb"))
+    bpy.ops.wm.save_as_mainfile(filepath=os.path.join(out_dir, f"thread_pair_PP{d['N']}.blend"))
+    print("escrito en", out_dir)
+    return not clashes
+
+
 if __name__ == '__main__':
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:]
     out = argv[argv.index('--out') + 1] if '--out' in argv else 'amber-bottles'
+    if '--pair' in argv:
+        ml = int(argv[argv.index('--pair') + 1])
+        sys.exit(0 if main_pair(os.path.abspath(out), ml) else 1)
     main(os.path.abspath(out))
