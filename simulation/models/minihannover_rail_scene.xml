@@ -9,15 +9,15 @@
   </visual>
   <asset>
     <material name="floor" rgba="0.80 0.81 0.81 1" specular="0.3" shininess="0.6" reflectance="0.12" />
-    <model name="lab_room" file="../assets/minihannover_open/lab_room.xml" />
+    <model name="lab_room" file="../assets/minihannover_open/lab_room_dynamic.xml" />
     <model name="sink" file="../assets/sink/sink.xml" />
     <model name="balance" file="../assets/balance/balance.xml" />
     <model name="gc_ms" file="../assets/gc_ms/gc_ms.xml" />
     <model name="uv_vis_nir" file="../assets/uv_vis_nir/uv_vis_nir.xml" />
     <model name="smp_0105" file="../assets/labelled_bottles/SMP-0105.xml" />
     <model name="smp_0110" file="../assets/labelled_bottles/SMP-0110.xml" />
-    <model name="smp_0120" file="../assets/labelled_bottles/SMP-0120.xml" />
     <model name="smp_0115" file="../assets/labelled_bottles/SMP-0115.xml" />
+    <model name="smp_0120" file="../assets/labelled_bottles/SMP-0120.xml" />
     <model name="smp_0125" file="../assets/labelled_bottles/SMP-0125.xml" />
     <model name="smp_0130" file="../assets/labelled_bottles/SMP-0130.xml" />
     <model name="smp_0005" file="../assets/labelled_bottles/SMP-0005.xml" />
@@ -30,6 +30,16 @@
     <material name="gantry" rgba="0.42 0.44 0.48 1" specular="0.4" shininess="0.5" />
     <material name="carriage" rgba="0.22 0.24 0.28 1" specular="0.5" shininess="0.6" />
     <model name="ur10e_2f85" file="../assets/ur10e_2f85/ur10e_2f85.xml" />
+    <model name="dyn_SMP-0084" file="../assets/labelled_bottles/SMP-0084.xml" />
+    <model name="dyn_SMP-0132" file="../assets/labelled_bottles/SMP-0132.xml" />
+    <model name="dyn_SMP-0155" file="../assets/labelled_bottles/SMP-0155.xml" />
+    <model name="dyn_SMP-0015" file="../assets/labelled_bottles/SMP-0015.xml" />
+    <model name="dyn_SMP-0182" file="../assets/labelled_bottles/SMP-0182.xml" />
+    <model name="dyn_SMP-0093" file="../assets/labelled_bottles/SMP-0093.xml" />
+    <model name="dyn_SMP-0071" file="../assets/labelled_bottles/SMP-0071.xml" />
+    <model name="dyn_SMP-0121" file="../assets/labelled_bottles/SMP-0121.xml" />
+    <model name="dyn_SMP-0002" file="../assets/labelled_bottles/SMP-0002.xml" />
+    <model name="dyn_SMP-0200" file="../assets/labelled_bottles/SMP-0200.xml" />
   </asset>
   <include file="../assets/minihannover_open/bench.xml" />
   <worldbody>
@@ -108,6 +118,46 @@
     <camera name="general" pos="-1.5 -2.9 3" xyaxes="1 0 0 0 0.6341 0.7733" fovy="60.44" resolution="1920 1080" />
     <body name="wrist_camera_mount" mocap="true" pos="-3.959 -1.4139 0.99">
       <camera name="wrist" xyaxes="0.9205 -0.3907 0 0.0412 0.0970 0.9944" fovy="60.44" resolution="1920 1080" />
+    </body>
+    <body name="dyn_SMP-0084" pos="-3.8798 -0.637 0.9" euler="0 0 -139.75">
+      <freejoint />
+      <attach model="dyn_SMP-0084" body="SMP-0084" prefix="dyn_SMP-0084_" />
+    </body>
+    <body name="dyn_SMP-0132" pos="-3.594 -0.2416 0.9" euler="0 0 171.495">
+      <freejoint />
+      <attach model="dyn_SMP-0132" body="SMP-0132" prefix="dyn_SMP-0132_" />
+    </body>
+    <body name="dyn_SMP-0155" pos="-3.1807 -0.6732 0.9" euler="0 0 -91.6615">
+      <freejoint />
+      <attach model="dyn_SMP-0155" body="SMP-0155" prefix="dyn_SMP-0155_" />
+    </body>
+    <body name="dyn_SMP-0015" pos="-2.7631 -0.7011 0.9" euler="0 0 -172.537">
+      <freejoint />
+      <attach model="dyn_SMP-0015" body="SMP-0015" prefix="dyn_SMP-0015_" />
+    </body>
+    <body name="dyn_SMP-0182" pos="-2.3703 -0.2474 0.9" euler="0 0 -172.885">
+      <freejoint />
+      <attach model="dyn_SMP-0182" body="SMP-0182" prefix="dyn_SMP-0182_" />
+    </body>
+    <body name="dyn_SMP-0093" pos="-1.9474 -0.6911 0.9" euler="0 0 -59.8808">
+      <freejoint />
+      <attach model="dyn_SMP-0093" body="SMP-0093" prefix="dyn_SMP-0093_" />
+    </body>
+    <body name="dyn_SMP-0071" pos="-1.4711 -0.3437 0.9" euler="0 0 -97.509">
+      <freejoint />
+      <attach model="dyn_SMP-0071" body="SMP-0071" prefix="dyn_SMP-0071_" />
+    </body>
+    <body name="dyn_SMP-0121" pos="-1.1635 -0.5575 0.9" euler="0 0 -45.923">
+      <freejoint />
+      <attach model="dyn_SMP-0121" body="SMP-0121" prefix="dyn_SMP-0121_" />
+    </body>
+    <body name="dyn_SMP-0002" pos="-0.7142 -0.3439 0.9" euler="0 0 -10.3609">
+      <freejoint />
+      <attach model="dyn_SMP-0002" body="SMP-0002" prefix="dyn_SMP-0002_" />
+    </body>
+    <body name="dyn_SMP-0200" pos="-0.1574 -0.6268 0.9" euler="0 0 -154.625">
+      <freejoint />
+      <attach model="dyn_SMP-0200" body="SMP-0200" prefix="dyn_SMP-0200_" />
     </body>
     <body name="rail">
       <geom name="rail_post_left" type="box" material="gantry" pos="-4.820 0.3 0.680" size="0.06 0.06 0.680" />

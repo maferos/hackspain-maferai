@@ -62,6 +62,8 @@ class Bottle:
         top: World Z of the highest point of the vessel, in metres.
         label_z: World Z of the middle of the label, in metres. Measured from
             the label geometry, not guessed, so it follows each vessel's size.
+        dynamic: Whether the vessel is a free body that can be picked up, as
+            opposed to scenery that only collides.
     """
 
     sample_id: str
@@ -69,6 +71,7 @@ class Bottle:
     y: float
     top: float
     label_z: float
+    dynamic: bool = False
 
     @property
     def cap(self) -> np.ndarray:
@@ -109,9 +112,13 @@ def arm_qpos(model: mujoco.MjModel) -> np.ndarray:
 def bottles(model: mujoco.MjModel, data: mujoco.MjData) -> list[Bottle]:
     """Every vessel of the bench population, from the scene's geometry.
 
-    The population is baked into the lab-room model as static ``room_stock_*``
-    geoms rather than as bodies, so the vessels are recovered by name and their
-    extent measured from the compiled geom AABBs.
+    Most of the population is baked into the lab-room model as static
+    ``room_stock_*`` geoms, so the vessels are recovered by name and their
+    extent measured from the compiled geom AABBs. The ones the scene owns as
+    free bodies appear instead as ``dyn_*`` and are flagged ``dynamic``.
+
+    Sample ids contain underscores (``reserve_000``), so the pattern has to
+    anchor on the part suffix rather than assume the id has none.
 
     Args:
         model: Compiled scene.
@@ -120,15 +127,21 @@ def bottles(model: mujoco.MjModel, data: mujoco.MjData) -> list[Bottle]:
     Returns:
         One Bottle per sample, sorted along the bench.
     """
+    pattern = re.compile(
+        r'^(?:room_stock|dyn)_(.+?)_(body|glass|cap|label|label_back)(?:_\d+)?$')
     groups: dict[str, list[int]] = {}
     labels: dict[str, list[int]] = {}
+    free: set[str] = set()
     for i in range(model.ngeom):
         name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, i) or ''
-        match = re.match(r'room_stock_([A-Za-z0-9-]+)_(body|glass|cap|label)', name)
-        if match:
-            groups.setdefault(match.group(1), []).append(i)
-            if match.group(2) == 'label':
-                labels.setdefault(match.group(1), []).append(i)
+        match = pattern.match(name)
+        if not match:
+            continue
+        groups.setdefault(match.group(1), []).append(i)
+        if match.group(2) == 'label':
+            labels.setdefault(match.group(1), []).append(i)
+        if name.startswith('dyn_'):
+            free.add(match.group(1))
 
     out = []
     for sample_id, geoms in groups.items():
@@ -143,7 +156,8 @@ def bottles(model: mujoco.MjModel, data: mujoco.MjData) -> list[Bottle]:
             label_z = (BENCH_TOP + top) / 2
         out.append(Bottle(sample_id=sample_id,
                           x=float(pts[:, 0].mean()), y=float(pts[:, 1].mean()),
-                          top=top, label_z=label_z))
+                          top=top, label_z=label_z,
+                          dynamic=sample_id in free))
     return sorted(out, key=lambda b: b.x)
 
 
@@ -403,4 +417,63 @@ def line_of_sight(model: mujoco.MjModel, data: mujoco.MjData, eye: np.ndarray,
     if hit < 0 or geomid[0] < 0:
         return False
     name = mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_GEOM, int(geomid[0])) or ''
-    return name.startswith(f'room_stock_{bottle.sample_id}_')
+    return name.startswith((f'room_stock_{bottle.sample_id}_',
+                            f'dyn_{bottle.sample_id}_'))
+
+
+# The gripper's own senses, as the sensors compile in the scene. The real 2F-85
+# reports the same three things over Modbus: how hard it is pressing, how far
+# the fingers got, and whether it stopped on something.
+GRIP_SENSORS = ('arm_grip_right_pad_force', 'arm_grip_left_pad_force',
+                'arm_grip_finger_drive', 'arm_grip_right_finger',
+                'arm_grip_left_finger')
+# rad; the driver joints run 0 to 0.8. The threshold is well short of the stop
+# because the pads press on each other at full close and register a few newtons
+# of their own: at 0.78 the gripper reported holding two vessels it had closed
+# straight past.
+FINGERS_SHUT = 0.74
+GRIP_FORCE = 2.0        # N on a pad before the gripper is taken to be holding
+
+
+@dataclass(frozen=True)
+class Grip:
+    """What the gripper can tell about what it is holding.
+
+    Attributes:
+        right: Normal force on the right pad, in newtons.
+        left: Normal force on the left pad, in newtons.
+        drive: Force the finger servo is putting out.
+        closure: How far the fingers have closed, 0 open to about 0.8 shut.
+        holding: Fingers stalled short of shut with force on both pads --- the
+            2F-85's own "object detected" condition.
+    """
+
+    right: float
+    left: float
+    drive: float
+    closure: float
+    holding: bool
+
+    @property
+    def squeeze(self) -> float:
+        """The smaller of the two pad forces: what is actually pinched."""
+        return min(self.right, self.left)
+
+
+def read_grip(model: mujoco.MjModel, data: mujoco.MjData) -> Grip:
+    """Read the gripper's sensors.
+
+    Args:
+        model: Compiled scene.
+        data: Data with sensors evaluated.
+
+    Returns:
+        The current gripper state.
+    """
+    values = {name: float(data.sensor(name).data[0]) for name in GRIP_SENSORS}
+    right = values['arm_grip_right_pad_force']
+    left = values['arm_grip_left_pad_force']
+    closure = (values['arm_grip_right_finger'] + values['arm_grip_left_finger']) / 2
+    return Grip(right=right, left=left,
+                drive=values['arm_grip_finger_drive'], closure=closure,
+                holding=closure < FINGERS_SHUT and min(right, left) > GRIP_FORCE)

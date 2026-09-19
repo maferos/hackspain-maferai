@@ -24,6 +24,7 @@ the room small.
 import argparse
 import http.server
 import io
+import json
 import sys
 import threading
 import time
@@ -36,6 +37,7 @@ import numpy as np
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import grasp_test as gt
 import rail_demo as rd
 import rail_kinematics as rk
 
@@ -49,24 +51,66 @@ PAGE = """<!doctype html>
   header { padding: 14px 18px; border-bottom: 1px solid #2a2e35; }
   h1 { margin: 0; font-size: 15px; font-weight: 600; letter-spacing: .01em; }
   p { margin: 2px 0 0; color: #9aa0a8; font-size: 13px; }
-  main { flex: 1; display: grid; place-items: center; padding: 18px; }
-  img { max-width: 100%; max-height: 78vh; border-radius: 6px;
-        border: 1px solid #2a2e35; background: #000; }
+  main { flex: 1; display: grid; grid-template-columns: 1fr 260px; gap: 18px;
+          align-items: start; padding: 18px; }
+  @media (max-width: 860px) { main { grid-template-columns: 1fr; } }
+  img { width: 100%; border-radius: 6px; border: 1px solid #2a2e35;
+        background: #000; }
   #caption { font-variant-numeric: tabular-nums; color: #e8e6e1; }
+  dl { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px;
+       font-size: 13px; font-variant-numeric: tabular-nums; }
+  dt { color: #9aa0a8; }
+  dd { margin: 0; text-align: right; }
+  h2 { font-size: 11px; letter-spacing: .08em; text-transform: uppercase;
+       color: #6f757d; margin: 18px 0 8px; font-weight: 600; }
+  h2:first-child { margin-top: 0; }
+  .on { color: #7fd18b; } .off { color: #6f757d; }
+  aside { border: 1px solid #2a2e35; border-radius: 6px; padding: 14px 16px; }
 </style></head>
 <body>
   <header>
     <h1>Eye-in-hand camera &middot; UR10e wrist</h1>
     <p><span id="caption">&hellip;</span></p>
   </header>
-  <main><img src="/stream.mjpg" alt="wrist camera"></main>
+  <main>
+    <img src="/stream.mjpg" alt="wrist camera">
+    <aside>
+      <h2>Gripper</h2>
+      <dl>
+        <dt>Right pad</dt><dd><span id="pad_right">-</span> N</dd>
+        <dt>Left pad</dt><dd><span id="pad_left">-</span> N</dd>
+        <dt>Finger drive</dt><dd><span id="finger_drive">-</span></dd>
+        <dt>Closure</dt><dd><span id="closure">-</span> rad</dd>
+        <dt>Object</dt><dd><span id="holding">-</span></dd>
+      </dl>
+      <h2>Machine</h2>
+      <dl>
+        <dt>Carriage X</dt><dd><span id="carriage_x">-</span> m</dd>
+        <dt>Tool</dt><dd><span id="tool">-</span></dd>
+      </dl>
+      <h2>Simulation</h2>
+      <dl>
+        <dt>Contacts</dt><dd><span id="contacts">-</span></dd>
+        <dt>Sim clock</dt><dd><span id="sim_time">-</span> s</dd>
+        <dt>Speed</dt><dd><span id="speed">-</span>x</dd>
+      </dl>
+    </aside>
+  </main>
   <script>
+    const put = (id, v) => { document.getElementById(id).textContent = v; };
     setInterval(async () => {
       try {
-        document.getElementById('caption').textContent =
-          await (await fetch('/caption')).text();
+        const t = await (await fetch('/telemetry')).json();
+        put('caption', t.caption);
+        for (const k of ['pad_right','pad_left','finger_drive','closure',
+                         'carriage_x','contacts','sim_time','speed'])
+          put(k, t[k]);
+        put('tool', t.tool.join(', '));
+        const h = document.getElementById('holding');
+        h.textContent = t.holding ? 'detected' : 'none';
+        h.className = t.holding ? 'on' : 'off';
       } catch (e) { /* the run ended; keep the last frame on screen */ }
-    }, 250);
+    }, 200);
   </script>
 </body></html>
 """
@@ -78,13 +122,13 @@ class Feed:
     def __init__(self) -> None:
         self._lock = threading.Lock()
         self._jpeg: bytes | None = None
-        self._caption = 'starting'
+        self._state: dict[str, object] = {'caption': 'starting'}
         self._tick = 0
 
-    def publish(self, jpeg: bytes, caption: str) -> None:
-        """Replace the current frame."""
+    def publish(self, jpeg: bytes, state: dict[str, object]) -> None:
+        """Replace the current frame and the readings that go with it."""
         with self._lock:
-            self._jpeg, self._caption, self._tick = jpeg, caption, self._tick + 1
+            self._jpeg, self._state, self._tick = jpeg, state, self._tick + 1
 
     def latest(self) -> tuple[bytes | None, int]:
         """The current frame and a counter that changes when it does."""
@@ -92,10 +136,10 @@ class Feed:
             return self._jpeg, self._tick
 
     @property
-    def caption(self) -> str:
-        """What the camera is looking at."""
+    def state(self) -> dict[str, object]:
+        """The readings that went with the latest frame."""
         with self._lock:
-            return self._caption
+            return dict(self._state)
 
 
 class Handler(http.server.BaseHTTPRequestHandler):
@@ -106,8 +150,12 @@ class Handler(http.server.BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         if self.path.startswith('/stream'):
             self._stream()
+        elif self.path.startswith('/telemetry'):
+            self._send(json.dumps(self.feed.state).encode(),
+                       'application/json; charset=utf-8')
         elif self.path.startswith('/caption'):
-            self._send(self.feed.caption.encode(), 'text/plain; charset=utf-8')
+            self._send(str(self.feed.state.get('caption', '')).encode(),
+                       'text/plain; charset=utf-8')
         else:
             self._send(PAGE.encode(), 'text/html; charset=utf-8')
 
@@ -178,10 +226,127 @@ def captions_for(mode: str, model: mujoco.MjModel, data: mujoco.MjData,
     return points, ['sweeping the bench'] * len(points)
 
 
+def pick_programme(model: mujoco.MjModel, data: mujoco.MjData, count: int):
+    """Run pick-and-place on the dynamic vessels, stepping physics throughout.
+
+    A generator: it yields a caption after every simulation step, so the caller
+    can render and sync between steps. Everything the arm does goes through the
+    position actuators and ``mj_step``, which is the point --- the arm stops at
+    the bench instead of passing through it, the vessels it brushes move, and
+    the gripper closes until its own sensors say it has something.
+
+    Args:
+        model: Compiled scene.
+        data: Data to run in.
+        count: How many vessels to work through before looping.
+
+    Yields:
+        A short line describing what is happening.
+    """
+    ids = gt.actuators(model)
+    grip_id = model.actuator('arm_grip_fingers_actuator').id
+    home = model.body('rail_carriage').pos[0]
+    steps_per_second = round(1 / model.opt.timestep)
+
+    def drive(station, pose, grip, seconds, caption, stop_on_grip=False):
+        start = np.array([data.ctrl[i] for i in ids])
+        goal = np.concatenate([[station - home], pose])
+        # Give a long move long enough to arrive: a fixed time is fine for the
+        # short hops and leaves the arm still flying on the way across 6 m.
+        move = np.abs(goal - start)
+        seconds = max(seconds, float(move[0]) / 0.6, float(move[1:].max()) / 0.9)
+        # Three quarters ramp, one quarter sitting on the target: a position
+        # servo lags, and reading the tool before it has caught up is what made
+        # the first grasps close 20 to 47 mm off the vessel.
+        total = max(int(seconds * steps_per_second), 1)
+        ramp = max(int(total * 0.7), 1)
+        for step in range(total):
+            alpha = 0.5 - 0.5 * np.cos(np.pi * min(step + 1, ramp) / ramp)
+            for i, value in zip(ids, start + alpha * (goal - start)):
+                data.ctrl[i] = value
+            if grip is not None:
+                data.ctrl[grip_id] = grip(step, total)
+            mujoco.mj_step(model, data)
+            yield caption
+            if stop_on_grip and step > total * 0.25 and \
+                    rk.read_grip(model, data).holding:
+                return
+
+    mujoco.mj_resetData(model, data)
+    mujoco.mj_forward(model, data)
+    vessels = [b for b in rk.bottles(model, data) if b.dynamic][:count]
+    while True:
+        for bottle in vessels:
+            grasp = rk.BENCH_TOP + (bottle.top - rk.BENCH_TOP) * gt.GRASP_FRACTION
+            above = np.array([bottle.x, bottle.y, grasp + gt.APPROACH])
+            on = np.array([bottle.x, bottle.y, grasp])
+            # solve_ik writes its iterates straight into qpos, so the running
+            # state has to be put back afterwards or the arm teleports to the
+            # solution and the vessels it was touching jump with it.
+            saved = (data.qpos.copy(), data.qvel.copy())
+            station = rk.reach(model, data, above)
+            q_above = data.qpos[rk.arm_qpos(model)].copy()
+            if station is not None:
+                rk.set_rail(model, data, station)
+                solved = rk.solve_any(model, data, on)
+                q_on = data.qpos[rk.arm_qpos(model)].copy()
+            data.qpos[:], data.qvel[:] = saved
+            mujoco.mj_forward(model, data)
+            if station is None or not solved:
+                continue
+
+            tag = bottle.sample_id
+            yield from drive(station, q_above, lambda *_: gt.OPEN, 4.0,
+                             f'travelling to {tag}')
+            yield from drive(station, q_on, lambda *_: gt.OPEN, 2.0,
+                             f'reaching into the field for {tag}')
+            yield from drive(station, q_on,
+                             lambda i, n: gt.SHUT * min((i + 1) / (n * 0.5), 1.0),
+                             1.5, f'closing on {tag}', stop_on_grip=True)
+            settled = data.ctrl[grip_id]
+            got = rk.read_grip(model, data).holding
+            verb = 'lifting' if got else 'nothing to lift from'
+            yield from drive(station, q_above, lambda *_, g=settled: g, 1.5,
+                             f'{verb} {tag}')
+            yield from drive(station, q_above, lambda *_, g=settled: g, 1.0,
+                             f'holding {tag}' if got else f'missed {tag}')
+            yield from drive(station, q_on, lambda *_, g=settled: g, 1.5,
+                             f'putting {tag} back')
+            yield from drive(station, q_on, lambda *_: gt.OPEN, 0.8,
+                             f'releasing {tag}')
+            yield from drive(station, q_above, lambda *_: gt.OPEN, 1.2,
+                             f'clear of {tag}')
+
+
+def telemetry(model: mujoco.MjModel, data: mujoco.MjData, caption: str,
+              speed: float) -> dict[str, object]:
+    """Everything worth putting on screen, read from the running simulation."""
+    grip = rk.read_grip(model, data)
+    carriage = float(data.body('rail_carriage').xpos[0])
+    tool = data.site(rk.TCP_SITE).xpos
+    return {
+        'caption': caption,
+        'sim_time': round(float(data.time), 2),
+        'speed': round(speed, 2),
+        'contacts': int(data.ncon),
+        'carriage_x': round(carriage, 3),
+        'tool': [round(float(v), 3) for v in tool],
+        'pad_right': round(grip.right, 2),
+        'pad_left': round(grip.left, 2),
+        'finger_drive': round(grip.drive, 2),
+        'closure': round(grip.closure, 3),
+        'holding': grip.holding,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--mode', choices=('sweep', 'visit', 'label'),
-                        default='sweep')
+    parser.add_argument('--mode', choices=('pick', 'sweep', 'visit', 'label'),
+                        default='pick',
+                        help='pick runs the real thing: physics stepped, the '
+                             'arm stopped by the bench, vessels moved by '
+                             'contact, the gripper closed on force feedback. '
+                             'The others are kinematic playback.')
     parser.add_argument('--visits', type=int, default=6,
                         help='vessels to visit in visit and label modes')
     parser.add_argument('--speed', type=float, default=0.8,
@@ -199,10 +364,18 @@ def main() -> None:
 
     width, height = (int(v) for v in args.resolution.split('x'))
     model, data = rk.load()
-    points, labels = captions_for(args.mode, model, data, args.visits)
-    rows, owners = rd.segmented(model, points, args.speed, args.dwell)
-    print(f'{args.mode}: {len(rows)} frames, {len(rows) / rd.FPS:.1f} s, '
-          f'carriage {rows[:, 0].min():.2f} .. {rows[:, 0].max():.2f} m')
+    programme = rows = owners = labels = None
+    if args.mode == 'pick':
+        mujoco.mj_forward(model, data)
+        liftable = sum(1 for b in rk.bottles(model, data) if b.dynamic)
+        programme = pick_programme(model, data, args.visits)
+        print(f'pick: physics stepped at {model.opt.timestep * 1000:.0f} ms, '
+              f'{liftable} liftable vessels, gripper closing on force feedback')
+    else:
+        points, labels = captions_for(args.mode, model, data, args.visits)
+        rows, owners = rd.segmented(model, points, args.speed, args.dwell)
+        print(f'{args.mode}: {len(rows)} frames, {len(rows) / rd.FPS:.1f} s, '
+              f'carriage {rows[:, 0].min():.2f} .. {rows[:, 0].max():.2f} m')
 
     feed = Feed()
     server = serve(feed, args.port)
@@ -211,21 +384,35 @@ def main() -> None:
     if not args.no_browser:
         webbrowser.open(url)
 
-    mujoco.mj_resetData(model, data)
+    if args.mode != 'pick':
+        mujoco.mj_resetData(model, data)
     renderer = mujoco.Renderer(model, height=height, width=width)
+    steps_per_frame = max(round(1 / rd.FPS / model.opt.timestep), 1)
     try:
         with mujoco.viewer.launch_passive(model, data, show_left_ui=False,
                                           show_right_ui=False) as viewer:
-            frame = 0
+            frame, clock = 0, time.time()
             while viewer.is_running():
                 started = time.time()
-                row = rows[frame % len(rows)]
-                rd.apply(model, data, row, physics=False)
+                if programme is not None:
+                    # One frame is several physics steps; the programme yields
+                    # after each one.
+                    caption = 'done'
+                    for _ in range(steps_per_frame):
+                        caption = next(programme)
+                else:
+                    row = rows[frame % len(rows)]
+                    rd.apply(model, data, row, physics=False)
+                    caption = labels[owners[frame % len(rows)]]
                 renderer.update_scene(data, camera='arm_eih')
                 buffer = io.BytesIO()
                 Image.fromarray(renderer.render()).save(
                     buffer, format='JPEG', quality=args.quality)
-                feed.publish(buffer.getvalue(), labels[owners[frame % len(rows)]])
+                now = time.time()
+                speed = steps_per_frame * model.opt.timestep / max(now - clock, 1e-6)
+                clock = now
+                feed.publish(buffer.getvalue(),
+                             telemetry(model, data, caption, speed))
                 viewer.sync()
                 frame += 1
                 remaining = 1 / rd.FPS - (time.time() - started)
