@@ -22,9 +22,6 @@ from armlab import policies
 from armlab.runtime import STREAM_FPS, Runtime
 
 WEB = Path(__file__).resolve().parent / 'web'
-#: Short names for the URL; the values are MuJoCo camera names, which contain
-#: the arm-attach prefixes and so are awkward in a path.
-CAMERAS = {'top': 'top', 'wrist': 'l/wrist_cam_left', 'overview': 'general'}
 TELEMETRY_HZ = 5.0
 
 
@@ -41,9 +38,15 @@ def build(runtime: Runtime) -> FastAPI:
                                              ('repo_id', 'label', 'embodiment', 'control_hz')}}
                              for key, spec in policies.catalogue().items()]}
 
+    @app.get('/cameras')
+    async def cameras() -> dict:
+        return {'cameras': list(runtime.binding.spec.cameras)}
+
     @app.get('/stream/{camera}')
     async def stream(camera: str) -> StreamingResponse:
-        name = CAMERAS.get(camera, camera)
+        # Logical name from the embodiment; the MuJoCo names carry attach
+        # prefixes (`arm_eih`) and would be awkward in a URL.
+        name = runtime.binding.spec.cameras.get(camera, camera)
 
         async def frames():
             # Bounded by the runtime, not `while True`: an MJPEG response never

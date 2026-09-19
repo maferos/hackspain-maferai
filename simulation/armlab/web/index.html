@@ -71,7 +71,7 @@
   <section id="view">
     <img id="top" alt="top camera">
     <img id="wrist" alt="wrist camera" title="click to swap">
-    <div id="badge">top · aloha cell</div>
+    <div id="badge">wrist · ur10e rail</div>
   </section>
 
   <section id="model">
@@ -84,13 +84,13 @@
     <div class="row"><span class="dot none" id="dot"></span><span id="state" class="num">no policy loaded</span></div>
     <div id="spec"></div>
     <p class="hint" id="hint">Pick a checkpoint. Anything whose action shape does not
-      match the robot's 14 actuators is rejected before it moves.</p>
+      match the robot's 8 actuators is rejected before it moves.</p>
   </section>
 
   <section id="console">
     <h2>Prompt</h2>
     <div class="row">
-      <input id="prompt" placeholder="pick up SMP-0009 and put it on the tray" autofocus>
+      <input id="prompt" placeholder="pick up SMP-0044 and bring it to balance 2" autofocus>
       <button id="send">Run</button>
       <button id="reset">Reset</button>
     </div>
@@ -111,11 +111,11 @@ const $ = id => document.getElementById(id);
 const fmt = n => (n >= 0 ? ' ' : '') + n.toFixed(3);
 
 // Cameras are MJPEG <img> sources; the browser holds the connection open.
-let main = 'top', pip = 'wrist';
+let main = 'wrist', pip = 'carriage';
 const setCameras = () => {
   $('top').src = `/stream/${main}`;
   $('wrist').src = `/stream/${pip}`;
-  $('badge').textContent = `${main} · aloha cell`;
+  $('badge').textContent = `${main} · ur10e rail`;
 };
 $('wrist').onclick = () => { [main, pip] = [pip, main]; setCameras(); };
 setCameras();

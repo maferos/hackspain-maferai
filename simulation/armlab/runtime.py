@@ -20,7 +20,7 @@ import mujoco
 import numpy as np
 
 from armlab import policies, skills
-from armlab.embodiment import ALOHA_BIMANUAL, BoundEmbodiment
+from armlab.embodiment import EMBODIMENTS, UR10E_RAIL, BoundEmbodiment
 from armlab.scene import DEFAULT_SCENE, Scene
 
 STREAM_SIZE = (640, 480)
@@ -49,9 +49,9 @@ class Step:
 
 class Runtime:
     def __init__(self, scene_path=DEFAULT_SCENE, policy_name: str | None = None,
-                 realtime: bool = True):
+                 realtime: bool = True, embodiment: str = UR10E_RAIL.name):
         self.scene = Scene(scene_path)
-        self.binding = BoundEmbodiment(ALOHA_BIMANUAL, self.scene.model)
+        self.binding = BoundEmbodiment(EMBODIMENTS[embodiment], self.scene.model)
         self.binding_cameras = {
             mujoco.mj_id2name(self.scene.model, mujoco.mjtObj.mjOBJ_CAMERA, i)
             for i in range(self.scene.model.ncam)}
@@ -316,7 +316,9 @@ class Runtime:
 
     def _publish_frames(self) -> None:
         width, height = STREAM_SIZE
-        for camera in ('top', 'l/wrist_cam_left', 'general'):
+        # The embodiment owns the logical -> MuJoCo camera map; the server reads
+        # the same dict for its URLs, so there is one place to change it.
+        for camera in self.binding.spec.cameras.values():
             if camera not in self.binding_cameras:
                 continue
             frame = self._render(camera, width, height)

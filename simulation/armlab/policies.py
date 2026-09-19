@@ -41,7 +41,7 @@ StateReader = Callable[[], np.ndarray]
 class PolicySpec:
     key: str
     repo_id: str
-    embodiment: str = 'aloha_bimanual'
+    embodiment: str = 'ur10e_rail'
     cameras: dict[str, str] = field(default_factory=dict)
     control_hz: float = 50.0
     label: str = ''

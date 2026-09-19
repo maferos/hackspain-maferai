@@ -6,22 +6,30 @@
 #   repo_id     Hugging Face repo, or a local directory of a checkpoint you trained.
 #   embodiment  Which actuator layout the action vector is in (armlab/embodiment.py).
 #   cameras     Policy feature key -> camera. Values may be a logical name from the
-#               embodiment ("top", "wrist_left", "overview") or a raw MuJoCo camera.
+#               embodiment ("wrist", "carriage", "overview") or a raw MuJoCo camera.
 #               Omit it and the trailing part of the feature key is used as the name.
-#   control_hz  How often to ask the policy for an action. gym-aloha ran at 50 Hz;
-#               a checkpoint trained at another rate needs its own value here or it
-#               will play back at the wrong speed.
-
-[act_transfer_cube]
-repo_id = "lerobot/act_aloha_sim_transfer_cube_human"
-embodiment = "aloha_bimanual"
-cameras = { "observation.images.top" = "top" }
-control_hz = 50
-label = "ACT · ALOHA transfer cube"
-
-[act_insertion]
-repo_id = "lerobot/act_aloha_sim_insertion_human"
-embodiment = "aloha_bimanual"
-cameras = { "observation.images.top" = "top" }
-control_hz = 50
-label = "ACT · ALOHA insertion"
+#   control_hz  How often to ask the policy for an action. A checkpoint trained at
+#               another rate needs its own value here or it plays back at the wrong
+#               speed.
+#
+# ---------------------------------------------------------------------------
+# Deliberately empty.
+#
+# This bench runs a UR10e on a linear rail: eight actuators, counting the rail
+# and the Robotiq 2F-85. Nothing on the Hub is trained for that. The ACT
+# checkpoints there are ALOHA (14-dim bimanual), SO-100/SO-101 (6), Koch --
+# every one of them a different robot, and `policies.py` will say so by name and
+# by number rather than let a mismatched checkpoint drive the arm.
+#
+# So the seam ships ready and unused: the console runs on the scripted skills in
+# `skills.py`, and the first checkpoint for this embodiment drops in as a block
+# below with no code change. When we train one ourselves --- the P0/B1 path in
+# `research/experiments.md`, scripted expert to demos to RunPod --- `repo_id`
+# takes a local directory just as happily as a Hub id.
+#
+# [bottle_to_bench]
+# repo_id = "outputs/train/act_ur10e_rail/checkpoints/last/pretrained_model"
+# embodiment = "ur10e_rail"
+# cameras = { "observation.images.wrist" = "wrist" }
+# control_hz = 50
+# label = "ACT · bottle to bench"

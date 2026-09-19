@@ -5,13 +5,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")"
 
-# armlab attaches AutoBio's aloha_left.xml, so the submodule must be present.
-# Only the XML and its meshes are used -- no plugin, hence no MuJoCo 3.3.0 pin.
-if [ ! -f third_party/AutoBio/autobio/model/robot/aloha_left.xml ]; then
-  ROOT="$(git rev-parse --show-toplevel)"
-  REL="${PWD#"$ROOT"/}"
-  echo ">> Fetching AutoBio submodule (~100 MB)"
-  git -C "$ROOT" submodule update --init --depth 1 "$REL/third_party/AutoBio"
+# armlab drives the rail scene, which splices in Menagerie's UR10e and Robotiq
+# 2F-85. Those are gitignored, so fetch them if they are not already here.
+if [ ! -d third_party/mujoco_menagerie/universal_robots_ur10e ]; then
+  echo ">> Fetching the Menagerie models the rail scene needs (~47 MB)"
+  bash scripts/fetch_menagerie.sh
 fi
 
 # lerobot >= 0.5 requires Python >= 3.12, so .venv-autobio's 3.11 is too old.
@@ -29,9 +27,9 @@ fi
 echo ">> Verifying: scene loads with actuators, lerobot imports"
 .venv-act/bin/python - <<'PY'
 import mujoco, lerobot  # noqa: F401
-m = mujoco.MjModel.from_xml_path("models/minihannover_open_aloha_scene.xml")
+m = mujoco.MjModel.from_xml_path("models/minihannover_rail_scene.xml")
 names = [mujoco.mj_id2name(m, mujoco.mjtObj.mjOBJ_ACTUATOR, i) for i in range(m.nu)]
-assert m.nu == 14, f"expected 14 actuators, got {m.nu}: {names}"
+assert m.nu == 8, f"expected 8 actuators, got {m.nu}: {names}"
 print(f"  OK  mujoco {mujoco.__version__}, nu={m.nu}")
 print(f"      {', '.join(names)}")
 PY
@@ -40,5 +38,5 @@ cat <<'MSG'
 
 Done. Launch the console with:
   .venv-act/bin/python -m armlab                      # http://localhost:8080
-  .venv-act/bin/python -m armlab --headless --prompt "pick up SMP-0009 and put it on balance 1"
+  .venv-act/bin/python -m armlab --headless --prompt "pick up SMP-0044 and bring it to balance 2"
 MSG

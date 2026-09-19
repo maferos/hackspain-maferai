@@ -1,9 +1,17 @@
-"""Scripted manipulation primitives.
+"""Scripted manipulation primitives for the UR10e on its rail.
 
 Every skill is a generator yielding one action vector per control tick, in the
 same layout and units a policy would emit. That is what lets the runtime route a
 plan step to either a skill or a Hugging Face checkpoint without caring which:
 both are just a source of actions.
+
+The grasp sequence is `scripts/grasp_test.py`'s, which scores 12/12 on the bench
+with physics running -- approach above the vessel, descend to a fraction of the
+way up its wall, close until the pads report contact, then lift. What is
+different here is only the shape: `grasp_test` runs its own `mj_step` loop, while
+these yield and let `runtime` step. The gripper still closes on its sensors
+rather than to a commanded width, so it stops on the glass instead of crushing
+it.
 """
 
 from __future__ import annotations
@@ -11,22 +19,24 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Iterator
 
+import mujoco
 import numpy as np
 
-from armlab import ik
 from armlab.embodiment import BoundEmbodiment
-from armlab.scene import Scene
+from armlab.scene import Scene, rk
 
 Action = np.ndarray
 
-APPROACH_HEIGHT = 0.14   # m above the object to line up the vertical approach
-GRASP_HEIGHT = 0.05      # m above a container's base to close the fingers
-PAN_CLEARANCE = 0.07     # m above a balance body to release
-PAN_APPROACH = 0.13      # m above that again -- the balances sit near the edge of
-                         # the ALOHA's reach, so the lift over them stays low
-GRASP_CLEARANCE = 0.025  # m of extra opening before closing on something
-APPROACH_CLEARANCE = 0.008  # m the fingers must spare to descend past an object
-OPEN = 1.0
+GRASP_FRACTION = 0.35   # up the vessel wall, below the shoulder where it tapers
+APPROACH = 0.12         # m above the grasp where the vertical approach starts
+RELEASE = 0.06          # m of bench clearance under the pinch when letting go
+OPEN, SHUT = 1.0, 0.0   # normalised: 1 open, 0 shut
+# Where to set a vessel down relative to an instrument, tried in order. All of
+# them step *towards* the rail rather than towards the aisle: the carriage rides
+# at y = 0.14 and the arm reaches 1.30 m, so the far edge of the bench past a
+# balance at y = -1.16 is simply outside the envelope -- the first version of
+# this reached for y = -1.34 and was told so.
+SET_DOWN = ((0.0, 0.18), (0.0, 0.30), (0.22, 0.18), (-0.22, 0.18), (0.0, 0.42))
 
 
 @dataclass
@@ -45,13 +55,19 @@ class SkillContext:
     def ticks(self, seconds: float) -> int:
         return max(1, int(round(seconds * self.control_hz)))
 
+    @property
+    def rail_home(self) -> float:
+        """World X the carriage's joint coordinate is measured from."""
+        return float(self.scene.model.body('rail_carriage').pos[0])
+
 
 def move(ctx: SkillContext, target: Action, seconds: float) -> Iterator[Action]:
     """Ease the whole command vector from where it is to `target`.
 
-    Raised-cosine rather than linear so the arm neither jerks at the start nor
-    overshoots at the end -- the position actuators track a smooth reference far
-    better than a step.
+    Raised-cosine rather than linear, and deliberately unhurried: `grasp_test`
+    records that reading the tool straight after a ramp leaves it 20-47 mm out,
+    wider than a flask, so the servos need time to converge before anything
+    closes on anything.
     """
     start = ctx.command.copy()
     steps = ctx.ticks(seconds)
@@ -60,75 +76,92 @@ def move(ctx: SkillContext, target: Action, seconds: float) -> Iterator[Action]:
         yield start + (target - start) * blend
 
 
-def set_gripper(ctx: SkillContext, arm: str, value: float, seconds: float = 0.5) -> Iterator[Action]:
-    target = ctx.command.copy()
-    target[_gripper_dim(ctx, arm)] = value
-    yield from move(ctx, target, seconds)
+def hold(ctx: SkillContext, seconds: float) -> Iterator[Action]:
+    """Sit on the current target while the arm catches up to it."""
+    for _ in range(ctx.ticks(seconds)):
+        yield ctx.command.copy()
 
 
-def reach(ctx: SkillContext, arm: str, position: np.ndarray, yaw: float = 0.0,
-          seconds: float = 1.5) -> Iterator[Action]:
-    """Move one arm's gripper to a world position with a top-down approach.
+def close_on_object(ctx: SkillContext, seconds: float = 1.5) -> Iterator[Action]:
+    """Close until the gripper's own pads report they are holding something.
 
-    Falls back to position-only IK when the top-down orientation is what puts the
-    pose out of reach. The balances sit near the edge of the ALOHA's envelope, so
-    insisting on a vertical hand there fails on targets the arm can plainly touch.
+    This is how the real 2F-85 is driven: told to close, it reports back whether
+    it stopped on an object or ran to its stop. A fixed full-close cannot tell
+    those apart, and squeezes thin glass at whatever the servo can manage.
     """
-    joints, residual = _solve(ctx, arm, position, yaw)
-    if residual > 0.01:
-        relaxed, relaxed_residual = _solve(ctx, arm, position, yaw, free_orientation=True)
-        if relaxed_residual < residual:
-            joints, residual = relaxed, relaxed_residual
-    if residual > 0.05:
-        raise Unreachable(f'{arm} arm cannot reach {np.round(position, 3).tolist()} '
-                          f'(off by {residual * 100:.0f} cm)')
+    steps = ctx.ticks(seconds)
     target = ctx.command.copy()
-    target[ctx.binding.arm_slices[arm]] = joints
-    yield from move(ctx, target, seconds)
+    dim = ctx.binding.spec.gripper_dims[0]
+    for step in range(steps):
+        # Ramp shut over the first 60%, then dwell -- same schedule as grasp_test.
+        target[dim] = OPEN + (SHUT - OPEN) * min((step + 1) / (steps * 0.6), 1.0)
+        yield target.copy()
+        if step > steps * 0.3 and rk.read_grip(ctx.scene.model, ctx.scene.data).holding:
+            return
 
 
-def home(ctx: SkillContext, seconds: float = 2.0) -> Iterator[Action]:
+def home(ctx: SkillContext, seconds: float = 3.0) -> Iterator[Action]:
     yield from move(ctx, ctx.binding.home(), seconds)
 
 
-def pick(ctx: SkillContext, sample_id: str, arm: str | None = None) -> Iterator[Action]:
-    """Grasp a labelled container and lift it clear of the bench."""
+def pick(ctx: SkillContext, sample_id: str) -> Iterator[Action]:
+    """Grasp a vessel and lift it clear of the bench."""
     sample = ctx.scene.samples.get(sample_id)
     if sample is None:
-        raise UnknownObject(f'no sample {sample_id!r} in this scene')
-    # The fingers must clear the container on the way down, not merely close on
-    # it, so the usable limit is narrower than the gripper's full opening.
-    limit = ctx.binding.max_grasp_width - APPROACH_CLEARANCE
-    if sample.diameter > limit:
-        raise TooWide(f'{sample_id} is {sample.diameter * 1000:.0f} mm across; this '
-                      f'gripper can only take {limit * 1000:.0f} mm')
-    base = sample.position(ctx.scene.data)
-    arm = arm or nearest_arm(ctx, base)
-    grip = ctx.binding.grip_for(sample.diameter)
-    clear = ctx.binding.grip_for(sample.diameter + GRASP_CLEARANCE)
-    yield from set_gripper(ctx, arm, clear, 0.4)
-    yield from reach(ctx, arm, base + (0, 0, APPROACH_HEIGHT), seconds=2.0)
-    yield from reach(ctx, arm, base + (0, 0, sample.grasp_height), seconds=1.2)
-    yield from set_gripper(ctx, arm, grip, 0.8)
-    yield from reach(ctx, arm, base + (0, 0, APPROACH_HEIGHT), seconds=1.5)
+        raise UnknownObject(f'no sample {sample_id!r} on this bench')
+    bottle = sample.bottle
+    grasp = rk.BENCH_TOP + (bottle.top - rk.BENCH_TOP) * GRASP_FRACTION
+    above = np.array([bottle.x, bottle.y, grasp + APPROACH])
+    on = np.array([bottle.x, bottle.y, grasp])
+
+    station, q_above, q_on = _plan_grasp(ctx, above, on)
+    yield from move(ctx, _action(ctx, station, q_above, OPEN), 3.0)
+    yield from hold(ctx, 0.4)
+    yield from move(ctx, _action(ctx, station, q_on, OPEN), 1.5)
+    yield from hold(ctx, 0.4)
+    yield from close_on_object(ctx)
+    grip = float(ctx.command[ctx.binding.spec.gripper_dims[0]])
+    yield from move(ctx, _action(ctx, station, q_above, grip), 1.5)
+    yield from hold(ctx, 0.6)
 
 
-def place(ctx: SkillContext, target_id: str, arm: str | None = None) -> Iterator[Action]:
-    """Set whatever is held down on a balance pan."""
+def place(ctx: SkillContext, target_id: str) -> Iterator[Action]:
+    """Set whatever is held down on the bench beside a named instrument.
+
+    Not *on* the instrument: `assets/balance/balance.xml` is an analytical
+    balance with a closed glass draft shield, modelled as one collision box over
+    the whole 0.311 m of it, so it has no pan a vessel could stand on. Until that
+    asset gains one, the honest motion is to bring the vessel to the balance and
+    set it on the bench in front of it, which is what a technician would do
+    before opening the shield.
+    """
     target = ctx.scene.targets.get(target_id)
     if target is None:
         raise UnknownObject(f'no target {target_id!r} in this scene')
-    # Aim at the instrument's top surface, not its body origin -- a balance stands
-    # ~0.3 m tall and its origin is down at bench level.
-    surface = target.surface(ctx.scene.data)
-    arm = arm or _holding_arm(ctx)
-    yield from reach(ctx, arm, surface + (0, 0, PAN_APPROACH), seconds=2.0)
-    yield from reach(ctx, arm, surface + (0, 0, PAN_CLEARANCE), seconds=1.5)
-    yield from set_gripper(ctx, arm, OPEN, 0.6)
-    yield from reach(ctx, arm, surface + (0, 0, PAN_APPROACH), seconds=1.2)
+    origin = target.position(ctx.scene.data)
+
+    plan, spot = None, None
+    for dx, dy in SET_DOWN:
+        spot = np.array([origin[0] + dx, origin[1] + dy, rk.BENCH_TOP + RELEASE])
+        try:
+            plan = _plan_grasp(ctx, spot + (0, 0, APPROACH), spot)
+            break
+        except Unreachable:
+            continue
+    if plan is None:
+        raise Unreachable(f'no spot beside {target_id} is within the arm\'s reach')
+
+    station, q_above, q_down = plan
+    grip = float(ctx.command[ctx.binding.spec.gripper_dims[0]])
+    yield from move(ctx, _action(ctx, station, q_above, grip), 3.0)
+    yield from move(ctx, _action(ctx, station, q_down, grip), 1.5)
+    yield from hold(ctx, 0.4)
+    yield from move(ctx, _action(ctx, station, q_down, OPEN), 0.8)
+    yield from hold(ctx, 0.3)
+    yield from move(ctx, _action(ctx, station, q_above, OPEN), 1.5)
 
 
-def stow(ctx: SkillContext, arm: str | None = None) -> Iterator[Action]:
+def stow(ctx: SkillContext) -> Iterator[Action]:
     yield from home(ctx)
 
 
@@ -146,41 +179,37 @@ class UnknownObject(SkillError):
     pass
 
 
-class TooWide(SkillError):
-    pass
+def _plan_grasp(ctx: SkillContext, above: np.ndarray, on: np.ndarray):
+    """Solve the carriage station and the two arm poses, without disturbing the sim.
+
+    `rail_kinematics` solves on `mj_kinematics` alone and writes straight into
+    qpos, so it runs on a scratch copy here -- the live data belongs to the
+    physics loop.
+    """
+    model = ctx.scene.model
+    scratch = mujoco.MjData(model)
+    scratch.qpos[:] = ctx.scene.data.qpos
+    mujoco.mj_forward(model, scratch)
+
+    station = rk.reach(model, scratch, above)
+    if station is None:
+        raise Unreachable(f'the arm cannot reach {np.round(above, 3).tolist()} '
+                          f'from anywhere on the rail')
+    q_above = scratch.qpos[rk.arm_qpos(model)].copy()
+    rk.set_rail(model, scratch, station)
+    if not rk.solve_any(model, scratch, on):
+        raise Unreachable(f'the arm reaches above {np.round(on, 3).tolist()} '
+                          f'but not down onto it')
+    return station, q_above, scratch.qpos[rk.arm_qpos(model)].copy()
 
 
-def _gripper_dim(ctx: SkillContext, arm: str) -> int:
-    index = [label for label, _ in ctx.binding.spec.arms].index(arm)
-    return ctx.binding.spec.gripper_dims[index]
+def _action(ctx: SkillContext, station: float, arm: np.ndarray, grip: float) -> Action:
+    """Assemble an action vector: [rail, six arm joints, gripper].
 
-
-def _solve(ctx: SkillContext, arm: str, position: np.ndarray, yaw: float,
-           free_orientation: bool = False):
-    sl = ctx.binding.arm_slices[arm]
-    return ik.solve(
-        ctx.scene.model, ctx.scene.data, ctx.binding.site_ids[arm],
-        np.asarray(position, dtype=float), None if free_orientation else ik.grasp_frame(yaw),
-        qpos_adr=ctx.binding.qpos_adr[sl],
-        dof_ids=ctx.binding.dof_ids[sl],
-        joint_range=ctx.binding.joint_range[sl],
-        seeds=[ctx.binding.home()[sl], ctx.command[sl]])
-
-
-def nearest_arm(ctx: SkillContext, position: np.ndarray) -> str:
-    """Whichever gripper is currently closest -- the cell is symmetric."""
-    data = ctx.scene.data
-    return min(ctx.binding.site_ids,
-               key=lambda arm: float(np.linalg.norm(data.site_xpos[ctx.binding.site_ids[arm]]
-                                                    - position)))
-
-
-def _holding_arm(ctx: SkillContext) -> str:
-    """The arm whose gripper is closed, else the one nearest the last command."""
-    for label, _ in ctx.binding.spec.arms:
-        if ctx.command[_gripper_dim(ctx, label)] < 0.5:
-            return label
-    return ctx.binding.spec.arms[0][0]
+    The rail actuator is commanded in joint coordinates, measured from the
+    carriage's home X -- the same conversion `rk.set_rail` makes.
+    """
+    return np.concatenate([[station - ctx.rail_home], arm, [grip]])
 
 
 SKILLS = {'pick': pick, 'place': place, 'home': home, 'stow': stow}

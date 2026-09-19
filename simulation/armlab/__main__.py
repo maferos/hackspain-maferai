@@ -11,6 +11,7 @@ import argparse
 import sys
 import time
 
+from armlab.embodiment import EMBODIMENTS, UR10E_RAIL
 from armlab.runtime import Runtime, spawn
 from armlab.scene import DEFAULT_SCENE
 
@@ -18,6 +19,8 @@ from armlab.scene import DEFAULT_SCENE
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(prog='armlab', description=__doc__.splitlines()[0])
     parser.add_argument('--scene', default=str(DEFAULT_SCENE))
+    parser.add_argument('--embodiment', default=UR10E_RAIL.name,
+                        choices=sorted(EMBODIMENTS), help='actuator layout to drive')
     parser.add_argument('--policy', help='catalogue key or Hugging Face repo id to preload')
     parser.add_argument('--port', type=int, default=8080)
     parser.add_argument('--host', default='127.0.0.1')
@@ -34,7 +37,7 @@ def parse_args() -> argparse.Namespace:
 
 def run_headless(args: argparse.Namespace) -> int:
     runtime, _ = spawn(scene_path=args.scene, policy_name=args.policy,
-                       realtime=not args.fast)
+                       realtime=not args.fast, embodiment=args.embodiment)
     if args.prompt:
         runtime.prompt(args.prompt)
     elif args.policy:
@@ -88,7 +91,7 @@ def main() -> int:
     from armlab.server import build
 
     runtime, _ = spawn(scene_path=args.scene, policy_name=args.policy,
-                       realtime=not args.fast)
+                       realtime=not args.fast, embodiment=args.embodiment)
     print(f'armlab console on http://{args.host}:{args.port}')
     # timeout_graceful_shutdown is load-bearing, not a nicety. On SIGTERM uvicorn
     # closes the listener and then waits for open responses to finish -- and an

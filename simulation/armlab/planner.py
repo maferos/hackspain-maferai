@@ -22,13 +22,13 @@ from pathlib import Path
 MODEL = 'claude-opus-4-8'
 LOOKUP = Path(__file__).resolve().parents[2] / 'computer-vision' / 'barcodes' / 'lookup_table.json'
 
-_SAMPLE = re.compile(r'\b((?:SMP|PWD)-\d{4})\b', re.I)
+_SAMPLE = re.compile(r'\b(SMP-\d{4})\b', re.I)
 _BALANCE = re.compile(r'\bbalance[ _-]?(\d)\b', re.I)
 _PICK = re.compile(r'\b(pick|grab|take|lift|get|collect)\b', re.I)
 _PLACE = re.compile(r'\b(place|put|set|drop|deposit|load)\b', re.I)
 _HOME = re.compile(r'\b(home|rest|neutral|stow|park)\b', re.I)
 _POLICY = re.compile(r'\b(act|policy|cube|checkpoint|model|transfer)\b', re.I)
-_TRAY = re.compile(r'\b(tray|staging|pad)\b', re.I)
+_BENCH = re.compile(r'\b(bench|down|back)\b', re.I)
 
 
 @dataclass
@@ -66,7 +66,7 @@ PLAN_TOOL = {
                         'sample_id': {'type': 'string',
                                       'description': 'Container to pick, e.g. SMP-0009.'},
                         'target_id': {'type': 'string',
-                                      'description': 'Where to place, e.g. tray.'},
+                                      'description': 'Instrument to bring it to, e.g. balance_2.'},
                         'seconds': {'type': 'number',
                                     'description': 'For `policy`: how long to run. Default 20.'},
                     },
@@ -84,7 +84,7 @@ PLAN_TOOL = {
     },
 }
 
-SYSTEM = """You plan actions for a bimanual ALOHA robot in a simulated chemistry lab.
+SYSTEM = """You plan actions for a UR10e on a linear rail in a simulated chemistry lab.
 
 Translate the operator's instruction into a sequence of skills, then call
 submit_plan. Only ever use objects from the inventory you are given -- never
@@ -92,11 +92,13 @@ invent a sample id or a target.
 
 Rules:
 - `place` acts on whatever is currently held, so it must follow a `pick`.
-- Of the placement targets, only `tray` is reachable. The balances are real
-  instruments but sealed behind a glass draft shield, so nothing can be set on
-  them; if asked, plan nothing and say so.
-- If the instruction is about the cube, the ACT policy or the loaded model, emit a
-  single `policy` step.
+- The targets are the five balances. `place` brings the vessel to one and sets it
+  on the bench in front of it -- not on the balance, which is sealed behind a
+  glass draft shield and has no pan a vessel could stand on. Say so if asked to
+  put something *on* a balance, then plan the `place` anyway: bringing it there
+  is the useful half of the request.
+- If the instruction is about the loaded model, the policy or the checkpoint,
+  emit a single `policy` step.
 - If the instruction cannot be carried out, return no steps and explain why in
   one sentence. Never guess."""
 
@@ -144,18 +146,23 @@ def _grammar_plan(prompt: str, inventory: dict) -> Plan:
     if _POLICY.search(text) and not samples:
         return _validate(Plan([{'skill': 'policy', 'args': {}}],
                               'running the loaded checkpoint'), inventory)
-    if _PICK.search(text) and samples:
+    # "put SMP-0084 on balance 1" names no pick verb but plainly needs one: you
+    # cannot place what you are not holding.
+    if samples and (_PICK.search(text) or _PLACE.search(text)):
         steps.append({'skill': 'pick', 'sample_id': samples[0]})
-    if _PLACE.search(text) or _TRAY.search(text):
-        if balance := _BALANCE.search(text):
-            steps.append({'skill': 'place', 'target_id': f'balance_{balance.group(1)}'})
-        elif steps or _TRAY.search(text):
-            steps.append({'skill': 'place', 'target_id': 'tray'})
+    if balance := _BALANCE.search(text):
+        steps.append({'skill': 'place', 'target_id': f'balance_{balance.group(1)}'})
+    elif steps and (_PLACE.search(text) or _BENCH.search(text)):
+        # "put it down" with no instrument named: the nearest balance is as good
+        # a destination as any, and it is the only kind of target there is.
+        nearest = sorted(inventory.get('targets') or ())
+        if nearest:
+            steps.append({'skill': 'place', 'target_id': nearest[0]})
     if _HOME.search(text) or steps:
         steps.append({'skill': 'home'})
     if not steps:
-        return Plan(reason=f'Could not parse {text!r}. Try "pick up SMP-0009 and put it '
-                           f'on the tray", or set ANTHROPIC_API_KEY for free-form phrasing.')
+        return Plan(reason=f'Could not parse {text!r}. Try "pick up SMP-0044 and bring it '
+                           f'to balance 2", or set ANTHROPIC_API_KEY for free-form phrasing.')
     return _validate(Plan(steps, 'parsed by the offline grammar'), inventory)
 
 
