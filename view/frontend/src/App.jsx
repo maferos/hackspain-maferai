@@ -269,7 +269,7 @@ function ReplayViewport({ mainCameraId, onSwap, showBoxes, pattern }) {
         className="camera-frame__img" aria-label={label} muted loop playsInline
         preload="auto" onError={() => setError(true)} />
       {id === "scene" && replay.boxes && <DetectionBoxes detections={replay.boxes} />}
-      <span className="camera-frame__label">{label} · Seed {pattern.seed} · {pattern.count} samples{id === "scene" && replay.status ? ` · ${replay.status}` : ""}</span>
+      <span className="camera-frame__label">{label}</span>
       {error && <span className="camera-frame__connection" role="status">Replay unavailable. Reload to try again.</span>}
       {!big && <span className="camera-frame__swap">⇄ swap</span>}
     </div>;
@@ -422,9 +422,7 @@ export default function App() {
 
   const pipCameraId = cameras.find((c) => c.id !== mainCameraId)?.id ?? mainCameraId;
   const cameraLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
-  const mainLabel = realtime && scenePattern
-    ? `${cameraLabel} · Seed ${scenePattern.seed} · ${scenePattern.count} samples`
-    : cameraLabel;
+  const mainLabel = cameraLabel;
   const pipLabel = cameras.find((c) => c.id === pipCameraId)?.label ?? pipCameraId;
 
   const swapCameras = useCallback(() => setMainCameraId(pipCameraId), [pipCameraId]);
