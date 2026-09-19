@@ -18,6 +18,7 @@ object's pose; it is what removes the gantry's shelf bottles.
     python scripts/fixedcam_bench.py run yoloe-26l-bottles+tile640x2 --max 20
     python scripts/fixedcam_bench.py run ft:runs/fixedcam/yolo26n/weights/best.pt
     python scripts/fixedcam_bench.py summary
+    python scripts/fixedcam_bench.py compare MODEL_A MODEL_B --splits test --max 30
 
 A model name is a key of :data:`MODELS`, optionally followed by
 ``+tile<T>x<S>`` to run it on T-pixel tiles of the worktop region upsampled S
@@ -513,6 +514,49 @@ def summary(args: argparse.Namespace) -> None:
     print(text)
 
 
+def compare(args: argparse.Namespace) -> None:
+    """Score several models on exactly the same frames, from their cached boxes
+
+    Each model keeps its own val threshold; nothing is run and no model's
+    ``metrics.json`` is touched. The table goes to stdout and, with ``--out``,
+    to a JSON file.
+    """
+    splits = [s.strip() for s in args.splits.split(",") if s.strip()]
+    table: dict[str, dict] = {}
+    for name in args.models:
+        path = RESULTS / slug(name) / "metrics.json"
+        if not path.exists():
+            print(f"{name}: not scored yet")
+            continue
+        metrics = json.loads(path.read_text(encoding="utf-8"))
+        for split in splits:
+            cache, frames = predict_split(name, split, args.max, False, True)
+            if cache is None:
+                print(f"{name}: cached boxes do not cover {split}[:{args.max}]")
+                continue
+            _, gt = load_split(split)
+            entry = score_both(split, frames, cache, gt, metrics, args)["worktop"]
+            table.setdefault(split, {})[name] = entry
+    lines = []
+    for split, rows in table.items():
+        lines += [f"## {split}", "",
+                  "| model | frames | AP50 [95 % CI] | AP50:95 | recall [95 % CI] "
+                  "| precision | false/frame | s/frame |",
+                  "|" + " --- |" * 8]  # fmt: skip
+        for name, m in rows.items():
+            lines.append(
+                f"| {name} | {m['frames']} | {fmt_ci(m['ap50'], m.get('ap50_ci'))} "
+                f"| {m['ap']:.3f} | {fmt_ci(m['recall'], m.get('recall_ci'))} "
+                f"| {m['precision']:.3f} | {m['false_per_frame']:.2f} "
+                f"| {m['ms_median'] / 1000:.1f} |"
+            )
+        lines.append("")
+    text = "\n".join(lines)
+    print(text)
+    if args.out:
+        Path(args.out).write_text(json.dumps(table, indent=1), encoding="utf-8")
+
+
 def main() -> None:
     """Parse the command line"""
     parser = argparse.ArgumentParser(
@@ -534,9 +578,18 @@ def main() -> None:
     p_sum = sub.add_parser("summary", help="table over every scored model")
     p_sum.add_argument("--splits", nargs="*", default=None)
     p_sum.add_argument("--raw", action="store_true", help="also the unfiltered rows")
+    p_cmp = sub.add_parser("compare", help="several models on the same frames")
+    p_cmp.add_argument("models", nargs="+")
+    p_cmp.add_argument("--splits", default="test")
+    p_cmp.add_argument("--max", type=int, default=None, help="first N frames only")
+    p_cmp.add_argument("--boot", type=int, default=1000, help="bootstrap resamples")
+    p_cmp.add_argument("--out", default=None, help="also write the table as JSON")
+    p_cmp.set_defaults(threshold_here=False)
     args = parser.parse_args()
     if args.command == "run":
         run(args)
+    elif args.command == "compare":
+        compare(args)
     else:
         summary(args)
 
