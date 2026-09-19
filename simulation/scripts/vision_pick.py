@@ -121,8 +121,19 @@ WORKTOP = (BENCH_X, BENCH_Y)
 # 0.2 m past the lens and at that pose stands 37 mm inside the worktop. Of the
 # poses tried, 0.36 m and 25 degrees is the lowest that clears the bench for
 # every bottle, and the ring still reads there (10 of 10, within 0.5 mm).
-STANDOFF = 0.36
-ELEVATION = 25.0
+# Where the wrist camera stands to read a ring: (standoff, elevation) pairs, tried
+# in turn. The gripper reaches 0.2 m past the lens, so with the camera aimed down
+# at the elevation the hand's lowest point sits (standoff - 0.2) * sin(elevation)
+# over what it looks at. The old single look, 0.36 m at 25 degrees, put that two
+# centimetres *inside* a 14 cm flask: to read a ring the arm had to come into the
+# bench, which is what let it knock bottles over. These are ordered by how far they
+# keep the hand clear, and the ring decides which is used, so a bottle whose ring
+# reads from the first never has the hand near it. The proven low look is kept last
+# so that nothing which used to be named stops being named.
+# Standing further out beats tilting further over: with 0.36 m at 55 degrees as the
+# only look, the ring foreshortens and 8 of 19 would not read (seed 0, measured).
+LOOKS = ((0.45, 40.0), (0.36, 55.0), (0.36, 25.0))
+STANDOFF, ELEVATION = LOOKS[-1]     # the low look; the back-row test uses STANDOFF
 LOOK_ABOVE_BENCH = 0.05     # the camera aims this far above the proposal's base
 CLEARANCE = 0.25            # the look pose is entered and left from this far above
 # During the initial scan the arm does not climb back to the carry pose between
@@ -943,23 +954,32 @@ def plan(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
 
 
 def plan_look(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
-              target: np.ndarray, bearing_deg: float
+              target: np.ndarray, bearing_deg: float, look: tuple | None = None
               ) -> tuple[float, np.ndarray, np.ndarray] | None:
     """Arm poses that put the wrist camera on a proposal from one bearing.
+
+    Args:
+        look: Which of :data:`LOOKS` to stand at; the low look when not given.
 
     Returns:
         The carriage station, the arm pose well above the view, and the arm pose
         at the view; or None when this bearing cannot be held.
     """
-    eye, gaze = look_view(target, bearing_deg)
+    eye, gaze = look_view(target, bearing_deg, look)
     return plan(model, scratch, carry, eye + (0.0, 0.0, CLEARANCE), eye,
                 approach=gaze, site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0))
 
 
-def look_view(target: np.ndarray, bearing_deg: float) -> tuple[np.ndarray, tuple]:
-    """Where the wrist camera stands to look at a target from a bearing, and its gaze."""
-    rise, turn = math.radians(ELEVATION), math.radians(bearing_deg)
-    offset = STANDOFF * np.array([math.cos(rise) * math.cos(turn),
+def look_view(target: np.ndarray, bearing_deg: float, look: tuple | None = None
+              ) -> tuple[np.ndarray, tuple]:
+    """Where the wrist camera stands to look at a target from a bearing, and its gaze.
+
+    ``look`` is one of :data:`LOOKS`, a (standoff, elevation) pair; the low look
+    is used when it is not given.
+    """
+    standoff, elevation = LOOKS[-1] if look is None else look
+    rise, turn = math.radians(elevation), math.radians(bearing_deg)
+    offset = standoff * np.array([math.cos(rise) * math.cos(turn),
                                   math.cos(rise) * math.sin(turn), math.sin(rise)])
     return target + offset, tuple(-offset / np.linalg.norm(offset))
 
@@ -1249,7 +1269,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             line = None if None in legs else [point for leg in legs for point in leg]
         return line
 
-    def plan_slide(hover, target, bearing, floor):
+    def plan_slide(hover, target, bearing, floor, look=None):
         """A view the arm reaches from where it waits without turning the hand.
 
         From one view to the next at the same bearing the camera looks the same
@@ -1268,7 +1288,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         rk.set_rail(model, scratch, station0)
         scratch.qpos[rk.arm_qpos(model)] = q0
         mujoco.mj_kinematics(model, scratch)
-        eye, gaze = look_view(target, bearing)
+        eye, gaze = look_view(target, bearing, look)
         offset = station0 - float(scratch.site(rk.EIH_SITE).xpos[0])
         for station_offset in (offset, *rk.STANDOFFS):
             mujoco.mj_copyData(scratch, model, data)
@@ -1311,58 +1331,70 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         tag = f'track {track.id} at ({x:+.2f}, {y:+.2f})'
         sides = AISLE_SIDE + RAIL_SIDE if back_row(track) else RAIL_SIDE + AISLE_SIDE
         looks, result, rings = 0, None, []
-        for bearing in sides:
-            floor = rk.BENCH_TOP + tallest() + HOVER_MARGIN
-            slid = plan_slide(hover, target, bearing, floor) if hover is not None else None
-            if slid is not None:
-                station, q_hover, q_look, line = slid
-                q_high = None
-            else:
-                mujoco.mj_copyData(scratch, model, data)
-                found = plan_look(model, scratch, carry, target, bearing)
-                if found is None:
-                    continue
-                station, q_high, q_look = found
-                q_hover = q_high
-                if low:
-                    q_low = hover_pose(model, scratch, station, q_look,
-                                       *look_view(target, bearing), floor)
-                    q_hover = q_high if q_low is None else q_low
-            looks += 1
-            track.note = f'wrist camera looking from {bearing:+d} deg'
-            try:
+        # The looks in turn, the clearest first: only a ring that will not read
+        # from up there brings the hand down to the next one.
+        for look_at in LOOKS:
+            tried = 0
+            if look_at != LOOKS[0]:
+                world.log(data.time, f'{tag}: no ring from {looks} views, bringing the '
+                                     f'hand down to {look_at[1]:.0f} deg at '
+                                     f'{look_at[0] * 100:.0f} cm')
+            for bearing in sides:
+                floor = rk.BENCH_TOP + tallest() + HOVER_MARGIN
+                slid = (plan_slide(hover, target, bearing, floor, look_at)
+                        if hover is not None else None)
                 if slid is not None:
-                    yield from glide(line, f'over the flasks to {tag}', guard=track)
-                elif hover is not None and (route := hop(hover, (station, q_hover), floor)):
-                    for leg_station, leg_pose in route:
-                        yield from drive(leg_station, leg_pose, open_hand, 1.2,
-                                         f'over the flasks to {tag}', guard=track)
+                    station, q_hover, q_look, line = slid
+                    q_high = None
                 else:
-                    # From the carry pose the way down was checked to q_high, not
-                    # to the low pose: enter through q_high.
-                    if hover is not None:
-                        hover = None
-                        yield from drive(here(), carry, open_hand, 1.5,
-                                         f'climbing clear to reach {tag}', guard=track)
-                    yield from travel(station, f'travelling to {tag}', track)
-                    yield from drive(station, q_high, open_hand, 1.5,
-                                     f'turning the camera to {tag}', guard=track)
-            except Retarget:
-                yield from drive(here(), carry, open_hand, 1.5, f'{tag} is gone')
-                return None
-            yield from drive(station, q_look, open_hand, 1.5, f'looking at {tag}')
-            yield from still(0.3, f'reading the ring at {tag}')
-            request = perception.read(target)
-            while not request.done.is_set():
-                yield from still(0.05, f'reading the ring at {tag}')
-            result = request.result
-            rings += request.rings
-            yield from drive(station, q_hover, open_hand, 1.2, f'backing off {tag}')
-            if low:
-                hover = (station, q_hover)
-            else:
-                yield from drive(station, carry, open_hand, 1.5, f'backing off {tag}')
-            if result.sample_id or looks >= MAX_LOOKS:
+                    mujoco.mj_copyData(scratch, model, data)
+                    found = plan_look(model, scratch, carry, target, bearing, look_at)
+                    if found is None:
+                        continue
+                    station, q_high, q_look = found
+                    q_hover = q_high
+                    if low:
+                        q_low = hover_pose(model, scratch, station, q_look,
+                                           *look_view(target, bearing, look_at), floor)
+                        q_hover = q_high if q_low is None else q_low
+                looks, tried = looks + 1, tried + 1
+                track.note = (f'wrist camera looking from {bearing:+d} deg, '
+                              f'{look_at[1]:.0f} deg up at {look_at[0] * 100:.0f} cm')
+                try:
+                    if slid is not None:
+                        yield from glide(line, f'over the flasks to {tag}', guard=track)
+                    elif hover is not None and (route := hop(hover, (station, q_hover), floor)):
+                        for leg_station, leg_pose in route:
+                            yield from drive(leg_station, leg_pose, open_hand, 1.2,
+                                             f'over the flasks to {tag}', guard=track)
+                    else:
+                        # From the carry pose the way down was checked to q_high, not
+                        # to the low pose: enter through q_high.
+                        if hover is not None:
+                            hover = None
+                            yield from drive(here(), carry, open_hand, 1.5,
+                                             f'climbing clear to reach {tag}', guard=track)
+                        yield from travel(station, f'travelling to {tag}', track)
+                        yield from drive(station, q_high, open_hand, 1.5,
+                                         f'turning the camera to {tag}', guard=track)
+                except Retarget:
+                    yield from drive(here(), carry, open_hand, 1.5, f'{tag} is gone')
+                    return None
+                yield from drive(station, q_look, open_hand, 1.5, f'looking at {tag}')
+                yield from still(0.3, f'reading the ring at {tag}')
+                request = perception.read(target)
+                while not request.done.is_set():
+                    yield from still(0.05, f'reading the ring at {tag}')
+                result = request.result
+                rings += request.rings
+                yield from drive(station, q_hover, open_hand, 1.2, f'backing off {tag}')
+                if low:
+                    hover = (station, q_hover)
+                else:
+                    yield from drive(station, carry, open_hand, 1.5, f'backing off {tag}')
+                if result.sample_id or tried >= MAX_LOOKS:
+                    break
+            if (result is not None and result.sample_id) or track.state == 'lost':
                 break
         if track.state == 'lost':
             return hover
