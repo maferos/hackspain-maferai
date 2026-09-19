@@ -237,10 +237,12 @@ class FormulaChat:
         {
             "name": "propose_formula",
             "description": "Propose a formula. The operator sees it as a table, checked against the "
-                           "flasks the scan identified, and can press Pick. Use only compounds on the bench.",
+                           "flasks the scan identified, and can send it to the robot. Use only compounds "
+                           "on the bench.",
             "input_schema": {
                 "type": "object",
                 "properties": {
+                    "reply": {"type": "string", "description": "One to three short sentences for the operator, in their language."},
                     "name": {"type": "string", "description": "Short name, e.g. 'Citrus cologne accord'."},
                     "ingredients": {
                         "type": "array",
@@ -254,14 +256,16 @@ class FormulaChat:
                         },
                     },
                 },
-                "required": ["name", "ingredients"],
+                "required": ["reply", "name", "ingredients"],
             },
         },
         {"name": "start_run", "description": "Send the proposed formula to the robot as an order, "
                                               "when the operator asks for it.",
-         "input_schema": {"type": "object", "properties": {}}},
+         "input_schema": {"type": "object", "properties": {"reply": {"type": "string", "description": "One to three short sentences for the operator, in their language."}},
+                          "required": ["reply"]}},
         {"name": "stop_run", "description": "Stop the order the robot is working on.",
-         "input_schema": {"type": "object", "properties": {}}},
+         "input_schema": {"type": "object", "properties": {"reply": {"type": "string", "description": "One to three short sentences for the operator, in their language."}},
+                          "required": ["reply"]}},
     ]
 
     def _system(self) -> str:
@@ -287,7 +291,8 @@ class FormulaChat:
             "- Call propose_formula whenever you suggest or change a formula; the table is shown to the "
             "operator, so do not repeat it in prose. Call start_run only when the operator asks to "
             "send or run it, stop_run when they ask to stop.\n"
-            "- Answer in the operator's language, in one to three short sentences."
+            "- Answer in the operator's language, in one to three short sentences; with a tool, put "
+            "that answer in its reply field."
         )
 
     def _messages(self, history: list[dict], message: str) -> list[dict]:
@@ -322,6 +327,7 @@ class FormulaChat:
         for block in response.content:
             if block.type != "tool_use":
                 continue
+            text = text or str(block.input.get("reply") or "").strip()
             if block.name == "propose_formula":
                 lines = list(block.input.get("ingredients") or [])
                 formula = resolve(lines, self.shelf(), self.catalogue, "CHAT",

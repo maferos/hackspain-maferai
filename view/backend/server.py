@@ -604,7 +604,9 @@ def chat_message(payload: dict = Body(...)):
     if answer["action"] == "start":
         try:
             sent = dispatch(answer["formula"])
-            answer.update(reply=sent["reply"], order=sent["order"], formula=None)
+            # Claude's own words when it wrote some, with the order they started.
+            reply = f"{answer['reply']} ({sent['order']})" if chat.mode == "claude" else sent["reply"]
+            answer.update(reply=reply, order=sent["order"], formula=None)
         except HTTPException as exc:
             answer.update(reply=exc.detail, action=None, formula=None)
     elif answer["action"] == "stop":
