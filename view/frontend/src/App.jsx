@@ -15,13 +15,15 @@ const DEFAULT_CAMERAS = [
   { id: "scene", label: "General camera" },
 ];
 
-// By default the viewport shows Eloi's Isaac Sim RTX renders of the scene's
-// cameras (simulation/renders/isaac/full); ?live=1 shows the backend's live
-// MuJoCo streams instead.
-const LIVE = new URLSearchParams(window.location.search).get("live") === "1";
+// The viewport has two sources, switchable from the header:
+//   realtime — the backend's live MuJoCo streams of the scene.
+//   replay   — Eloi's Isaac Sim RTX renders (simulation/renders/isaac/open),
+//              static images that need no backend.
+// ?live=1 still starts in real time; otherwise start in replay.
+const INITIAL_MODE = new URLSearchParams(window.location.search).get("live") === "1" ? "realtime" : "replay";
 const STILL_CAMERAS = [
-  { id: "scene", label: "General camera · Isaac RTX render", src: "/renders/general.jpg" },
-  { id: "aisle", label: "Aisle camera · Isaac RTX render", src: "/renders/room_aisle.jpg" },
+  { id: "scene", label: "General camera", src: "/renders/general.jpg" },
+  { id: "aisle", label: "Aisle camera", src: "/renders/room_aisle.jpg" },
 ];
 
 // Views that can be opened and closed from the header, and the sizes the drag
@@ -104,12 +106,16 @@ function CameraStream({ cameraId, label, className, onClick, big, still }) {
 }
 
 export default function App() {
-  const [cameras, setCameras] = useState(LIVE ? DEFAULT_CAMERAS : STILL_CAMERAS);
-  const [mainCameraId, setMainCameraId] = useState(LIVE ? "robot" : "scene");
+  const [mode, setMode] = useState(INITIAL_MODE);
+  const realtime = mode === "realtime";
+  const [liveCameras, setLiveCameras] = useState(DEFAULT_CAMERAS);
+  const cameras = realtime ? liveCameras : STILL_CAMERAS;
+  const [mainCameraId, setMainCameraId] = useState(realtime ? "robot" : "scene");
   const [tasks, setTasks] = useState([]);
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
-  const lab = useLabState(STATE_URL);
+  // The lab-state socket only exists in real time; replay needs no backend.
+  const lab = useLabState(realtime ? STATE_URL : null);
   const [layout, setLayout] = useState(loadLayout);
 
   useEffect(() => {
@@ -123,19 +129,29 @@ export default function App() {
   const resize = (patch) => setLayout((l) => ({ ...l, ...patch }));
   const toggleView = (id) => setLayout((l) => ({ ...l, views: { ...l.views, [id]: !l.views[id] } }));
 
+  // Reset the main viewport to each source's primary camera when the mode flips.
   useEffect(() => {
-    if (!LIVE) return;
+    setMainCameraId(realtime ? "robot" : "scene");
+  }, [realtime]);
+
+  useEffect(() => {
+    if (!realtime) return;
     fetch(`${BACKEND_URL}/api/cameras`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data) && data.length > 0) setCameras(data);
+        if (Array.isArray(data) && data.length > 0) setLiveCameras(data);
       })
       .catch(() => {
         /* keep defaults; backend may still be starting up */
       });
-  }, []);
+  }, [realtime]);
 
   useEffect(() => {
+    if (!realtime) {
+      setTasks([]);
+      setWsConnected(false);
+      return;
+    }
     let cancelled = false;
     let retryTimer;
 
@@ -166,7 +182,7 @@ export default function App() {
       clearTimeout(retryTimer);
       wsRef.current?.close();
     };
-  }, []);
+  }, [realtime]);
 
   const pipCameraId = cameras.find((c) => c.id !== mainCameraId)?.id ?? mainCameraId;
   const mainLabel = cameras.find((c) => c.id === mainCameraId)?.label ?? mainCameraId;
@@ -212,21 +228,41 @@ export default function App() {
     <div className="app">
       <header className="app__header">
         <h1>Robot monitor — mini-Hannover</h1>
-        <nav className="view-toggles" aria-label="Views">
-          {VIEWS.map((v) => (
+        <div className="header-controls">
+          <div className="mode-toggle" role="group" aria-label="Source">
             <button
-              key={v.id}
               type="button"
-              className={`view-toggle ${views[v.id] ? "view-toggle--on" : ""}`}
-              aria-pressed={views[v.id]}
-              title={v.title}
-              disabled={v.id === "inset" && !views.camera}
-              onClick={() => toggleView(v.id)}
+              className={`mode-toggle__btn ${realtime ? "mode-toggle__btn--active" : ""}`}
+              aria-pressed={realtime}
+              onClick={() => setMode("realtime")}
             >
-              {v.label}
+              Real time
             </button>
-          ))}
-        </nav>
+            <button
+              type="button"
+              className={`mode-toggle__btn ${!realtime ? "mode-toggle__btn--active" : ""}`}
+              aria-pressed={!realtime}
+              onClick={() => setMode("replay")}
+            >
+              Replay
+            </button>
+          </div>
+          <nav className="view-toggles" aria-label="Views">
+            {VIEWS.map((v) => (
+              <button
+                key={v.id}
+                type="button"
+                className={`view-toggle ${views[v.id] ? "view-toggle--on" : ""}`}
+                aria-pressed={views[v.id]}
+                title={v.title}
+                disabled={v.id === "inset" && !views.camera}
+                onClick={() => toggleView(v.id)}
+              >
+                {v.label}
+              </button>
+            ))}
+          </nav>
+        </div>
       </header>
       <main className="app__body">
         {showMain && (

@@ -32,7 +32,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-SCENE_PATH = REPO_ROOT / "simulation" / "models" / "minihannover_scene.xml"
+# VIEW_SCENE picks the MuJoCo model to render: a bare name resolves under
+# simulation/models/, or pass an absolute path. Defaults to the full bench.
+# A scene without the scripted run's samples (e.g. minihannover_open_scene.xml)
+# still streams live; only the LabState/task feed is skipped for it.
+_scene_env = os.environ.get("VIEW_SCENE", "minihannover_scene.xml")
+SCENE_PATH = Path(_scene_env)
+if not SCENE_PATH.is_absolute():
+    SCENE_PATH = REPO_ROOT / "simulation" / "models" / SCENE_PATH
 
 sys.path.insert(0, str(REPO_ROOT / "dashboard" / "bridge"))
 from labbridge.mock_run import ACTIVE_BALANCE, RAIL, ScriptedRun  # noqa: E402
@@ -142,7 +149,17 @@ class SceneRenderer:
 
         # Scripted formulation that drives the dashboard's LabState and moves
         # the free containers; the console reads it on ws://:STATE_PORT/state.
-        self.run = ScriptedRun(self.model, self.data, vessels(self.model))
+        # A scene without the scripted run's samples (e.g. the open lab) still
+        # renders its camera streams; only the LabState feed is skipped.
+        try:
+            self.run = ScriptedRun(self.model, self.data, vessels(self.model))
+        except Exception as exc:  # noqa: BLE001
+            print(
+                f"[view] no scripted run for {xml_path.name}: {exc!r}; "
+                "streaming cameras only, LabState feed disabled",
+                file=sys.stderr,
+            )
+            self.run = None
         self.state_server = StateServer(port=STATE_PORT)
 
         self._scene_options: dict[str, mujoco.MjvOption] = {}
@@ -194,6 +211,8 @@ class SceneRenderer:
 
     def publish_state_forever(self) -> None:
         """Replays the scripted formulation and publishes LabState patches at STATE_RATE_HZ."""
+        if self.run is None:
+            return  # scene has no compatible scripted run; cameras still stream
         self.state_server.start()
         self._snapshot_state()
         period = 1.0 / STATE_RATE_HZ

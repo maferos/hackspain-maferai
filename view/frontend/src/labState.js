@@ -37,6 +37,11 @@ export function useLabState(url) {
   const [connected, setConnected] = useState(false);
 
   useEffect(() => {
+    if (!url) {
+      setState(null);
+      setConnected(false);
+      return;
+    }
     let cancelled = false;
     let retryTimer;
     let ws;
