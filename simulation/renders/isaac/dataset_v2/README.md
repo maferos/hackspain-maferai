@@ -1,8 +1,16 @@
-# Synthetic barcode-detection dataset — v2 (geometric DR)
+# Synthetic barcode-detection dataset — v2
+
+> **Correction (superseded by [v3](../dataset_v3/README.md)).** v2's intended
+> geometric randomization (bottle spin) **did not actually apply**: raw USD
+> `xformOp` edits between Replicator renders don't reach the render (Fabric
+> caches transforms; only attribute edits like light intensity propagate). So
+> v2 is effectively v1 with 500 frames of **lighting-only** variation — same
+> bottle layout every frame. v3 fixes this by writing poses through Isaac's
+> Fabric-aware `XFormPrim` API (verified: bottles move ~300 px between frames).
+> Use v3 for geometric diversity; v2 remains valid extra lighting-augmented data.
 
 Isaac Sim 4.5 RTX renders of the `minihannover_open` lab bench, labelled for
-detection by product (EAN-13 barcode id). v2 adds **geometric** domain
-randomization on top of v1's lighting-only variation.
+detection by product (EAN-13 barcode id).
 
 - **500 images**, 1600×900, across 5 cameras (`general`, `room_aisle`,
   `room_desk`, `room_entrance`, `room_wash`).
