@@ -10,8 +10,9 @@ segmentation render of the same model.
     python scripts/demo_patterns_check.py full --out DIR
     python scripts/demo_patterns_check.py weights/other.pt --threshold 0.3 --out DIR
 
-Writes ``<out>/<pattern>.jpg`` (the band, found flasks in green, missed ones in
-red, false boxes in orange) and ``<out>/demo_patterns.json``; prints a table.
+Writes ``<out>/<pattern>.jpg`` (the whole frame with the band outlined and the
+rest dimmed; found flasks in green, missed ones in red, false boxes in orange)
+and ``<out>/demo_patterns.json``; prints a table.
 A flask counts when at least ``MIN_VISIBLE`` of it shows in the band; a box is
 right at IoU 0.5 with a flask no other box has taken.
 """
@@ -140,15 +141,21 @@ def main() -> None:
                 taken.add(best)
             else:
                 false.append(d)
-        image = band.copy()
+        # The whole frame, as the viewer shows it, with the band the detector
+        # is given outlined: the crop alone reads as another camera.
+        image = frame.copy()
+        bottom = top + band.shape[0]
+        image[:top] = (image[:top] * 0.55).astype(np.uint8)
+        image[bottom:] = (image[bottom:] * 0.55).astype(np.uint8)
+        cv2.rectangle(image, (0, top), (WIDTH - 1, bottom - 1), (255, 255, 255), 1)
         for i, t in enumerate(truths):
             x0, y0, x1, y1 = t["xyxy"]
             colour = FOUND if i in taken else MISSED
-            cv2.rectangle(image, (x0 - 2, y0 - top - 2), (x1 + 2, y1 - top + 2), colour,
+            cv2.rectangle(image, (x0 - 2, y0 - 2), (x1 + 2, y1 + 2), colour,
                           1 if i in taken else 2)  # fmt: skip
         for d in false:
-            cv2.rectangle(image, (int(d[0]) - 3, int(d[1]) - 3),
-                          (int(d[2]) + 3, int(d[3]) + 3), FALSE, 2)  # fmt: skip
+            cv2.rectangle(image, (int(d[0]) - 3, int(d[1]) + top - 3),
+                          (int(d[2]) + 3, int(d[3]) + top + 3), FALSE, 2)  # fmt: skip
         cv2.imwrite(str(args.out / f"{info['pattern']}.jpg"), image,
                     [cv2.IMWRITE_JPEG_QUALITY, 88])  # fmt: skip
         row = {**info, "flasks_in_band": len(truths), "found": len(taken),
