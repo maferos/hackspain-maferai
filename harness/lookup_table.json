@@ -75776,9 +75776,9 @@
       "count": 19,
       "metrics": {
         "gt_labels": 25,
-        "boxes": 117,
+        "boxes": 115,
         "quads": 128,
-        "bottles": 37,
+        "bottles": 33,
         "identified": 19,
         "confirmed_by_wrist": 19,
         "by_decision": {
@@ -75795,16 +75795,16 @@
             "unverified": 0
           },
           "reject": {
-            "count": 2,
+            "count": 1,
             "correct": 0,
             "wrong": 0,
-            "unverified": 2
+            "unverified": 1
           }
         },
         "missed": 6,
-        "unidentified_vessels": 18,
+        "unidentified_vessels": 14,
         "median_error_m": 0.0034,
-        "max_error_m": 0.0083,
+        "max_error_m": 0.0059,
         "per_camera": {
           "general": {
             "boxes": 19,
@@ -75813,14 +75813,14 @@
             "quads_in_box": 1
           },
           "room_entrance": {
-            "boxes": 29,
+            "boxes": 28,
             "quads": 22,
             "quads_accepted_by_opencv": 0,
             "quads_in_box": 1
           },
           "room_aisle": {
-            "boxes": 28,
-            "quads": 26,
+            "boxes": 27,
+            "quads": 25,
             "quads_accepted_by_opencv": 0,
             "quads_in_box": 2
           },
@@ -75832,7 +75832,7 @@
           },
           "room_wash": {
             "boxes": 22,
-            "quads": 21,
+            "quads": 22,
             "quads_accepted_by_opencv": 0,
             "quads_in_box": 2
           },
@@ -75846,7 +75846,7 @@
         "confirm": {
           "camera": "arm_eih",
           "mount": "ArmCamera",
-          "views": 81,
+          "views": 62,
           "standoffs_m": [
             0.3,
             0.25,
@@ -75857,20 +75857,20 @@
           "elevation_deg": 12.0,
           "bearings": 12,
           "out_of_reach": 9,
-          "bottles_looked_at": 49,
+          "bottles_looked_at": 46,
           "confirmed": 32
         }
       },
       "labels": [
         {
           "position": [
-            -3.7539,
-            -1.2528,
+            -3.7467,
+            -1.2518,
             0.932
           ],
           "surface_point": [
-            -3.7537,
-            -1.2338,
+            -3.747,
+            -1.2327,
             0.932
           ],
           "sample_id": "SMP-0009",
@@ -75883,18 +75883,18 @@
             ],
             [
               "SMP-0183",
-              3.09912e-14
+              1.2211e-15
             ],
             [
               "SMP-0198",
-              3.01003e-17
+              9.15289e-16
             ]
           ],
           "quads": {
             "total": 9,
-            "accepted_by_opencv": 6
+            "accepted_by_opencv": 5
           },
-          "position_spread_m": 0.0068,
+          "position_spread_m": 0.0035,
           "cameras": [
             "arm_eih",
             "general",
@@ -75911,7 +75911,7 @@
             -1.25,
             0.9318
           ],
-          "error_m": 0.0049,
+          "error_m": 0.0038,
           "views": [
             {
               "camera": "general",
@@ -75923,7 +75923,7 @@
                 167.7,
                 750.5
               ],
-              "side_px": 30.6,
+              "side_px": 30.7,
               "barcode": null,
               "surface_point": [
                 -3.7372,
@@ -75935,10 +75935,10 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.789,
+              "score": 0.787,
               "xyxy": [
                 880.4,
-                829.6,
+                829.7,
                 907.1,
                 891.5
               ],
@@ -75954,19 +75954,19 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.274,
+              "score": 0.27,
               "xyxy": [
-                881.0,
-                857.5,
+                881.1,
+                857.8,
                 906.5,
                 892.0
               ],
-              "side_px": 29.6,
+              "side_px": 29.5,
               "barcode": null,
               "surface_point": [
-                -3.7656,
+                -3.7657,
                 -1.259,
-                0.928
+                0.9278
               ],
               "confirmed": false
             },
@@ -75987,18 +75987,18 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     878.5,
-                    616.2
+                    616.0
                   ]
                 },
                 {
                   "sample_id": "SMP-0009",
                   "marker_id": 8,
-                  "probability": 0.999972,
+                  "probability": 0.999956,
                   "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    835.6,
-                    614.0
+                    835.5,
+                    613.5
                   ]
                 }
               ]
@@ -76006,14 +76006,14 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.791,
+              "score": 0.792,
               "xyxy": [
                 1036.1,
                 598.7,
                 1046.2,
                 618.8
               ],
-              "side_px": 14.3,
+              "side_px": 14.2,
               "barcode": null,
               "surface_point": [
                 -3.7667,
@@ -76025,21 +76025,21 @@
             {
               "camera": "arm_eih",
               "surface_point": [
-                -3.7538,
-                -1.2338,
-                0.932
+                -3.747,
+                -1.2362,
+                0.9319
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0009",
-                  "marker_id": 8,
-                  "probability": 0.999972,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "sample_id": "SMP-0035",
+                  "marker_id": 34,
+                  "probability": 0.780024,
+                  "bit_errors": 4,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    931.7,
-                    583.5
+                    907.5,
+                    571.5
                   ]
                 },
                 {
@@ -76049,19 +76049,30 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    975.7,
-                    585.5
+                    931.4,
+                    578.1
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0009",
+                  "marker_id": 8,
+                  "probability": 0.999972,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    975.8,
+                    580.2
                   ]
                 },
                 {
                   "sample_id": "SMP-0088",
                   "marker_id": 87,
-                  "probability": 0.264642,
+                  "probability": 0.325202,
                   "bit_errors": 3,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     1011.8,
-                    580.0
+                    575.2
                   ]
                 }
               ]
@@ -76069,7 +76080,7 @@
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.782,
+              "score": 0.781,
               "xyxy": [
                 58.4,
                 755.5,
@@ -76090,12 +76101,12 @@
               "label": "amber_bottle",
               "score": 0.861,
               "xyxy": [
-                61.1,
+                61.2,
                 294.1,
                 76.7,
-                314.8
+                314.7
               ],
-              "side_px": 18.0,
+              "side_px": 17.9,
               "barcode": null,
               "surface_point": [
                 -3.735,
@@ -76120,8 +76131,8 @@
             {
               "camera": "arm_eih",
               "surface_point": [
-                -3.7537,
-                -1.2338,
+                -3.7469,
+                -1.2327,
                 0.932
               ],
               "confirmed": true,
@@ -76138,17 +76149,6 @@
                   ]
                 },
                 {
-                  "sample_id": "SMP-0191",
-                  "marker_id": 190,
-                  "probability": 0.938601,
-                  "bit_errors": 1,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    1004.8,
-                    576.0
-                  ]
-                },
-                {
                   "sample_id": "SMP-0009",
                   "marker_id": 8,
                   "probability": 0.999972,
@@ -76156,7 +76156,7 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     925.4,
-                    580.5
+                    580.2
                   ]
                 }
               ]
@@ -76175,33 +76175,33 @@
           "position": [
             -1.5353,
             -0.5057,
-            0.9174
+            0.9175
           ],
           "surface_point": [
             -1.5352,
             -0.4945,
-            0.9174
+            0.9175
           ],
           "sample_id": "SMP-0011",
-          "probability": 0.999972,
+          "probability": 0.99998,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0011",
-              0.999972
+              0.99998
             ],
             [
               "SMP-0165",
-              1.23456e-05
+              8.50677e-06
             ],
             [
               "SMP-0130",
-              1.16511e-05
+              8.4997e-06
             ]
           ],
           "quads": {
             "total": 2,
-            "accepted_by_opencv": 1
+            "accepted_by_opencv": 2
           },
           "position_spread_m": 0.0,
           "cameras": [
@@ -76220,23 +76220,23 @@
             -0.5048,
             0.9173
           ],
-          "error_m": 0.0012,
+          "error_m": 0.0013,
           "views": [
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.846,
+              "score": 0.843,
               "xyxy": [
                 946.6,
                 557.3,
-                953.3,
+                953.4,
                 572.7
               ],
               "side_px": 10.2,
               "barcode": null,
               "surface_point": [
                 -1.5324,
-                -0.5155,
+                -0.5156,
                 0.9326
               ],
               "confirmed": false
@@ -76244,7 +76244,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.335,
+              "score": 0.334,
               "xyxy": [
                 970.8,
                 542.5,
@@ -76254,16 +76254,16 @@
               "side_px": 8.4,
               "barcode": null,
               "surface_point": [
-                -1.5401,
-                -0.5072,
-                0.9364
+                -1.5405,
+                -0.5073,
+                0.9362
               ],
               "confirmed": false
             },
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.748,
+              "score": 0.747,
               "xyxy": [
                 977.8,
                 541.8,
@@ -76282,12 +76282,12 @@
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.832,
+              "score": 0.833,
               "xyxy": [
                 946.5,
                 550.1,
                 953.1,
-                564.8
+                564.9
               ],
               "side_px": 9.9,
               "barcode": null,
@@ -76301,18 +76301,18 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.854,
+              "score": 0.857,
               "xyxy": [
                 403.9,
                 345.9,
                 412.3,
                 360.1
               ],
-              "side_px": 11.0,
+              "side_px": 10.9,
               "barcode": null,
               "surface_point": [
                 -1.5247,
-                -0.5056,
+                -0.5055,
                 0.9263
               ],
               "confirmed": false
@@ -76322,7 +76322,7 @@
               "surface_point": [
                 -1.5352,
                 -0.4945,
-                0.9174
+                0.9175
               ],
               "confirmed": true,
               "quads": [
@@ -76334,18 +76334,18 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     955.1,
-                    591.2
+                    591.1
                   ]
                 },
                 {
                   "sample_id": "SMP-0011",
                   "marker_id": 10,
-                  "probability": 0.99996,
+                  "probability": 0.99998,
                   "bit_errors": 0,
-                  "accepted_by_opencv": false,
+                  "accepted_by_opencv": true,
                   "centre_px": [
-                    979.5,
-                    590.8
+                    979.9,
+                    590.4
                   ]
                 }
               ]
@@ -76362,30 +76362,30 @@
         },
         {
           "position": [
-            -1.3972,
+            -1.3973,
             0.4273,
             0.9273
           ],
           "surface_point": [
-            -1.3973,
+            -1.3974,
             0.4434,
             0.9273
           ],
           "sample_id": "SMP-0013",
-          "probability": 0.999896,
+          "probability": 0.999813,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0013",
-              0.999896
+              0.999813
             ],
             [
               "SMP-0132",
-              5.953e-05
+              5.9525e-05
             ],
             [
               "SMP-0113",
-              1.46913e-05
+              5.24489e-05
             ]
           ],
           "quads": {
@@ -76414,7 +76414,7 @@
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.828,
+              "score": 0.829,
               "xyxy": [
                 980.0,
                 406.9,
@@ -76424,7 +76424,7 @@
               "side_px": 12.2,
               "barcode": null,
               "surface_point": [
-                -1.3982,
+                -1.3983,
                 0.4145,
                 0.9457
               ],
@@ -76444,7 +76444,7 @@
               "barcode": null,
               "surface_point": [
                 -1.4113,
-                0.419,
+                0.4189,
                 0.9391
               ],
               "confirmed": false
@@ -76452,7 +76452,7 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.826,
+              "score": 0.827,
               "xyxy": [
                 794.3,
                 515.2,
@@ -76471,7 +76471,7 @@
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.837,
+              "score": 0.836,
               "xyxy": [
                 978.9,
                 386.0,
@@ -76490,18 +76490,18 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.727,
+              "score": 0.73,
               "xyxy": [
-                623.0,
+                623.1,
                 307.7,
-                632.7,
+                632.6,
                 327.2
               ],
-              "side_px": 13.7,
+              "side_px": 13.6,
               "barcode": null,
               "surface_point": [
-                -1.3868,
-                0.4258,
+                -1.3867,
+                0.4259,
                 0.9399
               ],
               "confirmed": false
@@ -76509,7 +76509,7 @@
             {
               "camera": "arm_eih",
               "surface_point": [
-                -1.3973,
+                -1.3974,
                 0.4434,
                 0.9273
               ],
@@ -76522,19 +76522,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    955.3,
-                    591.9
+                    955.5,
+                    591.5
                   ]
                 },
                 {
                   "sample_id": "SMP-0089",
                   "marker_id": 88,
-                  "probability": 0.897651,
+                  "probability": 0.512215,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     925.0,
-                    587.2
+                    586.8
                   ]
                 },
                 {
@@ -76562,13 +76562,13 @@
         },
         {
           "position": [
-            0.4502,
-            0.4678,
+            0.4527,
+            0.4674,
             0.9236
           ],
           "surface_point": [
-            0.4538,
-            0.4809,
+            0.4563,
+            0.4805,
             0.9236
           ],
           "sample_id": "SMP-0017",
@@ -76580,19 +76580,19 @@
               1.0
             ],
             [
-              "SMP-0123",
-              2.46204e-09
+              "SMP-0139",
+              9.18152e-09
             ],
             [
-              "SMP-0139",
-              1.77319e-10
+              "SMP-0123",
+              5.5306e-10
             ]
           ],
           "quads": {
-            "total": 6,
+            "total": 7,
             "accepted_by_opencv": 3
           },
-          "position_spread_m": 0.0051,
+          "position_spread_m": 0.0026,
           "cameras": [
             "arm_eih",
             "general",
@@ -76608,12 +76608,12 @@
             0.47,
             0.9235
           ],
-          "error_m": 0.0023,
+          "error_m": 0.0038,
           "views": [
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.886,
+              "score": 0.885,
               "xyxy": [
                 1415.7,
                 403.9,
@@ -76623,7 +76623,7 @@
               "side_px": 13.6,
               "barcode": null,
               "surface_point": [
-                0.4461,
+                0.4462,
                 0.4615,
                 0.937
               ],
@@ -76632,7 +76632,7 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.67,
+              "score": 0.667,
               "xyxy": [
                 952.2,
                 468.1,
@@ -76642,7 +76642,7 @@
               "side_px": 8.1,
               "barcode": null,
               "surface_point": [
-                0.4421,
+                0.442,
                 0.4604,
                 0.9356
               ],
@@ -76651,28 +76651,28 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.161,
+              "score": 0.164,
               "xyxy": [
                 951.6,
                 470.0,
                 956.8,
-                484.0
+                483.8
               ],
               "side_px": 8.5,
               "barcode": null,
               "surface_point": [
-                0.4396,
+                0.4397,
                 0.4635,
-                0.9186
+                0.9193
               ],
               "confirmed": false
             },
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.802,
+              "score": 0.801,
               "xyxy": [
-                1395.9,
+                1396.0,
                 382.8,
                 1408.8,
                 399.4
@@ -76689,40 +76689,51 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.84,
+              "score": 0.842,
               "xyxy": [
                 914.2,
                 379.3,
                 923.1,
                 400.3
               ],
-              "side_px": 13.7,
+              "side_px": 13.6,
               "barcode": null,
               "surface_point": [
                 0.46,
-                0.4617,
-                0.9382
+                0.4616,
+                0.9381
               ],
               "confirmed": false
             },
             {
               "camera": "arm_eih",
               "surface_point": [
-                0.4488,
-                0.4811,
-                0.9237
+                0.4537,
+                0.4804,
+                0.9236
               ],
               "confirmed": true,
               "quads": [
                 {
                   "sample_id": "SMP-0017",
                   "marker_id": 16,
-                  "probability": 0.79819,
-                  "bit_errors": 4,
+                  "probability": 0.937235,
+                  "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     949.0,
                     586.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0038",
+                  "marker_id": 37,
+                  "probability": 0.00688904,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    946.8,
+                    504.2
                   ]
                 },
                 {
@@ -76733,17 +76744,17 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     979.5,
-                    588.2
+                    588.1
                   ]
                 },
                 {
-                  "sample_id": "SMP-0156",
-                  "marker_id": 155,
-                  "probability": 0.29018,
-                  "bit_errors": 2,
+                  "sample_id": "SMP-0039",
+                  "marker_id": 38,
+                  "probability": 0.861671,
+                  "bit_errors": 3,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    1007.0,
+                    1007.2,
                     584.8
                   ]
                 }
@@ -76752,8 +76763,8 @@
             {
               "camera": "arm_eih",
               "surface_point": [
-                0.4589,
-                0.4806,
+                0.4588,
+                0.4807,
                 0.9236
               ],
               "confirmed": true,
@@ -76765,7 +76776,7 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    955.2,
+                    955.5,
                     584.5
                   ]
                 },
@@ -76776,19 +76787,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    986.4,
-                    582.9
+                    986.5,
+                    582.6
                   ]
                 },
                 {
-                  "sample_id": "SMP-0017",
-                  "marker_id": 16,
-                  "probability": 0.985114,
-                  "bit_errors": 1,
+                  "sample_id": "SMP-0082",
+                  "marker_id": 81,
+                  "probability": 0.404428,
+                  "bit_errors": 3,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    928.0,
-                    580.5
+                    928.5,
+                    580.8
                   ]
                 }
               ]
@@ -76824,11 +76835,11 @@
             ],
             [
               "SMP-0093",
-              9.54949e-09
+              4.82688e-09
             ],
             [
               "SMP-0195",
-              1.33696e-09
+              2.71408e-09
             ]
           ],
           "quads": {
@@ -76856,14 +76867,14 @@
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.822,
+              "score": 0.819,
               "xyxy": [
                 1213.4,
                 735.9,
                 1225.0,
                 754.1
               ],
-              "side_px": 14.5,
+              "side_px": 14.6,
               "barcode": null,
               "surface_point": [
                 -0.7822,
@@ -76875,7 +76886,7 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.708,
+              "score": 0.709,
               "xyxy": [
                 1204.1,
                 523.0,
@@ -76894,17 +76905,17 @@
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.837,
+              "score": 0.836,
               "xyxy": [
                 1233.3,
                 771.7,
-                1249.1,
-                788.6
+                1249.2,
+                788.7
               ],
               "side_px": 16.4,
               "barcode": null,
               "surface_point": [
-                -0.7843,
+                -0.7842,
                 -1.2762,
                 0.9398
               ],
@@ -76913,14 +76924,14 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.875,
+              "score": 0.876,
               "xyxy": [
-                239.5,
+                239.6,
                 429.5,
                 253.1,
                 449.1
               ],
-              "side_px": 16.3,
+              "side_px": 16.2,
               "barcode": null,
               "surface_point": [
                 -0.772,
@@ -76947,7 +76958,7 @@
               "surface_point": [
                 -0.7786,
                 -1.2608,
-                0.9174
+                0.9175
               ],
               "confirmed": true,
               "quads": [
@@ -76958,30 +76969,30 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    967.4,
-                    590.6
+                    967.5,
+                    590.7
                   ]
                 },
                 {
-                  "sample_id": "SMP-0042",
-                  "marker_id": 41,
-                  "probability": 0.704905,
+                  "sample_id": "SMP-0108",
+                  "marker_id": 107,
+                  "probability": 0.842372,
                   "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     946.0,
-                    587.8
+                    587.5
                   ]
                 },
                 {
                   "sample_id": "SMP-0021",
                   "marker_id": 20,
-                  "probability": 0.999787,
+                  "probability": 0.999929,
                   "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     991.0,
-                    589.0
+                    589.2
                   ]
                 }
               ]
@@ -76989,7 +77000,7 @@
             {
               "camera": "arm_eih",
               "surface_point": [
-                -0.7747,
+                -0.7748,
                 -1.2611,
                 0.9175
               ],
@@ -77002,8 +77013,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    962.2,
-                    583.9
+                    962.4,
+                    584.0
                   ]
                 },
                 {
@@ -77031,41 +77042,42 @@
         },
         {
           "position": [
-            -2.9719,
+            -2.972,
             -0.7842,
-            0.9175
+            0.9174
           ],
           "surface_point": [
             -2.9721,
             -0.773,
-            0.9175
+            0.9174
           ],
           "sample_id": "SMP-0041",
-          "probability": 0.999903,
+          "probability": 0.999384,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0041",
-              0.999903
-            ],
-            [
-              "SMP-0106",
-              1.54014e-05
+              0.999384
             ],
             [
               "SMP-0110",
-              1.54014e-05
+              0.000265834
+            ],
+            [
+              "SMP-0121",
+              5.67504e-05
             ]
           ],
           "quads": {
             "total": 2,
-            "accepted_by_opencv": 2
+            "accepted_by_opencv": 1
           },
           "position_spread_m": 0.0,
           "cameras": [
             "arm_eih",
             "general",
-            "room_desk"
+            "room_desk",
+            "room_wash"
           ],
           "confirmed": true,
           "reached": true,
@@ -77080,14 +77092,14 @@
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.859,
+              "score": 0.858,
               "xyxy": [
                 492.1,
                 614.5,
                 503.4,
-                630.1
+                630.2
               ],
-              "side_px": 13.2,
+              "side_px": 13.3,
               "barcode": null,
               "surface_point": [
                 -2.9666,
@@ -77099,7 +77111,7 @@
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.868,
+              "score": 0.867,
               "xyxy": [
                 473.8,
                 617.6,
@@ -77116,11 +77128,30 @@
               "confirmed": false
             },
             {
+              "camera": "room_wash",
+              "label": "amber_bottle",
+              "score": 0.802,
+              "xyxy": [
+                222.4,
+                309.1,
+                230.6,
+                321.4
+              ],
+              "side_px": 10.1,
+              "barcode": null,
+              "surface_point": [
+                -2.9634,
+                -0.7832,
+                0.9248
+              ],
+              "confirmed": false
+            },
+            {
               "camera": "arm_eih",
               "surface_point": [
                 -2.9721,
                 -0.773,
-                0.9175
+                0.9174
               ],
               "confirmed": true,
               "quads": [
@@ -77131,18 +77162,18 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    958.4,
-                    576.7
+                    959.4,
+                    576.4
                   ]
                 },
                 {
                   "sample_id": "SMP-0041",
                   "marker_id": 40,
-                  "probability": 0.999845,
+                  "probability": 0.979455,
                   "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    933.7,
+                    935.0,
                     575.8
                   ]
                 }
@@ -77160,7 +77191,7 @@
         },
         {
           "position": [
-            -3.6199,
+            -3.62,
             -0.7469,
             0.9321
           ],
@@ -77178,19 +77209,19 @@
               1.0
             ],
             [
-              "SMP-0156",
-              1.65449e-07
+              "SMP-0170",
+              2.17047e-08
             ],
             [
-              "SMP-0197",
-              7.08138e-09
+              "SMP-0156",
+              8.67353e-09
             ]
           ],
           "quads": {
             "total": 6,
-            "accepted_by_opencv": 3
+            "accepted_by_opencv": 2
           },
-          "position_spread_m": 0.0,
+          "position_spread_m": 0.0001,
           "cameras": [
             "arm_eih",
             "general",
@@ -77210,110 +77241,9 @@
           "error_m": 0.0047,
           "views": [
             {
-              "camera": "general",
-              "label": "amber_bottle",
-              "score": 0.883,
-              "xyxy": [
-                286.7,
-                596.8,
-                307.0,
-                611.9
-              ],
-              "side_px": 17.5,
-              "barcode": null,
-              "surface_point": [
-                -3.6091,
-                -0.7491,
-                0.9694
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "room_desk",
-              "label": "amber_bottle",
-              "score": 0.907,
-              "xyxy": [
-                259.8,
-                599.4,
-                293.2,
-                624.4
-              ],
-              "side_px": 28.9,
-              "barcode": null,
-              "surface_point": [
-                -3.6103,
-                -0.7515,
-                0.9476
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "room_wash",
-              "label": "amber_bottle",
-              "score": 0.505,
-              "xyxy": [
-                192.2,
-                283.0,
-                203.5,
-                298.9
-              ],
-              "side_px": 13.4,
-              "barcode": null,
-              "surface_point": [
-                -3.6034,
-                -0.7438,
-                0.9557
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "arm_eih",
-              "surface_point": [
-                -3.62,
-                -0.7279,
-                0.9321
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0044",
-                  "marker_id": 43,
-                  "probability": 0.999961,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    953.7,
-                    610.8
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0156",
-                  "marker_id": 155,
-                  "probability": 0.527137,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    918.8,
-                    604.5
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0044",
-                  "marker_id": 43,
-                  "probability": 0.999961,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    996.2,
-                    608.6
-                  ]
-                }
-              ]
-            },
-            {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.783,
+              "score": 0.784,
               "xyxy": [
                 934.6,
                 589.5,
@@ -77332,7 +77262,7 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.878,
+              "score": 0.879,
               "xyxy": [
                 668.8,
                 743.9,
@@ -77342,7 +77272,7 @@
               "side_px": 34.8,
               "barcode": null,
               "surface_point": [
-                -3.6356,
+                -3.6357,
                 -0.7566,
                 0.9482
               ],
@@ -77353,19 +77283,19 @@
               "surface_point": [
                 -3.62,
                 -0.7279,
-                0.9321
+                0.9322
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0156",
-                  "marker_id": 155,
-                  "probability": 0.526444,
+                  "sample_id": "SMP-0150",
+                  "marker_id": 149,
+                  "probability": 0.318405,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    924.0,
-                    621.5
+                    923.2,
+                    604.2
                   ]
                 },
                 {
@@ -77375,19 +77305,120 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    961.0,
-                    628.5
+                    960.5,
+                    611.6
                   ]
                 },
                 {
                   "sample_id": "SMP-0044",
                   "marker_id": 43,
-                  "probability": 0.998712,
+                  "probability": 0.999829,
                   "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    1005.2,
-                    626.2
+                    1004.8,
+                    609.0
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "general",
+              "label": "amber_bottle",
+              "score": 0.883,
+              "xyxy": [
+                286.7,
+                596.8,
+                307.0,
+                611.9
+              ],
+              "side_px": 17.5,
+              "barcode": null,
+              "surface_point": [
+                -3.6091,
+                -0.7491,
+                0.9693
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "room_desk",
+              "label": "amber_bottle",
+              "score": 0.906,
+              "xyxy": [
+                259.8,
+                599.4,
+                293.2,
+                624.4
+              ],
+              "side_px": 28.9,
+              "barcode": null,
+              "surface_point": [
+                -3.6103,
+                -0.7515,
+                0.9476
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "room_wash",
+              "label": "amber_bottle",
+              "score": 0.571,
+              "xyxy": [
+                192.5,
+                283.9,
+                204.4,
+                301.0
+              ],
+              "side_px": 14.3,
+              "barcode": null,
+              "surface_point": [
+                -3.5992,
+                -0.7441,
+                0.9486
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -3.62,
+                -0.7279,
+                0.932
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0044",
+                  "marker_id": 43,
+                  "probability": 0.999961,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    954.4,
+                    606.1
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0150",
+                  "marker_id": 149,
+                  "probability": 0.281302,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    918.5,
+                    600.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0044",
+                  "marker_id": 43,
+                  "probability": 0.99994,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    996.8,
+                    604.0
                   ]
                 }
               ]
@@ -77406,28 +77437,28 @@
           "position": [
             -2.6274,
             -0.2848,
-            0.9273
+            0.9274
           ],
           "surface_point": [
             -2.6273,
             -0.2687,
-            0.9273
+            0.9274
           ],
           "sample_id": "SMP-0048",
-          "probability": 0.999846,
+          "probability": 0.999414,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0048",
-              0.999846
+              0.999414
             ],
             [
               "SMP-0096",
-              4.49242e-05
+              0.000149694
             ],
             [
-              "SMP-0099",
-              3.95706e-05
+              "SMP-0151",
+              8.22413e-05
             ]
           ],
           "quads": {
@@ -77451,7 +77482,7 @@
             -0.2814,
             0.9271
           ],
-          "error_m": 0.0036,
+          "error_m": 0.0037,
           "views": [
             {
               "camera": "general",
@@ -77466,7 +77497,7 @@
               "side_px": 15.6,
               "barcode": null,
               "surface_point": [
-                -2.6184,
+                -2.6185,
                 -0.2932,
                 0.9418
               ],
@@ -77513,7 +77544,7 @@
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.896,
+              "score": 0.897,
               "xyxy": [
                 640.8,
                 499.6,
@@ -77532,7 +77563,7 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.871,
+              "score": 0.874,
               "xyxy": [
                 360.8,
                 298.4,
@@ -77543,8 +77574,8 @@
               "barcode": null,
               "surface_point": [
                 -2.6114,
-                -0.2831,
-                0.9361
+                -0.283,
+                0.9362
               ],
               "confirmed": false
             },
@@ -77553,7 +77584,7 @@
               "surface_point": [
                 -2.6273,
                 -0.2687,
-                0.9273
+                0.9274
               ],
               "confirmed": true,
               "quads": [
@@ -77569,25 +77600,25 @@
                   ]
                 },
                 {
-                  "sample_id": "SMP-0048",
-                  "marker_id": 47,
-                  "probability": 0.690874,
-                  "bit_errors": 2,
+                  "sample_id": "SMP-0017",
+                  "marker_id": 16,
+                  "probability": 0.58639,
+                  "bit_errors": 3,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     928.5,
-                    580.5
+                    580.2
                   ]
                 },
                 {
-                  "sample_id": "SMP-0099",
-                  "marker_id": 98,
-                  "probability": 0.334385,
-                  "bit_errors": 1,
+                  "sample_id": "SMP-0048",
+                  "marker_id": 47,
+                  "probability": 0.550109,
+                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     995.2,
-                    579.2
+                    579.0
                   ]
                 }
               ]
@@ -77606,28 +77637,28 @@
           "position": [
             -0.1418,
             -0.5847,
-            0.9175
+            0.9176
           ],
           "surface_point": [
             -0.1416,
             -0.5735,
-            0.9175
+            0.9176
           ],
           "sample_id": "SMP-0051",
-          "probability": 0.999998,
+          "probability": 0.999995,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0051",
-              0.999998
+              0.999995
             ],
             [
               "SMP-0164",
-              1.43735e-06
+              3.02588e-06
             ],
             [
               "SMP-0157",
-              6.15543e-07
+              1.13455e-06
             ]
           ],
           "quads": {
@@ -77651,14 +77682,14 @@
             -0.5819,
             0.9173
           ],
-          "error_m": 0.0028,
+          "error_m": 0.0029,
           "views": [
             {
               "camera": "general",
               "label": "amber_bottle",
               "score": 0.88,
               "xyxy": [
-                1359.5,
+                1359.4,
                 572.3,
                 1369.9,
                 587.7
@@ -77675,37 +77706,37 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.134,
+              "score": 0.13,
               "xyxy": [
-                1011.9,
-                527.4,
+                1012.3,
+                527.8,
                 1017.0,
-                538.1
+                537.6
               ],
-              "side_px": 7.3,
+              "side_px": 6.8,
               "barcode": null,
               "surface_point": [
-                -0.1485,
-                -0.5873,
-                0.9198
+                -0.1482,
+                -0.5884,
+                0.9201
               ],
               "confirmed": false
             },
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.602,
+              "score": 0.719,
               "xyxy": [
                 1090.1,
-                494.0,
-                1095.7,
-                505.8
+                494.2,
+                1095.6,
+                505.5
               ],
-              "side_px": 8.1,
+              "side_px": 7.9,
               "barcode": null,
               "surface_point": [
-                -0.1491,
-                -0.587,
+                -0.1492,
+                -0.5867,
                 0.9257
               ],
               "confirmed": false
@@ -77732,14 +77763,14 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.85,
+              "score": 0.854,
               "xyxy": [
                 554.8,
                 420.7,
-                564.6,
+                564.5,
                 438.1
               ],
-              "side_px": 13.1,
+              "side_px": 13.0,
               "barcode": null,
               "surface_point": [
                 -0.1325,
@@ -77753,19 +77784,19 @@
               "surface_point": [
                 -0.1416,
                 -0.5735,
-                0.9175
+                0.9176
               ],
               "confirmed": true,
               "quads": [
                 {
                   "sample_id": "SMP-0051",
                   "marker_id": 50,
-                  "probability": 0.903335,
-                  "bit_errors": 1,
+                  "probability": 0.566406,
+                  "bit_errors": 3,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    949.9,
-                    569.6
+                    948.9,
+                    561.7
                   ]
                 },
                 {
@@ -77775,19 +77806,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    972.8,
-                    572.4
+                    971.8,
+                    564.5
                   ]
                 },
                 {
                   "sample_id": "SMP-0051",
                   "marker_id": 50,
-                  "probability": 0.999888,
+                  "probability": 0.999817,
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    996.2,
-                    569.8
+                    995.2,
+                    561.9
                   ]
                 }
               ]
@@ -77814,20 +77845,20 @@
             0.9236
           ],
           "sample_id": "SMP-0082",
-          "probability": 0.999958,
+          "probability": 0.999973,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0082",
-              0.999958
+              0.999973
             ],
             [
               "SMP-0195",
-              3.67227e-05
+              2.12366e-05
             ],
             [
               "SMP-0129",
-              3.02846e-06
+              2.65337e-06
             ]
           ],
           "quads": {
@@ -77863,7 +77894,7 @@
                 1259.6,
                 580.7
               ],
-              "side_px": 14.5,
+              "side_px": 14.6,
               "barcode": null,
               "surface_point": [
                 -0.5087,
@@ -77875,28 +77906,28 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.521,
+              "score": 0.441,
               "xyxy": [
                 1001.0,
                 529.9,
                 1005.0,
-                540.1
+                540.3
               ],
-              "side_px": 6.4,
+              "side_px": 6.5,
               "barcode": null,
               "surface_point": [
                 -0.5138,
-                -0.5492,
-                0.9364
+                -0.549,
+                0.9358
               ],
               "confirmed": false
             },
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.805,
+              "score": 0.807,
               "xyxy": [
-                1062.9,
+                1062.8,
                 501.9,
                 1069.0,
                 516.2
@@ -77904,7 +77935,7 @@
               "side_px": 9.4,
               "barcode": null,
               "surface_point": [
-                -0.5161,
+                -0.5162,
                 -0.5499,
                 0.9314
               ],
@@ -77932,17 +77963,17 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.866,
+              "score": 0.869,
               "xyxy": [
-                511.3,
-                392.7,
+                511.4,
+                392.8,
                 522.5,
                 412.8
               ],
               "side_px": 15.0,
               "barcode": null,
               "surface_point": [
-                -0.4918,
+                -0.4917,
                 -0.5471,
                 0.9331
               ],
@@ -77965,7 +77996,7 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     946.5,
-                    571.2
+                    569.2
                   ]
                 },
                 {
@@ -77975,19 +78006,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    978.2,
-                    571.1
+                    978.3,
+                    569.1
                   ]
                 },
                 {
                   "sample_id": "SMP-0129",
                   "marker_id": 128,
-                  "probability": 0.509341,
-                  "bit_errors": 2,
+                  "probability": 0.774961,
+                  "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     1000.2,
-                    566.0
+                    564.5
                   ]
                 }
               ]
@@ -78004,14 +78035,14 @@
         },
         {
           "position": [
-            -3.8778,
-            -0.6404,
-            0.9322
+            -3.8744,
+            -0.6393,
+            0.9321
           ],
           "surface_point": [
-            -3.8774,
-            -0.6214,
-            0.9322
+            -3.8742,
+            -0.6203,
+            0.9321
           ],
           "sample_id": "SMP-0084",
           "probability": 1.0,
@@ -78023,18 +78054,18 @@
             ],
             [
               "SMP-0103",
-              8.39277e-11
+              1.13138e-10
             ],
             [
-              "SMP-0166",
-              2.99576e-12
+              "SMP-0187",
+              9.94654e-11
             ]
           ],
           "quads": {
-            "total": 5,
-            "accepted_by_opencv": 2
+            "total": 4,
+            "accepted_by_opencv": 3
           },
-          "position_spread_m": 0.0034,
+          "position_spread_m": 0.0001,
           "cameras": [
             "arm_eih",
             "general",
@@ -78051,12 +78082,12 @@
             -0.637,
             0.9318
           ],
-          "error_m": 0.0039,
+          "error_m": 0.0059,
           "views": [
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.516,
+              "score": 0.517,
               "xyxy": [
                 899.2,
                 593.8,
@@ -78075,21 +78106,21 @@
             {
               "camera": "arm_eih",
               "surface_point": [
-                -3.8807,
-                -0.6224,
-                0.9323
+                -3.8742,
+                -0.6203,
+                0.9322
               ],
               "confirmed": true,
               "quads": [
                 {
                   "sample_id": "SMP-0084",
                   "marker_id": 83,
-                  "probability": 0.999979,
+                  "probability": 0.99998,
                   "bit_errors": 0,
-                  "accepted_by_opencv": false,
+                  "accepted_by_opencv": true,
                   "centre_px": [
-                    968.8,
-                    712.2
+                    970.0,
+                    715.9
                   ]
                 },
                 {
@@ -78099,19 +78130,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1009.9,
-                    717.7
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0166",
-                  "marker_id": 165,
-                  "probability": 0.892511,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    1047.5,
-                    710.5
+                    1011.3,
+                    721.4
                   ]
                 }
               ]
@@ -78138,38 +78158,38 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.818,
+              "score": 0.817,
               "xyxy": [
                 510.8,
-                791.8,
+                791.9,
                 539.6,
                 849.9
               ],
-              "side_px": 41.0,
+              "side_px": 40.9,
               "barcode": null,
               "surface_point": [
                 -3.8899,
                 -0.6515,
-                0.9493
+                0.9492
               ],
               "confirmed": false
             },
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.39,
+              "score": 0.391,
               "xyxy": [
                 512.1,
-                813.6,
+                814.0,
                 539.2,
                 850.2
               ],
-              "side_px": 31.5,
+              "side_px": 31.3,
               "barcode": null,
               "surface_point": [
-                -3.8914,
-                -0.6518,
-                0.9305
+                -3.8913,
+                -0.6517,
+                0.9301
               ],
               "confirmed": false
             },
@@ -78181,12 +78201,12 @@
                 204.4,
                 573.1,
                 238.6,
-                596.8
+                596.9
               ],
               "side_px": 28.5,
               "barcode": null,
               "surface_point": [
-                -3.8652,
+                -3.8653,
                 -0.644,
                 0.947
               ],
@@ -78195,19 +78215,19 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.77,
+              "score": 0.757,
               "xyxy": [
                 202.8,
                 275.6,
-                215.7,
-                293.1
+                215.9,
+                292.7
               ],
               "side_px": 15.0,
               "barcode": null,
               "surface_point": [
-                -3.8625,
-                -0.6364,
-                0.9441
+                -3.8622,
+                -0.6356,
+                0.9449
               ],
               "confirmed": false
             },
@@ -78228,18 +78248,18 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     966.1,
-                    590.1
+                    590.2
                   ]
                 },
                 {
                   "sample_id": "SMP-0084",
                   "marker_id": 83,
-                  "probability": 0.999965,
+                  "probability": 0.999421,
                   "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
                     924.8,
-                    586.2
+                    586.5
                   ]
                 }
               ]
@@ -78275,16 +78295,16 @@
             ],
             [
               "SMP-0063",
-              1.21569e-06
+              3.14723e-07
             ],
             [
               "SMP-0107",
-              1.8672e-07
+              2.2566e-07
             ]
           ],
           "quads": {
             "total": 7,
-            "accepted_by_opencv": 4
+            "accepted_by_opencv": 3
           },
           "position_spread_m": 0.0028,
           "cameras": [
@@ -78308,12 +78328,12 @@
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.857,
+              "score": 0.855,
               "xyxy": [
                 817.1,
                 588.9,
                 828.4,
-                611.1
+                611.2
               ],
               "side_px": 15.9,
               "barcode": null,
@@ -78327,10 +78347,10 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.773,
+              "score": 0.775,
               "xyxy": [
                 986.7,
-                550.4,
+                550.5,
                 992.6,
                 563.8
               ],
@@ -78339,14 +78359,14 @@
               "surface_point": [
                 -1.9593,
                 -0.6972,
-                0.9394
+                0.9393
               ],
               "confirmed": false
             },
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.87,
+              "score": 0.871,
               "xyxy": [
                 981.7,
                 561.9,
@@ -78356,7 +78376,7 @@
               "side_px": 14.9,
               "barcode": null,
               "surface_point": [
-                -1.9601,
+                -1.9602,
                 -0.6977,
                 0.9393
               ],
@@ -78368,7 +78388,7 @@
               "score": 0.866,
               "xyxy": [
                 812.8,
-                588.5,
+                588.4,
                 825.4,
                 610.0
               ],
@@ -78384,7 +78404,7 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.863,
+              "score": 0.865,
               "xyxy": [
                 315.9,
                 333.5,
@@ -78395,7 +78415,7 @@
               "barcode": null,
               "surface_point": [
                 -1.9335,
-                -0.6916,
+                -0.6915,
                 0.9362
               ],
               "confirmed": false
@@ -78405,7 +78425,7 @@
               "surface_point": [
                 -1.9445,
                 -0.6775,
-                0.9274
+                0.9273
               ],
               "confirmed": true,
               "quads": [
@@ -78416,30 +78436,30 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    953.7,
-                    583.0
+                    953.6,
+                    581.8
                   ]
                 },
                 {
                   "sample_id": "SMP-0093",
                   "marker_id": 92,
-                  "probability": 0.999886,
+                  "probability": 0.999826,
                   "bit_errors": 0,
-                  "accepted_by_opencv": true,
+                  "accepted_by_opencv": false,
                   "centre_px": [
-                    989.1,
-                    581.1
+                    989.0,
+                    580.0
                   ]
                 },
                 {
                   "sample_id": "SMP-0108",
                   "marker_id": 107,
-                  "probability": 0.435473,
+                  "probability": 0.348295,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    924.0,
-                    578.0
+                    923.8,
+                    577.2
                   ]
                 }
               ]
@@ -78461,13 +78481,13 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     960.0,
-                    572.0
+                    571.9
                   ]
                 },
                 {
                   "sample_id": "SMP-0106",
                   "marker_id": 105,
-                  "probability": 0.604922,
+                  "probability": 0.740909,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
@@ -78482,18 +78502,18 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    923.7,
+                    923.6,
                     571.3
                   ]
                 },
                 {
                   "sample_id": "SMP-0127",
                   "marker_id": 126,
-                  "probability": 0.940798,
+                  "probability": 0.927229,
                   "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    901.2,
+                    901.0,
                     566.5
                   ]
                 }
@@ -78513,12 +78533,12 @@
           "position": [
             -2.3163,
             -0.6104,
-            0.9321
+            0.9322
           ],
           "surface_point": [
             -2.3118,
             -0.5924,
-            0.9321
+            0.9322
           ],
           "sample_id": "SMP-0109",
           "probability": 1.0,
@@ -78530,11 +78550,11 @@
             ],
             [
               "SMP-0195",
-              4.92963e-10
+              1.55651e-11
             ],
             [
               "SMP-0108",
-              4.73287e-15
+              7.23483e-17
             ]
           ],
           "quads": {
@@ -78563,10 +78583,10 @@
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.88,
+              "score": 0.881,
               "xyxy": [
                 708.2,
-                569.3,
+                569.4,
                 722.6,
                 594.5
               ],
@@ -78584,7 +78604,7 @@
               "label": "amber_bottle",
               "score": 0.756,
               "xyxy": [
-                962.5,
+                962.6,
                 555.7,
                 969.3,
                 571.1
@@ -78601,7 +78621,7 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.69,
+              "score": 0.691,
               "xyxy": [
                 914.4,
                 578.4,
@@ -78633,7 +78653,7 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.654,
+              "score": 0.655,
               "xyxy": [
                 913.7,
                 579.0,
@@ -78643,7 +78663,7 @@
               "side_px": 19.4,
               "barcode": null,
               "surface_point": [
-                -2.3299,
+                -2.3298,
                 -0.6198,
                 0.9498
               ],
@@ -78680,7 +78700,7 @@
                 {
                   "sample_id": "SMP-0195",
                   "marker_id": 194,
-                  "probability": 0.835123,
+                  "probability": 0.846672,
                   "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
@@ -78695,8 +78715,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    927.4,
-                    606.3
+                    927.5,
+                    606.2
                   ]
                 },
                 {
@@ -78707,7 +78727,7 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     884.0,
-                    605.5
+                    605.4
                   ]
                 }
               ]
@@ -78724,7 +78744,7 @@
                 {
                   "sample_id": "SMP-0115",
                   "marker_id": 114,
-                  "probability": 0.924405,
+                  "probability": 0.929968,
                   "bit_errors": 3,
                   "accepted_by_opencv": false,
                   "centre_px": [
@@ -78746,11 +78766,11 @@
                 {
                   "sample_id": "SMP-0109",
                   "marker_id": 108,
-                  "probability": 0.583652,
-                  "bit_errors": 1,
+                  "probability": 0.999076,
+                  "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    863.8,
+                    863.5,
                     606.8
                   ]
                 }
@@ -78759,11 +78779,11 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.833,
+              "score": 0.835,
               "xyxy": [
                 306.6,
-                314.4,
-                320.0,
+                314.3,
+                319.9,
                 336.3
               ],
               "side_px": 17.1,
@@ -78780,7 +78800,7 @@
               "surface_point": [
                 -2.3189,
                 -0.5923,
-                0.9321
+                0.932
               ],
               "confirmed": true,
               "quads": [
@@ -78791,8 +78811,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    935.9,
-                    582.0
+                    935.8,
+                    582.2
                   ]
                 },
                 {
@@ -78802,19 +78822,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    980.1,
-                    582.8
+                    980.0,
+                    583.0
                   ]
                 },
                 {
-                  "sample_id": "SMP-0195",
-                  "marker_id": 194,
-                  "probability": 0.713228,
+                  "sample_id": "SMP-0082",
+                  "marker_id": 81,
+                  "probability": 0.619019,
                   "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    1012.2,
-                    575.5
+                    1012.0,
+                    576.5
                   ]
                 }
               ]
@@ -78824,7 +78844,7 @@
               "surface_point": [
                 -2.3047,
                 -0.5926,
-                0.9321
+                0.9322
               ],
               "confirmed": true,
               "quads": [
@@ -78835,14 +78855,14 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    962.7,
-                    598.1
+                    962.5,
+                    598.3
                   ]
                 },
                 {
                   "sample_id": "SMP-0082",
                   "marker_id": 81,
-                  "probability": 0.705302,
+                  "probability": 0.485335,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
@@ -78853,12 +78873,12 @@
                 {
                   "sample_id": "SMP-0109",
                   "marker_id": 108,
-                  "probability": 0.99686,
+                  "probability": 0.986918,
                   "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    921.2,
-                    594.2
+                    921.0,
+                    594.5
                   ]
                 }
               ]
@@ -78875,7 +78895,7 @@
         },
         {
           "position": [
-            -3.8296,
+            -3.8302,
             -1.1118,
             0.9417
           ],
@@ -78893,19 +78913,19 @@
               1.0
             ],
             [
-              "SMP-0161",
-              6.14863e-16
+              "SMP-0037",
+              2.21552e-15
             ],
             [
               "SMP-0106",
-              6.14863e-16
+              8.38545e-16
             ]
           ],
           "quads": {
-            "total": 6,
+            "total": 7,
             "accepted_by_opencv": 6
           },
-          "position_spread_m": 0.0001,
+          "position_spread_m": 0.0087,
           "cameras": [
             "arm_eih",
             "general",
@@ -78936,16 +78956,16 @@
               "side_px": 36.9,
               "barcode": null,
               "surface_point": [
-                -3.8119,
-                -1.121,
-                0.9643
+                -3.8129,
+                -1.1203,
+                0.9635
               ],
               "confirmed": false
             },
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.81,
+              "score": 0.809,
               "xyxy": [
                 71.1,
                 701.4,
@@ -78977,8 +78997,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    946.5,
-                    633.4
+                    945.1,
+                    616.7
                   ]
                 },
                 {
@@ -78988,8 +79008,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1003.0,
-                    633.6
+                    1001.4,
+                    616.9
                   ]
                 }
               ]
@@ -78997,7 +79017,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.813,
+              "score": 0.814,
               "xyxy": [
                 1001.6,
                 595.2,
@@ -79016,19 +79036,19 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.492,
+              "score": 0.485,
               "xyxy": [
                 768.1,
-                827.1,
+                827.2,
                 803.3,
                 903.3
               ],
-              "side_px": 51.8,
+              "side_px": 51.7,
               "barcode": null,
               "surface_point": [
                 -3.848,
                 -1.1234,
-                0.9571
+                0.957
               ],
               "confirmed": false
             },
@@ -79048,8 +79068,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    981.8,
-                    616.2
+                    981.7,
+                    600.2
                   ]
                 },
                 {
@@ -79059,8 +79079,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    923.5,
-                    616.1
+                    923.3,
+                    600.1
                   ]
                 }
               ]
@@ -79068,7 +79088,7 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.191,
+              "score": 0.185,
               "xyxy": [
                 770.1,
                 870.3,
@@ -79080,19 +79100,30 @@
               "surface_point": [
                 -3.8482,
                 -1.1242,
-                0.9244
+                0.9243
               ],
               "confirmed": false
             },
             {
               "camera": "arm_eih",
               "surface_point": [
-                -3.8298,
+                -3.8385,
                 -1.0879,
                 0.9416
               ],
               "confirmed": true,
               "quads": [
+                {
+                  "sample_id": "SMP-0037",
+                  "marker_id": 36,
+                  "probability": 0.0702308,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    1017.0,
+                    486.0
+                  ]
+                },
                 {
                   "sample_id": "SMP-0120",
                   "marker_id": 119,
@@ -79101,7 +79132,7 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     977.0,
-                    492.3
+                    492.2
                   ]
                 },
                 {
@@ -79112,7 +79143,7 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     917.7,
-                    492.3
+                    492.1
                   ]
                 }
               ]
@@ -79129,14 +79160,14 @@
         },
         {
           "position": [
-            -0.672,
-            -1.1521,
-            0.9418
+            -0.681,
+            -1.1544,
+            0.9417
           ],
           "surface_point": [
-            -0.6722,
-            -1.1282,
-            0.9418
+            -0.6766,
+            -1.1305,
+            0.9417
           ],
           "sample_id": "SMP-0125",
           "probability": 1.0,
@@ -79148,18 +79179,18 @@
             ],
             [
               "SMP-0132",
-              1.10142e-18
+              1.22614e-11
             ],
             [
-              "SMP-0118",
-              1.28779e-20
+              "SMP-0067",
+              1.09714e-19
             ]
           ],
           "quads": {
-            "total": 15,
-            "accepted_by_opencv": 10
+            "total": 14,
+            "accepted_by_opencv": 8
           },
-          "position_spread_m": 0.0006,
+          "position_spread_m": 0.0055,
           "cameras": [
             "arm_eih",
             "general",
@@ -79176,45 +79207,45 @@
             -1.15,
             0.9414
           ],
-          "error_m": 0.0083,
+          "error_m": 0.0046,
           "views": [
             {
-              "camera": "room_wash",
+              "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.897,
+              "score": 0.718,
               "xyxy": [
-                286.3,
-                408.3,
-                309.4,
-                447.6
+                1073.1,
+                529.2,
+                1080.4,
+                546.7
               ],
-              "side_px": 30.1,
+              "side_px": 11.3,
               "barcode": null,
               "surface_point": [
-                -0.6575,
-                -1.1548,
-                0.9613
+                -0.7023,
+                -1.155,
+                0.9456
               ],
               "confirmed": false
             },
             {
               "camera": "arm_eih",
               "surface_point": [
-                -0.6722,
-                -1.1282,
+                -0.6809,
+                -1.1329,
                 0.9417
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0045",
-                  "marker_id": 44,
-                  "probability": 0.462564,
-                  "bit_errors": 2,
+                  "sample_id": "SMP-0139",
+                  "marker_id": 138,
+                  "probability": 0.971967,
+                  "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    909.8,
-                    616.2
+                    1013.8,
+                    569.2
                   ]
                 },
                 {
@@ -79224,8 +79255,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    950.1,
-                    626.6
+                    976.9,
+                    578.1
                   ]
                 },
                 {
@@ -79235,8 +79266,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1007.0,
-                    625.9
+                    918.7,
+                    578.6
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0178",
+                  "marker_id": 177,
+                  "probability": 0.772752,
+                  "bit_errors": 1,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    878.8,
+                    570.0
                   ]
                 }
               ]
@@ -79244,43 +79286,43 @@
             {
               "camera": "arm_eih",
               "surface_point": [
-                -0.6717,
+                -0.6718,
                 -1.1279,
-                0.9418
+                0.9417
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    932.6,
-                    621.7
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    987.6,
-                    625.2
-                  ]
-                },
-                {
                   "sample_id": "SMP-0189",
                   "marker_id": 188,
-                  "probability": 0.815417,
+                  "probability": 0.931577,
                   "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    1033.5,
-                    616.5
+                    1014.0,
+                    573.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0125",
+                  "marker_id": 124,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    965.8,
+                    580.8
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0125",
+                  "marker_id": 124,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    909.1,
+                    577.8
                   ]
                 }
               ]
@@ -79288,7 +79330,7 @@
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.909,
+              "score": 0.908,
               "xyxy": [
                 1234.8,
                 686.8,
@@ -79300,14 +79342,14 @@
               "surface_point": [
                 -0.6885,
                 -1.1669,
-                0.9718
+                0.9719
               ],
               "confirmed": false
             },
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.879,
+              "score": 0.87,
               "xyxy": [
                 1178.0,
                 504.8,
@@ -79358,8 +79400,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    975.1,
-                    654.2
+                    975.2,
+                    654.9
                   ]
                 },
                 {
@@ -79369,115 +79411,60 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    919.3,
-                    655.0
+                    919.2,
+                    655.6
                   ]
                 },
                 {
-                  "sample_id": "SMP-0045",
-                  "marker_id": 44,
-                  "probability": 0.58399,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    881.0,
-                    643.8
-                  ]
-                }
-              ]
-            },
-            {
-              "camera": "arm_eih",
-              "surface_point": [
-                -0.6718,
-                -1.1279,
-                0.9418
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0189",
-                  "marker_id": 188,
-                  "probability": 0.939844,
+                  "sample_id": "SMP-0178",
+                  "marker_id": 177,
+                  "probability": 0.332807,
                   "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    999.2,
-                    639.5
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    952.7,
-                    649.2
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    898.3,
-                    645.3
+                    880.8,
+                    644.8
                   ]
                 }
               ]
             },
             {
-              "camera": "room_entrance",
+              "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.256,
+              "score": 0.897,
               "xyxy": [
-                1073.9,
-                529.4,
-                1081.3,
-                551.5
+                286.3,
+                408.3,
+                309.3,
+                447.6
               ],
-              "side_px": 12.8,
+              "side_px": 30.0,
               "barcode": null,
               "surface_point": [
-                -0.7037,
-                -1.1619,
-                0.9262
+                -0.6575,
+                -1.1548,
+                0.9612
               ],
               "confirmed": false
             },
             {
               "camera": "arm_eih",
               "surface_point": [
-                -0.6723,
-                -1.1282,
-                0.9416
+                -0.6809,
+                -1.133,
+                0.9417
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0125",
-                  "marker_id": 124,
-                  "probability": 0.999936,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    972.8,
-                    507.0
-                  ]
-                },
-                {
                   "sample_id": "SMP-0178",
                   "marker_id": 177,
-                  "probability": 0.962641,
-                  "bit_errors": 0,
+                  "probability": 0.983397,
+                  "bit_errors": 1,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    871.0,
-                    500.5
+                    909.8,
+                    616.8
                   ]
                 },
                 {
@@ -79487,8 +79474,30 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    912.3,
-                    507.5
+                    950.3,
+                    626.4
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0125",
+                  "marker_id": 124,
+                  "probability": 0.999936,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    1007.2,
+                    625.6
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0122",
+                  "marker_id": 121,
+                  "probability": 0.194121,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    1042.5,
+                    612.8
                   ]
                 }
               ]
@@ -79524,11 +79533,11 @@
             ],
             [
               "SMP-0127",
-              3.8356e-14
+              4.0141e-14
             ],
             [
               "SMP-0112",
-              3.06029e-15
+              2.95942e-15
             ]
           ],
           "quads": {
@@ -79557,7 +79566,7 @@
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.868,
+              "score": 0.867,
               "xyxy": [
                 1002.9,
                 415.2,
@@ -79589,7 +79598,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.465,
+              "score": 0.467,
               "xyxy": [
                 869.8,
                 536.3,
@@ -79601,14 +79610,14 @@
               "surface_point": [
                 -1.3197,
                 0.2877,
-                0.9436
+                0.9435
               ],
               "confirmed": false
             },
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.1,
+              "score": 0.101,
               "xyxy": [
                 866.4,
                 534.5,
@@ -79627,10 +79636,10 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.852,
+              "score": 0.851,
               "xyxy": [
                 829.0,
-                505.2,
+                505.1,
                 840.4,
                 531.9
               ],
@@ -79646,7 +79655,7 @@
             {
               "camera": "room_desk",
               "label": "amber_bottle",
-              "score": 0.882,
+              "score": 0.883,
               "xyxy": [
                 1001.2,
                 395.3,
@@ -79707,7 +79716,7 @@
                 {
                   "sample_id": "SMP-0130",
                   "marker_id": 129,
-                  "probability": 0.573833,
+                  "probability": 0.468058,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
@@ -79729,7 +79738,7 @@
                 {
                   "sample_id": "SMP-0130",
                   "marker_id": 129,
-                  "probability": 0.996947,
+                  "probability": 0.997287,
                   "bit_errors": 0,
                   "accepted_by_opencv": false,
                   "centre_px": [
@@ -79742,9 +79751,9 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.833,
+              "score": 0.832,
               "xyxy": [
-                607.1,
+                607.2,
                 307.7,
                 621.1,
                 335.1
@@ -79752,8 +79761,8 @@
               "side_px": 19.6,
               "barcode": null,
               "surface_point": [
-                -1.279,
-                0.2937,
+                -1.2789,
+                0.2938,
                 0.9589
               ],
               "confirmed": false
@@ -79774,8 +79783,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    945.3,
-                    614.9
+                    945.7,
+                    599.5
                   ]
                 },
                 {
@@ -79785,8 +79794,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    1001.9,
-                    615.6
+                    1002.1,
+                    600.2
                   ]
                 }
               ]
@@ -79803,37 +79812,37 @@
         },
         {
           "position": [
-            -0.9965,
-            -0.5227,
+            -0.994,
+            -0.5223,
             0.9321
           ],
           "surface_point": [
-            -0.9962,
-            -0.5037,
+            -0.9894,
+            -0.5045,
             0.9321
           ],
           "sample_id": "SMP-0174",
-          "probability": 0.999928,
+          "probability": 1.0,
           "decision": "accept",
           "posterior": [
             [
               "SMP-0174",
-              0.999928
+              1.0
             ],
             [
-              "SMP-0045",
-              1.06305e-05
+              "SMP-0111",
+              1.88592e-10
             ],
             [
-              "SMP-0123",
-              8.62551e-06
+              "SMP-0049",
+              1.43209e-10
             ]
           ],
           "quads": {
-            "total": 3,
-            "accepted_by_opencv": 1
+            "total": 7,
+            "accepted_by_opencv": 4
           },
-          "position_spread_m": 0.0,
+          "position_spread_m": 0.0008,
           "cameras": [
             "arm_eih",
             "general",
@@ -79850,12 +79859,12 @@
             -0.5207,
             0.9318
           ],
-          "error_m": 0.005,
+          "error_m": 0.0027,
           "views": [
             {
               "camera": "general",
               "label": "amber_bottle",
-              "score": 0.883,
+              "score": 0.882,
               "xyxy": [
                 1103.2,
                 551.6,
@@ -79874,26 +79883,26 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.704,
+              "score": 0.693,
               "xyxy": [
                 986.8,
                 533.6,
-                992.2,
-                547.4
+                992.3,
+                547.3
               ],
               "side_px": 8.6,
               "barcode": null,
               "surface_point": [
-                -1.008,
-                -0.527,
-                0.944
+                -1.0079,
+                -0.5274,
+                0.9441
               ],
               "confirmed": false
             },
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.851,
+              "score": 0.852,
               "xyxy": [
                 1024.9,
                 512.0,
@@ -79944,7 +79953,7 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.884,
+              "score": 0.885,
               "xyxy": [
                 453.4,
                 360.5,
@@ -79963,9 +79972,9 @@
             {
               "camera": "arm_eih",
               "surface_point": [
-                -0.9962,
-                -0.5037,
-                0.9321
+                -0.9896,
+                -0.5053,
+                0.9322
               ],
               "confirmed": true,
               "quads": [
@@ -79976,19 +79985,74 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    951.5,
-                    595.9
+                    951.4,
+                    596.1
                   ]
                 },
                 {
                   "sample_id": "SMP-0174",
                   "marker_id": 173,
-                  "probability": 0.999384,
+                  "probability": 0.999908,
                   "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    993.2,
+                    593.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0109",
+                  "marker_id": 108,
+                  "probability": 0.642443,
+                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    992.8,
-                    593.0
+                    914.5,
+                    590.2
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -0.9891,
+                -0.5038,
+                0.932
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0146",
+                  "marker_id": 145,
+                  "probability": 0.0120195,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    988.8,
+                    577.0
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0174",
+                  "marker_id": 173,
+                  "probability": 0.999908,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    961.0,
+                    587.7
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0174",
+                  "marker_id": 173,
+                  "probability": 0.999908,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    917.7,
+                    587.7
                   ]
                 }
               ]
@@ -80024,11 +80088,11 @@
             ],
             [
               "SMP-0054",
-              3.06621e-18
+              2.6819e-18
             ],
             [
               "SMP-0014",
-              9.94338e-19
+              9.17725e-19
             ]
           ],
           "quads": {
@@ -80060,7 +80124,7 @@
               "score": 0.903,
               "xyxy": [
                 1019.0,
-                527.0,
+                527.1,
                 1033.6,
                 558.6
               ],
@@ -80076,7 +80140,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.683,
+              "score": 0.68,
               "xyxy": [
                 965.0,
                 534.4,
@@ -80114,19 +80178,19 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.153,
+              "score": 0.152,
               "xyxy": [
                 978.2,
                 515.2,
                 989.3,
-                552.1
+                552.0
               ],
               "side_px": 20.2,
               "barcode": null,
               "surface_point": [
                 -1.2906,
-                -0.4219,
-                0.938
+                -0.422,
+                0.9381
               ],
               "confirmed": false
             },
@@ -80140,7 +80204,7 @@
                 1034.7,
                 548.7
               ],
-              "side_px": 21.6,
+              "side_px": 21.7,
               "barcode": null,
               "surface_point": [
                 -1.2713,
@@ -80161,7 +80225,7 @@
                 {
                   "sample_id": "SMP-0190",
                   "marker_id": 189,
-                  "probability": 0.954672,
+                  "probability": 0.962743,
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
@@ -80177,18 +80241,81 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     909.6,
-                    597.6
+                    597.5
                   ]
                 },
                 {
                   "sample_id": "SMP-0190",
                   "marker_id": 189,
-                  "probability": 0.999787,
+                  "probability": 0.999786,
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
                     857.3,
-                    593.5
+                    593.4
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "room_entrance",
+              "label": "amber_bottle",
+              "score": 0.285,
+              "xyxy": [
+                968.9,
+                539.5,
+                974.9,
+                555.1
+              ],
+              "side_px": 9.7,
+              "barcode": null,
+              "surface_point": [
+                -1.2827,
+                -0.4461,
+                0.9214
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -1.272,
+                -0.3998,
+                0.9416
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0190",
+                  "marker_id": 189,
+                  "probability": 0.999927,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    923.4,
+                    500.7
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0143",
+                  "marker_id": 142,
+                  "probability": 0.477529,
+                  "bit_errors": 2,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    1039.0,
+                    498.5
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0190",
+                  "marker_id": 189,
+                  "probability": 0.999927,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    985.0,
+                    503.7
                   ]
                 }
               ]
@@ -80200,10 +80327,10 @@
               "xyxy": [
                 447.3,
                 337.8,
-                464.7,
+                464.6,
                 366.6
               ],
-              "side_px": 22.4,
+              "side_px": 22.3,
               "barcode": null,
               "surface_point": [
                 -1.2482,
@@ -80229,7 +80356,7 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     927.5,
-                    608.4
+                    608.5
                   ]
                 },
                 {
@@ -80240,59 +80367,7 @@
                   "accepted_by_opencv": true,
                   "centre_px": [
                     981.8,
-                    612.8
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0143",
-                  "marker_id": 142,
-                  "probability": 0.474973,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    1029.5,
-                    605.2
-                  ]
-                }
-              ]
-            },
-            {
-              "camera": "room_entrance",
-              "label": "amber_bottle",
-              "score": 0.285,
-              "xyxy": [
-                968.9,
-                539.5,
-                974.9,
-                555.1
-              ],
-              "side_px": 9.7,
-              "barcode": null,
-              "surface_point": [
-                -1.2827,
-                -0.4461,
-                0.9216
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "arm_eih",
-              "surface_point": [
-                -1.272,
-                -0.3998,
-                0.9417
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0190",
-                  "marker_id": 189,
-                  "probability": 0.999925,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    923.5,
-                    501.4
+                    612.9
                   ]
                 },
                 {
@@ -80302,19 +80377,8 @@
                   "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    1039.0,
-                    499.2
-                  ]
-                },
-                {
-                  "sample_id": "SMP-0190",
-                  "marker_id": 189,
-                  "probability": 0.999927,
-                  "bit_errors": 0,
-                  "accepted_by_opencv": true,
-                  "centre_px": [
-                    985.0,
-                    504.4
+                    1029.5,
+                    605.2
                   ]
                 }
               ]
@@ -80331,13 +80395,13 @@
         },
         {
           "position": [
-            -3.2839,
-            -0.8132,
+            -3.2822,
+            -0.8131,
             0.9321
           ],
           "surface_point": [
-            -3.2802,
-            -0.7952,
+            -3.2771,
+            -0.7943,
             0.9321
           ],
           "sample_id": "SMP-0199",
@@ -80350,24 +80414,25 @@
             ],
             [
               "SMP-0070",
-              1.44171e-08
+              3.39623e-10
             ],
             [
-              "SMP-0012",
-              3.67368e-10
+              "SMP-0182",
+              8.46044e-12
             ]
           ],
           "quads": {
-            "total": 5,
-            "accepted_by_opencv": 3
+            "total": 7,
+            "accepted_by_opencv": 4
           },
-          "position_spread_m": 0.0036,
+          "position_spread_m": 0.0068,
           "cameras": [
             "arm_eih",
             "general",
             "room_aisle",
             "room_desk",
-            "room_entrance"
+            "room_entrance",
+            "room_wash"
           ],
           "confirmed": true,
           "reached": true,
@@ -80377,100 +80442,24 @@
             -0.8108,
             0.9318
           ],
-          "error_m": 0.0026,
+          "error_m": 0.0024,
           "views": [
             {
-              "camera": "general",
+              "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.904,
+              "score": 0.455,
               "xyxy": [
-                384.1,
-                611.4,
-                405.4,
-                637.8
+                192.9,
+                285.3,
+                207.0,
+                306.3
               ],
-              "side_px": 23.7,
+              "side_px": 17.2,
               "barcode": null,
               "surface_point": [
-                -3.2713,
-                -0.8208,
-                0.95
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "room_entrance",
-              "label": "amber_bottle",
-              "score": 0.793,
-              "xyxy": [
-                962.8,
-                581.2,
-                970.9,
-                598.4
-              ],
-              "side_px": 11.8,
-              "barcode": null,
-              "surface_point": [
-                -3.299,
-                -0.8176,
-                0.9408
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "room_entrance",
-              "label": "amber_bottle",
-              "score": 0.645,
-              "xyxy": [
-                965.5,
-                578.6,
-                973.5,
-                597.9
-              ],
-              "side_px": 12.4,
-              "barcode": null,
-              "surface_point": [
-                -3.29,
-                -0.8294,
-                0.948
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "room_aisle",
-              "label": "amber_bottle",
-              "score": 0.897,
-              "xyxy": [
-                800.9,
-                687.2,
-                820.0,
-                732.1
-              ],
-              "side_px": 29.3,
-              "barcode": null,
-              "surface_point": [
-                -3.296,
-                -0.821,
-                0.9492
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "room_desk",
-              "label": "amber_bottle",
-              "score": 0.91,
-              "xyxy": [
-                357.2,
-                616.9,
-                388.5,
-                642.1
-              ],
-              "side_px": 28.0,
-              "barcode": null,
-              "surface_point": [
-                -3.2687,
-                -0.8192,
-                0.9501
+                -3.2877,
+                -0.7999,
+                0.9788
               ],
               "confirmed": false
             },
@@ -80478,20 +80467,20 @@
               "camera": "arm_eih",
               "surface_point": [
                 -3.2837,
-                -0.7961,
-                0.9321
+                -0.796,
+                0.9322
               ],
               "confirmed": true,
               "quads": [
                 {
-                  "sample_id": "SMP-0199",
-                  "marker_id": 198,
-                  "probability": 0.999884,
-                  "bit_errors": 0,
+                  "sample_id": "SMP-0047",
+                  "marker_id": 46,
+                  "probability": 0.762948,
+                  "bit_errors": 2,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    942.5,
-                    590.8
+                    929.0,
+                    667.0
                   ]
                 },
                 {
@@ -80501,19 +80490,19 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    901.8,
-                    595.9
+                    890.8,
+                    673.0
                   ]
                 },
                 {
                   "sample_id": "SMP-0070",
                   "marker_id": 69,
-                  "probability": 0.638117,
+                  "probability": 0.357521,
                   "bit_errors": 3,
                   "accepted_by_opencv": false,
                   "centre_px": [
-                    861.8,
-                    592.2
+                    853.0,
+                    668.2
                   ]
                 }
               ]
@@ -80534,8 +80523,8 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    932.5,
-                    617.6
+                    905.4,
+                    685.1
                   ]
                 },
                 {
@@ -80545,8 +80534,155 @@
                   "bit_errors": 0,
                   "accepted_by_opencv": true,
                   "centre_px": [
-                    887.1,
-                    619.9
+                    861.8,
+                    688.0
+                  ]
+                }
+              ]
+            },
+            {
+              "camera": "general",
+              "label": "amber_bottle",
+              "score": 0.903,
+              "xyxy": [
+                384.1,
+                611.4,
+                405.4,
+                637.8
+              ],
+              "side_px": 23.7,
+              "barcode": null,
+              "surface_point": [
+                -3.2713,
+                -0.8208,
+                0.9499
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "room_entrance",
+              "label": "amber_bottle",
+              "score": 0.794,
+              "xyxy": [
+                962.8,
+                581.2,
+                970.9,
+                598.4
+              ],
+              "side_px": 11.8,
+              "barcode": null,
+              "surface_point": [
+                -3.299,
+                -0.8176,
+                0.9408
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "room_entrance",
+              "label": "amber_bottle",
+              "score": 0.647,
+              "xyxy": [
+                965.4,
+                578.6,
+                973.5,
+                597.9
+              ],
+              "side_px": 12.4,
+              "barcode": null,
+              "surface_point": [
+                -3.29,
+                -0.8293,
+                0.9479
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "room_aisle",
+              "label": "amber_bottle",
+              "score": 0.898,
+              "xyxy": [
+                800.9,
+                687.3,
+                820.0,
+                732.1
+              ],
+              "side_px": 29.3,
+              "barcode": null,
+              "surface_point": [
+                -3.296,
+                -0.821,
+                0.9491
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "room_desk",
+              "label": "amber_bottle",
+              "score": 0.909,
+              "xyxy": [
+                357.2,
+                616.9,
+                388.5,
+                642.1
+              ],
+              "side_px": 28.0,
+              "barcode": null,
+              "surface_point": [
+                -3.2687,
+                -0.8192,
+                0.9501
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "room_wash",
+              "label": "amber_bottle",
+              "score": 0.821,
+              "xyxy": [
+                194.5,
+                293.4,
+                208.1,
+                313.5
+              ],
+              "side_px": 16.5,
+              "barcode": null,
+              "surface_point": [
+                -3.2642,
+                -0.8093,
+                0.9454
+              ],
+              "confirmed": false
+            },
+            {
+              "camera": "arm_eih",
+              "surface_point": [
+                -3.2771,
+                -0.7941,
+                0.9321
+              ],
+              "confirmed": true,
+              "quads": [
+                {
+                  "sample_id": "SMP-0199",
+                  "marker_id": 198,
+                  "probability": 0.999954,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": true,
+                  "centre_px": [
+                    931.9,
+                    593.3
+                  ]
+                },
+                {
+                  "sample_id": "SMP-0199",
+                  "marker_id": 198,
+                  "probability": 0.967195,
+                  "bit_errors": 0,
+                  "accepted_by_opencv": false,
+                  "centre_px": [
+                    891.2,
+                    589.5
                   ]
                 }
               ]
@@ -80563,137 +80699,6 @@
         }
       ],
       "unidentified": [
-        {
-          "position": [
-            0.5864,
-            -0.4256,
-            0.9977
-          ],
-          "surface_point": [
-            0.5864,
-            -0.4256,
-            0.9977
-          ],
-          "probability": 0.700157,
-          "decision": "reject",
-          "posterior": [
-            [
-              "SMP-0146",
-              0.700157
-            ],
-            [
-              "SMP-0106",
-              0.0541349
-            ],
-            [
-              "SMP-0111",
-              0.0538165
-            ]
-          ],
-          "quads": {
-            "total": 2,
-            "accepted_by_opencv": 0
-          },
-          "position_spread_m": 0.0598,
-          "cameras": [
-            "arm_eih",
-            "room_aisle",
-            "room_entrance"
-          ],
-          "confirmed": true,
-          "reached": true,
-          "check": "no ground-truth label within 5 cm",
-          "views": [
-            {
-              "camera": "room_entrance",
-              "label": "amber_bottle",
-              "score": 0.105,
-              "xyxy": [
-                1005.2,
-                510.2,
-                1012.5,
-                522.1
-              ],
-              "side_px": 9.3,
-              "barcode": null,
-              "surface_point": [
-                0.562,
-                -0.4279,
-                1.0002
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "room_aisle",
-              "label": "amber_bottle",
-              "score": 0.127,
-              "xyxy": [
-                1093.3,
-                463.4,
-                1106.6,
-                478.5
-              ],
-              "side_px": 14.2,
-              "barcode": null,
-              "surface_point": [
-                0.5645,
-                -0.4353,
-                0.9872
-              ],
-              "confirmed": false
-            },
-            {
-              "camera": "arm_eih",
-              "surface_point": [
-                0.5474,
-                -0.4488,
-                0.9588
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0146",
-                  "marker_id": 145,
-                  "probability": 0.271941,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    1076.2,
-                    642.5
-                  ]
-                }
-              ]
-            },
-            {
-              "camera": "arm_eih",
-              "surface_point": [
-                0.6253,
-                -0.4023,
-                1.0367
-              ],
-              "confirmed": true,
-              "quads": [
-                {
-                  "sample_id": "SMP-0146",
-                  "marker_id": 145,
-                  "probability": 0.905204,
-                  "bit_errors": 2,
-                  "accepted_by_opencv": false,
-                  "centre_px": [
-                    962.0,
-                    412.2
-                  ]
-                }
-              ]
-            }
-          ],
-          "best_guess": "SMP-0146",
-          "sample_id": null,
-          "nearest_gt": {
-            "sample_id": "SMP-0051",
-            "distance_m": 0.7449
-          }
-        },
         {
           "position": [
             -5.3024,
@@ -80736,7 +80741,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.372,
+              "score": 0.376,
               "xyxy": [
                 1400.5,
                 685.0,
@@ -80776,12 +80781,12 @@
         {
           "position": [
             5.5011,
-            -0.6091,
+            -0.609,
             1.6553
           ],
           "surface_point": [
             5.5011,
-            -0.6091,
+            -0.609,
             1.6553
           ],
           "probability": 0.0,
@@ -80802,7 +80807,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.516,
+              "score": 0.533,
               "xyxy": [
                 1069.3,
                 433.3,
@@ -80813,7 +80818,7 @@
               "barcode": null,
               "surface_point": [
                 5.5007,
-                -0.5972,
+                -0.5971,
                 1.6611
               ],
               "confirmed": false
@@ -80821,19 +80826,19 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.645,
+              "score": 0.636,
               "xyxy": [
-                1231.9,
+                1232.0,
                 343.8,
                 1246.8,
                 365.5
               ],
-              "side_px": 18.0,
+              "side_px": 17.9,
               "barcode": null,
               "surface_point": [
                 5.5015,
-                -0.621,
-                1.6495
+                -0.6209,
+                1.6494
               ],
               "confirmed": false
             }
@@ -80842,19 +80847,19 @@
           "sample_id": null,
           "nearest_gt": {
             "sample_id": "SMP-0017",
-            "distance_m": 5.2167
+            "distance_m": 5.2166
           }
         },
         {
           "position": [
             -3.3014,
-            -1.3281,
-            0.9033
+            -1.3282,
+            0.9034
           ],
           "surface_point": [
             -3.3014,
-            -1.3281,
-            0.9033
+            -1.3282,
+            0.9034
           ],
           "probability": 0.0,
           "decision": "reject",
@@ -80873,10 +80878,10 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.344,
+              "score": 0.359,
               "xyxy": [
-                1061.5,
-                591.5,
+                1061.6,
+                591.4,
                 1073.4,
                 610.0
               ],
@@ -80884,8 +80889,8 @@
               "barcode": null,
               "surface_point": [
                 -3.3014,
-                -1.3281,
-                0.9033
+                -1.3282,
+                0.9034
               ],
               "confirmed": false
             }
@@ -80901,12 +80906,12 @@
           "position": [
             5.4998,
             0.7768,
-            1.6449
+            1.645
           ],
           "surface_point": [
             5.4998,
             0.7768,
-            1.6449
+            1.645
           ],
           "probability": 0.0,
           "decision": "reject",
@@ -80925,19 +80930,19 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.226,
+              "score": 0.231,
               "xyxy": [
                 976.5,
                 436.2,
                 982.9,
-                450.3
+                450.2
               ],
               "side_px": 9.5,
               "barcode": null,
               "surface_point": [
                 5.4998,
                 0.7768,
-                1.6449
+                1.645
               ],
               "confirmed": false
             }
@@ -80953,12 +80958,12 @@
           "position": [
             1.0268,
             -2.3539,
-            0.9681
+            0.9682
           ],
           "surface_point": [
             1.0268,
             -2.3539,
-            0.9681
+            0.9682
           ],
           "probability": 0.0,
           "decision": "reject",
@@ -80977,7 +80982,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.206,
+              "score": 0.209,
               "xyxy": [
                 1219.9,
                 512.7,
@@ -80989,7 +80994,7 @@
               "surface_point": [
                 1.0268,
                 -2.3539,
-                0.9681
+                0.9682
               ],
               "confirmed": false
             }
@@ -81029,7 +81034,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.193,
+              "score": 0.196,
               "xyxy": [
                 991.4,
                 593.9,
@@ -81081,11 +81086,11 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.183,
+              "score": 0.19,
               "xyxy": [
                 1055.5,
                 647.8,
-                1066.3,
+                1066.2,
                 668.3
               ],
               "side_px": 14.9,
@@ -81133,7 +81138,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.169,
+              "score": 0.177,
               "xyxy": [
                 989.6,
                 594.1,
@@ -81154,7 +81159,7 @@
           "sample_id": null,
           "nearest_gt": {
             "sample_id": "SMP-0199",
-            "distance_m": 0.1889
+            "distance_m": 0.189
           }
         },
         {
@@ -81185,7 +81190,7 @@
             {
               "camera": "room_entrance",
               "label": "amber_bottle",
-              "score": 0.102,
+              "score": 0.104,
               "xyxy": [
                 855.0,
                 536.0,
@@ -81211,14 +81216,14 @@
         },
         {
           "position": [
-            5.5003,
-            0.6614,
-            1.6498
+            5.5009,
+            0.6615,
+            1.653
           ],
           "surface_point": [
-            5.5003,
-            0.6614,
-            1.6498
+            5.5009,
+            0.6615,
+            1.653
           ],
           "probability": 0.0,
           "decision": "reject",
@@ -81237,19 +81242,19 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.473,
+              "score": 0.49,
               "xyxy": [
-                1113.8,
-                343.4,
-                1125.1,
-                365.4
+                1113.6,
+                343.7,
+                1125.3,
+                364.4
               ],
-              "side_px": 15.8,
+              "side_px": 15.6,
               "barcode": null,
               "surface_point": [
-                5.5003,
-                0.6614,
-                1.6498
+                5.5009,
+                0.6615,
+                1.653
               ],
               "confirmed": false
             }
@@ -81258,19 +81263,19 @@
           "sample_id": null,
           "nearest_gt": {
             "sample_id": "SMP-0017",
-            "distance_m": 5.1058
+            "distance_m": 5.1069
           }
         },
         {
           "position": [
-            1.0374,
-            -2.3547,
-            1.0149
+            1.0375,
+            -2.3546,
+            1.0152
           ],
           "surface_point": [
-            1.0374,
-            -2.3547,
-            1.0149
+            1.0375,
+            -2.3546,
+            1.0152
           ],
           "probability": 0.0,
           "decision": "reject",
@@ -81289,19 +81294,19 @@
             {
               "camera": "room_aisle",
               "label": "amber_bottle",
-              "score": 0.415,
+              "score": 0.422,
               "xyxy": [
                 1446.5,
-                453.8,
+                454.0,
                 1459.5,
-                492.7
+                492.4
               ],
-              "side_px": 22.5,
+              "side_px": 22.4,
               "barcode": null,
               "surface_point": [
-                1.0374,
-                -2.3547,
-                1.0149
+                1.0375,
+                -2.3546,
+                1.0152
               ],
               "confirmed": false
             }
@@ -81315,14 +81320,14 @@
         },
         {
           "position": [
-            -1.7636,
-            -1.0862,
-            1.205
+            -3.4087,
+            -1.3231,
+            0.9071
           ],
           "surface_point": [
-            -1.7636,
-            -1.0862,
-            1.205
+            -3.4087,
+            -1.3231,
+            0.9071
           ],
           "probability": 0.0,
           "decision": "reject",
@@ -81341,62 +81346,10 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.556,
-              "xyxy": [
-                191.4,
-                284.2,
-                206.0,
-                312.4
-              ],
-              "side_px": 20.3,
-              "barcode": null,
-              "surface_point": [
-                -1.7636,
-                -1.0862,
-                1.205
-              ],
-              "confirmed": false
-            }
-          ],
-          "best_guess": null,
-          "sample_id": null,
-          "nearest_gt": {
-            "sample_id": "SMP-0093",
-            "distance_m": 0.5168
-          }
-        },
-        {
-          "position": [
-            -3.4087,
-            -1.323,
-            0.9072
-          ],
-          "surface_point": [
-            -3.4087,
-            -1.323,
-            0.9072
-          ],
-          "probability": 0.0,
-          "decision": "reject",
-          "posterior": [],
-          "quads": {
-            "total": 0,
-            "accepted_by_opencv": 0
-          },
-          "position_spread_m": 0.0,
-          "cameras": [
-            "room_wash"
-          ],
-          "confirmed": false,
-          "reached": true,
-          "views": [
-            {
-              "camera": "room_wash",
-              "label": "amber_bottle",
-              "score": 0.443,
+              "score": 0.427,
               "xyxy": [
                 50.7,
-                314.0,
+                314.1,
                 78.8,
                 334.5
               ],
@@ -81404,8 +81357,8 @@
               "barcode": null,
               "surface_point": [
                 -3.4087,
-                -1.323,
-                0.9072
+                -1.3231,
+                0.9071
               ],
               "confirmed": false
             }
@@ -81419,14 +81372,14 @@
         },
         {
           "position": [
-            -6.976,
-            1.8524,
-            0.4764
+            -6.9742,
+            1.8535,
+            0.4757
           ],
           "surface_point": [
-            -6.976,
-            1.8524,
-            0.4764
+            -6.9742,
+            1.8535,
+            0.4757
           ],
           "probability": 0.0,
           "decision": "reject",
@@ -81445,19 +81398,19 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.325,
+              "score": 0.338,
               "xyxy": [
-                439.0,
-                247.6,
+                439.5,
+                247.7,
                 458.3,
-                268.3
+                268.4
               ],
-              "side_px": 20.0,
+              "side_px": 19.7,
               "barcode": null,
               "surface_point": [
-                -6.976,
-                1.8524,
-                0.4764
+                -6.9742,
+                1.8535,
+                0.4757
               ],
               "confirmed": false
             }
@@ -81466,71 +81419,19 @@
           "sample_id": null,
           "nearest_gt": {
             "sample_id": "SMP-0034",
-            "distance_m": 3.5024
-          }
-        },
-        {
-          "position": [
-            -1.6466,
-            -1.1067,
-            1.2039
-          ],
-          "surface_point": [
-            -1.6466,
-            -1.1067,
-            1.2039
-          ],
-          "probability": 0.0,
-          "decision": "reject",
-          "posterior": [],
-          "quads": {
-            "total": 0,
-            "accepted_by_opencv": 0
-          },
-          "position_spread_m": 0.0,
-          "cameras": [
-            "room_wash"
-          ],
-          "confirmed": false,
-          "reached": true,
-          "views": [
-            {
-              "camera": "room_wash",
-              "label": "amber_bottle",
-              "score": 0.32,
-              "xyxy": [
-                193.4,
-                293.9,
-                208.2,
-                313.4
-              ],
-              "side_px": 17.0,
-              "barcode": null,
-              "surface_point": [
-                -1.6466,
-                -1.1067,
-                1.2039
-              ],
-              "confirmed": false
-            }
-          ],
-          "best_guess": null,
-          "sample_id": null,
-          "nearest_gt": {
-            "sample_id": "SMP-0093",
-            "distance_m": 0.583
+            "distance_m": 3.5041
           }
         },
         {
           "position": [
             -8.0626,
-            1.5975,
-            1.3971
+            1.5976,
+            1.3972
           ],
           "surface_point": [
             -8.0626,
-            1.5975,
-            1.3971
+            1.5976,
+            1.3972
           ],
           "probability": 0.0,
           "decision": "reject",
@@ -81549,19 +81450,19 @@
             {
               "camera": "room_wash",
               "label": "amber_bottle",
-              "score": 0.16,
+              "score": 0.203,
               "xyxy": [
-                345.5,
+                345.6,
                 143.4,
                 353.5,
                 156.8
               ],
-              "side_px": 10.4,
+              "side_px": 10.3,
               "barcode": null,
               "surface_point": [
                 -8.0626,
-                1.5975,
-                1.3971
+                1.5976,
+                1.3972
               ],
               "confirmed": false
             }
@@ -81570,59 +81471,7 @@
           "sample_id": null,
           "nearest_gt": {
             "sample_id": "SMP-0034",
-            "distance_m": 3.0828
-          }
-        },
-        {
-          "position": [
-            -3.398,
-            -0.992,
-            0.9068
-          ],
-          "surface_point": [
-            -3.398,
-            -0.992,
-            0.9068
-          ],
-          "probability": 0.0,
-          "decision": "reject",
-          "posterior": [],
-          "quads": {
-            "total": 0,
-            "accepted_by_opencv": 0
-          },
-          "position_spread_m": 0.0,
-          "cameras": [
-            "room_wash"
-          ],
-          "confirmed": false,
-          "reached": true,
-          "views": [
-            {
-              "camera": "room_wash",
-              "label": "amber_bottle",
-              "score": 0.13,
-              "xyxy": [
-                145.2,
-                303.8,
-                159.2,
-                323.0
-              ],
-              "side_px": 16.4,
-              "barcode": null,
-              "surface_point": [
-                -3.398,
-                -0.992,
-                0.9068
-              ],
-              "confirmed": false
-            }
-          ],
-          "best_guess": null,
-          "sample_id": null,
-          "nearest_gt": {
-            "sample_id": "SMP-0199",
-            "distance_m": 0.2162
+            "distance_m": 3.083
           }
         }
       ]

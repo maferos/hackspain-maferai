@@ -42,16 +42,18 @@ computer-vision/weights/ (see the README there), or pass ``--weights``. It was
 trained on the rail scene's ``general`` camera. Cameras the
 model was not trained on show up in ``metrics.per_camera``.
 
-The confirming pass costs a render per view, and it flies at every proposal the
+The confirming pass costs a render per view, and it goes to every proposal the
 room does not already name, so a full rebuild of the three default scenes takes
-about a quarter of an hour on a laptop --- the rail scene alone is 20 seconds.
-Give it one scene while working on one scene.
+about a quarter of an hour on a laptop --- the rail scene alone is 30 seconds.
+Give it one scene while working on one scene, with ``--merge`` to keep the
+other two blocks rather than replacing the file with the one you rebuilt.
 
 Run with the venv that has mujoco, OpenCV and ultralytics, headless:
 
     MUJOCO_GL=egl simulation/.venv-act/bin/python harness/build_lookup_table.py
     ... build_lookup_table.py --weights path/to/best.pt --device cuda:0
     ... build_lookup_table.py path/to/scene.xml --cameras general room_desk
+    ... build_lookup_table.py simulation/models/minihannover_rail_scene.xml --merge
     ... build_lookup_table.py --confirm mocap      # teleport the camera instead
     ... build_lookup_table.py --confirm off        # the fixed cameras alone
     ... build_lookup_table.py --method gt          # only needs mujoco
@@ -307,6 +309,9 @@ def main():
                              "by the arm, teleported on a mocap mount, the arm "
                              "where the scene has one (default), or not at all")
     parser.add_argument("--save-frames", type=Path, help="write annotated frames here")
+    parser.add_argument("--merge", action="store_true",
+                        help="keep the scenes already in --out that this run does "
+                             "not rebuild, instead of replacing the file")
     parser.add_argument("--out", type=Path, default=OUT)
     args = parser.parse_args()
 
@@ -327,7 +332,13 @@ def main():
     def keep(entries):
         return [e for e in entries if not args.phase or e.get("phase") == args.phase]
 
-    scenes = {}
+    # A run names the scenes it rebuilds, and by default the file is those
+    # scenes and nothing else, so the table is always a whole build of what it
+    # says it is. --merge is for working on one scene without paying for the
+    # other two, and it is opt-in because the blocks it keeps are older than
+    # the ones beside them.
+    scenes = (json.loads(args.out.read_text()).get("scenes", {})
+              if args.merge and args.out.exists() else {})
     for scene in args.scenes:
         path = Path(scene) if Path(scene).is_absolute() else ROOT / scene
         model, data = load_scene(path)
