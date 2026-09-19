@@ -40,7 +40,7 @@
   </default>
 
   <asset>
-    <model name="robotiq_2f85" file="../robotiq_2f85_sensed/2f85_sensed.xml"/>
+    <model name="pipette" file="../pipette/pipette.xml"/>
     <model name="wrist_camera" file="../wrist_camera/wrist_camera.xml"/>
     <material class="ur10e" name="black" rgba="0.033 0.033 0.033 1"/>
     <material class="ur10e" name="jointgray" rgba="0.278 0.278 0.278 1"/>
@@ -125,7 +125,7 @@
                   <geom class="eef_collision" pos="0 0.097 0" quat="1 1 0 0" size="0.046 0.02"/>
                   <site name="attachment_site" pos="0 0.1 0" quat="-1 1 0 0"/>
                   <frame pos="0 0.1 0" quat="-1 1 0 0">
-                    <attach model="robotiq_2f85" body="base_mount" prefix="grip_"/>
+                    <attach model="pipette" body="pipette" prefix="pip_"/>
                     <camera name="eih" pos="0.09 0 0.03"
                             xyaxes="0 1 0 1.0000 -0.0000 0.0000"
                             fovy="60.44" resolution="1920 1080"/>

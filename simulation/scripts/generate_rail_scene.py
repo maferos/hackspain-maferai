@@ -36,6 +36,7 @@ import re
 import xml.etree.ElementTree as ET
 from pathlib import Path
 
+import generate_open_vessels as open_vessels
 import numpy as np
 
 SIM = Path(__file__).resolve().parents[1]
@@ -87,6 +88,15 @@ SCAN_POSE = (-1.5708, -1.9199, 2.0944, -1.7453, -1.5708, 0.0)
 # through, less room for the fingers, and every vessel costs 7 qpos and a pile
 # of contacts. Ten vessels take the scene from 15x realtime to about 9x.
 BENCH_VESSELS = 12
+
+# Which tool hangs on the flange. 'pipette' is the pipetting scene; 'gripper'
+# puts the Robotiq back for scripts/grasp_test.py.
+TOOL = 'pipette'
+
+# The beaker the pipette dispenses into, stood on the bench in front of the
+# balance at x = -0.75. On the balance itself is not possible yet: the balances
+# collide as one solid box with no pan --- see PIPETTING_PLAN.md.
+BEAKER_POS = (-0.75, -0.10, BENCH_TOP)
 
 # Eye-in-hand camera, in the tool frame (+Z is the approach direction).
 EIH_OFFSET = 0.09   # to the side of the tool axis, clear of the fingers
@@ -161,6 +171,20 @@ def build_gripper() -> Path:
     return out
 
 
+def build_pipette() -> Path:
+    """Generate the pipette, and the beaker it dispenses into.
+
+    Returns:
+        Path of the generated pipette MJCF.
+    """
+    import generate_beaker
+    import generate_pipette
+
+    generate_beaker.main()
+    generate_pipette.main()
+    return SIM / 'assets/pipette/pipette.xml'
+
+
 def build_arm() -> Path:
     """Write the UR10e + Robotiq 2F-85 model used by the scene.
 
@@ -182,8 +206,10 @@ def build_arm() -> Path:
     xml = xml.replace(
         '<asset>',
         '<asset>\n'
-        '    <model name="robotiq_2f85" file="../robotiq_2f85_sensed/2f85_sensed.xml"/>\n'
-        '    <model name="wrist_camera" file="../wrist_camera/wrist_camera.xml"/>',
+        + ('    <model name="robotiq_2f85" file="../robotiq_2f85_sensed/2f85_sensed.xml"/>\n'
+           if TOOL == 'gripper' else
+           '    <model name="pipette" file="../pipette/pipette.xml"/>\n')
+        + '    <model name="wrist_camera" file="../wrist_camera/wrist_camera.xml"/>',
         1)
     # The flange site is where UR documents the tool frame; put the gripper on it,
     # and the eye-in-hand camera beside it. Both live in a frame whose +Z is the
@@ -200,7 +226,10 @@ def build_arm() -> Path:
         '<site name="attachment_site" pos="0 0.1 0" quat="-1 1 0 0"/>',
         '<site name="attachment_site" pos="0 0.1 0" quat="-1 1 0 0"/>\n'
         '                  <frame pos="0 0.1 0" quat="-1 1 0 0">\n'
-        '                    <attach model="robotiq_2f85" body="base_mount" prefix="grip_"/>\n'
+        + ('                    <attach model="robotiq_2f85" body="base_mount" prefix="grip_"/>\n'
+           if TOOL == 'gripper' else
+           '                    <attach model="pipette" body="pipette" prefix="pip_"/>\n')
+        +
         f'                    <camera name="eih" pos="{EIH_OFFSET} 0 {EIH_DROP}"\n'
         f'                            xyaxes="0 1 0 {_fmt(up)}"\n'
         '                            fovy="60.44" resolution="1920 1080"/>\n'
@@ -356,9 +385,13 @@ def build_scene() -> Path:
     lifted = build_bench(BENCH_VESSELS)
     asset.find('model[@name="lab_room"]').set(
         'file', f'../{DYNAMIC_ROOM.relative_to(SIM)}')
+    open_vessels.main_for([v['sample'] for v in lifted])
     for vessel in lifted:
         ET.SubElement(asset, 'model', name=f'dyn_{vessel["sample"]}',
-                      file=f'../assets/labelled_bottles/{vessel["sample"]}.xml')
+                      file=f'../assets/open_vessels/{vessel["sample"]}.xml')
+    if TOOL == 'pipette':
+        ET.SubElement(asset, 'model', name='beaker',
+                      file='../assets/beaker/beaker.xml')
 
     world = root.find('worldbody')
     for vessel in lifted:
@@ -367,6 +400,12 @@ def build_scene() -> Path:
         ET.SubElement(body, 'freejoint')
         ET.SubElement(body, 'attach', model=f'dyn_{vessel["sample"]}',
                       body=vessel['sample'], prefix=f'dyn_{vessel["sample"]}_')
+    if TOOL == 'pipette':
+        beaker = ET.SubElement(world, 'body', name='beaker',
+                               pos=' '.join(f'{v:g}' for v in BEAKER_POS))
+        ET.SubElement(beaker, 'freejoint')
+        ET.SubElement(beaker, 'attach', model='beaker', body='beaker',
+                      prefix='beaker_')
 
     post_z = BEAM_BOTTOM / 2
     rail = ET.SubElement(world, 'body', name='rail')
@@ -394,14 +433,30 @@ def build_scene() -> Path:
                   xyaxes='1 0 0 0 0.6 0.8', fovy='60.44',
                   resolution='1920 1080')
 
+    if TOOL == 'pipette':
+        # MuJoCo collides a mesh as its convex hull, so every flask is a solid
+        # lump and nothing can be put inside one. Excluding the tip body from
+        # the vessels lets it travel down the bore; the barrel above it still
+        # collides with everything, so the arm cannot push a flask over with
+        # the tool and then reach through it. Hollow collision shells are the
+        # fuller fix and are step 2 of PIPETTING_PLAN.md.
+        contact = ET.SubElement(root, 'contact')
+        for vessel in lifted:
+            ET.SubElement(contact, 'exclude', body1='arm_pip_pipette_tip',
+                          body2=f'dyn_{vessel["sample"]}_{vessel["sample"]}')
+        ET.SubElement(contact, 'exclude', body1='arm_pip_pipette_tip',
+                      body2='beaker_beaker')
+
     actuator = ET.SubElement(root, 'actuator')
     ET.SubElement(actuator, 'position', name='rail_x', joint='rail_x',
                   kp='60000', kv='6000', forcerange='-4000 4000',
                   ctrlrange=f'{-TRAVEL:.3f} {TRAVEL:.3f}')
 
     keyframe = ET.SubElement(root, 'keyframe')
+    # Rail, the six arm joints, and the gripper's finger drive when it is on.
     pose = ' '.join(f'{q:.4f}' for q in SCAN_POSE)
-    ET.SubElement(keyframe, 'key', name='scan', ctrl=f'0 {pose} 0')
+    tail = ' 0' if TOOL == 'gripper' else ''
+    ET.SubElement(keyframe, 'key', name='scan', ctrl=f'0 {pose}{tail}')
 
     ET.indent(root, space='  ')
     OUT_SCENE.write_text('<?xml version="1.0" encoding="utf-8"?>\n' + HEADER
@@ -451,10 +506,10 @@ def check_camera_clearance() -> float:
 
 
 def main() -> None:
-    gripper = build_gripper()
+    tool = build_gripper() if TOOL == 'gripper' else build_pipette()
     arm = build_arm()
     scene = build_scene()
-    print(f'wrote {gripper.relative_to(SIM)}')
+    print(f'wrote {tool.relative_to(SIM)}')
     print(f'wrote {arm.relative_to(SIM)}')
     print(f'wrote {scene.relative_to(SIM)}')
     print(f'rail: y={RAIL_Y} m, beam underside {BEAM_BOTTOM} m, '

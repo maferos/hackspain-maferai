@@ -25,7 +25,11 @@ ARM_JOINTS = (
     'arm_wrist_1_joint', 'arm_wrist_2_joint', 'arm_wrist_3_joint',
 )
 RAIL_JOINT = 'rail_x'
-TCP_SITE = 'arm_grip_pinch'
+# The tool centre point is whichever tool is fitted: the pipette's tip, or the
+# gripper's pinch point. Everything downstream --- the IK, the reach report,
+# the demo modes --- works off this name and does not care which.
+TCP_SITES = ('arm_pip_tip', 'arm_grip_pinch')
+TCP_SITE = TCP_SITES[0]
 EIH_SITE = 'arm_eih_site'
 BENCH_TOP = 0.90
 # What computer-vision/scripts/wrist_scan.py found the ArUco rings need: about
@@ -93,7 +97,11 @@ def load(path: Path = SCENE) -> tuple[mujoco.MjModel, mujoco.MjData]:
     Returns:
         Freshly compiled model and its data, already forward-evaluated.
     """
+    global TCP_SITE
     model = mujoco.MjModel.from_xml_path(str(path))
+    known = {mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_SITE, i)
+             for i in range(model.nsite)}
+    TCP_SITE = next(name for name in TCP_SITES if name in known)
     data = mujoco.MjData(model)
     mujoco.mj_forward(model, data)
     return model, data

@@ -30,18 +30,19 @@
     <material name="gantry" rgba="0.42 0.44 0.48 1" specular="0.4" shininess="0.5" />
     <material name="carriage" rgba="0.22 0.24 0.28 1" specular="0.5" shininess="0.6" />
     <model name="ur10e_2f85" file="../assets/ur10e_2f85/ur10e_2f85.xml" />
-    <model name="dyn_SMP-0084" file="../assets/labelled_bottles/SMP-0084.xml" />
-    <model name="dyn_SMP-0044" file="../assets/labelled_bottles/SMP-0044.xml" />
-    <model name="dyn_SMP-0199" file="../assets/labelled_bottles/SMP-0199.xml" />
-    <model name="dyn_SMP-0041" file="../assets/labelled_bottles/SMP-0041.xml" />
-    <model name="dyn_SMP-0048" file="../assets/labelled_bottles/SMP-0048.xml" />
-    <model name="dyn_SMP-0109" file="../assets/labelled_bottles/SMP-0109.xml" />
-    <model name="dyn_SMP-0093" file="../assets/labelled_bottles/SMP-0093.xml" />
-    <model name="dyn_SMP-0011" file="../assets/labelled_bottles/SMP-0011.xml" />
-    <model name="dyn_SMP-0190" file="../assets/labelled_bottles/SMP-0190.xml" />
-    <model name="dyn_SMP-0174" file="../assets/labelled_bottles/SMP-0174.xml" />
-    <model name="dyn_SMP-0082" file="../assets/labelled_bottles/SMP-0082.xml" />
-    <model name="dyn_SMP-0051" file="../assets/labelled_bottles/SMP-0051.xml" />
+    <model name="dyn_SMP-0084" file="../assets/open_vessels/SMP-0084.xml" />
+    <model name="dyn_SMP-0044" file="../assets/open_vessels/SMP-0044.xml" />
+    <model name="dyn_SMP-0199" file="../assets/open_vessels/SMP-0199.xml" />
+    <model name="dyn_SMP-0041" file="../assets/open_vessels/SMP-0041.xml" />
+    <model name="dyn_SMP-0048" file="../assets/open_vessels/SMP-0048.xml" />
+    <model name="dyn_SMP-0109" file="../assets/open_vessels/SMP-0109.xml" />
+    <model name="dyn_SMP-0093" file="../assets/open_vessels/SMP-0093.xml" />
+    <model name="dyn_SMP-0011" file="../assets/open_vessels/SMP-0011.xml" />
+    <model name="dyn_SMP-0190" file="../assets/open_vessels/SMP-0190.xml" />
+    <model name="dyn_SMP-0174" file="../assets/open_vessels/SMP-0174.xml" />
+    <model name="dyn_SMP-0082" file="../assets/open_vessels/SMP-0082.xml" />
+    <model name="dyn_SMP-0051" file="../assets/open_vessels/SMP-0051.xml" />
+    <model name="beaker" file="../assets/beaker/beaker.xml" />
   </asset>
   <include file="../assets/minihannover_open/bench.xml" />
   <worldbody>
@@ -169,6 +170,10 @@
       <freejoint />
       <attach model="dyn_SMP-0051" body="SMP-0051" prefix="dyn_SMP-0051_" />
     </body>
+    <body name="beaker" pos="-0.75 -0.1 0.9">
+      <freejoint />
+      <attach model="beaker" body="beaker" prefix="beaker_" />
+    </body>
     <body name="rail">
       <geom name="rail_post_left" type="box" material="gantry" pos="-4.820 0.3 0.680" size="0.06 0.06 0.680" />
       <geom name="rail_post_right" type="box" material="gantry" pos="1.820 0.3 0.680" size="0.06 0.06 0.680" />
@@ -184,10 +189,25 @@
     </body>
   </worldbody>
   <option integrator="implicitfast" impratio="10" cone="elliptic" />
+  <contact>
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0084_SMP-0084" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0044_SMP-0044" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0199_SMP-0199" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0041_SMP-0041" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0048_SMP-0048" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0109_SMP-0109" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0093_SMP-0093" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0011_SMP-0011" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0190_SMP-0190" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0174_SMP-0174" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0082_SMP-0082" />
+    <exclude body1="arm_pip_pipette_tip" body2="dyn_SMP-0051_SMP-0051" />
+    <exclude body1="arm_pip_pipette_tip" body2="beaker_beaker" />
+  </contact>
   <actuator>
     <position name="rail_x" joint="rail_x" kp="60000" kv="6000" forcerange="-4000 4000" ctrlrange="-3.040 3.040" />
   </actuator>
   <keyframe>
-    <key name="scan" ctrl="0 -1.5708 -1.9199 2.0944 -1.7453 -1.5708 0.0000 0" />
+    <key name="scan" ctrl="0 -1.5708 -1.9199 2.0944 -1.7453 -1.5708 0.0000" />
   </keyframe>
 </mujoco>

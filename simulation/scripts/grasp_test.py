@@ -38,7 +38,7 @@ def actuators(model: mujoco.MjModel) -> list[int]:
 
 
 def hold(model: mujoco.MjModel, data: mujoco.MjData, ids: list[int],
-         station: float, pose: np.ndarray, grip: float, seconds: float,
+         station: float, pose: np.ndarray, grip: float | None, seconds: float,
          settle: float = 0.5) -> None:
     """Ramp the servo targets to a pose, then sit on the target while it catches up.
 
@@ -53,7 +53,7 @@ def hold(model: mujoco.MjModel, data: mujoco.MjData, ids: list[int],
         ids: Actuator ids for the rail and the arm joints.
         station: World X for the carriage.
         pose: Target arm joint angles.
-        grip: Gripper actuator target.
+        grip: Gripper actuator target, or None when no gripper is fitted.
         seconds: Length of the ramp.
         settle: Extra time held at the final target.
     """
@@ -65,7 +65,9 @@ def hold(model: mujoco.MjModel, data: mujoco.MjData, ids: list[int],
         alpha = 0.5 - 0.5 * np.cos(np.pi * min(step + 1, ramp) / ramp)
         for i, value in zip(ids, start + alpha * (goal - start)):
             data.ctrl[i] = value
-        data.ctrl[model.actuator('arm_grip_fingers_actuator').id] = grip
+        if grip is not None and model.nu > len(ids):
+            # Only when a gripper is fitted; the pipetting scene has no fingers.
+            data.ctrl[model.actuator('arm_grip_fingers_actuator').id] = grip
         mujoco.mj_step(model, data)
 
 

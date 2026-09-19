@@ -38,6 +38,8 @@ from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import grasp_test as gt
+import pipette_test as pt
+import pipetting as pip
 import rail_demo as rd
 import rail_kinematics as rk
 
@@ -75,13 +77,12 @@ PAGE = """<!doctype html>
   <main>
     <img src="/stream.mjpg" alt="wrist camera">
     <aside>
-      <h2>Gripper</h2>
+      <h2>Liquid</h2>
       <dl>
-        <dt>Right pad</dt><dd><span id="pad_right">-</span> N</dd>
-        <dt>Left pad</dt><dd><span id="pad_left">-</span> N</dd>
-        <dt>Finger drive</dt><dd><span id="finger_drive">-</span></dd>
-        <dt>Closure</dt><dd><span id="closure">-</span> rad</dd>
-        <dt>Object</dt><dd><span id="holding">-</span></dd>
+        <dt>Beaker</dt><dd><span id="beaker_ml">-</span> ml</dd>
+        <dt>Beaker mass</dt><dd><span id="beaker_g">-</span> g</dd>
+        <dt>On the bench</dt><dd><span id="on_bench_ml">-</span> ml</dd>
+        <dt>Tip height</dt><dd><span id="tip_z">-</span> m</dd>
       </dl>
       <h2>Machine</h2>
       <dl>
@@ -102,13 +103,10 @@ PAGE = """<!doctype html>
       try {
         const t = await (await fetch('/telemetry')).json();
         put('caption', t.caption);
-        for (const k of ['pad_right','pad_left','finger_drive','closure',
+        for (const k of ['beaker_ml','beaker_g','on_bench_ml','tip_z',
                          'carriage_x','contacts','sim_time','speed'])
-          put(k, t[k]);
+          if (k in t) put(k, t[k]);
         put('tool', t.tool.join(', '));
-        const h = document.getElementById('holding');
-        h.textContent = t.holding ? 'detected' : 'none';
-        h.className = t.holding ? 'on' : 'off';
       } catch (e) { /* the run ended; keep the last frame on screen */ }
     }, 200);
   </script>
@@ -318,35 +316,135 @@ def pick_programme(model: mujoco.MjModel, data: mujoco.MjData, count: int):
                              f'clear of {tag}')
 
 
+def pipette_programme(model: mujoco.MjModel, data: mujoco.MjData, count: int):
+    """Draw from flask after flask and deliver into the beaker, with physics.
+
+    A generator yielding a caption after every simulation step, so the caller
+    can render between steps. Liquid only moves when the tip is genuinely down
+    the bore and under the surface; a miss is reported, not fudged.
+
+    Args:
+        model: Compiled scene.
+        data: Data to run in.
+        count: Flasks to work through before looping.
+
+    Yields:
+        A short line describing what is happening.
+    """
+    ids = gt.actuators(model)
+    home = model.body('rail_carriage').pos[0]
+    per_second = round(1 / model.opt.timestep)
+
+    def drive(station, pose, seconds, caption):
+        start = np.array([data.ctrl[i] for i in ids])
+        goal = np.concatenate([[station - home], pose])
+        move = np.abs(goal - start)
+        seconds = max(seconds, float(move[0]) / 0.6, float(move[1:].max()) / 0.9)
+        total = max(int(seconds * per_second), 1)
+        ramp = max(int(total * 0.7), 1)
+        for step in range(total):
+            alpha = 0.5 - 0.5 * np.cos(np.pi * min(step + 1, ramp) / ramp)
+            for i, value in zip(ids, start + alpha * (goal - start)):
+                data.ctrl[i] = value
+            mujoco.mj_step(model, data)
+            yield caption
+
+    mujoco.mj_resetData(model, data)
+    mujoco.mj_forward(model, data)
+    vessels = pip.containers(model, data)
+    beaker = vessels['beaker']
+    tool = pip.Pipette()
+    flasks = [v for k, v in sorted(vessels.items()) if k != 'beaker'][:count]
+    pip.sync(model, vessels, tool)
+
+    while True:
+        for flask in flasks:
+            axis = data.body(flask.body).xpos
+            over = np.array([float(axis[0]), float(axis[1]),
+                             float(data.site(flask.mouth).xpos[2]) + pt.CLEARANCE])
+            saved = (data.qpos.copy(), data.qvel.copy())
+            station = rk.reach(model, data, over)
+            q_over = data.qpos[rk.arm_qpos(model)].copy()
+            q_down = solved = None
+            if station is not None:
+                rk.set_rail(model, data, station)
+                down = over.copy()
+                down[2] = pt.target_depth(flask, data)
+                solved = rk.solve_any(model, data, down)
+                q_down = data.qpos[rk.arm_qpos(model)].copy()
+            data.qpos[:], data.qvel[:] = saved
+            mujoco.mj_forward(model, data)
+            if station is None or not solved:
+                continue
+
+            tag = flask.name
+            yield from drive(station, q_over, 3.0, f'over {tag}')
+            yield from drive(station, q_down, 2.0, f'entering {tag}')
+            drew = pip.aspirate(model, data, flask, tool, 0.5)
+            yield from drive(station, q_down, 0.8,
+                             f'drawing from {tag}' if drew else f'missed {tag}')
+            yield from drive(station, q_over, 1.5, f'withdrawing from {tag}')
+            if not drew:
+                continue
+
+            mouth = data.site(beaker.mouth).xpos
+            above = np.array([float(mouth[0]), float(mouth[1]),
+                              float(mouth[2]) - 0.01])
+            saved = (data.qpos.copy(), data.qvel.copy())
+            station = rk.reach(model, data, above)
+            q_beaker = data.qpos[rk.arm_qpos(model)].copy()
+            data.qpos[:], data.qvel[:] = saved
+            mujoco.mj_forward(model, data)
+            if station is None:
+                continue
+            yield from drive(station, q_beaker, 3.0, 'carrying to the beaker')
+            pip.dispense(model, data, beaker, tool)
+            yield from drive(station, q_beaker, 1.0,
+                             f'beaker now {beaker.volume:.2f} ml '
+                             f'= {beaker.mass:.2f} g')
+
+
 def telemetry(model: mujoco.MjModel, data: mujoco.MjData, caption: str,
               speed: float) -> dict[str, object]:
     """Everything worth putting on screen, read from the running simulation."""
-    grip = rk.read_grip(model, data)
     carriage = float(data.body('rail_carriage').xpos[0])
     tool = data.site(rk.TCP_SITE).xpos
-    return {
+    out = {
         'caption': caption,
         'sim_time': round(float(data.time), 2),
         'speed': round(speed, 2),
         'contacts': int(data.ncon),
         'carriage_x': round(carriage, 3),
         'tool': [round(float(v), 3) for v in tool],
-        'pad_right': round(grip.right, 2),
-        'pad_left': round(grip.left, 2),
-        'finger_drive': round(grip.drive, 2),
-        'closure': round(grip.closure, 3),
-        'holding': grip.holding,
     }
+    if rk.TCP_SITE == 'arm_grip_pinch':
+        grip = rk.read_grip(model, data)
+        out |= {'pad_right': round(grip.right, 2),
+                'pad_left': round(grip.left, 2),
+                'finger_drive': round(grip.drive, 2),
+                'closure': round(grip.closure, 3),
+                'holding': grip.holding}
+    else:
+        vessels = pip.containers(model, data)
+        beaker = vessels['beaker']
+        out |= {'beaker_ml': round(beaker.volume, 2),
+                'beaker_g': round(beaker.mass, 2),
+                'on_bench_ml': round(sum(v.volume for k, v in vessels.items()
+                                         if k != 'beaker'), 1),
+                'tip_z': round(float(tool[2]), 3),
+                'holding': False}
+    return out
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--mode', choices=('pick', 'sweep', 'visit', 'label'),
-                        default='pick',
-                        help='pick runs the real thing: physics stepped, the '
-                             'arm stopped by the bench, vessels moved by '
-                             'contact, the gripper closed on force feedback. '
-                             'The others are kinematic playback.')
+    parser.add_argument('--mode',
+                        choices=('pipette', 'pick', 'sweep', 'visit', 'label'),
+                        default='pipette',
+                        help='pipette draws from each open flask and delivers '
+                             'into the beaker; pick grasps and lifts vessels '
+                             'with the gripper fitted. Both step physics. The '
+                             'others are kinematic playback.')
     parser.add_argument('--visits', type=int, default=6,
                         help='vessels to visit in visit and label modes')
     parser.add_argument('--speed', type=float, default=0.8,
@@ -365,7 +463,14 @@ def main() -> None:
     width, height = (int(v) for v in args.resolution.split('x'))
     model, data = rk.load()
     programme = rows = owners = labels = None
-    if args.mode == 'pick':
+    if args.mode == 'pipette':
+        mujoco.mj_forward(model, data)
+        vessels = pip.containers(model, data)
+        programme = pipette_programme(model, data, args.visits)
+        print(f'pipette: physics stepped at {model.opt.timestep * 1000:.0f} ms, '
+              f'{len(vessels) - 1} open flasks holding '
+              f'{sum(v.volume for k, v in vessels.items() if k != "beaker"):.1f} ml')
+    elif args.mode == 'pick':
         mujoco.mj_forward(model, data)
         liftable = sum(1 for b in rk.bottles(model, data) if b.dynamic)
         programme = pick_programme(model, data, args.visits)
@@ -384,7 +489,7 @@ def main() -> None:
     if not args.no_browser:
         webbrowser.open(url)
 
-    if args.mode != 'pick':
+    if programme is None:
         mujoco.mj_resetData(model, data)
     renderer = mujoco.Renderer(model, height=height, width=width)
     steps_per_frame = max(round(1 / rd.FPS / model.opt.timestep), 1)
