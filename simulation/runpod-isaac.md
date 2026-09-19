@@ -155,6 +155,74 @@ Verify nothing is left: <https://www.runpod.io/console/pods>.
 
 ---
 
+## Rendering an existing MuJoCo scene in Isaac RTX
+
+Render the perfumery-lab scene (`models/minihannover_scene.xml`, MuJoCo/MJCF) in
+Isaac's RTX renderer. **Verified 2026-09-18 on an RTX 4090** (7 authored views,
+1920×1080).
+
+**Do NOT use Isaac's MJCF importer for this.** It doesn't expand MuJoCo
+`<include>` (so `minihannover_scene.xml`, which only `<include>`s the bench,
+imports nearly empty), and it targets robots, not decorative scenes with 300+
+visual meshes and colliding mesh basenames. It reports success yet writes a ~20 KB
+empty USD.
+
+**The path that works: MuJoCo's own USD exporter, then Isaac only renders.**
+
+1. On the pod, add MuJoCo + USD + Pillow to the **system** python (not Isaac's):
+   ```bash
+   apt-get install -y python3-pip
+   python3 -m pip install mujoco usd-core pillow
+   ```
+2. Export the scene to a USD package with `scripts/export_usd.py` — `mujoco.usd`'s
+   `USDExporter` loads the full scene (all includes, 319 meshes, materials, the 7
+   authored cameras, the lights):
+   ```bash
+   python3 export_usd.py /root/scene/models/minihannover_scene.xml /root/out
+   # -> /root/out/lab_usd/frames/frame_1.usdc (+ assets/texture_*.png), ~25 MB
+   ```
+3. Render that USD with Isaac + Replicator via `scripts/render_usd.py`:
+   ```bash
+   OUT_DIR=/root/out/lab W=1920 H=1080 LIGHTMUL=40 \
+     /isaac-sim/python.sh render_usd.py /root/out/lab_usd/frames/frame_1.usdc [cam_path ...]
+   ```
+   It renders each camera prim (or the ones you pass) and boosts every imported
+   light (see the lighting gotcha).
+4. SCP the PNGs back, terminate the pod.
+
+### Gotchas (each cost real time)
+
+- **RTX 5090 (Blackwell) is NOT compatible with Isaac Sim 4.5** — even a trivial
+  headless render segfaults at startup (in the urdf importer's UI build), driver
+  580.95.05. Use **Ada/Ampere**: RTX 4090, A5000/A6000, A40, L40 — exclude the 5090
+  from `gpuTypeIds`. (The interactive note already flagged the 50-series.)
+- **Lighting: it's a CLOSED room.** A DomeLight (sky) can't get in, so it does
+  nothing; MuJoCo's exported ceiling lights import far too dim for RTX.
+  `render_usd.py` multiplies every light's intensity by `LIGHTMUL` (≈40 looked
+  right here). Without it the render is near-black.
+- **First Isaac boot on a fresh pod takes minutes; after that ~10 s** (extensions
+  cached), so iterating the render/lighting is fast.
+- USD export runs on plain python (mujoco + usd-core + pillow), no Isaac. Keep it
+  off `/isaac-sim/python.sh` (which has USD but not mujoco).
+- Uploading the 57 MB scene tarball over scp from the Mac is the slow step
+  (~7 min); the pod's own bandwidth (pip, image pull) is fast.
+- **Driver too NEW also breaks it, not just the 5090.** A 4090/A40 worker with
+  driver **595.91.07** segfaults Isaac at startup (`_wait_for_viewport`) exactly
+  like the 5090; driver **570.x / 580.x** works. RunPod may hand you the same bad
+  host repeatedly. Pin `dataCenterIds: ["CA-MTL-1","CA-MTL-2","CA-MTL-3"]`
+  (Montreal gave 570/580) and **check `nvidia-smi` driver before rendering**.
+- **Don't install `usd-core` on the render pod's system python.** Its `pxr` can
+  collide with Isaac's and segfault the viewport when `render_usd.py` runs under
+  `/isaac-sim/python.sh`. Instead export the USD elsewhere — locally on the Mac via
+  `uv run --with mujoco --with usd-core --with pillow python export_usd.py …`, or a
+  throwaway venv — and upload only the ~12 MB USD package (`lab_usd/`) to a clean
+  render pod. Splits export (needs mujoco+usd) from render (needs only Isaac).
+- **Sanitise names for USD.** MuJoCo names with `-` (asset dirs `gc-ms`,
+  `uv-vs-nr`) make USD prim paths invalid → `Path must be an absolute path: <>` and
+  an empty/partial export. `export_usd.py` monkeypatches the exporter to map every
+  generated name to `[A-Za-z0-9_]`. The shelf-free `open` scene lacked those
+  assets, so it exported fine while `full` didn't until sanitised.
+
 ## Next (toward the real dataset)
 
 This de-risks the cloud path. To turn it into a labelled CV dataset, extend
