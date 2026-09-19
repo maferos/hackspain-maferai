@@ -289,6 +289,10 @@ class Randomiser:
             drawn["worktop_tint"] = np.round(shade, 3).tolist()
         if split.camera_jitter:
             shift = np.clip(rng.normal(0, 0.07, 3), -0.15, 0.15)
+            # The mount is flush with the aisle wall (-y) and the ceiling (+z):
+            # a shift behind or above it puts the lens inside them, and the
+            # frame comes out a flat grey with every bottle at zero pixels.
+            shift[1], shift[2] = abs(shift[1]), -abs(shift[2])
             axis = rng.normal(size=3)
             axis /= np.linalg.norm(axis)
             angle = math.radians(float(np.clip(rng.normal(0, 2.0), -5, 5)))
