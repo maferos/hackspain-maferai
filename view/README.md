@@ -48,8 +48,8 @@ memory; it never rewrites generated scene files. All connected tabs share the
 new layout, and the viewport label shows its seed and sample count. Requests
 are deduplicated per page load, including React StrictMode and network retries.
 The render thread installs the new MuJoCo model and graphics context; YOLO
-discards in-flight detections from the previous model. Replay remains a fixed
-recording. The panel demo retains its original model, samples and `RECIPE`, so
+discards in-flight detections from the previous model. Replay selects the recording for that same seed; switching modes does not
+request a new layout. The panel demo retains its original model, samples and `RECIPE`, so
 the shared scripted-run recording continues to match the panel state.
 
 ```sh
@@ -71,10 +71,13 @@ somewhere other than `http://localhost:8000`.
 
 By default the viewport shows the live MuJoCo cameras. Select **Replay** in
 the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
-3.0 EA / Isaac Sim 6.1 rail videos without a backend. The global and robot
-cameras loop together at 1080p, 30 fps (20.267 seconds); click the small view
-to swap cameras without restarting playback. The files are bundled in
-`frontend/public/renders/rail_global.mp4` and `rail_robot.mp4`.
+3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
+the selected seed; Replay waits for that selection instead of showing a
+different layout. The ten provisional camera pairs loop at 960×540, 10 fps
+(20.3 seconds), with normal lighting. Click the small view to swap cameras
+without restarting playback. Files live in `frontend/public/renders/seeds/p01/`
+through `p10/`; `src/replayPatterns.json` maps seeds to the videos. Replay's
+YOLO WebSocket receives the pattern name and decodes that same recording.
 
 The lab
 state panels read the state publisher on :8765: either this backend, or
@@ -176,5 +179,7 @@ the table band (30–75% of frame height, full width) before inference, removing
 background while preserving the samples. Boxes are translated back to full-video
 coordinates; playback stays at its original resolution. Recheck this crop if
 the camera framing changes. The backend and frontend must use the
-same `view/frontend/public/renders/rail_global.mp4`. Videos still play without
-the backend or weights; only detection becomes unavailable.
+same `view/frontend/public/renders/seeds/<pattern>/rail_global.mp4`. Videos
+continue playing without detection once the seed has been selected. Restart
+the backend after upgrading from the single-video replay so it can acknowledge
+the selected pattern; the frontend rejects boxes from an older backend.

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import replayPatterns from "./replayPatterns.json";
 import { chooseScene } from "./sceneSession";
 import "./App.css";
 import useReplayDetections from "./useReplayDetections";
@@ -21,13 +22,13 @@ const DEFAULT_CAMERAS = [
 
 // The viewport has two sources, switchable from the header:
 //   realtime — the backend's live MuJoCo streams of the scene.
-//   replay   — synchronized Isaac Lab rail videos, served without a backend.
+//   replay   — synchronized Isaac Lab rail videos for the backend-selected seed.
 // Start in Real time on the live MuJoCo streams; ?replay=1 opens in Replay
-// (the Isaac Lab videos, which need no backend).
+// (static video files, with the current seed supplied by the backend).
 const INITIAL_MODE = new URLSearchParams(window.location.search).get("replay") === "1" ? "replay" : "realtime";
 const REPLAY_CAMERAS = [
-  { id: "scene", label: "General camera", src: "/renders/rail_global.mp4" },
-  { id: "robot", label: "Robot camera", src: "/renders/rail_robot.mp4" },
+  { id: "scene", label: "General camera" },
+  { id: "robot", label: "Robot camera" },
 ];
 
 // Views that can be opened and closed from the header, and the sizes the drag
@@ -224,9 +225,12 @@ function CameraStream({ cameraId, label, className, onClick, big, detections }) 
   );
 }
 
-function ReplayViewport({ mainCameraId, onSwap, showBoxes }) {
+function ReplayViewport({ mainCameraId, onSwap, showBoxes, pattern }) {
+  const cameras = REPLAY_CAMERAS.map((camera) => ({
+    ...camera, src: `/renders/seeds/${camera.id === "scene" ? pattern.global_video : pattern.robot_video}`,
+  }));
   const videos = useRef({});
-  const replay = useReplayDetections(videos, showBoxes, BACKEND_URL);
+  const replay = useReplayDetections(videos, showBoxes, BACKEND_URL, pattern.pattern);
   const [error, setError] = useState(false);
 
   useEffect(() => {
@@ -257,7 +261,7 @@ function ReplayViewport({ mainCameraId, onSwap, showBoxes }) {
     };
   }, []);
 
-  return REPLAY_CAMERAS.map(({ id, label, src }) => {
+  return cameras.map(({ id, label, src }) => {
     const big = id === mainCameraId;
     return <div key={id} className={`camera-frame camera-frame--${big ? "main" : "pip"}`}
       onClick={big ? undefined : onSwap}>
@@ -265,7 +269,7 @@ function ReplayViewport({ mainCameraId, onSwap, showBoxes }) {
         className="camera-frame__img" aria-label={label} muted loop playsInline
         preload="auto" onError={() => setError(true)} />
       {id === "scene" && replay.boxes && <DetectionBoxes detections={replay.boxes} />}
-      <span className="camera-frame__label">{label}{id === "scene" && replay.status ? ` · ${replay.status}` : ""}</span>
+      <span className="camera-frame__label">{label} · Seed {pattern.seed} · {pattern.count} samples{id === "scene" && replay.status ? ` · ${replay.status}` : ""}</span>
       {error && <span className="camera-frame__connection" role="status">Replay unavailable. Reload to try again.</span>}
       {!big && <span className="camera-frame__swap">⇄ swap</span>}
     </div>;
@@ -285,6 +289,7 @@ export default function App() {
     select();
     return () => { cancelled = true; clearTimeout(retry); };
   }, []);
+  const replayPattern = replayPatterns.find((entry) => entry.seed === scenePattern?.seed);
   const [mode, setMode] = useState(INITIAL_MODE);
   const realtime = mode === "realtime";
   const [liveCameras, setLiveCameras] = useState(DEFAULT_CAMERAS);
@@ -534,7 +539,10 @@ export default function App() {
                 onClick={swapCameras}
                 detections={detections}
               />
-            </> : <ReplayViewport mainCameraId={mainCameraId} onSwap={swapCameras} showBoxes={showBoxes} />}
+            </> : replayPattern ? <ReplayViewport key={replayPattern.pattern} pattern={replayPattern} mainCameraId={mainCameraId} onSwap={swapCameras} showBoxes={showBoxes} />
+              : <div className="camera-frame camera-frame--main"><span className="camera-frame__connection" role="status">
+                {scenePattern ? `Replay unavailable for seed ${scenePattern.seed}` : "Waiting for the current seed… Connect the backend to select a layout."}
+              </span></div>}
           </section>
           {showPanels && (
             <Splitter direction="row" onStart={dragPanels} onReset={() => resize({ panelsHeight: DEFAULT_SIZES.panelsHeight })} />

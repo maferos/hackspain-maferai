@@ -1,0 +1,132 @@
+[
+  {
+    "pattern": "p01",
+    "seed": 30,
+    "count": 16,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p01/rail_global.mp4",
+    "robot_video": "p01/rail_robot.mp4"
+  },
+  {
+    "pattern": "p02",
+    "seed": 176,
+    "count": 24,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p02/rail_global.mp4",
+    "robot_video": "p02/rail_robot.mp4"
+  },
+  {
+    "pattern": "p03",
+    "seed": 21,
+    "count": 29,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p03/rail_global.mp4",
+    "robot_video": "p03/rail_robot.mp4"
+  },
+  {
+    "pattern": "p04",
+    "seed": 327,
+    "count": 35,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p04/rail_global.mp4",
+    "robot_video": "p04/rail_robot.mp4"
+  },
+  {
+    "pattern": "p05",
+    "seed": 1,
+    "count": 41,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p05/rail_global.mp4",
+    "robot_video": "p05/rail_robot.mp4"
+  },
+  {
+    "pattern": "p06",
+    "seed": 31,
+    "count": 46,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p06/rail_global.mp4",
+    "robot_video": "p06/rail_robot.mp4"
+  },
+  {
+    "pattern": "p07",
+    "seed": 70,
+    "count": 52,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p07/rail_global.mp4",
+    "robot_video": "p07/rail_robot.mp4"
+  },
+  {
+    "pattern": "p08",
+    "seed": 4,
+    "count": 57,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p08/rail_global.mp4",
+    "robot_video": "p08/rail_robot.mp4"
+  },
+  {
+    "pattern": "p09",
+    "seed": 2,
+    "count": 65,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p09/rail_global.mp4",
+    "robot_video": "p09/rail_robot.mp4"
+  },
+  {
+    "pattern": "p10",
+    "seed": 15,
+    "count": 71,
+    "fps": 10,
+    "frames": 203,
+    "resolution": [
+      960,
+      540
+    ],
+    "global_video": "p10/rail_global.mp4",
+    "robot_video": "p10/rail_robot.mp4"
+  }
+]

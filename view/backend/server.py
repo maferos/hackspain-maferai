@@ -555,14 +555,21 @@ def detector_info():
 
 
 @app.websocket("/ws/replay-detections")
-async def ws_replay_detections(websocket: WebSocket):
+async def ws_replay_detections(websocket: WebSocket, pattern: str | None = None):
     """One requested future video frame at a time; never blocks live rendering."""
     await websocket.accept()
     worker = None
     try:
         weights = Path(os.environ.get("VIEW_REPLAY_WEIGHTS", str(
             REPO_ROOT / "computer-vision/weights/yolo26n_rail_general.pt")))
-        video = REPO_ROOT / "view/frontend/public/renders/rail_global.mp4"
+        renders = REPO_ROOT / "view/frontend/public/renders"
+        if pattern is None:
+            video = renders / "rail_global.mp4"
+        elif pattern in {f"p{i:02d}" for i in range(1, 11)}:
+            video = renders / "seeds" / pattern / "rail_global.mp4"
+        else:
+            await websocket.send_json({"error": "Unknown replay pattern"})
+            return
         if not weights.is_file() or not video.is_file():
             await websocket.send_json({"error": "Replay video or YOLO weights missing"})
             return
@@ -575,7 +582,10 @@ async def ws_replay_detections(websocket: WebSocket):
             line = await asyncio.wait_for(worker.stdout.readline(), timeout=60)
             if not line:
                 raise RuntimeError("Replay detector stopped")
-            await websocket.send_json(json.loads(line))
+            result = json.loads(line)
+            if result.get("ready"):
+                result["pattern"] = pattern
+            await websocket.send_json(result)
             request = await websocket.receive_json()
             worker.stdin.write((json.dumps({"time": float(request["time"])}) + "\n").encode())
             await worker.stdin.drain()

@@ -2,12 +2,12 @@ import { useEffect, useState } from "react";
 
 // Requests are strictly sequential. Playback owns the clock; inference never
 // seeks or pauses the displayed video. The backend decodes its own copy.
-export default function useReplayDetections(videos, enabled, backendUrl) {
+export default function useReplayDetections(videos, enabled, backendUrl, pattern) {
   const [state, setState] = useState({ boxes: null, status: "" });
   useEffect(() => {
     if (!enabled) return;
     const video = videos.current.scene;
-    const socket = new WebSocket(backendUrl.replace(/^http/, "ws") + "/ws/replay-detections");
+    const socket = new WebSocket(backendUrl.replace(/^http/, "ws") + `/ws/replay-detections?pattern=${encodeURIComponent(pattern)}`);
     let ready = false;
     let busy = false;
     let sentAt = 0;
@@ -35,6 +35,12 @@ export default function useReplayDetections(videos, enabled, backendUrl) {
         ready = false;
         pending = []; shown = null;
       } else if (result.ready) {
+        if (result.pattern !== pattern) {
+          status = "Restart backend for seeded replay detection";
+          socket.onclose = null;
+          socket.close();
+          return;
+        }
         if (Math.abs(result.duration - video.duration) > 0.1) {
           status = "Replay video differs from backend";
           socket.close();
@@ -77,6 +83,6 @@ export default function useReplayDetections(videos, enabled, backendUrl) {
       socket.onmessage = socket.onclose = socket.onerror = null;
       socket.close();
     };
-  }, [videos, enabled, backendUrl]);
+  }, [videos, enabled, backendUrl, pattern]);
   return enabled ? state : { boxes: null, status: "" };
 }
