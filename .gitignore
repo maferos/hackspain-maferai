@@ -28,6 +28,11 @@ data/
 *.log
 mobileclip*.ts
 
+# Scene renders written by harness/vision.py. Regenerable from the scenes, and
+# 15 MB of PNG is not worth carrying in history; the scripts and the catalogue
+# beside them are tracked.
+harness/frames/
+
 # Menagerie models, fetched by simulation/scripts/fetch_menagerie.sh. No
 # trailing slash: the sparse clone carries its own .git, so `git add` turns the
 # directory into a gitlink with no .gitmodules entry behind it, and everyone
