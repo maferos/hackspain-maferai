@@ -36,6 +36,25 @@ so they can start; the polished pipeline (Isaac Sim + Replicator on RunPod) foll
 - [ ] **Batch 2 — usable detection data**: objects on the bench (instruments /
       simple primitives) + **segmentation masks** + **depth** from the same
       `render_dataset.py`. Turns bench-only frames into a real CV dataset.
+- [ ] **Re-render the arm montage on the de-cluttered open USD (needs an idle GPU).**
+      The `minihannover_open` scene now drops the solid/powder jars (working tree:
+      `generate_minihannover_open.py` filters stock to `phase == liquid`, 407 → 313
+      containers), verified good via `render_usd.py` (bright, de-cluttered bench).
+      `arm_pose_render.py` needs re-running to refresh `renders/isaac/arms/` — **no
+      code change needed**. Root cause of the "black lab" seen on 2026-09-19 was
+      **NOT** our scene change and **NOT** the script: it was **GPU contention** —
+      every black arm render happened while a second Isaac RTX process (Eki's
+      `dataset_gen*.py`) was running on the same A40; the one render made with the GPU
+      idle (`render_usd.py`, 08:45) came out bright. Proof: re-exporting the *old*
+      with-solids USD (md5 943931c…, the one that made the committed bright renders)
+      and running the unmodified script now *also* renders black while Eki's job runs.
+      Diagnostics confirmed geometry+lights+load were all fine at capture, so it's a
+      renderer-level conflict between two concurrent Isaac contexts, not the data.
+      **Action:** run `ONLY_ARM=franka NPOSES=1` on an **idle** GPU to confirm bright,
+      then the full `arm_pose_render.py`, rebuild the montages, done.
+      **Coordinate with Eki:** the pod is shared and `dataset_gen*.py` reads
+      `/root/lab_usd`; agree on which USD it should hold (de-cluttered =
+      md5 467b67ddb776b117d7dd729f7e4df611) before swapping it.
 
 ## Not yet specified (fog)
 

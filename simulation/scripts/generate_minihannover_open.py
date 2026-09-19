@@ -60,8 +60,11 @@ def tabletop_population(m):
     manifest = json.loads((room.BOTTLES / 'manifest.json').read_text())
     vessels = manifest['vessels']
     rng = np.random.default_rng(POPULATION_SEED)
+    # Keep only liquid stock on the open desk; solid/powder jars are dropped.
     records = [dict(sample_id=k, vessel_class=v['vessel_class'])
-               for k,v in sorted(manifest['samples'].items()) if k not in room.PLACED_BY_SCENE]
+               for k,v in sorted(manifest['samples'].items())
+               if k not in room.PLACED_BY_SCENE
+               and vessels[v['vessel_class']]['phase'] == 'liquid']
     # Preserve catalogued sizes/barcodes. Extra stock has blank labels, not duplicate IDs.
     for i in range(EXTRA_AMBER):
         vessel = str(rng.choice(['flask_10ml', 'flask_20ml', 'flask_30ml', 'flask_50ml'],
