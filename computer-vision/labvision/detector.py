@@ -3,7 +3,7 @@
 The barcode is the identity and :mod:`labvision.scene` is the geometry. What sits
 between them is a box: *there is a bottle in these pixels*. This module produces
 that box. Two backends were kept out of a benchmark of ten pretrained detectors
-on real lab photographs (``docs/BENCHMARK.md`` at the repo root, in Spanish):
+on real lab photographs (``docs/BENCHMARK.md``, next to this package):
 
 ``"world"``
     YOLO-World large with everyday prompts. The best quality: reliable down to
@@ -249,7 +249,11 @@ class Detector:
         return boxes
 
     def warmup(self, shape: tuple[int, int, int] = (1080, 1920, 3)) -> None:
-        """Run one blank frame so the first real one is not slowed by lazy setup"""
+        """Run one blank frame so the first real one is not slowed by lazy setup
+
+        Pass the shape of the frames to come: the backend sizes its input for
+        the first shape it sees, and a frame of another shape is cold again.
+        """
         self.detect(np.zeros(shape, np.uint8))
 
 
@@ -304,7 +308,7 @@ def apparent_size_px(
     Args:
         vessel: The vessel, for its diameter and height.
         range_m: Distance from the camera centre to the vessel.
-        intrinsics: The camera, defaulting to the MuJoCo render defaults.
+        intrinsics: The camera, defaulting to the scene's GoPro at 1080p.
         input_px: If given, scale to the network input of that long side.
 
     Returns:
@@ -428,7 +432,6 @@ def main(argv: list[str] | None = None) -> None:
         detector = Detector(
             name, input_px=args.input_px, score=args.score, device=args.device
         )
-        detector.warmup()
         out_dir = out_root / name
         out_dir.mkdir(parents=True, exist_ok=True)
         times_ms: list[float] = []
@@ -436,6 +439,8 @@ def main(argv: list[str] | None = None) -> None:
         sides: list[float] = []
         with (out_root / f"{name}.jsonl").open("w", encoding="utf-8") as log:
             for stem, image in iter_frames(source, args.max):
+                if not times_ms:
+                    detector.warmup(image.shape)
                 start = time.perf_counter()
                 boxes = detector.detect(image)
                 elapsed_ms = 1000.0 * (time.perf_counter() - start)

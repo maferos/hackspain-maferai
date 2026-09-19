@@ -867,9 +867,7 @@ On the placement side, three things are open and each is small:
 it says *there is a vessel in these pixels*. The barcode inside the box gives
 the identity, `scene.locate` turns the box into a bench position. Nothing was
 trained: ten pretrained detectors were benchmarked on real lab photographs and
-two were kept. The full write-up, with overlays for every model and photo, is
-`docs/BENCHMARK.md` at the repo root (in Spanish) and
-https://claude.ai/artifact/FvnEarQtYJLTaUpLs1AXp4.
+two were kept. The full write-up is [`docs/BENCHMARK.md`](docs/BENCHMARK.md).
 
 | backend | model | when | CPU, 960 px input |
 | --- | --- | --- | --- |
