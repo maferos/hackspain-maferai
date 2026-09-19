@@ -29,7 +29,6 @@ const STILL_CAMERAS = [
 // Views that can be opened and closed from the header, and the sizes the drag
 // handles set. Both are remembered in this browser.
 const VIEWS = [
-  { id: "camera", label: "Camera" },
   { id: "robot", label: "Robot" },
   { id: "balance", label: "Balance" },
   { id: "tasks", label: "Tasks" },
@@ -199,7 +198,6 @@ export default function App() {
 
   const { views } = layout;
   const showPanels = views.robot || views.balance;
-  const showMain = views.camera || showPanels;
   const showSide = views.tasks || views.pipeline;
 
   // Each handle measures its parent when the drag starts and keeps every view
@@ -265,40 +263,36 @@ export default function App() {
         </div>
       </header>
       <main className="app__body">
-        {showMain && (
-          <div className="main-column">
-            {views.camera && (
-              <section className="viewport">
-                <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big still={mainStill} />
-                <CameraStream
-                  cameraId={pipCameraId}
-                  label={pipLabel}
-                  className="camera-frame--pip"
-                  onClick={swapCameras}
-                  still={pipStill}
-                />
-              </section>
-            )}
-            {views.camera && showPanels && (
-              <Splitter direction="row" onStart={dragPanels} onReset={() => resize({ panelsHeight: DEFAULT_SIZES.panelsHeight })} />
-            )}
-            {showPanels && (
-              <LabPanels
-                state={lab.state}
-                connected={lab.connected}
-                show={views}
-                style={views.camera ? { height: layout.panelsHeight } : { height: "auto", flex: 1 }}
-                robotShare={layout.robotShare}
-                divider={<Splitter direction="col" onStart={dragShare} onReset={() => resize({ robotShare: DEFAULT_SIZES.robotShare })} />}
-              />
-            )}
-          </div>
-        )}
-        {showMain && showSide && (
+        <div className="main-column">
+          <section className="viewport">
+            <CameraStream cameraId={mainCameraId} label={mainLabel} className="camera-frame--main" big still={mainStill} />
+            <CameraStream
+              cameraId={pipCameraId}
+              label={pipLabel}
+              className="camera-frame--pip"
+              onClick={swapCameras}
+              still={pipStill}
+            />
+          </section>
+          {showPanels && (
+            <Splitter direction="row" onStart={dragPanels} onReset={() => resize({ panelsHeight: DEFAULT_SIZES.panelsHeight })} />
+          )}
+          {showPanels && (
+            <LabPanels
+              state={lab.state}
+              connected={lab.connected}
+              show={views}
+              style={{ height: layout.panelsHeight }}
+              robotShare={layout.robotShare}
+              divider={<Splitter direction="col" onStart={dragShare} onReset={() => resize({ robotShare: DEFAULT_SIZES.robotShare })} />}
+            />
+          )}
+        </div>
+        {showSide && (
           <Splitter direction="col" onStart={dragTasks} onReset={() => resize({ tasksWidth: DEFAULT_SIZES.tasksWidth })} />
         )}
         {showSide && (
-          <div className="side" style={showMain ? { width: layout.tasksWidth } : { flex: 1 }}>
+          <div className="side" style={{ width: layout.tasksWidth }}>
             {views.tasks &&
               (labRunning ? <LabTaskPanel state={labRunning} connected={lab.connected} /> : <TaskPanel tasks={tasks} connected={wsConnected} />)}
             {views.tasks && views.pipeline && (
@@ -313,7 +307,6 @@ export default function App() {
             )}
           </div>
         )}
-        {!showMain && !showSide && <p className="app__empty">All views are closed. Open one from the header.</p>}
       </main>
     </div>
   );

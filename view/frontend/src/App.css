@@ -668,12 +668,6 @@ body {
   flex-shrink: 0;
 }
 
-.app__empty {
-  margin: auto;
-  color: var(--text-dim);
-  font-size: 0.85rem;
-}
-
 .splitter {
   position: relative;
   flex-shrink: 0;
