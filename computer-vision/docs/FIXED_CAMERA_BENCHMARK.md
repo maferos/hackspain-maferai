@@ -110,10 +110,15 @@ On all 60 frames the fine-tuned model scores 0.674 AP50 on `test_open` and
 
 `scripts/fixedcam_examples.py` draws the cached boxes on the worktop band
 (green found, magenta missed, red false, grey not required). On the test
-frames most false boxes come from one static glass object on the bench, the
-same one in every frame, plus boxes merging two touching bottles. Both are
-the kind of error that hard negatives fix: render the bench with no bottles
-and train on it.
+frames the most frequent false box is one static object, the glass weighing scoop
+beside the right-hand balance, the same one in every frame, plus boxes merging
+two touching bottles. Both are the kind of error that hard negatives fix:
+render the bench with no bottles and train on it.
+
+![YOLO26n fine-tuned on four test frames](img/fixedcam_test_examples.jpg)
+
+*YOLO26n fine-tuned, first four `test` frames, worktop band only: 37 of 40
+bottles found, 9 false boxes, four of them on the scoop.*
 
 ### What to do next
 
