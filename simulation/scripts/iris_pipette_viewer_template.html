@@ -87,7 +87,7 @@
 
     <h2>Bottle and dive</h2>
     <div class="coord">
-      <div class="head"><label for="bhIn">Bottle · height to the shoulder</label><span class="val" id="bhTxt"></span></div>
+      <div class="head"><label for="bhIn">Bottle · height to the cap</label><span class="val" id="bhTxt"></span></div>
       <input id="bhIn" type="range" step="1">
     </div>
     <div class="coord">
@@ -149,7 +149,7 @@
     </div>
 
     <h2>Layout</h2>
-    <p class="note">The jaws grip the bottle body from the side, 34 mm below the shoulder, tool horizontal: the top of the bottle is free and the hand takes the unscrewing torque. The hinge is bolted on the gripper body itself, on the arm's side: two cheeks on the 2F-85 base carry the axle just ahead of it, over the fingers, 90 mm from the bottle axis and level with the iris plane. The cap therefore starts straight up, and while it unscrews (2 turns × 2.5 mm) the hinge only follows it by 3.2°. Swung up, the clamp lies back over the gripper with the cap, 75 mm clear of the pipette. The dive stops before the ejector arm reaches the neck.</p>
+    <p class="note">The jaws grip the bottle body from the side, 34 mm below the cap, tool horizontal: the top of the bottle is free and the hand takes the unscrewing torque. The hinge is bolted on the gripper body itself, on the arm's side: two cheeks on the 2F-85 base carry the axle just ahead of it, over the fingers, 90 mm from the bottle axis and level with the iris plane. The cap therefore starts straight up, and while it unscrews (2 turns × 2.75 mm, the PP25 thread) the hinge only follows it by 3.5°. Swung up, the clamp lies back over the gripper with the cap, 75 mm clear of the pipette. The dive stops before the ejector arm reaches the neck.</p>
     <p class="note">The pipette sits in a swing frame on a vertical pin in the carriage of a slide beside the bottle. It swings at one height, tip 15 mm over the neck: while the clamp works it stands swung 80° out to the arm's side, beside the gripper, 18 mm clear of the clamp at every hinge angle; once the clamp is up it swings in over the neck (16 mm clear of the folded clamp on the way), and only then does the slide take it down. It never has to park above the arc the clamp sweeps (232 mm), so the mast ends 125 mm lower and the rail only runs from the dive to the neck. Locked in, the pipette is held by two rings on the handle, 44 mm apart; the frame turns on one pin in two bearings 80 mm apart, a cone seats it in a receiver on the carriage and a self-locking gearmotor holds it there, so the plunger and the dive cannot move it.</p>
     <p class="note">Every bottle shares the neck and the cap, so the hand is placed on the neck: a taller bottle only reaches further down, a wider one moves the flange back along the pad fit of the 2F-85, with the mount plate slotted on the gripper to stay on the axis.</p>
 
@@ -177,7 +177,7 @@
   }
   const DEG=Math.PI/180, I=D.iris, P=D.pipette, PLAN=D.plan;
   const ALPHA_CONTACT=I.contact, FOLLOW=D.follow;          // blades on the cap; hinge angle that follows it up
-  const H0=I.bottle_h, NT=H0+D.neck.h;                     // shoulder and neck top in the hand frame
+  const H0=I.bottle_h, NT=H0+D.neck.h;                     // cap seat and neck top in the hand frame
   const [C0,C1]=P.carriage, RAIL_TOP=P.rail_top;
   // the bottle and the dive, as set on the page (metres); the hand is placed on the neck
   const B={h:D.bottle.h[0], r:D.bottle.r[0], level:D.bottle.level, dive:P.dive};
@@ -260,12 +260,12 @@
   floor.receiveShadow=true; world.add(floor);
   const grid=new THREE.PolarGridHelper(0.6,12,6,64,0xe3e7ec,0xeef0f3); grid.rotation.x=Math.PI/2; grid.position.z=0.0005; world.add(grid);
 
-  // the bottle, its liquid and the cap, in the hand frame: shoulder at H0, floor at H0 - height
+  // the bottle, its liquid and the cap, in the hand frame: cap seat at H0, floor at H0 - height
   const bottle=new THREE.Group(); world.add(bottle);
   const bottleMesh=mesh(new THREE.BufferGeometry(),MAT.bottle); bottleMesh.castShadow=false; bottleMesh.renderOrder=3;
   bottleMesh.rotation.x=Math.PI/2; bottle.add(bottleMesh);                 // lathe around Y -> around Z
   const liquid=cyl(1,1,'z',MAT.liquid); liquid.castShadow=false; liquid.renderOrder=2; bottle.add(liquid);
-  const cap=mesh(GEOM['iris/cap'],MAT.cap);
+  const cap=mesh(GEOM['amber/cap'],MAT.cap);
   function shapeBottle(){
     const z0=floorZ(), R=B.r, N=D.neck, pts=[[0,z0],[R-0.003,z0],[R,z0+0.003],[R,H0-0.004],[R-0.004,H0],
       [N.r,H0],[N.r,NT],[N.bore,NT],[N.bore,H0-0.006],[0,H0-0.006]];

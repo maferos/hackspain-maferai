@@ -493,7 +493,7 @@ use `scripts/view_autobio.py` instead.
 | `scripts/iris_pipette_rig.py` | The uncap-and-pipette hand: layout, body tree, joint couplings and forward kinematics, the one source for the viewer, MuJoCo, Isaac Lab and Blender |
 | `scripts/iris_pipette_plan.py` | Its 19-step sequence as timed states and joint targets, shared by the page, the .blend and both simulators |
 | `scripts/generate_iris_pipette_viewer.py` | Writes `../ur10e_iris_pipette.html`, the self-contained viewer of the hand, from the rig tree |
-| `scripts/generate_iris_pipette_scene.py` | Writes `assets/ur10e_iris_pipette/` (attachable MJCF, reference bottle, meshes, URDFs) and `models/iris_pipette_scene.xml` |
+| `scripts/generate_iris_pipette_scene.py` | Writes `assets/ur10e_iris_pipette/` (attachable MJCF, the 60 ml amber bottle and its PP25 cap, meshes, URDFs) and `models/iris_pipette_scene.xml` |
 | `scripts/generate_iris_pipette_blend.py` | Writes `assets/ur10e_iris_pipette/ur10e_iris_pipette.blend` and `.glb` with bpy (`uv run --python 3.11 --with bpy --with mujoco`) |
 | `scripts/iris_pipette_play.py` | Plays the sequence in MuJoCo and checks it (`--view` for the viewer) |
 | `scripts/iris_pipette_isaac.py` | The same in Isaac Lab, on the URDFs; not yet run |

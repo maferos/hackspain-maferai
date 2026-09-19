@@ -25,8 +25,10 @@ are combined on the UR10e's tool:
   the slide take it down.
 
 The bottle's height, diameter and liquid level and the pipette's dive are
-set on the page; everything on the hand is placed relative to the neck, which
-all the bottles share (the cap and the clamp do not change).
+set on the page, starting from the 60 ml amber bottle the simulators use;
+everything on the hand is placed relative to the neck, which all the bottles
+share (the amber bottle's PP25 cap, drawn with its own mesh, and the clamp do
+not change).
 
 The meshes are read straight out of the two zips, so nothing has to be
 extracted into the repo.
@@ -94,6 +96,7 @@ def main() -> None:
     with zipfile.ZipFile(rig.IRIS_ZIP) as archive:
         for part in rig.IRIS_PARTS:
             meshes[f'iris/{part}'] = pack(rig.stl_bytes(rig.zip_member(archive, f'meshes/{part}.stl')))
+    meshes['amber/cap'] = pack(rig.amber_mesh('cap'))
     for parts in rig.PIPETTE_PARTS.values():
         for part in parts:
             meshes[f'pipette/{part}'] = pack(rig.pipette_mesh(part))

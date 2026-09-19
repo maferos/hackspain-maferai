@@ -11,17 +11,18 @@ layout constants below, the body tree ``tree()`` and the couplings
 * ``generate_iris_pipette_blend.py`` (the .blend, with drivers),
 * ``iris_pipette_plan.py`` (the sequence the three of them play),
 
-so the four cannot disagree. Only numpy and the two asset zips are needed:
-Isaac's Python and Blender's have no MuJoCo. The 2F-85 itself is not in the
-tree: the viewer and the .blend take its finger linkage from hand_linkage.py,
-the simulators attach ``assets/robotiq_2f85_sensed``.
+so the four cannot disagree. Only numpy, the two asset zips and the amber
+bottle's OBJs are needed: Isaac's Python and Blender's have no MuJoCo. The
+2F-85 itself is not in the tree: the viewer and the .blend take its finger
+linkage from hand_linkage.py, the simulators attach
+``assets/robotiq_2f85_sensed``.
 
 Frame: "hand", the frame the arm moves. Origin on the bottle's axis at the
-base of the reference bottle (80 mm tall; a taller bottle only reaches further
-down), +X from the arm to the bottle, Z up. In it the arm's tool frame sits at
-``(flange_x, 0, GRIP_Z)`` with ``TOOL_QUAT``: tool +Z (the fingers) along +X,
-the jaws closing along Y. Every joint is at its body's origin and reads zero in
-the pose drawn here.
+base of the reference bottle (the 60 ml amber bottle, its cap seated 78.1 mm
+up; a taller bottle only reaches further down), +X from the arm to the
+bottle, Z up. In it the arm's tool frame sits at ``(flange_x, 0, GRIP_Z)``
+with ``TOOL_QUAT``: tool +Z (the fingers) along +X, the jaws closing along Y.
+Every joint is at its body's origin and reads zero in the pose drawn here.
 """
 import math
 import zipfile
@@ -35,18 +36,33 @@ ROOT = SIM.parent
 IRIS_ZIP = ROOT / 'assets/iris_clamp/iris_clamp_sim_asset.zip'
 PIPETTE_ZIP = ROOT / 'assets/micropipette/micropipette_asset.zip'
 
-# Iris clamp, from iris_clamp/params.py.
+# The bottle: the 60 ml amber bottle and its PP25 cap of assets/amber-bottles
+# (generate_amber_bottles.py, bottle_dims(60) and cap_dims(25)), as
+# tools/convert_glb.py split it into simulation/assets/amber_bottles: one OBJ
+# for the white cap, closed, one for the glass. Its cap is ribbed at Ø28 mm,
+# the cap the clamp was built for, over a Ø28.8 mm tamper band at the bottom
+# that the lowest blade meets first: the blades close to that (ALPHA_CONTACT,
+# inside blade_max). PP20 and smaller are too small for the blades to reach. Heights
+# from the bottle's base: the body is straight to `shoulder`, the neck starts at
+# `neck` and ends at the lip, `h`; the cap's underside is at `cap_z`.
+AMBER = {'dir': SIM / 'assets/amber_bottles', 'glass': 'amber_060ml_01.obj', 'cap': 'amber_060ml_00.obj',
+         'r': 0.020, 'h': 0.095, 'wall': 0.002, 'floor': 0.0025, 'shoulder': 0.06575, 'neck': 0.07775,
+         'neck_r': 0.01245, 'bore': 0.0092, 'cap_z': 0.0781, 'cap_h': 0.0185, 'pitch': 0.00275,
+         'glass_density': 2500, 'cap_density': 905}
+
+# Iris clamp, from iris_clamp/params.py; the cap, its thread and the height it
+# sits at are the amber bottle's.
 IRIS = {
     'n_sun': 20, 'n_planet': 20, 'n_ring': 60, 'planet_r': 0.024,
     'n_blades': 6, 'r_pivot': 0.055, 'blade_dz': 0.0025,
-    'blade_max': math.radians(76), 'cap_r': 0.014, 'cap_h': 0.018,
-    'pitch': 0.0025, 'turns': 2.0, 'bottle_h': 0.08,
+    'blade_max': math.radians(76), 'cap_r': 0.0144, 'cap_h': AMBER['cap_h'],
+    'pitch': AMBER['pitch'], 'turns': 2.0, 'bottle_h': AMBER['cap_z'],
     # The cap in the clamp frame at contact, as in mujoco/bottle_cap.xml.
     'cap_z': -0.0015,
 }
-IRIS_PARTS = ['body', 'cam_ring', 'sun', 'planet', 'blade', 'cap']   # the bottle is drawn to size on the page
+IRIS_PARTS = ['body', 'cam_ring', 'sun', 'planet', 'blade']   # the cap is the amber bottle's
 # Masses from iris_clamp.xml.
-IRIS_MASS = {'sun': 0.02, 'body': 0.35, 'cam_ring': 0.06, 'planet': 0.004, 'blade': 0.006, 'cap': 0.012}
+IRIS_MASS = {'sun': 0.02, 'body': 0.35, 'cam_ring': 0.06, 'planet': 0.004, 'blade': 0.006}
 
 # Micropipette parts by link, with their material (pipette_geometry.py).
 PIPETTE_PARTS = {
@@ -77,18 +93,20 @@ PIPETTE_COLLISION = {
 
 # ---- the assembly, in the hand frame ----------------------------------------
 Z_IRIS = IRIS['bottle_h'] - IRIS['cap_z']   # iris plane when the blades meet the cap
-NECK = {'r': 0.011, 'bore': 0.0085, 'h': 0.018}  # the bottle mesh's neck, under the cap
-GRIP_Z = 0.046                   # jaws 34 mm below the shoulder
+# The neck under the cap, from the cap's underside to the lip.
+NECK = {'r': AMBER['neck_r'], 'bore': AMBER['bore'], 'h': AMBER['h'] - AMBER['cap_z']}
+GRIP_Z = IRIS['bottle_h'] - 0.034   # jaws 34 mm below the cap
 OPEN_APERTURE = 0.085
 # Bottle, as set on the page: default and range. The 2F-85 base (8.5 mm above
 # the jaws' bottom) keeps off the table down to 75 mm; the jaws open to 85 mm.
-BOTTLE = {'h': (0.08, 0.075, 0.20), 'r': (0.026, 0.020, 0.040), 'level': 0.05}
-BOTTLE_R = BOTTLE['r'][0]        # the reference bottle the simulators use
+# The default is the amber bottle, the one the simulators use.
+BOTTLE = {'h': (AMBER['cap_z'], 0.075, 0.20), 'r': (AMBER['r'], 0.020, 0.040), 'level': 0.05}
+BOTTLE_R = BOTTLE['r'][0]
 PAD_FIT = (0.03, 0.085)          # apertures the pad-position fit spans
 # Hinge on the arm's side of the bottle, over the fingers and just ahead of
 # the 2F-85 base, level with the iris plane: the cap starts straight up when
-# the arm swings, so while it unscrews (5 mm) the hinge just follows it
-# through asin(5/90) = 3.2 deg.
+# the arm swings, so while it unscrews (5.5 mm) the hinge just follows it
+# through asin(5.5/90) = 3.5 deg.
 HINGE = (-0.09, Z_IRIS)
 SIDE = math.copysign(1, HINGE[0])
 IRIS_OPEN = math.acos(0.035 / IRIS['r_pivot'])   # 70 mm open, blades inside the housing
@@ -130,8 +148,8 @@ TOOL_QUAT = (0.5, 0.5, 0.5, 0.5)
 # Colours of the parts drawn here (the 2F-85's are in hand_linkage.MATERIALS).
 RIG_MATERIALS = {
     'housing': (0.09, 0.10, 0.11, 1), 'gold': (0.83, 0.65, 0.24, 1),
-    'bracket': (0.44, 0.49, 0.55, 1), 'cap': (0.85, 0.20, 0.17, 1),
-    'bottle': (0.82, 0.48, 0.11, 0.5), 'liquid': (0.31, 0.61, 0.85, 0.6),
+    'bracket': (0.44, 0.49, 0.55, 1), 'cap': (0.93, 0.93, 0.91, 1),
+    'bottle': (0.62, 0.28, 0.05, 0.5), 'liquid': (0.31, 0.61, 0.85, 0.6),
     'white': (0.93, 0.93, 0.92, 1), 'blue': (0.41, 0.58, 0.87, 1),
     'dark': (0.06, 0.06, 0.07, 1), 'display': (0.02, 0.02, 0.02, 1),
 }
@@ -231,6 +249,28 @@ def stl_bytes(raw: bytes, scale: float = 1.0) -> np.ndarray:
 def pipette_mesh(part: str) -> np.ndarray:
     with zipfile.ZipFile(PIPETTE_ZIP) as archive:
         return stl_bytes(zip_member(archive, f'meshes/{part}.stl'))
+
+
+@lru_cache(maxsize=None)
+def amber_mesh(part: str) -> np.ndarray:
+    """Triangles (n, 3, 3) of the amber bottle's 'glass' or 'cap', each in its
+    own body's frame: the glass from its base, the cap from its underside."""
+    vertices, triangles = [], []
+    for line in (AMBER['dir'] / AMBER[part]).read_text().splitlines():
+        if line.startswith('v '):
+            vertices.append([float(x) for x in line.split()[1:4]])
+        elif line.startswith('f '):
+            idx = [int(tok.split('/')[0]) - 1 for tok in line.split()[1:]]
+            triangles += [(idx[0], idx[k], idx[k + 1]) for k in range(1, len(idx) - 1)]
+    out = np.array(vertices)[np.array(triangles)]
+    if part == 'cap':
+        out[..., 2] -= AMBER['cap_z']
+    return out
+
+
+def mesh_volume(triangles: np.ndarray) -> float:
+    """The volume a closed mesh encloses (thin walls: glass and plastic only)."""
+    return float(np.einsum('ij,ij->i', triangles[:, 0], np.cross(triangles[:, 1], triangles[:, 2])).sum() / 6)
 
 
 @lru_cache(maxsize=None)

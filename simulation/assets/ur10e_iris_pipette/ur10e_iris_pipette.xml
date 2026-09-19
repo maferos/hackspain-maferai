@@ -55,18 +55,18 @@
               material="linkgray" contype="0" conaffinity="0" group="2"/>
         <site name="tool" size="0.004" rgba="0.9 0.3 0.1 0.5" group="4"/>
         <attach model="robotiq_2f85" body="base_mount" prefix=""/>
-        <body name="hand_frame" pos="-3.46945e-18 -0.046 0.151038" quat="0.5 -0.5 -0.5 -0.5">
-          <geom name="cheek_n" pos="-0.123 -0.0405 0.05925" type="box" size="0.017 0.003 0.02425" contype="0" conaffinity="0" group="2" material="bracket"/>
-          <geom name="cheek_arm_n" pos="-0.102 -0.0405 0.0785" type="box" size="0.004 0.003 0.005" contype="0" conaffinity="0" group="2" material="bracket"/>
-          <geom name="cheek_p" pos="-0.123 0.0405 0.05925" type="box" size="0.017 0.003 0.02425" contype="0" conaffinity="0" group="2" material="bracket"/>
-          <geom name="cheek_arm_p" pos="-0.102 0.0405 0.0785" type="box" size="0.004 0.003 0.005" contype="0" conaffinity="0" group="2" material="bracket"/>
-          <geom name="axle" pos="-0.09 0 0.0815" quat="0.707107 -0.707107 0 0" type="cylinder" size="0.004 0.0455" contype="0" conaffinity="0" group="2" material="bracket"/>
-          <geom name="hinge_motor" pos="-0.09 -0.0545 0.0815" quat="0.707107 -0.707107 0 0" type="cylinder" size="0.009 0.011" contype="0" conaffinity="0" group="2" material="housing"/>
+        <body name="hand_frame" pos="0 -0.0441 0.152926" quat="0.5 -0.5 -0.5 -0.5">
+          <geom name="cheek_n" pos="-0.123 -0.0405 0.0583" type="box" size="0.017 0.003 0.0233" contype="0" conaffinity="0" group="2" material="bracket"/>
+          <geom name="cheek_arm_n" pos="-0.102 -0.0405 0.0766" type="box" size="0.004 0.003 0.005" contype="0" conaffinity="0" group="2" material="bracket"/>
+          <geom name="cheek_p" pos="-0.123 0.0405 0.0583" type="box" size="0.017 0.003 0.0233" contype="0" conaffinity="0" group="2" material="bracket"/>
+          <geom name="cheek_arm_p" pos="-0.102 0.0405 0.0766" type="box" size="0.004 0.003 0.005" contype="0" conaffinity="0" group="2" material="bracket"/>
+          <geom name="axle" pos="-0.09 0 0.0796" quat="0.707107 -0.707107 0 0" type="cylinder" size="0.004 0.0455" contype="0" conaffinity="0" group="2" material="bracket"/>
+          <geom name="hinge_motor" pos="-0.09 -0.0545 0.0796" quat="0.707107 -0.707107 0 0" type="cylinder" size="0.009 0.011" contype="0" conaffinity="0" group="2" material="housing"/>
           <geom name="mast_arm" pos="-0.1235 0.08525 0.076" type="box" size="0.0115 0.04175 0.006" contype="0" conaffinity="0" group="2" material="bracket"/>
           <geom name="mast_arm_out" pos="-0.0445 0.121 0.076" type="box" size="0.0905 0.006 0.006" contype="0" conaffinity="0" group="2" material="bracket"/>
-          <geom name="mast" pos="0.03 0.121 0.20825" type="box" size="0.016 0.006 0.13825" contype="0" conaffinity="0" group="2" material="bracket"/>
-          <geom name="rail" pos="0.03 0.113 0.255" type="box" size="0.006 0.002 0.0865" contype="0" conaffinity="0" group="2" material="housing"/>
-          <body name="clamp_swing" pos="-0.09 0 0.0815">
+          <geom name="mast" pos="0.03 0.121 0.20675" type="box" size="0.016 0.006 0.13675" contype="0" conaffinity="0" group="2" material="bracket"/>
+          <geom name="rail" pos="0.03 0.113 0.2535" type="box" size="0.006 0.002 0.085" contype="0" conaffinity="0" group="2" material="housing"/>
+          <body name="clamp_swing" pos="-0.09 0 0.0796">
             <inertial pos="0 0 0" mass="0.02" diaginertia="1e-6 1e-6 1e-6"/>
             <joint name="clamp_swing" type="hinge" axis="0 -1 0" range="0 1.5708" armature="0.001" damping="0.05"/>
             <body name="clamp_mount" pos="0.09 0 0">
@@ -129,7 +129,7 @@
               </body>
             </body>
           </body>
-          <body name="pipette_slide" pos="0 0 0.113">
+          <body name="pipette_slide" pos="0 0 0.11">
             <joint name="pipette_slide" type="slide" axis="0 0 1" range="-0.102 0" armature="0.001" damping="0.05"/>
             <geom name="carriage" pos="0.03 0.105 0.1885" type="box" size="0.016 0.006 0.04" contype="0" conaffinity="0" group="2" material="bracket"/>
             <geom name="bearing_lug_lo" pos="0.03 0.0945 0.1545" type="box" size="0.016 0.0045 0.006" contype="0" conaffinity="0" group="2" material="bracket"/>

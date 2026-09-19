@@ -47,6 +47,7 @@ import iris_pipette_plan as plan
 import iris_pipette_rig as rig
 from generate_hand_blend import (add_driver, build_gripper, build_stub, empty,
                                  import_mesh)
+from generate_iris_pipette_scene import write_stl
 from generate_iris_pipette_viewer import flange_x, pad_fit
 from hand_linkage import GRIPPER, UR_MESHES, linkage, wrist3_pose
 
@@ -93,10 +94,13 @@ def rig_material(name: str) -> bpy.types.Material:
 
 
 def unzip_meshes() -> None:
-    """The STLs the tree uses, out of the two zips into a temporary folder."""
+    """The STLs the tree uses, out of the two zips (and the amber bottle's
+    OBJs) into a temporary folder."""
     with zipfile.ZipFile(rig.IRIS_ZIP) as archive:
-        for part in rig.IRIS_PARTS + ['bottle']:
+        for part in rig.IRIS_PARTS:
             (MESH_DIR / f'iris_{part}.stl').write_bytes(rig.zip_member(archive, f'meshes/{part}.stl'))
+    for part in ('glass', 'cap'):
+        write_stl(MESH_DIR / f'amber_{part}.stl', rig.amber_mesh(part))
     with zipfile.ZipFile(rig.PIPETTE_ZIP) as archive:
         for parts in rig.PIPETTE_PARTS.values():
             for part in parts:
@@ -223,23 +227,24 @@ def child_of(obj, target):
 
 
 def build_bottle(hand, groups):
-    """The reference bottle, its liquid and the cap, carried as the page carries them."""
-    bottle = link(bpy.data.objects.new('bottle', mesh_data('iris/bottle')), None, (0, 0, 0), (1, 0, 0, 0),
+    """The reference bottle (the 60 ml amber one), its liquid and the PP25
+    cap, carried as the page carries them."""
+    bottle = link(bpy.data.objects.new('bottle', mesh_data('amber/glass')), None, (0, 0, 0), (1, 0, 0, 0),
                   rig_material('bottle'))
     for poly in bottle.data.polygons:
         poly.use_smooth = True
-    R, level = rig.BOTTLE_R, rig.BOTTLE['level']
-    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=R - 0.003, depth=level - 0.003)
+    R, level, floor = rig.BOTTLE_R - rig.AMBER['wall'], rig.BOTTLE['level'], rig.AMBER['floor']
+    bpy.ops.mesh.primitive_cylinder_add(vertices=64, radius=R - 0.0005, depth=level - floor)
     liquid = bpy.context.active_object
     liquid.name = liquid.data.name = 'liquid'
     liquid.parent = bottle
-    liquid.location = (0, 0, 0.003 + (level - 0.003) / 2)
+    liquid.location = (0, 0, floor + (level - floor) / 2)
     liquid.data.materials.append(rig_material('liquid'))
     # held: in the hand frame (their origins coincide when the bottle stands on the table)
     hold = child_of(bottle, groups['hand_frame'])
     drive(hold, 'influence', -1, hand,
           f'1 if {VAR["grip_aperture"]} <= {2 * rig.BOTTLE_R + 0.0005:.6g} else 0', ['grip_aperture'])
-    cap = link(bpy.data.objects.new('cap', mesh_data('iris/cap')), None, (0, 0, 0), (1, 0, 0, 0), rig_material('cap'))
+    cap = link(bpy.data.objects.new('cap', mesh_data('amber/cap')), None, (0, 0, 0), (1, 0, 0, 0), rig_material('cap'))
     on_bottle = empty('cap_on_bottle', bottle, (0, 0, rig.IRIS['bottle_h']), size=0.008)
     for target, expr in ((on_bottle, f'1 if {VAR["housing_turns"]} <= 1e-4 else 0'),
                          (groups['cap_seat'], f'1 if {VAR["housing_turns"]} > 1e-4 else 0')):

@@ -185,13 +185,13 @@ def main() -> None:
             abs(landed - rig.GRIP_Z) <= 0.005,
         f'carried {carried * 1000:.1f} mm at t={plan.LIFTED_AT:.1f} s (want >= {0.9 * rig.Z_LIFT * 1000:.0f})':
             carried >= 0.9 * rig.Z_LIFT,
-        f'cap {cap_rise * 1000:.1f} mm off the shoulder once unscrewed (want >= {0.8 * rig.CAP_LIFT * 1000:.0f})':
+        f'cap {cap_rise * 1000:.1f} mm off its seat once unscrewed (want >= {0.8 * rig.CAP_LIFT * 1000:.0f})':
             cap_rise >= 0.8 * rig.CAP_LIFT,
         f'cap carried {cap_off * 1000:.0f} mm off the bottle axis, {cap_seated * 1000:.1f} mm from the clamp seat (want >= 40, <= 5)':
             cap_off >= 0.04 and cap_seated <= 0.005,
         f'tip dived to {tip_depth * 1000:.1f} mm above the bottle floor (planned {dive * 1000:.0f} +- 2), {tip_off * 1000:.1f} mm off the axis':
             abs(tip_depth - dive) <= 0.002 and tip_off < rig.NECK['bore'],
-        f'cap back {recap * 1000:.2f} mm from the shoulder (want <= 1)': abs(recap) <= 0.001,
+        f'cap back {recap * 1000:.2f} mm from its seat (want <= 1)': abs(recap) <= 0.001,
         f'bottle set down {float(end[2]) * 1000:.1f} mm up, {moved * 1000:.1f} mm from where it was picked, tilted {tilt:.1f} deg':
             float(end[2]) < 0.005 and moved <= 0.01 and tilt <= 5,
     }
