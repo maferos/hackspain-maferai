@@ -380,6 +380,50 @@ to three times the EAN-13's reach; or the marker on the flat cap top, where
 there is no curvature and the bottle's turn is irrelevant, at the price that a
 cap can end up on the wrong bottle. Neither is built yet.
 
+### Labels that go all the way round
+
+A bottle put down by hand faces wherever it faces, and a label on one side is
+invisible from the other. `scripts/ring_experiment.py` measures two labels that
+have no side against the two that do, on every bottle size, turning the bottle
+through a full turn in 15 degree steps, and draws `comparison.png`:
+
+- **EAN-13 ring.** The ladder EAN-13's bars already run round the bottle;
+  stretched to 360 degrees every bar is a full ring. Same symbol, same module.
+  It is read without a localiser --- the code is the bottle --- by laying down a
+  vertical strip from the middle of the bottle's box for `decode_scanline`.
+- **ArUco ring.** Eight copies of one `DICT_4X4_250` marker, one every 45
+  degrees, since a single marker is lost 10 to 20 degrees off square.
+
+| Vessel | Reach: EAN / EAN ring / ArUco / ArUco ring | Turns read from 0.30 m, of 24: same order |
+| --- | --- | --- |
+| flask_10ml | 0.15 / 0.15 / 1.0 / 0.4 m | 0 / 0 / 3 / **24** |
+| flask_20ml | 0.2 / 0.2 / 1.5 / 0.75 m | 0 / 0 / 3 / **24** |
+| flask_30ml | 0.3 / 0.3 / 1.5 / 0.5 m | 6 / **24** / 3 / **24** |
+| flask_50ml | 0.3 / 0.3 / 2.0 / 0.75 m | 7 / **24** / 3 / **24** |
+| flask_100ml | 0.5 / 0.5 / 2.5 / 0.75 m | 10 / **24** / 3 / **24** |
+| bottle_100ml | 0.2 / 0.2 / 2.5 / 1.0 m | 0 / 0 / 3 / **24** |
+| bottle_250ml | 0.4 / 0.4 / 2.5 / 1.0 m | 8 / **24** / 3 / **24** |
+| bottle_500ml | 0.5 / 0.5 / 5.0 / 2.0 m | 7 / **24** / 3 / **24** |
+| bottle_1000ml | 0.5 / 0.5 / 5.0 / 1.5 m | 8 / **24** / 3 / **24** |
+| bottle_2000ml | 0.5 / 0.5 / 4.0 / 2.5 m | 8 / **24** / 3 / **24** |
+
+Frames are cropped to the bottle, as a detector's box would, and the scene is
+plainly lit with nothing else in shot. At half of each label's own reach both
+rings read 24 of 24 turns on every bottle; the one-sided EAN-13 reads 7 to 10
+and the one-sided ArUco 1 to 4. No id was read as another.
+
+- **Both rings make the bottle's turn irrelevant.** Today's label is readable
+  from about a third of the directions a bottle can face.
+- **The EAN-13 ring costs nothing in reach and gains nothing**: same module, so
+  the 10 and 20 ml flasks and the 100 ml powder bottle still cannot be read
+  from a GoPro's 0.30 m near focus. It keeps the hash-derived code, the lookup
+  table and handheld scanners, and drops the printed text beside the bars.
+- **The ArUco ring is the only label that reads every bottle, however it is
+  turned, from 0.30 m**, and it reads from 0.4 to 2.5 m: two to five times the
+  EAN-13. It pays for going round with half the single marker's module.
+- The two are not exclusive where the wall is tall enough: an ArUco ring for
+  the robot above an EAN-13 ring for people and scanners.
+
 What the frame actually contains, with a 92 x 60.4 degree lens aimed there:
 
 | Image row | What is there |
