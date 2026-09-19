@@ -72,6 +72,7 @@ everything above. From `dashboard/bridge`, with the repo venv:
 ```bash
 python -m labbridge.mock_run --fps 0 --loop   # state only, no rendering
 python -m labbridge.mock_run --fps 1 --loop   # also streams camera frames
+python -m labbridge.record_run                # rewrite the viewer's recorded run
 ```
 
 Rendering on a laptop without a GPU takes about a second per frame; on a GPU

@@ -44,16 +44,19 @@ By default the viewport shows the Isaac Sim RTX renders of the `general` and
 `room_aisle` cameras (`frontend/public/renders/`, converted from
 `simulation/renders/isaac/full/`), which need no backend. Open
 http://localhost:5173/?live=1 to show the live MuJoCo streams instead. The lab
-state panels only need the state publisher on :8765: either this backend, or
+state panels read the state publisher on :8765: either this backend, or
 `python -m labbridge.mock_run --fps 0 --loop` from `dashboard/bridge`, which
-renders nothing and uses far less memory.
+renders nothing and uses far less memory. Without a publisher they play the
+recorded scripted run in `frontend/public/scripted-run.json`, so the panels
+show the same formulation with only `npm run dev`. After changing the scripted
+run, regenerate it with `python -m labbridge.record_run` from `dashboard/bridge`.
 
 ## Lab state panels
 
 The same backend also publishes the full `LabState` (see
 `dashboard/bridge/README.md` for the protocol) on `ws://localhost:8765/state`.
 It is driven by the scripted formulation in
-`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four containers,
+`dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four liquids,
 one recovery: the Eugenol flask is moved during the approach), which moves the
 free containers of the scene kinematically, so the camera streams show the
 bottles travelling to `balance_2`. It needs `websockets` in the venv (listed

@@ -114,7 +114,8 @@ export default function App() {
   const [wsConnected, setWsConnected] = useState(false);
   const wsRef = useRef(null);
   // The lab state feeds the side panels in both modes: the mode only picks the
-  // viewport's source. Without a publisher on :8765 the panels say so.
+  // viewport's source. Without a publisher on :8765 the panels play the
+  // recorded scripted run (see labState.js).
   const lab = useLabState(STATE_URL);
   const [layout, setLayout] = useState(loadLayout);
 

@@ -53,18 +53,18 @@ DISPLACED_SAMPLE = "SMP-0021"
 DISPLACED_TO = (0.58, -0.55)
 REACQUIRE_AFTER_S = 2.1
 
-# Recipe FRG-031, the same as the console's built-in demo: two liquids in
-# amber flasks and two solids in HDPE bottles, all on the aisle side.
+# Recipe FRG-031: four liquids of the scene's catalogue (registry v6, liquids
+# only), all on the aisle side.
 RECIPE = {
     "id": "FRG-031",
-    "name": "Fougère Accord 01",
+    "name": "Floral Accord 01",
     "targetMass": 10.0,
     "ingredients": [
         # id, compound, cas, phase, target, sample id, barcode, ml, dose error
         ("ing-linalool", "Linalool", "78-70-6", "liquid", 4.2, "SMP-0009", "2007063201700", 50, 0.004),
-        ("ing-coumarin", "Coumarin", "91-64-5", "powder", 3.0, "PWD-0012", "2006117949254", 250, -0.003),
+        ("ing-isoamyl-acetate", "Isoamyl acetate", "123-92-2", "liquid", 3.0, "SMP-0120", "2005058322201", 100, -0.003),
         ("ing-eugenol", "Eugenol", "97-53-0", "liquid", 1.0, "SMP-0021", "2001316174674", 10, 0.006),
-        ("ing-menthol", "Menthol", "2216-51-5", "powder", 1.8, "PWD-0026", "2008565432623", 100, -0.001),
+        ("ing-benzyl-benzoate", "Benzyl benzoate", "120-51-4", "liquid", 1.8, "SMP-0125", "2008263636767", 100, -0.001),
     ],
 }
 
