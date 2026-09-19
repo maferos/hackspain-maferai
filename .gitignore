@@ -11,10 +11,13 @@ MJMODEL.TXT
 /third_party/
 results/
 data/
-runs/
+runs/*
+!runs/**/
+!runs/**/*.py
 weights/
 *.pt
 *.torchscript
 *.onnx
 *.mp4
+*.log
 mobileclip*.ts
