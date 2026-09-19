@@ -34,3 +34,6 @@ ultralytics>=8.3
 # only new dependency: the full `roboflow` package is avoided on purpose (see
 # docs/FIXED_CAMERA_BENCHMARK.md on why it is not installed whole for RF-DETR).
 requests>=2.31
+
+# Plots of a scan run (scripts/scan_plots.py).
+matplotlib>=3.8
