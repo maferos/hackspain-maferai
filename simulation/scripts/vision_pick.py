@@ -79,11 +79,18 @@ from labvision.perception import (
 from labvision.scene import BBox, gopro_intrinsics
 from wrist_view import Feed
 
-WEIGHTS = REPO / 'computer-vision/runs/fixedcam/yolo26n_fixedcam.pt'
-# Lower than the 0.07 the benchmark settled on. There a false box was an error;
-# here it costs the arm one look, which reads no ring and moves on, while a
-# missed bottle is never picked. On this scene 0.03 finds 12 of 19 against 9.
-THRESHOLD = 0.03
+# The fixed camera's detectors, best first, each with its threshold; the first
+# whose weights are on disk is used. ``rail`` was trained on this scene's own
+# general-camera renders and runs at labvision's operating point: on this bench
+# it finds the same 12 of 19 bottles as ``fixedcam`` with no false box against
+# ten. ``fixedcam`` runs lower than the 0.07 its benchmark settled on: there a
+# false box was an error, here it costs the arm a look that reads no ring, while
+# a missed bottle is never picked, and 0.03 finds 12 where 0.07 finds 9.
+DETECTORS = (
+    (REPO / 'computer-vision/runs/rail/yolo26n_rail_general.pt', 0.10),
+    (REPO / 'computer-vision/weights/yolo26n_rail_general.pt', 0.10),
+    (REPO / 'computer-vision/runs/fixedcam/yolo26n_fixedcam.pt', 0.03),
+)
 FPS = 30
 # The worktop, in the scene frame whose origin is under the bench centre.
 WORKTOP_HALF = (3.0, 1.0)
@@ -265,8 +272,9 @@ class Detector:
         from ultralytics import YOLO
         if not weights.exists():
             raise SystemExit(
-                f'no detector weights at {weights}: train them with '
-                'computer-vision/runs/fixedcam/train_yolo26n_gpu.py or pass --weights')
+                f'no detector weights at {weights}: they are not in git. Copy '
+                'yolo26n_rail_general.pt there (or train it with computer-vision/'
+                'runs/rail/train_yolo26n_gpu.py), or pass --weights')
         if device is None:
             device = ('cuda:0' if torch.cuda.is_available() else
                       'mps' if torch.backends.mps.is_available() else 'cpu')
@@ -1049,9 +1057,11 @@ def report(world: World) -> str:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
-    parser.add_argument('--weights', type=Path, default=WEIGHTS,
-                        help='Ultralytics weights for the fixed camera')
-    parser.add_argument('--threshold', type=float, default=THRESHOLD)
+    parser.add_argument('--weights', type=Path, default=None,
+                        help='Ultralytics weights for the fixed camera; the best '
+                             'of DETECTORS that is on disk when omitted')
+    parser.add_argument('--threshold', type=float, default=None,
+                        help='detector confidence; the chosen weights\' own when omitted')
     parser.add_argument('--device', default=None,
                         help='torch device for the detector; CUDA or MPS when present')
     parser.add_argument('--manual', action='store_true',
@@ -1070,10 +1080,13 @@ def main() -> None:
     args = parser.parse_args()
 
     model, data = rk.load(gripper_scene())
-    rng =np.random.default_rng(args.seed)
-    detector = Detector(args.weights, args.threshold, args.device)
+    rng = np.random.default_rng(args.seed)
+    weights, threshold = next((d for d in DETECTORS if d[0].exists()), DETECTORS[0])
+    if args.weights:
+        weights, threshold = args.weights, 0.10
+    detector = Detector(weights, args.threshold or threshold, args.device)
     detector.detect(np.zeros((1080, 1920, 3), np.uint8))     # warm up before the clock
-    print(f'detector on {detector.device}')
+    print(f'detector {weights.name} at {detector.threshold} on {detector.device}')
     world, show, physics = World(auto=not args.manual), Show(), threading.Lock()
     perception = Perception(model, data, physics, world, detector, show, args.video)
     run = controller(model, data, world, perception)

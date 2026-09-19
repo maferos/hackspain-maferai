@@ -46,9 +46,16 @@ pip install -r ../computer-vision/requirements.txt   # ultralytics, opencv
 python scripts/vision_pick.py        # mjpython on macOS
 ```
 
-The detector's weights are gitignored and have to be copied by hand to
-`computer-vision/runs/fixedcam/yolo26n_fixedcam.pt` (ask Martí, 20 MB). The
-detector picks CUDA or Apple MPS by itself.
+The detector's weights are gitignored and have to be copied by hand (ask Martí,
+20 MB each). It uses the first of these it finds:
+
+1. `computer-vision/runs/rail/yolo26n_rail_general.pt` (or `computer-vision/weights/`)
+   --- trained on this scene's own camera. **Use this one**: on the loop's bench it
+   finds the same 12 bottles as the older model with no false box, against ten.
+2. `computer-vision/runs/fixedcam/yolo26n_fixedcam.pt` --- the fallback.
+
+The detector picks CUDA or Apple MPS by itself, and the first line it prints
+says which weights and device it took.
 
 The rail scene ships with the **pipette** on the flange, and a pipette cannot
 pick a bottle up. So the first run builds a gripper copy of the scene with
@@ -103,6 +110,9 @@ the arm looks first at what the detector scores 0.5 or better, which on this
 scene is every real bottle. The position error the report prints after a run is
 larger (about 12 mm) than the ring's, on purpose: once a bottle has been put
 back down its ring position is spent and the fixed camera's stands in.
+
+With the rail-trained weights, same scene and laptop, 200 s: 12 tracks and all
+of them real bottles, 6 picks, 6 lifted, none on air.
 
 ## What it does not do yet
 
