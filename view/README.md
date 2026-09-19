@@ -50,8 +50,8 @@ renders nothing and uses far less memory.
 
 ## Lab state panels
 
-The same backend also publishes the full `LabState` of the dashboard console
-(`dashboard/`, see its README for the schema) on `ws://localhost:8765/state`.
+The same backend also publishes the full `LabState` (see
+`dashboard/bridge/README.md` for the protocol) on `ws://localhost:8765/state`.
 It is driven by the scripted formulation in
 `dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031, four containers,
 one recovery: the Eugenol flask is moved during the approach), which moves the
@@ -78,16 +78,6 @@ LAB_STATE_START=100 LAB_STATE_SPEED=0.25 simulation/.venv/bin/python view/backen
 ```
 
 The recovery starts at about 101 s and the recipe completes at about 172 s.
-
-To watch the same state with the dashboard console instead, run `npm run dev`
-in `dashboard/` and open:
-
-```
-http://localhost:5173/?mode=live&url=ws://localhost:8765/state
-    &sim=mjpeg:http://localhost:8000/stream/scene
-    &simRobot=mjpeg:http://localhost:8000/stream/scene
-    &simWrist=mjpeg:http://localhost:8000/stream/robot
-```
 
 Replace `ScriptedRun` with the real planner when it exists; the state contract
 stays the same.
