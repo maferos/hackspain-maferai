@@ -237,10 +237,16 @@ def refine_marker(
     can face up to 22.5 degrees away from the camera, and pushing one radius
     along the view, as :func:`refine` does, then lands up to
     ``radius * sin(22.5 deg)`` beside the axis: 17 mm on a 1 L bottle. The
-    marker says which way it faces instead. The midpoints of its two edges
-    that run up the bottle sit on the ring, at the ring's height, so the chord
-    between them is perpendicular to the radius through the marker: the axis
-    is one radius behind the marker's centre along that normal.
+    marker says which way it faces instead. It is printed round the ring, so
+    its four corners lie on the surface and span a flat quad whose centre sits
+    on a chord, short of the surface. The midpoints of the two edges that run
+    up the bottle are that chord's ends, at the ring's height; the axis lies
+    along the chord's normal, ``sqrt(r^2 - (chord / 2)^2)`` behind the centre
+    (a full radius would put it 0.5 mm too far on a 10 ml flask and 2.5 mm on
+    a 2 L bottle). Which edges run up the bottle is read from the direction
+    the world's vertical takes in the image at the marker, not from the
+    image's own vertical, so a rolled or steeply pitched camera still pairs
+    them right.
 
     Args:
         camera: The camera the marker was seen by.
@@ -252,18 +258,23 @@ def refine_marker(
 
     Returns:
         The axis (x, y), or None if the geometry cannot be read, such as a
-        camera level with the ring.
+        camera level with the ring or looking straight down on it.
     """
     corners = np.asarray(corners, dtype=float)
     height = bench_z + ring_height
     centre = _on_height(camera, _quad_centre(corners), height)
     if centre is None:
         return None
+    up = camera.project(np.array([centre, centre + (0.0, 0.0, 0.01)]))
+    vertical = up[1] - up[0]
+    if not np.all(np.isfinite(vertical)) or np.linalg.norm(vertical) < 1e-3:
+        return None
+    vertical /= np.linalg.norm(vertical)
     edges = [(corners[i], corners[(i + 1) % 4]) for i in range(4)]
 
     def upright(edge: tuple[np.ndarray, np.ndarray]) -> float:
-        du, dv = edge[1] - edge[0]
-        return abs(dv) / (math.hypot(du, dv) + 1e-9)
+        direction = edge[1] - edge[0]
+        return abs(float(direction @ vertical)) / (np.linalg.norm(direction) + 1e-9)
 
     first, second = max(
         ((0, 2), (1, 3)),
@@ -282,7 +293,8 @@ def refine_marker(
     normal = np.array([-chord[1], chord[0]]) / length
     if np.dot(normal, camera.position[:2] - centre[:2]) < 0:
         normal = -normal  # the marker faces the camera that saw it
-    axis = centre[:2] - radius * normal
+    behind = math.sqrt(radius**2 - min(length / 2, radius) ** 2)
+    axis = centre[:2] - behind * normal
     return float(axis[0]), float(axis[1])
 
 

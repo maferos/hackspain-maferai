@@ -113,11 +113,16 @@ def _ring_point(vessel, axis_xy):
 
 
 def test_confirm_names_the_ring_of_the_proposed_bottle_and_places_it():
-    far = _ring_point("bottle_100ml", (0.25, 0.05))
-    frame = _wrist_frame(WRIST, [(9, far), (5, _ring_point("flask_10ml", (0, 0)))])
+    # Both rings drawn to scale round their bottles: the pasted markers of
+    # _wrist_frame are the right place but not the right size, and the size
+    # of a marker is part of where its bottle stands.
+    frame = _ring_frame(WRIST, "flask_10ml", (0.0, 0.0), 5)
+    far = _ring_frame(WRIST, "bottle_100ml", (0.25, 0.05), 9)
+    drawn = np.any(far != 150, axis=2)
+    frame[drawn] = far[drawn]
     found = confirm(frame, WRIST, TARGET, ROWS)
     assert (found.sample_id, found.marker_id, found.phase) == ("SMP-0006", 5, "liquid")
-    assert found.refined_xy == pytest.approx((0.0, 0.0), abs=0.004)
+    assert found.refined_xy == pytest.approx((0.0, 0.0), abs=0.002)
 
 
 def test_a_neighbours_ring_seen_past_the_proposal_is_passed_over():
@@ -175,17 +180,21 @@ def _ring_frame(camera, vessel, axis_xy, marker_id, angles_deg=(-45, 0, 45)):
     image = cv2.copyMakeBorder(image, 20, 20, 20, 20, cv2.BORDER_CONSTANT, value=255)
     frame = np.full((1080, 1920, 3), 150, np.uint8)
     up = np.array([0.0, 0.0, 1.0])
+    # Printed round the ring, a marker's corners lie on the surface, so the
+    # flat square through them stands on a chord, short of the surface.
+    alpha = side / 2 / radius
     for angle in angles_deg:
         a = facing + math.radians(angle)
         normal = np.array([math.cos(a), math.sin(a), 0.0])
         right = np.cross(up, normal)
-        centre = axis + radius * normal
-        half = side * 8 / 6 / 2  # the quiet zone widens the drawn square
+        centre = axis + radius * math.cos(alpha) * normal
+        across = radius * math.sin(alpha) * 8 / 6  # the quiet zone widens it
+        tall = side / 2 * 8 / 6
         corners = [
-            centre - half * right + half * up,
-            centre + half * right + half * up,
-            centre + half * right - half * up,
-            centre - half * right - half * up,
+            centre - across * right + tall * up,
+            centre + across * right + tall * up,
+            centre + across * right - tall * up,
+            centre - across * right - tall * up,
         ]
         dst = camera.project(np.array(corners)).astype(np.float32)
         n = image.shape[0]
@@ -208,17 +217,23 @@ def test_refine_places_a_big_bottle_from_its_frontal_marker():
 
 
 def _marker_corners(camera, axis_xy, radius, height, angle, side=0.03, turn=0):
-    """A marker's corners in the image, tangent to the ring at ``angle``"""
-    normal = np.array([math.cos(angle), math.sin(angle), 0.0])
-    up = np.array([0.0, 0.0, 1.0])
-    right = np.cross(up, normal)
-    centre = np.array([*axis_xy, BENCH_TOP_Z + height]) + radius * normal
+    """A marker's corners in the image, printed round the ring at ``angle``
+
+    Like the real label's, its corners lie on the surface, half a side of arc
+    either way of the point it faces from.
+    """
+    half = side / 2 / radius
+    base = np.array([*axis_xy, BENCH_TOP_Z + height])
+
+    def on_ring(a, dz):
+        return base + np.array([radius * math.cos(a), radius * math.sin(a), dz])
+
     h = side / 2
     quad = [
-        centre - h * right + h * up,
-        centre + h * right + h * up,
-        centre + h * right - h * up,
-        centre - h * right - h * up,
+        on_ring(angle - half, h),
+        on_ring(angle + half, h),
+        on_ring(angle + half, -h),
+        on_ring(angle - half, -h),
     ]
     return np.roll(camera.project(np.array(quad)), turn, axis=0)
 
@@ -237,6 +252,52 @@ def test_refine_marker_places_the_axis_from_a_marker_facing_away(turn):
     assert math.dist(axis, (0.0, 0.0)) < 0.0005
     along_view = refine(camera, tuple(corners.mean(axis=0)), radius, height)
     assert math.dist(along_view, (0.0, 0.0)) > 0.01  # what this replaces
+
+
+def test_refine_marker_has_no_bias_on_the_smallest_or_the_largest_ring():
+    from labvision.perception import refine_marker
+
+    camera = Camera.look_at(INTRINSICS, (0.0, -0.3, 1.1), (0.0, 0.0, BENCH_TOP_Z))
+    facing = math.atan2(-0.3, 0.0)
+    for vessel in ("flask_10ml", "bottle_2000ml"):
+        radius, height = ring_geometry(vessel)
+        side = 0.75 * radius * 2 * math.pi / 8  # the kit's marker, 6 of 8 modules
+        corners = _marker_corners(camera, (0.0, 0.0), radius, height, facing, side=side)
+        axis = refine_marker(camera, corners, radius, height)
+        assert math.dist(axis, (0.0, 0.0)) < 0.0003, vessel
+
+
+@pytest.mark.parametrize("roll", [45.0, 90.0, -90.0])
+def test_refine_marker_pairs_the_upright_edges_under_a_rolled_camera(roll):
+    from labvision.perception import refine_marker
+
+    camera = Camera.look_at(
+        INTRINSICS, (0.0, -0.3, 1.1), (0.0, 0.0, BENCH_TOP_Z), roll_deg=roll
+    )
+    radius, height = 0.044, 0.1
+    facing = math.atan2(-0.3, 0.0)
+    corners = _marker_corners(
+        camera, (0.0, 0.0), radius, height, facing + math.radians(20)
+    )
+    axis = refine_marker(camera, corners, radius, height)
+    assert math.dist(axis, (0.0, 0.0)) < 0.0005
+
+
+def test_refine_marker_from_a_steep_camera_off_to_one_side():
+    from labvision.perception import refine_marker
+
+    radius, height = 0.044, 0.1
+    ring = BENCH_TOP_Z + height
+    # 75 degrees above the ring, aimed 10 cm beside the bottle.
+    camera = Camera.look_at(
+        INTRINSICS, (0.0, -0.08, ring + 0.30), (0.10, 0.0, BENCH_TOP_Z)
+    )
+    facing = math.atan2(-0.08, 0.0)
+    corners = _marker_corners(
+        camera, (0.0, 0.0), radius, height, facing + math.radians(15)
+    )
+    axis = refine_marker(camera, corners, radius, height)
+    assert math.dist(axis, (0.0, 0.0)) < 0.001
 
 
 def test_confirm_places_a_turned_ring_by_the_way_its_marker_faces():
