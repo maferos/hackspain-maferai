@@ -264,12 +264,13 @@ class Lab:
             root = b
             while m.body_parentid[root] != 0:
                 root = m.body_parentid[root]
-            geoms = np.flatnonzero(m.geom_bodyid == b)
+            # Only what is drawn: a liftable vessel's collision hulls sit in
+            # group 3. A wrapper that carries the free joint and nothing else
+            # has no drawn geoms: the rail scene builds its vessels as
+            # dyn_<id> holding an attached <id>, so both names end in the
+            # sample id and only the inner one has geometry.
+            geoms = np.flatnonzero((m.geom_bodyid == b) & (m.geom_group < 3))
             if not geoms.size:
-                # A wrapper that carries the free joint and nothing else: the
-                # rail scene builds its vessels as dyn_<id> holding an attached
-                # <id>, so both names end in the sample id and only the inner
-                # one has geometry.
                 continue
             radius = max(float(m.geom_aabb[g, 3:5].max()) for g in geoms)
             self.samples.append(
@@ -359,8 +360,8 @@ class Lab:
         wrist = self.cameras["wrist"]
         self.wrist_mocap = int(m.body_mocapid[m.cam_bodyid[wrist]])
         self.wrist_local = (m.cam_pos[wrist].copy(), m.cam_quat[wrist].copy())
-        self.renderers: dict[tuple[int, int], mujoco.Renderer] = {}
-        self.render_flags: dict[tuple[int, int], np.ndarray] = {}
+        self.renderers: dict[tuple[int, int, bool], mujoco.Renderer] = {}
+        self.render_flags: dict[tuple[int, int, bool], np.ndarray] = {}
         """Each renderer's scene flags as created: shadows and reflections on.
         The segmentation passes turn those two off on the same renderer, and
         ``Renderer.render`` restores only what it changes itself, so every
@@ -597,13 +598,28 @@ class Lab:
         m.geom_group[geoms] = SAMPLE_GROUP
         return area, low, high
 
-    def renderer(self, width: int, height: int) -> mujoco.Renderer:
-        """The renderer for a frame size, created once and kept"""
-        key = (width, height)
+    def renderer(
+        self, width: int, height: int, segmentation: bool = False
+    ) -> mujoco.Renderer:
+        """The renderer for a frame size, created once and kept
+
+        Segmentation gets a renderer of its own without multisampling: where
+        the offscreen buffer is multisampled (NVIDIA's EGL is), an edge pixel
+        averages two geoms' id colours byte by byte, which reads back as a
+        third geom, or as an id past the last one.
+        """
+        key = (width, height, segmentation)
         if key not in self.renderers:
-            self.renderers[key] = mujoco.Renderer(
-                self.model, height=height, width=width
-            )
+            quality = self.model.vis.quality
+            samples = quality.offsamples
+            if segmentation:
+                quality.offsamples = 0
+            try:
+                self.renderers[key] = mujoco.Renderer(
+                    self.model, height=height, width=width
+                )
+            finally:
+                quality.offsamples = samples
             self.render_flags[key] = self.renderers[key].scene.flags.copy()
         return self.renderers[key]
 
@@ -612,7 +628,7 @@ class Lab:
         r = self.renderer(width, height)
         mujoco.mj_camlight(self.model, self.data)
         r.update_scene(self.data, camera=camera, scene_option=self.opt_rgb)
-        np.copyto(r.scene.flags, self.render_flags[(width, height)])
+        np.copyto(r.scene.flags, self.render_flags[(width, height, False)])
         return r.render()
 
     def render(
@@ -625,7 +641,7 @@ class Lab:
             the per-pixel category map.
         """
         rgb = self.rgb(camera, width, height)
-        r = self.renderer(width, height)
+        r = self.renderer(width, height, segmentation=True)
         d = self.data
         r.enable_segmentation_rendering()
 

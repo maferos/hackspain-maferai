@@ -401,31 +401,44 @@ def draw_overlay(
     cv2.imwrite(str(path), image, [cv2.IMWRITE_JPEG_QUALITY, 85])
 
 
+def threshold_split(split: str) -> str:
+    """Name the split whose best-F1 threshold ``split`` is scored at
+
+    Every split of a scene takes it from that scene's validation split: the
+    rail scene's from ``rail_val``, the others from ``val``.
+    """
+    return "rail_val" if split.startswith("rail_") else "val"
+
+
 def score_both(
     split: str, frames: list[dict], cache: dict, gt: dict, metrics: dict, args
 ) -> dict:
-    """Score a split raw and filtered, with the val thresholds unless it is val"""
+    """Score a split raw and filtered, at its validation split's thresholds"""
     entry = {}
+    source = threshold_split(split)
     for mode in ("raw", "worktop"):
         threshold = None
-        if split != "val":
-            threshold = metrics.get("val", {}).get(mode, {}).get("threshold")
+        if split != source:
+            threshold = metrics.get(source, {}).get(mode, {}).get("threshold")
             if threshold is None and not args.threshold_here:
                 raise SystemExit(
-                    f"score val first: {split} takes its threshold from val "
+                    f"score {source} first: {split} takes its threshold from it "
                     "(or pass --threshold-here to pick it on this split)"
                 )
         entry[mode] = score(
             split, frames, cache, gt, worktop=mode == "worktop",
             threshold=threshold, boot=args.boot,
         )  # fmt: skip
+        if threshold is not None:
+            entry[mode]["threshold_from"] = source
     return entry
 
 
 def run(args: argparse.Namespace) -> None:
     """Predict, score and write metrics for one model over the given splits"""
     splits = [s.strip() for s in args.splits.split(",") if s.strip()]
-    splits.sort(key=lambda s: s != "val")  # val first: it sets the thresholds
+    # Validation splits first: they set the thresholds.
+    splits.sort(key=lambda s: threshold_split(s) != s)
     root = RESULTS / slug(args.model)
     metrics_path = root / "metrics.json"
     metrics = (
@@ -461,16 +474,18 @@ def run(args: argparse.Namespace) -> None:
             f"at {w['threshold']:.3f}, {w['ms_median']:.0f} ms/frame\n",
             flush=True,
         )
-    if "val" in splits:
-        # New val thresholds: rescore the other splits already on file.
-        for split in [k for k in metrics if k not in ("model", "val", *splits)]:
-            cache, frames = predict_split(args.model, split, None, False, True)
-            if cache is None:
-                print(f"{split}: cached boxes incomplete, not rescored")
-                continue
-            _, gt = load_split(split)
-            metrics[split] = score_both(split, frames, cache, gt, metrics, args)
-            print(f"{split}: rescored with the new val thresholds")
+    # New validation thresholds: rescore the other splits already on file.
+    sources = {s for s in splits if threshold_split(s) == s}
+    for split in [k for k in metrics if k not in ("model", *splits)]:
+        if threshold_split(split) not in sources:
+            continue
+        cache, frames = predict_split(args.model, split, None, False, True)
+        if cache is None:
+            print(f"{split}: cached boxes incomplete, not rescored")
+            continue
+        _, gt = load_split(split)
+        metrics[split] = score_both(split, frames, cache, gt, metrics, args)
+        print(f"{split}: rescored with the new {threshold_split(split)} thresholds")
     root.mkdir(parents=True, exist_ok=True)
     metrics_path.write_text(json.dumps(metrics, indent=1), encoding="utf-8")
 
