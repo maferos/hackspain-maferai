@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Play the vertical hand's 23-step uncap-and-pipette sequence in MuJoCo, and check that it worked.
+"""Play the vertical hand's 21-step uncap-and-pipette sequence in MuJoCo, and check that it worked.
 
 Run from simulation/ after scripts/generate_vertical_hand_blend.py:
     python scripts/vertical_hand_play.py            # headless, prints the checks
     python scripts/vertical_hand_play.py --view     # in the viewer, in real time
 
 The steps of vertical_hand_rig.STEPS (the page's sequence) as position
-targets on the nine actuated joints of assets/vertical_hand/vertical_hand_scene.xml.
+targets on the eight actuated joints of assets/vertical_hand/vertical_hand_scene.xml.
 The bottle and the cap are carried by welds the way the page re-parents them:
 the bottle to the hand while the jaws are closed on it, the cap to the bottle
 until the housing turns and to the clamp's housing after. A weld is engaged at
@@ -35,7 +35,7 @@ B = rig.BOTTLE
 # weld -> which attachment turns it on: (rule index in attachments(), wanted value)
 WELDS = {'hold_bottle': (0, True), 'cap_on_bottle': (1, False), 'cap_in_clamp': (1, True)}
 # when to take the snapshots the checks read (s): just before the step ends
-AT = {'gripped': 2, 'lifted': 3, 'unscrewed': 7, 'away': 9, 'dived': 12, 'recapped': 18, 'down': 22}
+AT = {'gripped': 2, 'lifted': 3, 'unscrewed': 7, 'away': 9, 'dived': 11, 'recapped': 16, 'down': 20}
 
 
 def engage(model, data, eq: int) -> None:
@@ -116,7 +116,7 @@ def run(view: bool) -> bool:
         ('pads closed at the tool axis, 57.1 mm up the bottle', g['gripped']['jaws'][2] - g['gripped']['bottle'][2], (rig.GRIP_Z * rig.MM - 0.003, rig.GRIP_Z * rig.MM + 0.003)),
         ('bottle carried 100 mm', g['lifted']['bottle'][2] - start[2], (0.095, 0.105)),
         ('cap up the thread 5.5 mm while unscrewing', g['unscrewed']['cap'][2] - g['unscrewed']['bottle'][2] - B['cap_z'] * rig.MM, (0.0044, 0.0066)),
-        ('cap out with the clamp, 160 mm off the axis', np.linalg.norm(g['away']['cap'][:2] - g['away']['bottle'][:2]), (0.155, 0.165)),
+        ('cap back with the clamp, 90 mm off the axis', np.linalg.norm(g['away']['cap'][:2] - g['away']['bottle'][:2]), (0.085, 0.095)),
         ('cap on its seat in the clamp', np.linalg.norm(g['away']['cap'] - g['away']['seat']), (0.0, 0.001)),
         ('tip at the dive, 20 mm over the floor', g['dived']['tip'][2] - g['dived']['bottle'][2], (0.018, 0.022)),
         ('tip on the axis', np.linalg.norm(g['dived']['tip'][:2] - g['dived']['bottle'][:2]), (0.0, 0.001)),

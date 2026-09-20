@@ -10,7 +10,7 @@ Writes, under ``assets/vertical_hand/``:
 
 * ``vertical_hand.blend`` --- the hand rigged: every joint an empty driven by
   a custom property on the ``vertical_hand`` root (the names of
-  vertical_hand_rig.STATE), the 23-step sequence keyframed at 30 fps, the
+  vertical_hand_rig.STATE), the 21-step sequence keyframed at 30 fps, the
   reference 60 ml bottle and its cap changing hands by the page's rule
   (Child Of constraints switched by drivers).
 * ``vertical_hand.glb`` (+Y up, the sequence baked) and ``vertical_hand.usdc``
@@ -18,7 +18,7 @@ Writes, under ``assets/vertical_hand/``:
   stage.
 * ``meshes/*.stl`` --- one visual mesh per link and material, in the link's
   joint frame, binary STL.
-* ``vertical_hand.xml`` --- the MJCF of the hand alone: 20 joints, 9 of them
+* ``vertical_hand.xml`` --- the MJCF of the hand alone: 19 joints, 8 of them
   actuated, the rest following through joint equalities (MuJoCo).
 * ``vertical_hand_scene.xml`` --- the hand over a floor with the bottle and
   the cap as free bodies, the three welds the page's parenting rule switches
@@ -43,9 +43,9 @@ from mathutils import Matrix, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import vertical_hand_rig as rig  # noqa: E402
-from vertical_hand_rig import (ARM, BEAM, BTN_TOP, CAR, CARRIAGE, CLIPS, COMB_GAP, COMB_X, DEG, FLANGE, FLANGE_C,  # noqa: E402
-                               FLANGE_Z, GRIP_Z, HUB_HALF, IRIS, JAW, MAST_BOTTOM, MM, PIP, PIVOT, RAIL, RAIL_TOP,
-                               SPINE, STRUT_Y, TAU, TIP_DIVE, YOKE_Y, Z_IRIS, parab)
+from vertical_hand_rig import (BEAM, BTN_TOP, CAGE, CAR, CARRIAGE, CB0, CLIPS, COMB_GAP, COMB_X, DEG, FLANGE, FLANGE_C,  # noqa: E402
+                               FLANGE_Z, GRIP_Z, HALF_D, HALF_IN, HALF_OUT, HEAD, IRIS, JAW, MM, PIP, PLATE, PR, RAIL_TOP,
+                               RING_R, TAB, TAU, TIP_DIVE, XR, Z_IRIS, parab)
 
 SIM = Path(__file__).resolve().parents[1]
 OUT_DIR = SIM / 'assets/vertical_hand'
@@ -74,11 +74,11 @@ ALPHA = {'bottle': 0.55, 'liquid': 0.6}
 # Who touches whom in MuJoCo: (contype, conaffinity) bits. pads<->bottle, blades<->cap, tip<->bottle/floor, floor<->bottle/cap/tip
 COLLIDE = {'pad': (1, 2), 'bottle': (2, 1 | 16 | 32), 'blade': (4, 8), 'cap': (8, 4 | 32), 'tip': (16, 2 | 32), 'floor': (32, 2 | 8 | 16)}
 GAINS = {   # kp, kv, force for the position actuators: stiff enough to track the page's speeds within 3 mm / 10 mrad
-    'lift': (100000.0, 1000.0, 600.0), 'jaw_l': (2000.0, 20.0, 60.0), 'clamp_y': (20000.0, 300.0, 200.0),
+    'lift': (100000.0, 1000.0, 600.0), 'jaw_l': (2000.0, 20.0, 60.0), 'clamp_x': (20000.0, 300.0, 200.0),
     'clamp_lift': (20000.0, 200.0, 200.0), 'body_yaw': (500.0, 1.0, 20.0), 'cam': (100.0, 1.0, 10.0),
-    'pip_slide': (20000.0, 300.0, 200.0), 'pip_swing': (500.0, 2.0, 10.0), 'plunger': (500.0, 5.0, 20.0),
+    'pip_slide': (20000.0, 300.0, 200.0), 'plunger': (500.0, 5.0, 20.0),
 }
-CHECK_STEPS = (2, 5, 7, 9, 12, 17, 23)
+CHECK_STEPS = (2, 5, 7, 9, 11, 16, 21)
 
 
 # ============================== meshes (mm in) ==============================
@@ -145,16 +145,55 @@ def arc(x0, x1, fn, side, n=48):
     return [(x0 + (x1 - x0) * i / n, side * fn(x0 + (x1 - x0) * i / n)) for i in range(n + 1)]
 
 
-def outer(x):
-    return JAW['liner'] + JAW['plate'] - max(0.0, x * x - HUB_HALF ** 2) / (2 * JAW['p'])
+BACK = JAW['liner'] + JAW['plate']       # 9: the cradle's back, flat behind the hub
+
+
+def outer_hub(x):
+    """The hub's back: flat, 9 mm behind the vertex (the mounting pad)."""
+    return BACK - parab(x)
+
+
+def outer_wing(x):
+    """The wings taper from the plate's 6 mm to 2 mm at the tips."""
+    return BACK - (JAW['plate'] - JAW['tip']) * (abs(x) - COMB_X) / (JAW['half_width'] - COMB_X)
 
 
 def liner_poly(x0, x1, side):
     return arc(x0, x1, parab, side) + arc(x1, x0, lambda x: parab(x) + JAW['liner'], side)
 
 
-def plate_poly(x0, x1, side):
+def plate_poly(x0, x1, side, outer):
     return arc(x0, x1, lambda x: parab(x) + JAW['liner'], side) + arc(x1, x0, lambda x: parab(x) + outer(x), side)
+
+
+def rounded_rect(w, h, r, n=6):
+    """A rounded rectangle centred on the origin, counter-clockwise."""
+    r = min(r, w / 2, h / 2)
+    pts = []
+    for cx, cy, a0 in ((w / 2 - r, -h / 2 + r, -90), (w / 2 - r, h / 2 - r, 0), (-w / 2 + r, h / 2 - r, 90), (-w / 2 + r, -h / 2 + r, 180)):
+        for i in range(n + 1):
+            a = (a0 + 90 * i / n) * DEG
+            pts.append((cx + r * math.cos(a), cy + r * math.sin(a)))
+    return pts
+
+
+def plate_y(y0, y1, outline, holes):
+    """The page's plateY: a plate in the XZ plane, y0..y1 thick, outline in (x, z), rounded windows [x0, x1, z0, z1, r]."""
+    from mathutils.geometry import tessellate_polygon
+    loops = [list(outline)]
+    for x0, x1, z0, z1, r in holes:
+        loops.append([(x + (x0 + x1) / 2, z + (z0 + z1) / 2) for x, z in rounded_rect(x1 - x0, z1 - z0, r)])
+    flat = [pt for loop in loops for pt in loop]
+    tris = tessellate_polygon([[(x, z, 0.0) for x, z in loop] for loop in loops])
+    n = len(flat)
+    verts = [(x, y0, z) for x, z in flat] + [(x, y1, z) for x, z in flat]
+    faces = [tuple(t) for t in tris] + [tuple(i + n for i in t)[::-1] for t in tris]
+    base = 0
+    for loop in loops:
+        m = len(loop)
+        faces += [(base + k, base + (k + 1) % m, base + n + (k + 1) % m, base + n + k) for k in range(m)]
+        base += m
+    return verts, faces
 
 
 def wing_bands(side):
@@ -316,65 +355,69 @@ def build_links(root):
 def build_hand(J):
     """The page's geometry, link by link."""
     hand = J['hand']
-    grip = empty('grip_frame', hand, (0, 0, GRIP_Z * MM), size=0.01)
-    # the U-frame, the beam and its end caps
-    for s in (-1, 1):
-        part(f'strut_{"l" if s > 0 else "r"}', grip, rb('x', SPINE['x1'] - 14, BEAM['x1'], s * STRUT_Y, 0, 8, 12, 2), 'gray')
-    part('crossbar', grip, rb('y', -STRUT_Y - 4, STRUT_Y + 4, SPINE['x1'] - 7, 0, 14, 16, 3), 'gray')
-    part('beam', grip, rb('x', BEAM['x0'], BEAM['x1'], 0, 0, 2 * BEAM['half_y'], 2 * BEAM['half_z'], 3), 'gray')
-    for s in (-1, 1):
-        part(f'beam_cap_{"l" if s > 0 else "r"}', grip,
-             rb('x', BEAM['x0'] - 1, BEAM['x1'] + 1, s * (BEAM['half_y'] - 4), 0, 8, 2 * BEAM['half_z'] + 2, 3), 'black')
-        rod = cyl(2.2, 2.2, 0, BEAM['x1'] - BEAM['x0'] - 3, 24)
-        part(f'beam_rod_{"u" if s > 0 else "d"}', grip, rod, 'steel', pos=(BEAM['x0'] + 1.5, 0, s * (BEAM['half_z'] - 2.2)))
-        bpy.data.objects[f'beam_rod_{"u" if s > 0 else "d"}'].rotation_euler = (0, math.pi / 2, 0)
-    # the jaws
-    for side, name in ((1, 'jaw_l'), (-1, 'jaw_r')):
-        jaw = J[name]
-        W, H, C = JAW['half_width'], JAW['half_height'], COMB_X
-        part(f'{name}_plate', jaw, slab(plate_poly(-C, C, side), -H, H), 'gray')
-        part(f'{name}_liner', jaw, slab(liner_poly(-C, C, side), -H, H), 'liner')
-        for i, (z0, z1) in enumerate(wing_bands(side)):
-            for j, (x0, x1) in enumerate(((C, W), (-W, -C))):
-                part(f'{name}_wing{i}{j}_plate', jaw, slab(plate_poly(x0, x1, side), z0, z1), 'gray')
-                part(f'{name}_wing{i}{j}_liner', jaw, slab(liner_poly(x0, x1, side), z0, z1), 'liner')
-        back = JAW['liner'] + JAW['plate']
-        arm_y, car_y = side * (back + ARM['width'] / 2), side * (back - 1 + CARRIAGE['width'] / 2)
-        part(f'{name}_arm', jaw, rb('x', ARM['x0'], ARM['x1'], arm_y, 0, ARM['width'], 2 * ARM['half_z'], 3), 'gray')
-        part(f'{name}_carriage', jaw, rb('x', CARRIAGE['x0'], CARRIAGE['x1'], car_y, 0, CARRIAGE['width'], 2 * CARRIAGE['half_z'], 3.5), 'black')
-        for z in (-6, 6):
-            o = part(f'{name}_bolt_{"u" if z > 0 else "d"}', jaw, cyl(2.4, 2.4, 0, 1.2, 20), 'bolt', pos=(CARRIAGE['x1'] - 0.3, car_y, z))
-            o.rotation_euler = (0, math.pi / 2, 0)
-        for k, x in enumerate((-12, -5)):
-            o = part(f'{name}_screw_{k}', jaw, cyl(2.2, 2.2, -0.6, 0.6, 16), 'bolt', pos=(x, side * (back + ARM['width'] + 0.4), 0))
-            o.rotation_euler = (math.pi / 2, 0, 0)
-    # the harness and the UR flange over it
-    part('harness', hand, rb('z', SPINE['z0'], SPINE['z1'], FLANGE_C, 0, SPINE['x1'] - SPINE['x0'], 2 * SPINE['half_y'], 8), 'black')
-    part('harness_foot', hand, rb('z', SPINE['z0'] - 2, SPINE['z0'] + 6, FLANGE_C, 0, SPINE['x1'] - SPINE['x0'] + 4, 2 * SPINE['half_y'] + 4, 9), 'gray')
-    part('harness_top', hand, rb('z', SPINE['z1'] - 6, SPINE['z1'] + 2, FLANGE_C, 0, SPINE['x1'] - SPINE['x0'] + 4, 2 * SPINE['half_y'] + 4, 9), 'gray')
-    for k, z in enumerate((62, 200, 330)):     # one servo window each: gripper, clamp, pipette
-        part(f'led_{k}', hand, box(SPINE['x1'] - 0.2, SPINE['x1'] + 0.4, -8, 8, z, z + 6), 'led')
+    # the cage: two side plates with windows, a back plate, the servo head and the UR flange over it
+    outline = [(CAGE['x0'], CAGE['z0']), (-20, CAGE['z0']), (CAGE['x1'], 115), (CAGE['x1'], CAGE['z1']), (CAGE['x0'], CAGE['z1'])]
+    windows = [(-150, 30, 110, 200, 10), (-150, 30, 280, 440, 10)]      # the clamp's zone, the pipette's zone
+    for s_, name in ((1, 'plate_l'), (-1, 'plate_r')):
+        y0 = HALF_IN if s_ > 0 else -HALF_OUT
+        part(name, hand, plate_y(y0, y0 + PLATE, outline, windows), 'black')
+    part('back_plate', hand, rb('y', -HALF_IN, HALF_IN, CAGE['x0'] + PLATE / 2, (CAGE['z0'] + CAGE['z1']) / 2, PLATE, CAGE['z1'] - CAGE['z0'], 1), 'black')
+    part('servo_head', hand, rb('z', HEAD['z0'], CAGE['z1'], FLANGE_C, 0, HEAD['x1'] - HEAD['x0'], 2 * HALF_OUT, 8), 'black')
+    part('head_top', hand, rb('z', CAGE['z1'] - 4, CAGE['z1'] + 2, FLANGE_C, 0, HEAD['x1'] - HEAD['x0'], 2 * HALF_OUT, 8), 'gray')
+    part('led_controller', hand, box(HEAD['x1'] - 0.2, HEAD['x1'] + 0.4, -8, 8, 497, 503), 'led')
     stub = empty('arm_stub', hand, size=0.01)
     part('arm_stub_housing', stub, cyl(FLANGE['stub_r'], FLANGE['stub_r'], FLANGE_Z + 24, FLANGE_Z + 24 + FLANGE['stub_len'], 64), 'linkgray', pos=(FLANGE_C, 0, 0))
     part('arm_stub_ring', stub, cyl(FLANGE['stub_r'] + 1, FLANGE['stub_r'] + 1, FLANGE_Z + 24, FLANGE_Z + 24 + FLANGE['ring_h'], 64), 'urblue', pos=(FLANGE_C, 0, 0))
     part('wrist_3', hand, lathe([(0, FLANGE_Z), (FLANGE['r'] - 2, FLANGE_Z), (FLANGE['r'], FLANGE_Z + 3), (FLANGE['stub_r'], FLANGE_Z + 8),
                                  (FLANGE['stub_r'], FLANGE_Z + 24), (0, FLANGE_Z + 24)], 96), 'linkgray', pos=(FLANGE_C, 0, 0))
     part('mount_plate', hand, cyl(37.5, 37.5, FLANGE_Z - 0.5, FLANGE_Z + 0.5, 96), 'steel', pos=(FLANGE_C, 0, 0))
-    # the clamp's rail
-    part('clamp_rail', hand, rb('y', RAIL['y0'], RAIL['y1'], RAIL['x'], RAIL['z'], 12, 12, 3), 'gray')
-    part('clamp_rail_root', hand, rb('x', SPINE['x1'] - 2, RAIL['x'] + 6, RAIL['y0'] + 10, RAIL['z'], 20, 20, 4), 'black')
-    part('clamp_rail_stop', hand, rb('y', RAIL['y1'] - 2, RAIL['y1'] + 6, RAIL['x'], RAIL['z'], 16, 16, 3), 'black')
+    # the gripper on the tool axis: the beam plate to plate, its servo behind it
+    grip = empty('grip_frame', hand, (0, 0, GRIP_Z * MM), size=0.01)
+    part('beam', grip, rb('x', BEAM['x0'], BEAM['x1'], 0, 0, 2 * BEAM['half_y'], 2 * BEAM['half_z'], 3), 'gray')
+    for s_ in (-1, 1):
+        tag = 'l' if s_ > 0 else 'r'
+        part(f'beam_cap_{tag}', grip, rb('x', BEAM['x0'] - 1, BEAM['x1'] + 1, s_ * (BEAM['half_y'] - 4), 0, 8, 2 * BEAM['half_z'] + 2, 3), 'black')
+        rod = part(f'beam_rod_{"u" if s_ > 0 else "d"}', grip, cyl(2.2, 2.2, 0, BEAM['x1'] - BEAM['x0'] - 3, 24), 'steel',
+                   pos=(BEAM['x0'] + 1.5, 0, s_ * (BEAM['half_z'] - 2.2)))
+        rod.rotation_euler = (0, math.pi / 2, 0)
+    part('grip_servo', grip, rb('x', -52, -32, 0, 0, 44, 16, 3), 'black')
+    part('led_grip', grip, box(-52.6, -52, -6, 6, -2, 2), 'led')
+    # the jaws: the cradle, its comb bands with tabs back to the carriage
+    for side, name in ((1, 'jaw_l'), (-1, 'jaw_r')):
+        jaw = J[name]
+        W, H, C = JAW['half_width'], JAW['half_height'], COMB_X
+        part(f'{name}_plate', jaw, slab(plate_poly(-C, C, side, outer_hub), -H, H), 'gray')
+        part(f'{name}_liner', jaw, slab(liner_poly(-C, C, side), -H, H), 'liner')
+        tab = [(TAB['x0'], side * (BACK - TAB['depth'])), (TAB['x1'], side * (BACK - TAB['depth'])), (TAB['x1'], side * BACK), (TAB['x0'], side * BACK)]
+        for i, (z0, z1) in enumerate(wing_bands(side)):
+            for j, (x0, x1) in enumerate(((C, W), (-W, -C))):
+                part(f'{name}_wing{i}{j}_plate', jaw, slab(plate_poly(x0, x1, side, outer_wing), z0, z1), 'gray')
+                part(f'{name}_wing{i}{j}_liner', jaw, slab(liner_poly(x0, x1, side), z0, z1), 'liner')
+            part(f'{name}_tab_{i}', jaw, slab(tab, z0, z1), 'gray')
+            o = part(f'{name}_tab_bolt_{i}', jaw, cyl(2.2, 2.2, -0.6, 0.6, 16), 'bolt', pos=(-18, side * (BACK - 0.2), (z0 + z1) / 2))
+            o.rotation_euler = (math.pi / 2, 0, 0)
+        car_y = side * (BACK - CARRIAGE['width'] / 2)        # the carriage's outer face flush with the cradle's back
+        part(f'{name}_carriage', jaw, rb('x', CARRIAGE['x0'], CARRIAGE['x1'], car_y, 0, CARRIAGE['width'], 2 * CARRIAGE['half_z'], 3.5), 'black')
+        for z in (-6, 6):
+            o = part(f'{name}_bolt_{"u" if z > 0 else "d"}', jaw, cyl(2.4, 2.4, 0, 1.2, 20), 'bolt', pos=(CARRIAGE['x1'] - 0.3, car_y, z))
+            o.rotation_euler = (0, math.pi / 2, 0)
+    # the clamp's rail on the +Y plate, its stops and servo
+    part('clamp_rail', hand, rb('x', XR['x0'], XR['x1'], XR['y'], XR['z'], 6, 12, 2), 'gray')
+    part('clamp_rail_back_stop', hand, rb('x', XR['x0'] - 3, XR['x0'] + 5, XR['y'] - 2, XR['z'], 10, 16, 3), 'black')
+    part('clamp_rail_front_stop', hand, rb('x', XR['x1'] - 5, XR['x1'] + 3, XR['y'] - 2, XR['z'], 10, 16, 3), 'black')
+    part('clamp_servo', hand, rb('x', CAGE['x0'] + PLATE, -135, 61.5, 263, 23, 26, 3), 'black')
+    part('led_clamp', hand, box(-155, -143, 49.6, 50.4, 260, 266), 'led')
     cs = J['clamp_slide']
-    part('clamp_carriage', cs, rb('y', RAIL['col_y'] - 20, RAIL['col_y'] + 20, RAIL['x'], RAIL['z'], 22, 24, 4), 'black')
-    part('clamp_column', cs, rb('z', Z_IRIS + 30, RAIL['z'] - 8, RAIL['x'], RAIL['col_y'], 6, 24, 2), 'gray')
+    CX, CY = XR['col']['x'], XR['col']['y']
+    part('clamp_carriage', cs, rb('x', CX - 20, CX + 20, (40 + HALF_IN) / 2, XR['z'] + 1, HALF_IN - 40, 30, 4), 'black')
+    part('clamp_column', cs, rb('z', Z_IRIS + 64, XR['z'] - 14, CX, CY, 14, 24, 2), 'gray')       # the lift column, over the housing's top ring
     cl = J['clamp_lift']      # the iris plane at z = 0
-    px, py = RAIL['x'], RAIL['col_y']
-    part('lift_carriage', cl, rb('z', 44, 92, px, py, 14, 32, 3), 'black')
-    part('bridge_y', cl, rb('y', -4, py + 4, px, 66, 24, 8, 3), 'gray')
-    part('bridge_x', cl, rb('x', px - 4, 0, 0, 66, 24, 8, 3), 'gray')
+    part('lift_carriage', cl, rb('z', 64, 102, CX, CY, 22, 32, 3), 'black')
+    part('bridge_y', cl, rb('y', -4, CY + 4, CX, 66, 24, 8, 3), 'gray')
+    part('bridge_x', cl, rb('x', CX - 4, 0, 0, 66, 24, 8, 3), 'gray')
     part('mount_disc', cl, cyl(20, 20, 60, 64, 64), 'housing')
-    part('sun_motor', cl, cyl(14, 14, 70, 104, 48), 'housing')
-    part('sun_motor_cap', cl, cyl(15, 15, 102, 106, 48), 'gray')
+    part('sun_motor', cl, cyl(14, 14, 70, IRIS['motor_top'] - 2, 48), 'housing')
+    part('sun_motor_cap', cl, cyl(15, 15, IRIS['motor_top'] - 4, IRIS['motor_top'], 48), 'gray')
     # the housing, turning with body_yaw
     H, hs = IRIS, J['housing']
     part('housing_front', hs, ring(H['housing_r'], H['housing_ri'], -4, H['z_cam'] - 2), 'housing')
@@ -402,44 +445,30 @@ def build_hand(J):
     sun = J['sun']
     part('sun_gear', sun, cyl(H['r_sun'], H['r_sun'], H['z_gears'], H['z_gears'] + H['gear_t'], 24), 'gold')
     part('sun_shaft', sun, cyl(4, 4, H['z_gears'], 70, 16), 'steel')
-    # the pipette: brackets, mast, rail, slide, swing frame, the pipette itself
-    PX, PY, YY = PIVOT['x'], PIVOT['y'], YOKE_Y
-    CY0, CY1 = YY + 7, YY + 19
-    for k, z in enumerate((72, 346)):
-        part(f'mast_bracket_{k}_y', hand, rb('y', YY - 9, -SPINE['half_y'] + 2, SPINE['x1'] - 6, z, 12, 12, 3), 'gray')
-        part(f'mast_bracket_{k}_x', hand, rb('x', SPINE['x1'] - 12, PX + 16, YY - 3, z, 12, 12, 3), 'gray')
-    part('mast', hand, rb('z', MAST_BOTTOM, RAIL_TOP + 5, PX, YY - 3, 32, 12, 3), 'gray')
-    rail_lo = rig.base_z(B) + TIP_DIVE + CAR[0]
-    part('pipette_rail', hand, rb('z', rail_lo, RAIL_TOP, PX, YY + 5, 12, 4, 1), 'housing')
-    sl = J['pip_slide']       # its origin is the tip's height
-    part('pipette_carriage', sl, rb('z', CAR[0], CAR[1], PX, (CY0 + CY1) / 2, 32, CY1 - CY0, 3), 'gray')
-    part('pipette_lug_d', sl, rb('z', CAR[0], CAR[0] + 12, PX, (PY + CY1) / 2, 32, PY - CY1, 2), 'gray')
-    part('pipette_lug_u', sl, rb('z', CAR[1] - 12, CAR[1], PX, (PY + CY1) / 2, 32, PY - CY1, 2), 'gray')
-    part('swing_motor', sl, rb('x', PX + 16, PX + 46, (CY0 + CY1 - 6) / 2, CAR[1] - 17, CY1 - CY0 + 6, 34, 3), 'housing')
-    web = math.atan2(-PY, -PX)
-    web_len = math.hypot(PX, PY)
-    part('cone_receiver', sl, box(-9, 9, -8, 8, CAR[0] + 30, CAR[0] + 50), 'housing',
-         pos=(PX + 21 * math.cos(web) - 16 * math.sin(web), PY + 21 * math.sin(web) + 16 * math.cos(web), 0), yaw=web)
-    sw = J['pip_swing']
-    part('swing_pin', sw, cyl(5, 5, CAR[0] - 6, CAR[1] + 6, 24), 'steel')
-    half_d = PIP['body_d1'] / 2
-    ftop, fbot = BTN_TOP + 37, CLIPS[0] - 8
-    part('swing_web', sw, rb('x', 5, web_len - half_d - 4, 0, (ftop + fbot) / 2, 8, ftop - fbot, 2), 'gray', yaw=web)
-    held = empty('pipette', sw, (-PX * MM, -PY * MM, 0), size=0.01)     # the pipette's frame: tip at the origin
+    # the pipette: its rail on the -Y plate, the carriage and two arm plates to the pipette on the axis
+    rail_lo = rig.base_z(B) + TIP_DIVE + CB0
+    part('pipette_rail', hand, rb('z', rail_lo, RAIL_TOP, PR['x'], PR['y'], 12, 6, 1), 'housing')
+    part('pipette_servo', hand, rb('z', RAIL_TOP + 3, RAIL_TOP + 29, PR['x'], PR['y'] + 9, 32, 12, 3), 'black')
+    part('led_pipette', hand, box(PR['x'] - 6, PR['x'] + 6, PR['y'] + 14.6, PR['y'] + 15.4, RAIL_TOP + 13, RAIL_TOP + 19), 'led')
+    sl = J['pip_slide']       # its origin is the tip
+    part('pipette_carriage', sl, rb('z', CB0, CAR[1], PR['x'], PR['y'] + 9, 32, 12, 3), 'gray')
     for k, z in enumerate(CLIPS):
-        part(f'pipette_clip_{k}', held, ring(half_d + 5, half_d + 0.5, z - 8, z + 8, 48), 'gray')
-    part('plunger_actuator_arm', held, rb('z', BTN_TOP + 25, ftop, 0, half_d + 2, 12, half_d + 14, 2), 'gray')
-    part('plunger_actuator', held, cyl(9, 9, BTN_TOP + 10, BTN_TOP + 46, 32), 'housing', pos=(PIP['plunger_x'], 0, 0))
+        part(f'pipette_arm_{k}', sl, rb('z', z - 7, z + 7, (PR['x'] + 16 - RING_R + 1) / 2, (PR['y'] + 15 - RING_R + 1) / 2,
+                                        PR['x'] + 16 + RING_R - 1, -(PR['y'] + 15) - RING_R + 1, 6), 'gray')
+        part(f'pipette_clip_{k}', sl, ring(RING_R, HALF_D + 0.5, z - 8, z + 8, 48), 'gray')
+    ftop = BTN_TOP + 37
+    part('plunger_actuator_arm', sl, rb('z', BTN_TOP + 25, ftop, 0, HALF_D + 2, 12, HALF_D + 14, 2), 'gray')
+    part('plunger_actuator', sl, cyl(9, 9, BTN_TOP + 10, BTN_TOP + 46, 32), 'housing', pos=(PIP['plunger_x'], 0, 0))
     P = PIP
-    part('pipette_tip', held, cyl(P['tip_r0'], P['tip_r1'], 0, P['tip_len'], 32), 'dark')
-    part('pipette_shaft', held, cyl(P['tip_r1'], P['shaft_r1'], P['tip_len'], P['tip_len'] + P['shaft_len'], 32), 'blue')
-    part('pipette_collar', held, cyl(P['shaft_r1'], P['collar_r1'], P['tip_len'] + P['shaft_len'], P['body_z0'], 40), 'blue')
-    part('pipette_body', held, rb('z', P['body_z0'], P['body_z0'] + P['body_len'], 0, 0, P['body_w1'], P['body_d1'], 6), 'white')
-    part('pipette_display', held, box(-5.5, 5.5, -P['body_d1'] / 2 - 0.6, -P['body_d1'] / 2 + 1, 148, 174), 'display')
-    part('ejector_sleeve', held, cyl(P['ejector_sleeve_r'], P['ejector_sleeve_r'], P['ejector_sleeve_z0'], P['ejector_sleeve_z1'], 32), 'blue')
-    part('ejector_rod', held, cyl(P['ejector_r'], P['ejector_r'], P['ejector_sleeve_z1'], P['ejector_btn_z'], 16), 'blue', pos=(P['ejector_x'], 0, 0))
-    part('ejector_button', held, cyl(P['ejector_btn_r'], P['ejector_btn_r'], P['ejector_btn_z'], P['ejector_btn_z'] + P['ejector_btn_h'], 32), 'blue', pos=(P['ejector_x'] + 2, 0, 0))
-    part('finger_hook', held, rb('x', -P['body_w1'] / 2 - P['hook_reach'], -P['body_w1'] / 2 + 4, 0, P['hook_z'], 16, 7, 3), 'gray')
+    part('pipette_tip', sl, cyl(P['tip_r0'], P['tip_r1'], 0, P['tip_len'], 32), 'dark')
+    part('pipette_shaft', sl, cyl(P['tip_r1'], P['shaft_r1'], P['tip_len'], P['tip_len'] + P['shaft_len'], 32), 'blue')
+    part('pipette_collar', sl, cyl(P['shaft_r1'], P['collar_r1'], P['tip_len'] + P['shaft_len'], P['body_z0'], 40), 'blue')
+    part('pipette_body', sl, rb('z', P['body_z0'], P['body_z0'] + P['body_len'], 0, 0, P['body_w1'], P['body_d1'], 6), 'white')
+    part('pipette_display', sl, box(-5.5, 5.5, -P['body_d1'] / 2 - 0.6, -P['body_d1'] / 2 + 1, 148, 174), 'display')
+    part('ejector_sleeve', sl, cyl(P['ejector_sleeve_r'], P['ejector_sleeve_r'], P['ejector_sleeve_z0'], P['ejector_sleeve_z1'], 32), 'blue')
+    part('ejector_rod', sl, cyl(P['ejector_r'], P['ejector_r'], P['ejector_sleeve_z1'], P['ejector_btn_z'], 16), 'blue', pos=(P['ejector_x'], 0, 0))
+    part('ejector_button', sl, cyl(P['ejector_btn_r'], P['ejector_btn_r'], P['ejector_btn_z'], P['ejector_btn_z'] + P['ejector_btn_h'], 32), 'blue', pos=(P['ejector_x'] + 2, 0, 0))
+    part('finger_hook', sl, rb('x', -P['body_w1'] / 2 - P['hook_reach'], -P['body_w1'] / 2 + 4, 0, P['hook_z'], 16, 7, 3), 'gray')
     pl = J['plunger']
     part('plunger_rod', pl, cyl(P['plunger_r'], P['plunger_r'], P['body_z0'] + P['body_len'] - 2, BTN_TOP - P['button_h'], 24), 'white', pos=(P['plunger_x'], 0, 0))
     part('plunger_button', pl, cyl(P['button_r'], P['button_r'], BTN_TOP - P['button_h'], BTN_TOP, 32), 'blue', pos=(P['plunger_x'], 0, 0))
@@ -601,9 +630,9 @@ def collision_geoms(link):
     if link.startswith('blade_'):
         return [('box', (IRIS['blade_w'] / 2 * MM, IRIS['blade_len'] / 2 * MM, IRIS['blade_t'] / 2 * MM), 0.0,
                  (IRIS['blade_w'] / 2 * MM, IRIS['blade_len'] / 2 * MM, IRIS['blade_t'] / 2 * MM), 'blade')]
-    if link == 'pip_swing':
-        # the tip and the shaft, as one cylinder up to the collar, in the held frame
-        return [('cylinder', (-PIVOT['x'] * MM, -PIVOT['y'] * MM, (PIP['tip_len'] + PIP['shaft_len']) / 2 * MM), 0.0,
+    if link == 'pip_slide':
+        # the tip and the shaft, as one cylinder up to the collar, on the axis
+        return [('cylinder', (0, 0, (PIP['tip_len'] + PIP['shaft_len']) / 2 * MM), 0.0,
                  (PIP['shaft_r1'] * MM, (PIP['tip_len'] + PIP['shaft_len']) / 2 * MM), 'tip')]
     return []
 

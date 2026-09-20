@@ -141,20 +141,14 @@
     <collision><origin xyz="0.006 0.031 0.00125" rpy="0 0 0"/><geometry><box size="0.012 0.062 0.0025"/></geometry></collision>
   </link>
   <link name="pip_slide">
-    <inertial><origin xyz="0 0 0"/><mass value="0.25"/><inertia ixx="5e-05" iyy="5e-05" izz="5e-05" ixy="0" ixz="0" iyz="0"/></inertial>
+    <inertial><origin xyz="0 0 0"/><mass value="0.4"/><inertia ixx="8e-05" iyy="8e-05" izz="8e-05" ixy="0" ixz="0" iyz="0"/></inertial>
+    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_slide__blue.stl"/></geometry><material name="blue"/></visual>
+    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_slide__dark.stl"/></geometry><material name="dark"/></visual>
+    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_slide__display.stl"/></geometry><material name="display"/></visual>
     <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_slide__gray.stl"/></geometry><material name="gray"/></visual>
     <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_slide__housing.stl"/></geometry><material name="housing"/></visual>
-  </link>
-  <link name="pip_swing">
-    <inertial><origin xyz="0 0 0"/><mass value="0.2"/><inertia ixx="4e-05" iyy="4e-05" izz="4e-05" ixy="0" ixz="0" iyz="0"/></inertial>
-    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_swing__blue.stl"/></geometry><material name="blue"/></visual>
-    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_swing__dark.stl"/></geometry><material name="dark"/></visual>
-    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_swing__display.stl"/></geometry><material name="display"/></visual>
-    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_swing__gray.stl"/></geometry><material name="gray"/></visual>
-    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_swing__housing.stl"/></geometry><material name="housing"/></visual>
-    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_swing__steel.stl"/></geometry><material name="steel"/></visual>
-    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_swing__white.stl"/></geometry><material name="white"/></visual>
-    <collision><origin xyz="-0.03 0.09 0.045" rpy="0 0 0"/><geometry><cylinder radius="0.0058" length="0.09"/></geometry></collision>
+    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/pip_slide__white.stl"/></geometry><material name="white"/></visual>
+    <collision><origin xyz="0 0 0.045" rpy="0 0 0"/><geometry><cylinder radius="0.0058" length="0.09"/></geometry></collision>
   </link>
   <link name="plunger">
     <inertial><origin xyz="0 0 0"/><mass value="0.01"/><inertia ixx="2e-06" iyy="2e-06" izz="2e-06" ixy="0" ixz="0" iyz="0"/></inertial>
@@ -181,11 +175,11 @@
     <limit lower="0.0117763" upper="0.0613506" effort="20" velocity="2.0"/>
     <mimic joint="jaw_l" multiplier="1" offset="0"/>
   </joint>
-  <joint name="clamp_y" type="prismatic">
+  <joint name="clamp_x" type="prismatic">
     <parent link="hand"/><child link="clamp_slide"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit lower="0" upper="0.18" effort="200" velocity="2.0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.1" upper="0" effort="200" velocity="2.0"/>
   </joint>
   <joint name="clamp_lift" type="prismatic">
     <parent link="clamp_slide"/><child link="clamp_lift"/>
@@ -279,17 +273,11 @@
     <parent link="hand"/><child link="pip_slide"/>
     <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
-    <limit lower="0.01" upper="0.15" effort="200" velocity="2.0"/>
-  </joint>
-  <joint name="pip_swing" type="revolute">
-    <parent link="pip_slide"/><child link="pip_swing"/>
-    <origin xyz="0.03 -0.09 0" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="0" upper="1.39626" effort="10" velocity="10.0"/>
+    <limit lower="0.01" upper="0.25" effort="200" velocity="2.0"/>
   </joint>
   <joint name="plunger" type="prismatic">
-    <parent link="pip_swing"/><child link="plunger"/>
-    <origin xyz="-0.03 0.09 0" rpy="0 0 0"/>
+    <parent link="pip_slide"/><child link="plunger"/>
+    <origin xyz="0 0 0" rpy="0 0 0"/>
     <axis xyz="0 0 -1"/>
     <limit lower="0" upper="0.014" effort="20" velocity="2.0"/>
   </joint>

@@ -26,42 +26,46 @@ TAU = 2 * math.pi
 REF_CAP_Z = 78.1                         # the reference cap seat; everything on the hand is placed off it
 AXIS_BELOW_CAP = 21
 GRIP_Z = REF_CAP_Z - AXIS_BELOW_CAP      # 57.1: the tool axis
-JAW = dict(p=8, half_width=22.5, clearance=0.2, liner=3, half_height=16, plate=6, open_clear=6)
-BODY = dict(length=52, half_width=32, half_height=16)
-FRONT_CLEAR, FLANGE_X = 30, -118
-HUB_HALF, COMB_X, COMB_GAP = 14, 12, 1
-BEAM = dict(x0=-31, x1=-25, half_z=8, half_y=96)
-CARRIAGE = dict(x0=-30, x1=-24, width=14, half_z=12)
-ARM = dict(x0=-24, x1=-2, width=12, half_z=11)
-FLANGE = dict(r=45, face_r=31.5, pcd=25, bolt_r=3.3, ring_h=12, stub_r=45, stub_len=150)
-SPINE = dict(x0=-150, x1=-75, half_y=60, z0=44, z1=430)     # the harness
-FLANGE_Z, FLANGE_C = SPINE['z1'], (SPINE['x0'] + SPINE['x1']) / 2
-STRUT_Y = 92
-RAIL = dict(x=-45, z=230, y0=36, y1=264, park=160, col_y=80)   # the clamp's rail, along Y
+JAW = dict(p=8, half_width=22.5, clearance=0.2, liner=3, half_height=16, plate=6, tip=2, open_clear=6)
+COMB_X, COMB_GAP = 12, 1
+CARRIAGE = dict(x0=-30, x1=-24, width=14, half_z=12)     # on the beam's front, flush with the cradle's back
+TAB = dict(x0=-24, x1=-10, depth=6)                       # the jaw's tabs to its carriage, in its own comb bands
 IRIS = dict(r_pivot=55, n_blades=6, blade_len=62, blade_w=12, blade_t=2.5, blade_max=80, housing_r=69, housing_ri=59,
             z_cam=18, cam_t=6, z_gears=30, gear_t=8, z_carrier=42, carrier_t=6, z_top=60, r_ring=36, r_sun=12, planet_r=24,
-            open_r=35, cap_dz=-1.5)
+            open_r=35, cap_dz=-1.5, motor_top=106)
 Z_IRIS = REF_CAP_Z - IRIS['cap_dz']      # 79.6: iris plane when the blades meet the cap
 CLAMP_LIFT, PITCH, TURNS = 25, 2.75, 2
 CAP_LIFT = PITCH * TURNS                 # the thread walks the cap up 5.5 mm
-LIFT_HI = CAP_LIFT + CLAMP_LIFT          # 30.5: the clamp travels in and out this high
+LIFT_HI = CAP_LIFT + CLAMP_LIFT          # 30.5: the clamp travels in and out this high, its housing 9.5 mm over the cap
+# The cage: the iris housing plus a slight margin sets the width; everything else fits inside
+GAP, PLATE = 4, 4                        # clearance to the housing, plate thickness
+HALF_IN = IRIS['housing_r'] + GAP        # 73: the plates' inner faces
+HALF_OUT = HALF_IN + PLATE               # 77: their outer faces, 154 mm overall
+BEAM = dict(x0=-31, x1=-25, half_z=8, half_y=HALF_IN)     # spans the cage between the plates
 PIP = dict(tip_len=12, tip_r0=2.4, tip_r1=3.6, shaft_len=78, shaft_r1=5.8, collar_len=26, collar_r1=11.2,
            body_z0=116, body_len=105, body_w0=24, body_w1=30, body_d0=20, body_d1=24,
            plunger_x=3, plunger_r=4, plunger_len=30, button_r=8.5, button_h=8.5,
            ejector_x=16.5, ejector_r=2.8, ejector_btn_r=7.5, ejector_btn_h=6, ejector_btn_z=232,
            ejector_sleeve_r=6.8, ejector_sleeve_z0=66, ejector_sleeve_z1=94,
            hook_z=213, hook_reach=24, grip_z=168.5, stroke=14)
-PIVOT = dict(x=30, y=-90)
-STOW = 80                                # degrees, the pipette parked out beside the harness
-YOKE_Y = PIVOT['y'] - 28
-NECK_H = 95 - REF_CAP_Z                  # 16.9: cap seat to lip on the reference bottle
-TIP_READY = REF_CAP_Z + NECK_H + 15      # 110: tip just over the neck
+HALF_D = PIP['body_d1'] / 2
+RING_R = HALF_D + 5                      # 17: the clip rings around the pipette
+PARK_X = -(IRIS['housing_r'] + RING_R + GAP)              # -90: the clamp slid back, its housing 4 mm off the pipette's rings
+CAGE = dict(x0=PARK_X - IRIS['housing_r'] - GAP - PLATE, x1=65, z0=GRIP_Z - BEAM['half_z'] - 4, z1=530)   # -167 ... 65, 45 ... 530
+HEAD = dict(x0=CAGE['x0'], x1=-45, z0=470)                # the servo head at the back of the cage's top
+FLANGE_C, FLANGE_Z = (HEAD['x0'] + HEAD['x1']) / 2, CAGE['z1'] + 2   # -106: the flange face, looking down, centred on the head
+FLANGE = dict(r=45, face_r=31.5, pcd=25, bolt_r=3.3, ring_h=12, stub_r=45, stub_len=150)
+# The clamp's rail: along X on the +Y plate, above the clamp's motor even when lifted; its lift column rides over the housing
+XR = dict(y=HALF_IN - 3, z=230, x0=-160, x1=0, col=dict(x=-30, y=52))
+# The pipette: fixed on the axis, parked over the clamp's motor; its rail on the -Y plate
+TIP_READY = Z_IRIS + LIFT_HI + IRIS['motor_top'] + GAP    # 220.1: tip 4 mm over the sun's gearmotor with the clamp high
 CLIPS = [125, PIP['grip_z']]
 CAR = [PIP['grip_z'] - 20, PIP['grip_z'] + 60]
 RAIL_TOP = TIP_READY + CAR[1]
-MAST_BOTTOM = 70
+PR = dict(x=45, y=-(HALF_IN - 3))                          # the pipette's rail, where the centred housing only reaches |y| 52
 TIP_DIVE, LIFT_Z = 20, 100
 BTN_TOP = PIP['body_z0'] + PIP['body_len'] + PIP['plunger_len'] + PIP['button_h']   # 259.5
+CB0 = CLIPS[0] - 8                                        # 117: the pipette carriage's foot, over the tip
 
 # bottles.py catalogue (mm): radius, height, shoulder, neck start, neck radius, cap seat, cap height, cap radius
 CATALOGUE = {
@@ -109,26 +113,24 @@ def base_z(b: dict = BOTTLE) -> float:
 
 # ============================== STATE (SI) ==============================
 # The degrees of freedom, the custom properties of the .blend and the actuators of the MJCF.
-STATE = ['lift_z', 'grip_aperture', 'clamp_y', 'clamp_lift', 'iris_angle', 'housing_turns',
-         'pipette_tip', 'swing_angle', 'plunger']
+STATE = ['lift_z', 'grip_aperture', 'clamp_x', 'clamp_lift', 'iris_angle', 'housing_turns', 'pipette_tip', 'plunger']
 # (default, min, max, subtype, description) for the Blender properties
 PROPS = {
     'lift_z': (LIFT_Z * MM, 0.0, 0.3, 'DISTANCE', 'Hand height: the bottle base above the table once held (m)'),
     'grip_aperture': (2 * stroke(BOTTLE['r']) * MM, 2 * vertex(CATALOGUE[10]['r']) * MM, 2 * stroke(CATALOGUE[100]['r']) * MM,
                       'DISTANCE', 'Opening between the two cradle vertices (m)'),
-    'clamp_y': (RAIL['park'] * MM, 0.0, RAIL['park'] * MM + 0.02, 'DISTANCE', 'Clamp carriage along its Y rail: 0 centred on the cap (m)'),
+    'clamp_x': (PARK_X * MM, PARK_X * MM - 0.01, 0.0, 'DISTANCE', 'Clamp carriage along its X rail: 0 centred on the cap, negative slid back (m)'),
     'clamp_lift': (LIFT_HI * MM, 0.0, LIFT_HI * MM + 0.005, 'DISTANCE', 'Clamp lift column: 0 with the iris plane on the cap seat (m)'),
     'iris_angle': (IRIS_OPEN, 0.0, IRIS['blade_max'] * DEG, 'ANGLE', 'Blade angle: aperture = 2 r_pivot cos(angle)'),
     'housing_turns': (0.0, 0.0, TURNS + 0.5, 'NONE', 'Turns of the clamp housing (unscrewing the cap)'),
-    'pipette_tip': (TIP_READY * MM, 0.01, 0.15, 'DISTANCE', 'Pipette tip height in the hand frame (m)'),
-    'swing_angle': (STOW * DEG, 0.0, STOW * DEG, 'ANGLE', 'Pipette frame swing: 0 in over the neck, positive out beside the harness'),
+    'pipette_tip': (TIP_READY * MM, 0.01, 0.25, 'DISTANCE', 'Pipette tip height in the hand frame (m)'),
     'plunger': (0.0, 0.0, PIP['stroke'] * MM, 'DISTANCE', 'Plunger pressed (m)'),
 }
 
 
 def start(b: dict = BOTTLE) -> dict:
-    return dict(lift_z=LIFT_Z * MM, grip_aperture=2 * stroke(b['r']) * MM, clamp_y=RAIL['park'] * MM, clamp_lift=LIFT_HI * MM,
-                iris_angle=IRIS_OPEN, housing_turns=0.0, pipette_tip=TIP_READY * MM, swing_angle=STOW * DEG, plunger=0.0, fill=0.0)
+    return dict(lift_z=LIFT_Z * MM, grip_aperture=2 * stroke(b['r']) * MM, clamp_x=PARK_X * MM, clamp_lift=LIFT_HI * MM,
+                iris_angle=IRIS_OPEN, housing_turns=0.0, pipette_tip=TIP_READY * MM, plunger=0.0, fill=0.0)
 
 
 # (name, seconds, changes): the page's STEPS, in page units; keys() converts.
@@ -136,30 +138,28 @@ STEPS = [
     ('Lower the hand over the bottle', 1.6, dict(lift_z=0)),
     ('Close the gripper: the cradles centre the bottle', 0.9, dict(grip='closed')),
     ('Lift the bottle', 1.2, dict(lift_z=LIFT_Z)),
-    ('Slide the iris clamp in, high over the cap', 1.6, dict(clamp_y=0)),
+    ('Slide the iris clamp forward onto the axis, high over the cap', 1.4, dict(clamp_x=0)),
     ('Lower the clamp onto the cap', 0.9, dict(clift=0)),
     ('Close the iris on the cap', 0.9, dict(iris='contact')),
     ('Unscrew: the housing turns 2x, the clamp follows the cap up', 3.0, dict(turns=TURNS, clift=CAP_LIFT)),
     ('Lift the cap straight off the neck', 0.9, dict(clift=LIFT_HI)),
-    ('Slide the clamp out with the cap', 1.6, dict(clamp_y=RAIL['park'])),
-    ('Swing the pipette onto the axis: the cone seats', 1.4, dict(swing=0)),
+    ('Slide the clamp back with the cap, under the pipette', 1.4, dict(clamp_x=PARK_X)),
     ('Press the plunger', 0.6, dict(plunger=PIP['stroke'])),
-    ('Lower the pipette into the liquid', 1.4, dict(tip='dive')),
+    ('Lower the pipette down the axis into the liquid', 2.4, dict(tip='dive')),
     ('Aspirate: release the plunger', 1.2, dict(plunger=0, fill=1)),
-    ('Withdraw the pipette', 1.2, dict(tip=TIP_READY)),
-    ('Swing the pipette out beside the harness', 1.4, dict(swing=STOW)),
-    ('Slide the clamp back in, the cap high over the neck', 1.6, dict(clamp_y=0)),
+    ('Withdraw the pipette to its parked height', 2.0, dict(tip=TIP_READY)),
+    ('Slide the clamp forward, the cap high over the neck', 1.4, dict(clamp_x=0)),
     ('Lower the cap onto the thread', 0.9, dict(clift=CAP_LIFT)),
     ('Screw the cap back', 3.0, dict(turns=0, clift=0)),
     ('Open the iris', 0.9, dict(iris=IRIS_OPEN)),
     ('Lift the clamp clear of the cap', 0.9, dict(clift=LIFT_HI)),
-    ('Slide the clamp out', 1.6, dict(clamp_y=RAIL['park'])),
+    ('Slide the clamp back', 1.4, dict(clamp_x=PARK_X)),
     ('Put the bottle down', 1.2, dict(lift_z=0)),
     ('Open the gripper and lift the hand clear', 1.6, dict(grip='open', lift_z=LIFT_Z)),
 ]
 TAIL = 0.8
-_PAGE_TO_STATE = dict(lift_z='lift_z', grip='grip_aperture', clamp_y='clamp_y', clift='clamp_lift', iris='iris_angle',
-                      turns='housing_turns', tip='pipette_tip', swing='swing_angle', plunger='plunger', fill='fill')
+_PAGE_TO_STATE = dict(lift_z='lift_z', grip='grip_aperture', clamp_x='clamp_x', clift='clamp_lift', iris='iris_angle',
+                      turns='housing_turns', tip='pipette_tip', plunger='plunger', fill='fill')
 
 
 def _convert(key: str, v, b: dict):
@@ -169,10 +169,8 @@ def _convert(key: str, v, b: dict):
         return iris_contact(b) if v == 'contact' else v
     if key == 'tip':
         return (base_z(b) + TIP_DIVE) * MM if v == 'dive' else v * MM
-    if key in ('lift_z', 'clamp_y', 'clift', 'plunger'):
+    if key in ('lift_z', 'clamp_x', 'clift', 'plunger'):
         return v * MM
-    if key == 'swing':
-        return v * DEG
     return v
 
 
@@ -245,7 +243,7 @@ def _links() -> list[dict]:
         link('hand', None, (0, 0, 0), ('slide', Z, 'lift_z', 1.0, (0.0, 0.3)), mass=3.0),
         link('jaw_l', 'hand', (0, 0, GRIP_Z), ('slide', Y, 'grip_aperture', 0.5, (jaw_lo, jaw_hi)), mass=0.12),
         link('jaw_r', 'hand', (0, 0, GRIP_Z), ('slide', _Y, 'grip_aperture', 0.5, (jaw_lo, jaw_hi)), mass=0.12),
-        link('clamp_slide', 'hand', (0, 0, 0), ('slide', Y, 'clamp_y', 1.0, (0.0, PROPS['clamp_y'][2])), mass=0.3),
+        link('clamp_slide', 'hand', (0, 0, 0), ('slide', X, 'clamp_x', 1.0, (PROPS['clamp_x'][1], 0.0)), mass=0.3),
         link('clamp_lift', 'clamp_slide', (0, 0, Z_IRIS), ('slide', Z, 'clamp_lift', 1.0, (0.0, PROPS['clamp_lift'][2])), mass=0.35),
         link('housing', 'clamp_lift', (0, 0, 0), ('hinge', Z, 'housing_turns', TAU, (0.0, (TURNS + 0.5) * TAU)), mass=0.3),
         link('cam', 'housing', (0, 0, 0), ('hinge', _Z, 'iris_angle', 1.0, (0.0, IRIS_MAX)), mass=0.05),
@@ -260,9 +258,8 @@ def _links() -> list[dict]:
         links.append(link(f'blade_{k}', 'housing', (IRIS['r_pivot'] * math.cos(phi), IRIS['r_pivot'] * math.sin(phi), k * IRIS['blade_t']),
                           ('hinge', Z, 'iris_angle', 1.0, (0.0, IRIS_MAX)), yaw=phi, mass=0.005))
     links += [
-        link('pip_slide', 'hand', (0, 0, 0), ('slide', Z, 'pipette_tip', 1.0, (PROPS['pipette_tip'][1], PROPS['pipette_tip'][2])), mass=0.25),
-        link('pip_swing', 'pip_slide', (PIVOT['x'], PIVOT['y'], 0), ('hinge', Z, 'swing_angle', 1.0, (0.0, STOW * DEG)), mass=0.2),
-        link('plunger', 'pip_swing', (-PIVOT['x'], -PIVOT['y'], 0), ('slide', _Z, 'plunger', 1.0, (0.0, PIP['stroke'] * MM)), mass=0.01),
+        link('pip_slide', 'hand', (0, 0, 0), ('slide', Z, 'pipette_tip', 1.0, (PROPS['pipette_tip'][1], PROPS['pipette_tip'][2])), mass=0.4),
+        link('plunger', 'pip_slide', (0, 0, 0), ('slide', _Z, 'plunger', 1.0, (0.0, PIP['stroke'] * MM)), mass=0.01),
     ]
     return links
 
@@ -270,9 +267,9 @@ def _links() -> list[dict]:
 LINKS = _links()
 LINK = {b['name']: b for b in LINKS}
 # The joints the plan drives; every other joint follows one of these (MJCF equalities, URDF mimics).
-ACTUATED = ['lift', 'jaw_l', 'clamp_y', 'clamp_lift', 'body_yaw', 'cam', 'pip_slide', 'pip_swing', 'plunger']
+ACTUATED = ['lift', 'jaw_l', 'clamp_x', 'clamp_lift', 'body_yaw', 'cam', 'pip_slide', 'plunger']
 # link -> joint name in the MJCF/URDF (the link and its joint share a name, except these three)
-JOINT_NAME = {'hand': 'lift', 'clamp_slide': 'clamp_y', 'housing': 'body_yaw'}
+JOINT_NAME = {'hand': 'lift', 'clamp_slide': 'clamp_x', 'housing': 'body_yaw'}
 FOLLOWS = {   # follower joint -> (leader joint, multiplier): q_follower = k * q_leader
     'jaw_r': ('jaw_l', 1.0), 'sun': ('cam', 3.0),
     **{f'planet_{k}': ('cam', 3.0) for k in range(3)},
@@ -284,7 +281,7 @@ SITES = {
     'jaw_r_vertex': ('jaw_r', (0, 0, 0)),
     'cap_seat': ('housing', (0, 0, IRIS['cap_dz'] * MM)),
     'blade_0_tip': ('blade_0', (IRIS['blade_w'] / 2 * MM, IRIS['blade_len'] * MM, 0)),
-    'tip': ('pip_swing', (-PIVOT['x'] * MM, -PIVOT['y'] * MM, 0)),
+    'tip': ('pip_slide', (0, 0, 0)),
     'button': ('plunger', (PIP['plunger_x'] * MM, 0, BTN_TOP * MM)),
 }
 
@@ -339,7 +336,7 @@ def quat_z(a: float) -> tuple[float, float, float, float]:
 if __name__ == '__main__':
     s = start()
     print(f'{len(STEPS)} steps, {DURATION:.1f} s; start: ' + ', '.join(f'{k}={v:.4g}' for k, v in s.items()))
-    for n in (2, 7, 12):
+    for n in (2, 7, 11):
         st, _ = state_at(step_end(n) - 1e-6)
         pos = fk(st)
         print(f'after step {n}: tip {np.round(pos["tip"], 4)}, cap seat {np.round(pos["cap_seat"], 4)}, '

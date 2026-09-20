@@ -62,15 +62,12 @@
     <mesh name="blade_3__gold" file="blade_3__gold.stl"/>
     <mesh name="blade_4__gold" file="blade_4__gold.stl"/>
     <mesh name="blade_5__gold" file="blade_5__gold.stl"/>
+    <mesh name="pip_slide__blue" file="pip_slide__blue.stl"/>
+    <mesh name="pip_slide__dark" file="pip_slide__dark.stl"/>
+    <mesh name="pip_slide__display" file="pip_slide__display.stl"/>
     <mesh name="pip_slide__gray" file="pip_slide__gray.stl"/>
     <mesh name="pip_slide__housing" file="pip_slide__housing.stl"/>
-    <mesh name="pip_swing__blue" file="pip_swing__blue.stl"/>
-    <mesh name="pip_swing__dark" file="pip_swing__dark.stl"/>
-    <mesh name="pip_swing__display" file="pip_swing__display.stl"/>
-    <mesh name="pip_swing__gray" file="pip_swing__gray.stl"/>
-    <mesh name="pip_swing__housing" file="pip_swing__housing.stl"/>
-    <mesh name="pip_swing__steel" file="pip_swing__steel.stl"/>
-    <mesh name="pip_swing__white" file="pip_swing__white.stl"/>
+    <mesh name="pip_slide__white" file="pip_slide__white.stl"/>
     <mesh name="plunger__blue" file="plunger__blue.stl"/>
     <mesh name="plunger__steel" file="plunger__steel.stl"/>
     <mesh name="plunger__white" file="plunger__white.stl"/>
@@ -138,7 +135,7 @@
         </body>
         <body name="clamp_slide" pos="0 0 0">
           <inertial pos="0 0 0" mass="0.3" diaginertia="6e-05 6e-05 6e-05"/>
-          <joint name="clamp_y" type="slide" axis="0 1 0" range="0 0.18" armature="0.001" damping="0.5"/>
+          <joint name="clamp_x" type="slide" axis="1 0 0" range="-0.1 0" armature="0.001" damping="0.5"/>
           <geom name="clamp_slide__black" type="mesh" mesh="clamp_slide__black" material="black" contype="0" conaffinity="0" group="2" mass="0"/>
           <geom name="clamp_slide__gray" type="mesh" mesh="clamp_slide__gray" material="gray" contype="0" conaffinity="0" group="2" mass="0"/>
           <body name="clamp_lift" pos="0 0 0.0796">
@@ -221,30 +218,23 @@
           </body>
         </body>
         <body name="pip_slide" pos="0 0 0">
-          <inertial pos="0 0 0" mass="0.25" diaginertia="5e-05 5e-05 5e-05"/>
-          <joint name="pip_slide" type="slide" axis="0 0 1" range="0.01 0.15" armature="0.001" damping="0.5"/>
+          <inertial pos="0 0 0" mass="0.4" diaginertia="8e-05 8e-05 8e-05"/>
+          <joint name="pip_slide" type="slide" axis="0 0 1" range="0.01 0.25" armature="0.001" damping="0.5"/>
+          <geom name="pip_slide__blue" type="mesh" mesh="pip_slide__blue" material="blue" contype="0" conaffinity="0" group="2" mass="0"/>
+          <geom name="pip_slide__dark" type="mesh" mesh="pip_slide__dark" material="dark" contype="0" conaffinity="0" group="2" mass="0"/>
+          <geom name="pip_slide__display" type="mesh" mesh="pip_slide__display" material="display" contype="0" conaffinity="0" group="2" mass="0"/>
           <geom name="pip_slide__gray" type="mesh" mesh="pip_slide__gray" material="gray" contype="0" conaffinity="0" group="2" mass="0"/>
           <geom name="pip_slide__housing" type="mesh" mesh="pip_slide__housing" material="housing" contype="0" conaffinity="0" group="2" mass="0"/>
-          <body name="pip_swing" pos="0.03 -0.09 0">
-            <inertial pos="0 0 0" mass="0.2" diaginertia="4e-05 4e-05 4e-05"/>
-            <joint name="pip_swing" type="hinge" axis="0 0 1" range="0 1.39626" armature="0.001" damping="0.02"/>
-            <geom name="pip_swing__blue" type="mesh" mesh="pip_swing__blue" material="blue" contype="0" conaffinity="0" group="2" mass="0"/>
-            <geom name="pip_swing__dark" type="mesh" mesh="pip_swing__dark" material="dark" contype="0" conaffinity="0" group="2" mass="0"/>
-            <geom name="pip_swing__display" type="mesh" mesh="pip_swing__display" material="display" contype="0" conaffinity="0" group="2" mass="0"/>
-            <geom name="pip_swing__gray" type="mesh" mesh="pip_swing__gray" material="gray" contype="0" conaffinity="0" group="2" mass="0"/>
-            <geom name="pip_swing__housing" type="mesh" mesh="pip_swing__housing" material="housing" contype="0" conaffinity="0" group="2" mass="0"/>
-            <geom name="pip_swing__steel" type="mesh" mesh="pip_swing__steel" material="steel" contype="0" conaffinity="0" group="2" mass="0"/>
-            <geom name="pip_swing__white" type="mesh" mesh="pip_swing__white" material="white" contype="0" conaffinity="0" group="2" mass="0"/>
-            <geom name="pip_swing_col_0" type="cylinder" pos="-0.03 0.09 0.045" size="0.0058 0.045" contype="16" conaffinity="34" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-            <site name="tip" pos="-0.03 0.09 0" size="0.003" rgba="0.9 0.3 0.1 0.5" group="4"/>
-            <body name="plunger" pos="-0.03 0.09 0">
-              <inertial pos="0 0 0" mass="0.01" diaginertia="2e-06 2e-06 2e-06"/>
-              <joint name="plunger" type="slide" axis="0 0 -1" range="0 0.014" armature="0.001" damping="0.5"/>
-              <geom name="plunger__blue" type="mesh" mesh="plunger__blue" material="blue" contype="0" conaffinity="0" group="2" mass="0"/>
-              <geom name="plunger__steel" type="mesh" mesh="plunger__steel" material="steel" contype="0" conaffinity="0" group="2" mass="0"/>
-              <geom name="plunger__white" type="mesh" mesh="plunger__white" material="white" contype="0" conaffinity="0" group="2" mass="0"/>
-              <site name="button" pos="0.003 0 0.2595" size="0.003" rgba="0.9 0.3 0.1 0.5" group="4"/>
-            </body>
+          <geom name="pip_slide__white" type="mesh" mesh="pip_slide__white" material="white" contype="0" conaffinity="0" group="2" mass="0"/>
+          <geom name="pip_slide_col_0" type="cylinder" pos="0 0 0.045" size="0.0058 0.045" contype="16" conaffinity="34" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+          <site name="tip" pos="0 0 0" size="0.003" rgba="0.9 0.3 0.1 0.5" group="4"/>
+          <body name="plunger" pos="0 0 0">
+            <inertial pos="0 0 0" mass="0.01" diaginertia="2e-06 2e-06 2e-06"/>
+            <joint name="plunger" type="slide" axis="0 0 -1" range="0 0.014" armature="0.001" damping="0.5"/>
+            <geom name="plunger__blue" type="mesh" mesh="plunger__blue" material="blue" contype="0" conaffinity="0" group="2" mass="0"/>
+            <geom name="plunger__steel" type="mesh" mesh="plunger__steel" material="steel" contype="0" conaffinity="0" group="2" mass="0"/>
+            <geom name="plunger__white" type="mesh" mesh="plunger__white" material="white" contype="0" conaffinity="0" group="2" mass="0"/>
+            <site name="button" pos="0.003 0 0.2595" size="0.003" rgba="0.9 0.3 0.1 0.5" group="4"/>
           </body>
         </body>
       </body>
@@ -268,12 +258,11 @@
   <actuator>
     <position name="lift" joint="lift" kp="100000.0" kv="1000.0" ctrlrange="0 0.3" forcerange="-600 600"/>
     <position name="jaw_l" joint="jaw_l" kp="2000.0" kv="20.0" ctrlrange="0.0117763 0.0613506" forcerange="-60 60"/>
-    <position name="clamp_y" joint="clamp_y" kp="20000.0" kv="300.0" ctrlrange="0 0.18" forcerange="-200 200"/>
+    <position name="clamp_x" joint="clamp_x" kp="20000.0" kv="300.0" ctrlrange="-0.1 0" forcerange="-200 200"/>
     <position name="clamp_lift" joint="clamp_lift" kp="20000.0" kv="200.0" ctrlrange="0 0.0355" forcerange="-200 200"/>
     <position name="body_yaw" joint="body_yaw" kp="500.0" kv="1.0" ctrlrange="0 15.708" forcerange="-20 20"/>
     <position name="cam" joint="cam" kp="100.0" kv="1.0" ctrlrange="0 1.39626" forcerange="-10 10"/>
-    <position name="pip_slide" joint="pip_slide" kp="20000.0" kv="300.0" ctrlrange="0.01 0.15" forcerange="-200 200"/>
-    <position name="pip_swing" joint="pip_swing" kp="500.0" kv="2.0" ctrlrange="0 1.39626" forcerange="-10 10"/>
+    <position name="pip_slide" joint="pip_slide" kp="20000.0" kv="300.0" ctrlrange="0.01 0.25" forcerange="-200 200"/>
     <position name="plunger" joint="plunger" kp="500.0" kv="5.0" ctrlrange="0 0.014" forcerange="-20 20"/>
   </actuator>
 </mujoco>
