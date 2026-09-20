@@ -150,6 +150,77 @@ MAX_LOOKS = 2               # bearings tried before a proposal is called empty
 # the camera still clears the gantry beam at y = 0.30, the aisle side otherwise.
 RAIL_SIDE = (90, 60, 120, 30, 150)
 AISLE_SIDE = (-90, -60, -120, -30, -150)
+# Every bearing, for ordering by where the bench is rather than by which side of
+# it the arm stands on.
+BEARINGS = tuple(range(-180, 180, 15))
+# A camera standing this near another flask is near enough to knock it: the
+# gripper reaches 0.2 m past the lens, so anything inside that is in the hand's
+# way, and a margin on top for the arm behind it.
+NEAR_A_FLASK = 0.26
+
+def convex_hull(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
+    """The hull of the bench, anticlockwise. Andrew's monotone chain.
+
+    Small enough to write out rather than take a scipy dependency for, and the
+    bench is never more than a hundred bottles.
+    """
+    pts = sorted(set(points))
+    if len(pts) < 3:
+        return pts
+    def half(seq):
+        out: list[tuple[float, float]] = []
+        for p in seq:
+            while len(out) >= 2:
+                (ax, ay), (bx, by) = out[-2], out[-1]
+                if (bx - ax) * (p[1] - ay) - (by - ay) * (p[0] - ax) > 0:
+                    break
+                out.pop()
+            out.append(p)
+        return out[:-1]
+    return half(pts) + half(reversed(pts))
+
+
+def outward(at: tuple[float, float], hull: list[tuple[float, float]]) -> float:
+    """The bearing, in degrees, that leads out of the bench from a point in it.
+
+    The arm knocks bottles over by standing among them. Every look therefore
+    comes from outside the hull of what the cameras have seen and faces in, and
+    this is the direction "outside" means for one flask: away from the hull's
+    middle, which for a flask on the hull is away from the bench and for one
+    inside it is the shortest way out.
+    """
+    if len(hull) < 3:
+        return 90.0
+    cx = sum(p[0] for p in hull) / len(hull)
+    cy = sum(p[1] for p in hull) / len(hull)
+    dx, dy = at[0] - cx, at[1] - cy
+    if math.hypot(dx, dy) < 1e-6:                       # dead centre: any way out
+        return 90.0
+    return math.degrees(math.atan2(dy, dx))
+
+
+def clearance(eye: tuple[float, float], others: list[tuple[float, float]]) -> float:
+    """How far the camera would stand from the nearest flask that is not its target."""
+    return min((math.hypot(eye[0] - o[0], eye[1] - o[1]) for o in others), default=9.9)
+
+
+def bearings_outward(at: tuple[float, float], others: list[tuple[float, float]],
+                     hull: list[tuple[float, float]], standoff: float) -> list[int]:
+    """The bearings to try for one flask, the ones that keep the hand out first.
+
+    Ordered by two things, in this order: whether the camera would stand clear
+    of every other flask, and how nearly it faces the way out of the hull. The
+    first is what stops the arm knocking bottles over; the second is what makes
+    the looks sweep round the bench instead of crossing it.
+    """
+    out = outward(at, hull)
+    def rank(bearing: int) -> tuple[int, float]:
+        turn = math.radians(bearing)
+        eye = (at[0] + standoff * math.cos(turn), at[1] + standoff * math.sin(turn))
+        away = abs((bearing - out + 180) % 360 - 180)   # degrees off the way out
+        return (0 if clearance(eye, others) >= NEAR_A_FLASK else 1, away)
+    return sorted(BEARINGS, key=rank)
+
 
 # The world model. A proposal lands within 3 cm of its bottle nine times in ten,
 # and the bench's vessels stand 28 cm apart or more, so 4 cm tells a bottle seen
@@ -1359,7 +1430,15 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         x, y = track.seen_xy
         target = np.array([x, y, rk.BENCH_TOP + LOOK_ABOVE_BENCH])
         tag = f'track {track.id} at ({x:+.2f}, {y:+.2f})'
-        sides = AISLE_SIDE + RAIL_SIDE if back_row(track) else RAIL_SIDE + AISLE_SIDE
+        # Look from outside the bench, never from over it. The bearings that
+        # put the camera clear of every other flask come first, and among those
+        # the ones that face the way out of the hull, so the looks work round
+        # the bench rather than reaching across it. A flask the arm can only
+        # reach across is still reached: the order is a preference, not a wall.
+        standing = [t.seen_xy for t in world.tracks.values() if t.state != 'lost']
+        others = [xy for xy in standing if xy != track.seen_xy]
+        sides = tuple(bearings_outward(track.seen_xy, others,
+                                       convex_hull(standing), STANDOFF))
         looks, result, rings = 0, None, []
         # The looks in turn, the clearest first: only a ring that will not read
         # from up there brings the hand down to the next one.

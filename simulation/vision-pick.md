@@ -299,6 +299,48 @@ The design notes and the three ways IK fooled the arm are in the
 [README](README.md#the-cameras-direct-the-arm).
 
 
+### Looks come from outside the bench
+
+The arm knocked bottles over because it stood among them. The graded looks of
+`22e2665` help — the hand comes down only when the ring will not read from
+higher — but the lowest of them still puts the hand 7 cm over a flask's base,
+which is inside a 14 cm flask, and on seed 30 that was enough to lay one down.
+A flask on its side shows no ring, so it is then counted "not a sample": the
+arm breaks the bench it is measuring and then mismeasures it.
+
+The looks now come from **outside the hull of what the cameras have seen**.
+`convex_hull` is Andrew's monotone chain over the standing tracks, `outward`
+gives the bearing that leads out of the bench from any flask in it, and
+`bearings_outward` orders the bearings a look may use by, in this order:
+
+1. whether the camera would stand `NEAR_A_FLASK` (26 cm) clear of every flask
+   that is not its target — the gripper reaches 20 cm past the lens, so
+   anything nearer is in the hand's way;
+2. how nearly the bearing faces the way out of the hull, which is what makes
+   the looks work round the bench instead of reaching across it.
+
+The order is a preference, not a wall: a flask that can only be read from
+across the bench is still read from across it. Slow beats unidentified.
+
+Seed 30 (7 flasks, 130 mm apart), the per-bottle sweep, before and after:
+
+| | bearings by side | bearings from the hull |
+| --- | --- | --- |
+| named by their ring | 3 of 7 | **7 of 7** |
+| scan time | did not finish | **58 s** |
+| flasks knocked over | 1 | **0** |
+| counted "not a sample" | 2 | **0** |
+
+**The low look was never the problem; being over the bench was.** A ring is a
+band round the side of a vessel, so the tended-over look reads it best and the
+steep one foreshortens it — which is why standing further out beats tilting
+further over. From outside the hull the best look for the ring is also the safe
+one, and the two stop pulling against each other.
+
+Standing outside and facing in also puts more of the bench in frame, so one
+look names more than one flask: on the run above, a single look at track 3
+named two more with no visit of their own.
+
 ### The flyover, tried and set aside
 
 A pass-based scan that went to no bottle at all was flown on 2026-09-19
