@@ -9,8 +9,9 @@ its rail with physics grasping (Nacho).
  fixed camera ─► YOLO boxes ─► propose(): box ∩ bench plane ─► tracked bottles (x, y), ~8 mm
    (perception thread: runs all the time, whatever the arm is doing)     │
                                                                          ▼
- wrist camera ◄── the initial scan flies it over the bench; ◄── controller picks the next job
-      │           a pick takes it 0.36 m from the bottle, 25° up
+ wrist camera ◄── the initial scan carries it past every  ◄── controller picks the next job
+      │           tracked bottle, 0.45 m off and 40° up, without
+      │           stopping; a pick takes it to 0.36 m, 25° up
       ▼
  confirm(): ArUco ring ─► sample id + vessel ─► exact (x, y), < 1 mm ─► grasp on force feedback ─► lift
 ```
@@ -80,7 +81,7 @@ camera and its boxes, the wrist camera, the table of tracked bottles and the log
 
 | Do this | And this happens |
 | --- | --- |
-| nothing | the **initial scan** first: the arm is raised where it stands, and the rail then flies the wrist camera over the bench in passes, reading every ring that goes by, and writes `out/bench_map.json`; then it picks each named bottle and puts it back |
+| nothing | the **initial scan** first: the arm parks at the end of the rail, the fixed camera finds the bottles, and the wrist camera is carried past every one of them, lane by lane, without stopping, and writes `out/bench_map.json`; then it picks each named bottle and puts it back |
 | `--headless --manual` | the initial scan only; it stops once the bench is mapped |
 | `--no-scan` | no initial scan: the arm looks at and picks each detection as it comes |
 | press `M` in the MuJoCo window, or **move a bottle** on the page | a named bottle is put somewhere else; its track is lost, a new one appears, the arm reads it and logs `SMP-0013 moved 160 cm` |
@@ -94,10 +95,10 @@ A script that shows the point in about two minutes:
 
 1. Start it. The page fills with yellow boxes: "the fixed camera sees bottles
    and knows where they stand, not what they are."
-2. The arm rises and flies the wrist camera the length of the bench, three
-   passes at different aims and heights, going to no bottle and stopping at
-   none. Boxes turn green with a sample id as the camera goes past them: "now
-   it knows which sample, to under a millimetre."
+2. The arm parks at the end of the rail so the fixed camera sees the whole
+   bench, then carries the wrist camera past every box, one lane out and the
+   next lane back, stopping at none. Boxes turn green with a sample id as the
+   camera goes past them: "now it knows which sample, to a millimetre or two."
 3. The log says the initial scan is done and the bench is mapped. Then the arm
    picks each bottle on the gripper's own force sensing and puts it back.
 4. Press `M`. The log says the track is lost, a new box appears elsewhere, the
@@ -110,39 +111,132 @@ judges. Have the `--video` recording of a good run ready as the fallback.
 
 ### The initial scan
 
-**The scan is a flyover.** It used to go to each proposal in turn: the arm
-parked at one end of the rail, then flew the wrist camera down to 0.36 m from
-each bottle at 25 degrees above level to read its ring. That named 19 of 19,
-but at that pose the lowest part of the hand stands 3 cm *below* the top of the
-bench, and between looks it waited 3 cm over the tallest flask --- it knocked
-bottles over. It also cost a trip to every bottle.
+**The scan is a sweep past the bottles the fixed camera found.** It has been
+two other things. First it went to each proposal in turn and brought the wrist
+camera down to 0.36 m at 25 degrees: 19 of 19 named, but the hand stood 3 cm
+*below* the flask tops and it knocked bottles over. Then it was a blind
+flyover: three fixed passes the length of the rail, high over everything. That
+knocked nothing over, but it named 16 of 19, it took no notice of where the
+bottles were, and it began by driving from the middle of the rail to one end for
+no reason anyone watching could see. The flyover's table is kept below for
+comparison.
 
-It now goes to no bottle at all. The arm is raised where it stands, the fixed
-camera surveys the bench from under it, and the rail then carries the wrist
-camera the length of the bench in passes while it reads every ring that passes
-through the frame. Three things set a pass:
+What it does now, in order:
 
-* **It looks across the bench, not down at it.** A label ring is a band round
-  the side of a vessel, so from straight above it is edge on: flown in the carry
-  pose, which points the hand down, the whole rail read one ring in nineteen.
-  Each pass tilts the hand instead --- 50, 65 and 40 degrees below level --- and
-  each tilt lands on a different strip of bench.
-* **It flies as low as what stands under it allows.** A 10 ml flask carries a
-  6.6 mm marker against the 100 ml flask's 14.1 mm, and a marker has to be about
-  a dozen pixels across to decode, so the small vessels only read from close to.
-  At every read the arm takes the lowest height whose *whole* arm stays
-  `SCAN_CLEARANCE` (12 cm) over the tallest vessel the cameras know of within
-  60 cm along the rail, and climbs again before it reaches a taller one. The
-  heights it knows how to hold are solved once each, 5 cm apart.
-* **It stops at nothing.** A read is asked for every 15 cm of travel and folded
-  in as it lands. The passes run in rounds until a round names nothing new.
+1. **It gets out of the picture.** The arm goes in the carry pose to the nearer
+   end of the rail (the fixed camera looks at the middle of the bench from the
+   aisle, and the arm at home stands in the middle of its frame). The detector
+   then has the whole bench, and what it boxes `SURVEY_CYCLES` times running is
+   the scan's list.
+2. **It sorts the list into lanes** (`sweep_lanes`). A lane is the bottles one
+   pass can take in turn: no two further apart across the bench than
+   `LANE_WIDTH` (0.55 m). On the demo bench that is the back strip, the flask
+   right under the rail, the main row and the aisle edge.
+3. **It passes every bottle of a lane in one continuous move** (`plan_sweep`,
+   `fly`). The camera looks across the bench, turned one way for the whole lane,
+   and goes in straight lines from the view of one bottle to the view of the
+   next: 0.45 m from the bottle, 40 degrees above level (`SWEEP_LOOKS[0]`). The
+   rail does the travelling; the arm only takes up how far across the bench the
+   next bottle stands. It starts at the end of the lane the arm is nearer, so
+   lanes alternate there and back, and it runs in and out 0.45 m past the end
+   bottles. It stops at no bottle.
+4. **It reads all the way.** A ring read is asked for the moment the last one
+   lands, and every ring in the frame is kept (`rings_in_view`,
+   `World.sighted`), so a lane's pass also names what stands in the next lane
+   when it can. The carriage goes at 0.25 m/s while the reads keep up, and eases
+   off --- rather than stopping and starting --- once 12 cm of bench has gone by
+   without one. While it sweeps, the perception thread serves the ring reads
+   first and runs the fixed camera only every 4 s (`SWEEP_EVERY`).
+5. **What is still unnamed is passed again, nearer and steeper**
+   (`SWEEP_LOOKS[1]`, 0.40 m at 50 degrees), and only those bottles. What that
+   leaves too is gone to and looked at with the old `look`, nearest first, so
+   the list is always worked through: every track ends `named`, `empty` or
+   `unreachable`.
 
-What the air cannot read is still visited, nearest first, once the passes are
-done: `look` tries its raised looks before it brings the hand down to anything,
-so that is the exception and no longer the way in.
+**What keeps the bottles standing** (`over_vessels`). The flyover kept the
+whole arm 12 cm over the tallest vessel within 60 cm along the rail, whatever
+was actually under it, which is why it could not come near enough to read the
+small rings. The sweep asks only what is true. Everywhere, no part of the arm
+goes under `SWEEP_FLOOR`, 2 cm over the tallest flask there is (13.5 cm over the
+bench), so a bottle no camera has seen is passed over too. And the parts of the
+arm that stand over a vessel the cameras know of --- each geom's box against the
+vessel's place, 8 cm allowed for what a box may be off by --- stay 5 cm over its
+top. Every pose and every move between two poses is checked; a pose that fails
+is raised with the camera aimed the same way (`SWEEP_LIFTS`, up to 25 cm), and
+one that cannot be raised clear is left out. Where the arm cannot get from one
+pose to the next at all, the pass is cut there and goes through the carry pose.
 
-`--headless --manual --light`, rail-trained weights, the gripper scene, the
-integrated-graphics laptop, 2026-09-20:
+**Where the view comes from.** Measured with the arm posed by hand at each
+bottle, the true positions, three places along the rail (the bottle in the
+middle of the frame, 0.20 m to one side, 0.35 m to the other), `--light`
+rendering, 2026-09-20:
+
+| camera from the bottle | rings read, of 19, in any of the three places | in the middle of the frame only |
+| --- | --- | --- |
+| **0.45 m, 40 degrees** | **19** | 11 |
+| 0.55 m, 35 degrees | 15 | 12 |
+| 0.40 m, 50 degrees | 16 | 2 |
+| 0.36 m, 55 degrees | 14 | 0 |
+
+Two things follow. Nearer and steeper is not better: the ring foreshortens.
+And a ring reads best *towards the sides of the frame*, where the wide pinhole
+lens draws it larger: at 0.36 m not one ring read in the middle of the frame and
+12 read 0.35 m to the side. A camera going past puts every bottle at both sides
+of the frame, which is why passing reads more than stopping in front. (A real
+lens will not magnify its edges like the simulator's pinhole does; on hardware
+this table has to be measured again.)
+
+The arm's reach sets two limits, also posed by hand. Looking out from the rail
+side the camera cannot stand nearer the rail than y = -0.15 (the wrist meets the
+arm's base), and looking back from the aisle side it cannot stand further out
+than y = -0.65 (`SWEEP_STANDS`). A bottle whose view falls past the limit is
+passed from the limit, up to 20 cm nearer than the look asks, and past that from
+the other side: that is the flask at y = -0.28, under the rail. The carriage
+stands 0.30 m along the rail from the camera, never over it: with the camera
+under the arm's base the IK does not converge at all, which is also what made
+the first version of the planner take five minutes.
+
+**Measured and not measured.** The plan was posed offline on the true positions
+--- every pose of every lane, one frame rendered at each, 10 cm apart --- before
+any of it was driven:
+
+| | posed along the planned sweep, first look only |
+| --- | --- |
+| bottles on the bench | 19 |
+| named | **19, none wrongly** |
+| position error, max | 3.1 mm |
+| the arm's lowest point | 14.4 cm over the bench; 5 cm or more over every flask under it |
+| planning, all four lanes | 30 s on the integrated-graphics laptop, nearly all of it in poses that fail |
+
+That is the planner and the view, not the scan. **The sweep has not been run
+live**: not the governor in `fly`, not the fixed camera's list in place of the
+true positions (its boxes land up to 6 cm off, and it misses the aisle edge),
+not the second look, not the viewer. Three changes also went in after that
+table and have been read, not run: lanes are planned from both ends and the
+better kept (the aisle lane came out in five pieces from one end and whole from
+the other), a bug that stopped a blocked pose from being raised was fixed, and
+a ring read off a single marker now waits for a second frame to agree before it
+names anything (one posed frame in about 130 read `SMP-0110`, a sample that is
+not on the bench). Most reads on a pass are single-marker reads, so that last
+rule costs names if frames are sparse; if a run names fewer than the table
+above, it is the first thing to look at.
+
+To run it (not on the integrated-graphics laptop):
+
+```bash
+cd simulation
+python scripts/vision_pick.py --headless --manual --light --no-browser \
+    --max-time 600 --bench-map out/sweep.json
+```
+
+The log says what to check: `parking at the end of the rail`, `the fixed camera
+found N bottles`, one `passing K bottles at y ...` line per lane with `in R
+runs` when a pass had to be cut, and `K of K named in N reads` after it. `going
+to look at it` should be rare. The report at the end grades every name and
+position against the simulator.
+
+The flyover, for comparison: `--headless --manual --light`, rail-trained
+weights, the gripper scene, the integrated-graphics laptop, 2026-09-20:
 
 | | the per-bottle sweep | the flyover |
 | --- | --- | --- |
@@ -161,25 +255,18 @@ above was stopped at its 500 s limit, in the second round, with every pass still
 reading; the three left for a look are a 10 ml flask at the aisle edge, a 30 ml
 flask directly under the arm, and one more on the edge.
 
-Two things went in after that run and have not been flown end to end yet: the
-per-pass preferred height, and the looks that pick up what the air missed. The
-looks are the same `look` the scan used to use for everything, which names 19 of
-19 on this bench, so the expectation is 19 of 19 with three trips instead of
-nineteen --- but it is an expectation, not a measurement.
+The flyover's limit was range. A 10 ml flask's marker is 6.6 mm: with the camera
+at 1.45 m it read the far side of the bench and missed the small flasks; at
+1.25 m it read them and lost the far side, and no height alone did better than
+15 of 19. The sweep stands 0.45 m from every bottle instead, which it can do
+because it knows where they are. The flyover's code (`SCAN_PASSES`,
+`flight_pose`, `flight`, `cruise`) is gone from the file.
 
-What a pass can read was measured pose by pose before it was flown: the arm
-posed at each pass's height, the rail stepped by hand, every ring in the frame
-read. That is where the three aims and the two heights come from, and it says
-what the limits are. A 10 ml flask's marker is 6.6 mm: at 1.45 m the camera
-reads the far side of the bench and misses it; at 1.25 m it reads it and loses
-the far side. Neither height alone does better than 15 of 19; the passes differ
-in height for that reason.
+The per-bottle visit is still in the file (`look`, `plan_slide`, `hop`, `over`):
+a **pick** needs a close look to place the bottle to a millimetre before the
+gripper closes, and the scan falls back on it for what two sweeps leave unnamed.
 
-The old per-bottle sweep is still in the file (`look`, `plan_slide`, `hop`,
-`over`), because a **pick** still needs a close look to place the bottle to a
-millimetre before the gripper closes. Nothing in the scan uses it.
-
-What made the per-bottle sweep work is what makes the flyover work:
+What made the per-bottle visit work is what makes the sweep work:
 **the wrist camera keeps every ring it reads, not only the one it
 went for** (`rings_in_view`, `World.sighted`). Each ring is placed by its own
 geometry, the same way `confirm()` places the target's. What happens to it
@@ -227,8 +314,8 @@ the arm must not hit it. `scored` grades each entry against the simulator and
 is the only field that reads it. The plan's merge rules for a second pass are
 not implemented: this is the first pass only.
 
-**The hand stays still.** This was measured on the per-bottle sweep, which the
-flyover has replaced; the flyover turns the hand once per pass and not at all in
+**The hand stays still.** This was measured on the per-bottle visit, which the
+sweep has replaced; the sweep turns the hand once per lane and not at all in
 between. The arm moved as little as it could between views, and the hand hardly
 turned. Measured from the camera's orientation through the whole scan, recorded
 at 15 fps on the default bench with the same 19 flasks:
@@ -292,15 +379,16 @@ The viewer (`view/`) runs this same scan on its rail scene; see
 `view/README.md`.
 
 **What the scan cannot find.** A flask gets on the map in one of two ways: the
-fixed camera boxes it, or its ring shows up in a wrist frame. The flyover covers
-the whole rail rather than only the places with a proposal in them, so a flask
-with no box is no longer a special case --- but a ring it never reads still
-leaves the flask on the map as `UNK-*`, with its position and no name, and the
-arm will not pick what it cannot name. Two things stop a ring being read: the
-marker is too small at that range (the 10 ml flasks, at the aisle edge) or the
-ring is too edge on (the strip directly under the arm). Both are answered by
-where the passes fly, and both are worth another pass rather than a lower one:
-the floor under the arm is what keeps the bottles standing.
+fixed camera boxes it, or its ring shows up in a wrist frame. The sweep goes
+where the boxes are, plus 0.45 m past each end of a lane, so a flask with no box
+is named only if it stands in the frame of a pass made for its neighbours: the
+aisle edge, which the fixed camera misses, is read from the main row's pass when
+it is read at all (posed offline, the main row's pass read three of the four
+flasks there). A flask with no box that stands alone beyond the last lane is
+not seen by anything. That is the price of going to the bottles instead of
+flying the whole rail; the cure is the detector's recall at the edges of its
+frame, not more passes. A box whose ring never reads stays on the map as
+`UNK-*`, with its position and no name, and the arm will not pick it.
 
 ### The whole loop
 
