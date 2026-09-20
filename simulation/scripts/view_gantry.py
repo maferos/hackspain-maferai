@@ -7,6 +7,7 @@ Other platforms: use the environment's python instead of mjpython.
 import argparse
 import sys
 import time
+import threading
 from pathlib import Path
 
 import mujoco
@@ -18,6 +19,7 @@ from generate_gantry_scene import build_scene
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--pattern', default='p01', choices=('p01', 'p02', 'p03', 'p04'))
+    parser.add_argument('--scan', action='store_true', help='Run the vision-driven bench scan')
     args = parser.parse_args()
     sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'view/backend'))
     from scene_patterns import build_pattern
@@ -30,12 +32,31 @@ def main():
         viewer.cam.distance = 2.7
         viewer.cam.azimuth = 90
         viewer.cam.elevation = -25
-        print('Use the Control panel: gantry_x, gantry_y, gantry_z and hand fingers.')
-        while viewer.is_running():
-            began = time.monotonic()
-            mujoco.mj_step(model, data)
-            viewer.sync()
-            time.sleep(max(0, model.opt.timestep-(time.monotonic()-began)))
+        physics = threading.Lock()
+        scan = None
+        if args.scan:
+            from live_scan import LiveScan
+            scan = LiveScan(model, data, physics, 0)
+            print('Automatic scan active; mouse navigation remains free.', flush=True)
+        else:
+            print('Use the Control panel: gantry_x, gantry_y, gantry_z and hand fingers.', flush=True)
+        try:
+            while viewer.is_running():
+                began = time.monotonic()
+                period = 1/30 if scan else model.opt.timestep
+                with physics:
+                    if scan:
+                        scan.advance(period)
+                        if scan.error:
+                            print(scan.error, flush=True)
+                            break
+                    else:
+                        mujoco.mj_step(model, data)
+                viewer.sync()
+                time.sleep(max(0, period-(time.monotonic()-began)))
+        finally:
+            if scan:
+                scan.close()
 
 
 if __name__ == '__main__':
