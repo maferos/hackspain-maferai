@@ -151,8 +151,9 @@ scan still replay the scripted formulation of
 `dashboard/bridge/labbridge/mock_run.py` (recipe FRG-031). It needs
 `websockets` in the venv (listed in `backend/requirements.txt`).
 
-- **Current formula**, the wide panel in the middle of the dock: run id
-  (`SCAN-P06` for seed pattern p06), status and
+- **Current task**, in the left drawer under the asked list: what the lab is
+  doing now. A task is the bench scan or a formula, and the badge says which.
+  Run id (`SCAN-P06` for seed pattern p06), status and
   simulated clock; the scan's tally (flasks named by their ring out of those on
   the bench, still to look at, not samples, out of reach); then the plan around
   the current step: park, survey, each track's ring (named, not a sample, out
@@ -190,15 +191,35 @@ reads free-form requests and proposes formulas from the identified flasks.
 Once an order is running the robot narrates in the chat each step it crosses
 off, with the order's clock.
 
+## Tasks: the scan first, then the queue
+
+The lab does one task at a time, and **the first is always the bench scan**.
+Nothing else starts beside it: a formula sent while the bench is being read is
+accepted onto the queue and waits, and the Current task panel shows the scan
+with the formulas listed under it.
+
+Waiting is not the same as being deferred. A queued formula is **not checked**
+while the scan runs, because which flasks are on the bench is not known yet and
+a formula refused for a flask nobody has looked at is a wrong answer given
+early. When the scan finishes, the formula at the front of the queue is matched
+to the bench **again** — the bench it is judged against is the whole bench, not
+the fraction that had been read when it was sent — then checked, planned, and
+handed to the arm. The next one waits for that to finish.
+
+`Workflow.pump()` admits one order per call and `ScanState._pump()` calls it
+every tick, so a formula sent mid-scan starts by itself when the bench is
+mapped. `Workflow.order` is the front of the queue, and `Workflow.waiting()`
+the rest.
+
 ## The order and its workflow
 
-A formula sent to the robot becomes an order (`backend/workflow.py`), `ORD-001`
-onwards, one at a time:
+A formula the queue has admitted becomes an order (`backend/workflow.py`),
+`ORD-001` onwards, one running at a time:
 
     order:        Scan → Formula → Check → Fetch → Done
     ingredient:   locate → pick → carry → dose → verify → return
 
-The panels follow it: the Current formula panel's stage bar and one row per
+The panels follow it: the Current task panel's stage bar and one row per
 ingredient with its steps as dots, crossed off as they finish, and below it the
 plan with the done steps struck through; the header's status line (`ORD-001 ·
 Fetch 2/3 · 01:23`); the Balance panel with the mass on the pan; and the chat's

@@ -41,7 +41,7 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
-from catalogue import MAX_BATCH_G, MIN_DOSE_G, REPO, Catalogue
+from catalogue import MAX_BATCH_G, MIN_DOSE_G, REPO, Catalogue, resolve as cat_resolve
 
 ORDER_FILE = REPO / "simulation" / "out" / "formula_order.json"
 EXECUTOR = os.environ.get("VIEW_FORMULA_EXECUTOR", "fetch")
@@ -164,19 +164,59 @@ class Workflow:
             free joint. Without it the plan still builds, calling none of them
             liftable.
         scene_name: Named in the reason an ingredient could not be placed.
+        scan_done: Whether the bench scan has finished. The scan is the lab's
+            first task and no formula is checked or started before it is done:
+            a flask the arm has not looked at yet is not a flask the bench
+            lacks, and checking against half a bench rejects orders it should
+            have run.
     """
 
     def __init__(self, catalogue: Catalogue, shelf, on_mass=None, executor: str = EXECUTOR,
                  order_file: Path | None = ORDER_FILE, scene_model=None,
-                 scene_name: str = "the bench") -> None:
+                 scene_name: str = "the bench", scan_done=None) -> None:
         self.catalogue, self.shelf, self.on_mass = catalogue, shelf, on_mass
         self.executor = executor if executor in STEPS else "fetch"
         self.order_file = order_file
         self.scene_model = scene_model or (lambda: (None, None))
         self.scene_name = scene_name
-        self.order: Order | None = None
+        self.scan_done = scan_done or (lambda: True)
+        self.orders: list[Order] = []
         self.lock = threading.RLock()
         self._numbers = iter(range(1, 10_000))
+
+    # --- the queue ----------------------------------------------------------
+
+    @property
+    def order(self) -> Order | None:
+        """The order everything else means: the live one, else the last made.
+
+        Most of this module was written when there was only ever one. It reads
+        the same now — the front of the queue — and falls back to the last
+        finished order so the panel keeps showing a result instead of emptying.
+        """
+        live = [o for o in self.orders if o.status in ("queued", "running")]
+        return live[0] if live else (self.orders[-1] if self.orders else None)
+
+    def waiting(self) -> list[Order]:
+        """The orders behind the front of the queue, in the order they arrived."""
+        live = [o for o in self.orders if o.status in ("queued", "running")]
+        return live[1:]
+
+    def pump(self) -> Order | None:
+        """Admit the front of the queue once the scan is done. Returns it.
+
+        The scan is the lab's first task; only when it is finished does a
+        formula get checked, planned and handed over. Rejected orders fall out
+        here, one per call, so the queue keeps moving without a loop that could
+        admit a whole queue in one tick.
+        """
+        with self.lock:
+            if not self.scan_done():
+                return None
+            for order in self.orders:
+                if order.status in ("queued", "running"):
+                    return self._admit(order) if order.check is None else order
+            return None
 
     # --- the formula as JSON ------------------------------------------------
 
@@ -212,28 +252,52 @@ class Workflow:
     # --- orders ---------------------------------------------------------------
 
     def submit(self, formula: dict, source: str) -> Order:
-        """Make a resolved formula the current order and hand it to the robot.
+        """Put a formula on the queue, and check it if its turn has come.
 
-        Raises:
-            RuntimeError: While another order is still running.
-            ValueError: When nothing in it can be made.
+        The queue is the lab's task list after the scan. A formula sent while
+        the bench is still being read waits, unchecked: which flasks are on the
+        bench is not known yet, and an order rejected for a flask nobody has
+        looked at is a wrong answer given early.
         """
         with self.lock:
-            if self.order is not None and self.order.status in ("queued", "running"):
-                raise RuntimeError(f"{self.order.id} is still running; stop it first")
             doc = self.formula_json(formula, source)
             order = Order(f"ORD-{next(self._numbers):03d}", formula, source, self.executor)
             doc["order"] = {"id": order.id, "created": _now(), "executor": self.executor}
             order.doc = doc
-            self.order = order
-            total = sum(i["batch_g"] for i in doc["ingredients"] if not i["problem"])
+            self.orders.append(order)
+            # Before the scan, nothing has been matched to a flask yet, so the
+            # weight worth reporting is what was asked for, not what the empty
+            # bench could supply.
+            asked = sum(i["batch_g"] for i in doc["ingredients"])
+            ahead = [o for o in self.orders[:-1] if o.status in ("queued", "running")]
             self._log(f"{order.id} received from the {source}: {formula['name']}, "
-                      f"{len(order.items)} ingredients, {total:.3f} g", "info")
+                      f"{len(order.items)} ingredients, {asked:.3f} g"
+                      + (f", {len(ahead)} ahead of it" if ahead else ""), "info")
+            if not self.scan_done():
+                self._log(f"{order.id} waits for the bench scan", "info")
+                self._write()
+                return order
+            if ahead:
+                self._write()
+                return order
+            return self._admit(order)
 
-            # The check. A formula the bench cannot make is rejected whole, not
-            # run with the lines it happens to have: half a fragrance is not a
-            # fragrance. Whatever fails, fails here, so the panel's Check stage
-            # carries the reason instead of it surfacing at the end as QC.
+    def _admit(self, order: Order) -> Order:
+        """Check a queued formula against the finished bench, and plan it.
+
+        Called when the order reaches the front of the queue, not when it is
+        sent, so the bench it is judged against is the whole bench.
+        """
+        with self.lock:
+            if order.check is not None:
+                return order
+            self._reresolve(order)
+            doc = order.doc
+            total = sum(i["batch_g"] for i in doc["ingredients"] if not i["problem"])
+            # A formula the bench cannot make is rejected whole, not run with
+            # the lines it happens to have: half a fragrance is not a fragrance.
+            # Whatever fails, fails here, so the panel's Check stage carries the
+            # reason instead of it surfacing at the end as QC.
             problems = [{"compound": i["compound"], "reason": i["problem"]}
                         for i in order.items if i["problem"]]
             if not order.items:
@@ -263,6 +327,30 @@ class Workflow:
                           f"ingredients, {got['executable']} of them a skill that exists", "info")
             self._write()
             return order
+
+    def _reresolve(self, order: Order) -> None:
+        """Match the formula to the bench again, now that the bench is whole.
+
+        An order queued during the scan was resolved against whatever had been
+        named at the time — on an empty bench, every line reads "not identified"
+        and the check would refuse a formula it could perfectly well make.
+        Deferring the verdict is not enough; the question has to be asked again.
+        """
+        lines = [{"compound": i["cas"] or i["compound"], "grams": i["grams"]}
+                 for i in order.formula["ingredients"]]
+        if not lines:
+            return
+        resolved = cat_resolve(lines, self.shelf(), self.catalogue,
+                               order.formula.get("id", "CHAT"), order.formula.get("name", ""))
+        order.formula = resolved
+        doc = self.formula_json(resolved, order.source)
+        doc["order"] = order.doc.get("order", {})
+        order.doc = doc
+        order.items = []
+        for ing in resolved["ingredients"]:
+            steps = {s: {"status": "skipped" if ing["problem"] else "queued", "started": None,
+                         "completed": None, "note": ""} for s in STEPS[order.executor]}
+            order.items.append({**ing, "mass": None, "steps": steps})
 
     def _plan(self, order: Order) -> dict | None:
         """Every primitive this order implies, against the bench as it is now.
@@ -505,6 +593,8 @@ class Workflow:
                 "stages": self._stages(order, scan_done), "qc": order.qc, "check": order.check,
                 "heap": order.heap,
                 "done": done, "total": len(items),
+                "queue": [{"id": o.id, "name": o.formula["name"], "status": o.status,
+                           "ingredients": len(o.items)} for o in self.waiting()],
                 "ingredients": [{
                     "id": i["id"], "compound": i["compound"], "cas": i["cas"], "grams": i["grams"],
                     "sampleId": i["sampleId"], "problem": i["problem"], "mass": i["mass"],
@@ -524,6 +614,14 @@ class Workflow:
         worked = order.started is not None
         all_done = order.status == "completed"
         checked = order.check is not None
+        if not checked:
+            # Still on the queue behind the scan. Nothing about this formula has
+            # happened yet, so the bar says so rather than ticking Formula and
+            # lighting a Check that is not running.
+            return [{"id": sid, "label": label,
+                     "status": "active" if sid == "scan" and not scan_done
+                     else "completed" if sid == "scan" else "queued"}
+                    for sid, label in STAGES[order.executor]]
         status = {
             "scan": "completed" if scan_done else "active",
             "formula": "completed",

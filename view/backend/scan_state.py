@@ -148,7 +148,8 @@ class ScanState:
         # can lift from the welded stock that looks just like it.
         self.workflow = Workflow(catalogue, self.shelf, on_mass=self._mass,
                                  scene_model=lambda: (self.scene.model, self.scene.data),
-                                 scene_name=self._scene_name(), **kwargs)
+                                 scene_name=self._scene_name(),
+                                 scan_done=self._scan_done, **kwargs)
         self.executor: FetchExecutor | None = None
         self._scan = None
         self._sent: list[str] = []
@@ -156,6 +157,11 @@ class ScanState:
         self._started: dict[int, float] = {}
         self._phase = "init"
         self._mapped_at: float | None = None
+
+    def _scan_done(self) -> bool:
+        """Whether the bench has been read right through at least once."""
+        scan = self.scene.scan
+        return bool(scan and scan.world and scan.world.scan is not None)
 
     def _scene_name(self) -> str:
         """The bench a plan could not place an ingredient on, by its seed."""
@@ -175,12 +181,26 @@ class ScanState:
         with its failed Check, and the arm is never told about it.
         """
         order = self.workflow.submit(formula, source)
-        if order.status == "rejected":
-            return order
-        if self.workflow.executor == "fetch" and self.scene.scan is not None:
+        self._pump()
+        return order
+
+    def _pump(self) -> None:
+        """Start the front of the queue, once the scan has finished with the bench.
+
+        The scan is the lab's first task and nothing runs beside it. After that
+        one formula runs at a time: the executor is made for the order at the
+        front, and the next one waits until that one is off the queue.
+        """
+        if self.scene.scan is None:
+            return
+        if self.executor is not None and self.executor.thread.is_alive():
+            return
+        order = self.workflow.pump()
+        if order is None or order.status == "rejected":
+            return
+        if self.workflow.executor == "fetch":
             self.executor = FetchExecutor(self.workflow, self.scene.scan.world)
             self.executor.start()
-        return order
 
     def stop_order(self) -> None:
         if self.executor is not None:
@@ -223,6 +243,7 @@ class ScanState:
             tip = self.scene.data.site(rk.TCP_SITE).xpos.copy()
             holding = rk.read_grip(self.scene.model, self.scene.data).holding
         self.workflow.observe(tracks, world.caption or "", holding)
+        self._pump()
         self._forward_events(world)
         self.server.patch(self._patch(scan, world, tracks, clock, carriage, tip, holding),
                           timestamp=time.time())
@@ -287,7 +308,9 @@ class ScanState:
 
         return {
             # With an order, the run is the order, from queued to its end.
-            "run": {"id": order["id"] if order else self._run_id(),
+            # While the bench is being read the run is the scan, whatever sits
+            # on the queue: the header should name the task, not the next job.
+            "run": {"id": order["id"] if (done and order) else self._run_id(),
                     "status": status if not order or scan.error else
                     "running" if busy else order["status"],
                     "elapsedSeconds": order["elapsedSeconds"] if order else clock,
@@ -300,6 +323,17 @@ class ScanState:
                      "cycleSeconds": round(world.cycle_seconds, 2), "error": scan.error,
                      "caption": caption},
             "order": order,
+            # The lab's current task. The bench scan is the first one and
+            # nothing else starts until it is done; after that the task is
+            # whichever formula is at the front of the queue.
+            "task": {
+                "type": "scan" if not done else ("formula" if busy else "idle"),
+                "id": order["id"] if (done and busy and order) else self._run_id(),
+                "title": ("Bench scan" if not done else
+                          order["formula"]["name"] if (busy and order) else "Waiting for a formula"),
+                "status": "failed" if scan.error else "running" if (not done or busy) else "completed",
+                "queued": len(order["queue"]) if order else 0,
+            },
             "workflow": {"stages": order["stages"] if order else self._idle_stages(done),
                          "executor": self.workflow.executor},
             "recipe": self._recipe(order),
