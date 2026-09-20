@@ -1,8 +1,14 @@
-// The brief chat. What the operator types is a brief — "something fresh and
-// citrusy for summer" — not a formula: the backend puts it on the queue and a
-// model writes it into a real fragrance on the compounds this bench holds
-// (backend/brief.py), when its turn comes. From then on the robot narrates
-// here what it crosses off, and the task panel follows it.
+// The brief chat, and the way into the lab. What the operator types is a brief
+// — "something fresh and citrusy for summer" — not a formula: the backend puts
+// it on the queue and a model writes it into a real fragrance on the compounds
+// this bench holds (backend/brief.py), when its turn comes. From then on the
+// robot narrates here what it crosses off, and the task panel follows it.
+//
+// The lab waits to be asked before it scans the bench, so an empty chat also
+// offers the fragrances it already knows (harness/formulas, served by
+// /api/formulas): picking one sends it and starts the scan. A brief needs a
+// model behind it; these five do not, which makes them the way in that always
+// works.
 import { useEffect, useRef, useState } from "react";
 import { Panel } from "./LabPanels";
 
@@ -13,6 +19,8 @@ const SUGGESTIONS = [
   "A green floral, like cut stems after rain",
 ];
 const HISTORY = 12;
+// The offline parser's own default batch (formula_chat.DEFAULT_BATCH_G).
+const BATCH_G = 3;
 const clock = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 const JSON_EXAMPLE = '{"name": "My accord", "ingredients": [{"material": "Geraniol", "batch_g": 1.2}]}';
 
@@ -107,6 +115,7 @@ export default function FormulaChat({ backendUrl, lab, style, onAsked, onToast }
   const [draft, setDraft] = useState("");
   const [busy, setBusy] = useState(false);
   const [info, setInfo] = useState(null);
+  const [shelf, setShelf] = useState([]);
   const [dragging, setDragging] = useState(false);
   const logRef = useRef(null);
   const fileRef = useRef(null);
@@ -132,6 +141,21 @@ export default function FormulaChat({ backendUrl, lab, style, onAsked, onToast }
     return () => {
       cancelled = true;
       clearTimeout(timer);
+    };
+  }, [backendUrl]);
+
+  // The shelf never changes while the backend runs, so it is read once. Without
+  // a backend it stays empty and the chat simply offers no fragrances.
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`${backendUrl}/api/formulas`)
+      .then((res) => res.json())
+      .then((data) => !cancelled && setShelf(data.formulas ?? []))
+      .catch(() => {
+        /* no backend: the brief suggestions are still there */
+      });
+    return () => {
+      cancelled = true;
     };
   }, [backendUrl]);
 
@@ -236,6 +260,24 @@ export default function FormulaChat({ backendUrl, lab, style, onAsked, onToast }
     }
   };
 
+  // One of the fragrances the lab already knows. It goes to /api/formula rather
+  // than through the chat: a message typed here is read as a brief, and a brief
+  // needs a model, while the catalogue's own formulas need nothing but the id.
+  const sendFormula = async (formula) => {
+    if (busy) return;
+    say({ role: "user", text: `${formula.id} — ${formula.name}, ${BATCH_G} g` });
+    setBusy(true);
+    try {
+      const answer = await post(`${backendUrl}/api/formula`, { id: formula.id, batch_g: BATCH_G });
+      say({ role: "assistant", text: answer.reply, json: answer.json, error: answer.rejected });
+      record(answer, formula.name);
+    } catch (error) {
+      say({ role: "assistant", text: error.message, error: true });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const stop = async () => {
     try {
       const answer = await post(`${backendUrl}/api/formula/stop`);
@@ -324,6 +366,29 @@ export default function FormulaChat({ backendUrl, lab, style, onAsked, onToast }
           )}
           {busy ? <li className="chat-msg chat-msg--assistant chat-msg--pending">…</li> : null}
         </ol>
+        {messages.length === 0 && shelf.length ? (
+          <div className="chat__shelf">
+            <p className="chat__shelf-lead">
+              The lab is waiting to be asked. Pick a fragrance it already knows — that
+              starts the bench scan — or describe one below.
+            </p>
+            <div className="chat__suggestions">
+              {shelf.map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className="view-toggle chat-formula"
+                  disabled={busy}
+                  title={f.description ?? `${f.family} · ${f.ingredients} compounds`}
+                  onClick={() => sendFormula(f)}
+                >
+                  <span className="chip">{f.id}</span>
+                  {f.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
         {messages.length === 0 ? (
           <div className="chat__suggestions">
             {SUGGESTIONS.map((s) => (
