@@ -1470,6 +1470,20 @@ textarea.chat__input {
   white-space: nowrap;
 }
 
+.asked__badge {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.asked--queued .asked__status {
+  color: var(--warn);
+}
+
+.asked--sent .asked__status {
+  color: var(--active);
+}
+
 .asked__status {
   color: var(--text-dim);
   font-size: 0.72rem;

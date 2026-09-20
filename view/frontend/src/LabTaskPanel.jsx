@@ -72,8 +72,7 @@ function WorkflowBar({ stages }) {
 }
 
 // What the live scan has found so far.
-function ScanSummary({ scan, queue }) {
-  const waiting = queue ?? [];
+function ScanSummary({ scan }) {
   return (
     <div className="formula">
       <div className="formula__title">
@@ -89,21 +88,6 @@ function ScanSummary({ scan, queue }) {
         </span>
       </div>
       {scan.error ? <div className="formula__summary formula__summary--fail">{scan.error}</div> : null}
-      {waiting.length ? (
-        <ol className="queue">
-          {waiting.map((o) => (
-            <li key={o.id} className="queue__row">
-              <span className="queue__mark">○</span>
-              <span className="queue__name" title={o.name}>{o.name}</span>
-              <span className="queue__meta">
-                {o.ingredients} {o.ingredients === 1 ? "ingredient" : "ingredients"}
-              </span>
-              <span className="chip">{o.id}</span>
-            </li>
-          ))}
-          <li className="queue__note">Checked and started when the bench is mapped.</li>
-        </ol>
-      ) : null}
     </div>
   );
 }
@@ -397,11 +381,11 @@ export default function LabTaskPanel({ state, connected }) {
       <div className="task-panel__scroll">
         {state.workflow ? <WorkflowBar stages={state.workflow.stages} /> : null}
         {scanning && state.scan ? (
-          <ScanSummary scan={state.scan} queue={state.order?.queue} />
+          <ScanSummary scan={state.scan} />
         ) : state.order ? (
           <OrderCard order={state.order} />
         ) : state.scan ? (
-          <ScanSummary scan={state.scan} queue={state.order?.queue} />
+          <ScanSummary scan={state.scan} />
         ) : (
           <FormulaChecklist state={state} />
         )}

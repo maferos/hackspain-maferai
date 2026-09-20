@@ -188,10 +188,22 @@ off, with the order's clock.
 
 ## Tasks: the scan first, then the queue
 
-The lab does one task at a time, and **the first is always the bench scan**.
-Nothing else starts beside it: a formula sent while the bench is being read is
-accepted onto the queue and waits, and the Current task panel shows the scan
-with the formulas listed under it.
+The lab does one task at a time, and a task is one of two things: **the bench
+scan** or **a formula**. They are not the same shape and do not share a bar.
+
+    scan task:     Scan
+    formula task:  Formula → Check → Fetch → Done
+
+The scan is always the first task and its only step is the scan itself. A
+formula carries no scan stage: the bench is read once, by the lab, and a
+formula that runs afterwards does not repeat it.
+
+Nothing else starts beside the scan. A formula sent while the bench is being
+read is accepted onto the queue and waits — it is not part of the scan's task,
+so it appears in **Formulas asked** as `QUEUED` with its order id, and the
+Current task panel stays wholly the scan: its run id, its single-step bar and
+its own plan, with no trace of a formula in it. The chat's button says **Add to
+queue** while the scan runs.
 
 Waiting is not the same as being deferred. A queued formula is **not checked**
 while the scan runs, because which flasks are on the bench is not known yet and
@@ -211,7 +223,7 @@ the rest.
 A formula the queue has admitted becomes an order (`backend/workflow.py`),
 `ORD-001` onwards, one running at a time:
 
-    order:        Scan → Formula → Check → Fetch → Done
+    order:        Formula → Check → Fetch → Done
     ingredient:   locate → pick → carry → dose → verify → return
 
 The panels follow it: the Current task panel's stage bar and one row per

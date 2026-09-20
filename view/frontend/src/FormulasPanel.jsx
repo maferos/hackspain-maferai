@@ -4,9 +4,9 @@
 // it. The chat scrolls away; this does not.
 import { Panel } from "./LabPanels";
 
-const MARK = { proposed: "○", sent: "●", done: "✓", aborted: "■", rejected: "✗" };
-const LABEL = { proposed: "Proposed", sent: "Running", done: "Done", aborted: "Stopped",
-                rejected: "Rejected" };
+const MARK = { proposed: "○", queued: "◔", sent: "●", done: "✓", aborted: "■", rejected: "✗" };
+const LABEL = { proposed: "Proposed", queued: "Queued", sent: "Running", done: "Done",
+                aborted: "Stopped", rejected: "Rejected" };
 
 const grams = (x) => (typeof x === "number" ? `${x.toFixed(x < 1 ? 3 : 2)} g` : "—");
 
@@ -22,11 +22,12 @@ function Row({ entry }) {
         {lines.length ? lines.map((l) => `${l.compound} ${grams(l.grams)}`).join(" · ") : "—"}
       </span>
       <span className="asked__badge">
+        {/* The word as well as the order id: a formula waiting behind the scan
+            and one the arm is on look the same otherwise. */}
+        <span className="asked__status">{LABEL[entry.status] ?? entry.status}</span>
         {entry.order ? (
           <span className={`chip ${entry.status === "rejected" ? "chip--warn" : ""}`}>{entry.order}</span>
-        ) : (
-          <span className="asked__status">{LABEL[entry.status] ?? entry.status}</span>
-        )}
+        ) : null}
       </span>
       {entry.problems?.length ? (
         <span className="asked__why">

@@ -61,12 +61,15 @@ STEP_LABELS = {
     "verify": "Verify on " + BALANCE,
     "return": "Return {sample} to the bench",
 }
+# A formula's stages. The bench scan is not among them: the scan is the lab's
+# own task, done once, and a formula that ran after it does not carry a copy.
 STAGES = {
-    "fetch": (("scan", "Scan"), ("formula", "Formula"), ("check", "Check"), ("fetch", "Fetch"),
-              ("done", "Done")),
-    "external": (("scan", "Scan"), ("formula", "Formula"), ("check", "Check"), ("dose", "Dose"),
+    "fetch": (("formula", "Formula"), ("check", "Check"), ("fetch", "Fetch"), ("done", "Done")),
+    "external": (("formula", "Formula"), ("check", "Check"), ("dose", "Dose"),
                  ("qc", "QC"), ("done", "Done")),
 }
+# The scan task's, which is the one step it is.
+SCAN_STAGES = (("scan", "Scan"),)
 DONE = ("completed", "failed", "skipped")
 # The controller's captions that name a sample, and the step each one is.
 CAPTION_STEPS = (
@@ -615,15 +618,12 @@ class Workflow:
         all_done = order.status == "completed"
         checked = order.check is not None
         if not checked:
-            # Still on the queue behind the scan. Nothing about this formula has
-            # happened yet, so the bar says so rather than ticking Formula and
-            # lighting a Check that is not running.
-            return [{"id": sid, "label": label,
-                     "status": "active" if sid == "scan" and not scan_done
-                     else "completed" if sid == "scan" else "queued"}
+            # Still on the queue. Nothing about this formula has happened yet,
+            # so the bar says so rather than ticking Formula and lighting a
+            # Check that is not running.
+            return [{"id": sid, "label": label, "status": "queued"}
                     for sid, label in STAGES[order.executor]]
         status = {
-            "scan": "completed" if scan_done else "active",
             "formula": "completed",
             "check": "completed" if checked else "active",
             "fetch": "completed" if all_done else "active" if worked else "queued",
@@ -636,7 +636,7 @@ class Workflow:
             # Nothing was attempted: the check is the failure and the rest of
             # the bar never happened.
             return [{"id": sid, "label": label,
-                     "status": "failed" if sid == "check" else status[sid] if sid in ("scan", "formula")
+                     "status": "failed" if sid == "check" else status[sid] if sid == "formula"
                      else "skipped"} for sid, label in STAGES[order.executor]]
         if order.status == "aborted":
             status = {k: ("failed" if v == "active" else v) for k, v in status.items()}

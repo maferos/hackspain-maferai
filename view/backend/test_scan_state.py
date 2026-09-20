@@ -55,7 +55,9 @@ class ScanStateTest(unittest.TestCase):
         self.assertEqual(p["run"]["id"], "SCAN-P06")
         self.assertEqual(p["run"]["status"], "running")
         self.assertIsNone(p["order"])
-        self.assertEqual([s["status"] for s in p["workflow"]["stages"]][:2], ["active", "queued"])
+        # While the bench is being read the bar is the scan task's one step, not
+        # a formula's: the scan is a task, never a stage of somebody's formula.
+        self.assertEqual([(s["id"], s["status"]) for s in p["workflow"]["stages"]], [("scan", "active")])
 
     def test_the_robot_and_plan_follow_the_caption(self):
         p = self.patch("initial scan 2/3: reading the ring at track 3 at (-0.50, -0.40)")
@@ -72,8 +74,18 @@ class ScanStateTest(unittest.TestCase):
     def test_a_mapped_bench_completes_the_scan(self):
         p = self.patch("idle: watching the bench", scan={"scans": [{}]})
         self.assertEqual(p["run"]["status"], "completed")
-        self.assertEqual(p["workflow"]["stages"][0]["status"], "completed")
+        # The scan task is done, so the bar moves on to what a formula would do.
+        self.assertEqual([s["id"] for s in p["workflow"]["stages"]][0], "formula")
         self.assertEqual(p["robot"]["fsmState"], "IDLE")
+
+    def test_a_formula_never_carries_a_scan_stage(self):
+        self.patch("idle: watching the bench", scan={"scans": [{}]})
+        chat = FormulaChat(self.catalogue, self.state.shelf)
+        self.state.dispatch(chat.reply("1.2 g geraniol")["formula"], "chat")
+        p = self.patch("idle: watching the bench", scan={"scans": [{}]})
+        ids = [s["id"] for s in p["workflow"]["stages"]]
+        self.assertNotIn("scan", ids)
+        self.assertEqual(ids[:2], ["formula", "check"])
 
     def test_an_order_takes_over_the_plan_and_the_balance(self):
         self.patch("idle: watching the bench", scan={"scans": [{}]})

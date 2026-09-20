@@ -20,7 +20,7 @@ import time
 
 from catalogue import REPO, Catalogue, shelf_from_tracks
 from live_scan import vp
-from workflow import DONE, Workflow
+from workflow import DONE, SCAN_STAGES, Workflow
 
 sys.path.insert(0, str(REPO / "dashboard" / "bridge"))
 from labbridge import state as S  # noqa: E402
@@ -296,13 +296,16 @@ class ScanState:
         if fsm in ("LOOK", "READ_RING"):
             self._phase = "look"
         order = self.workflow.state(done)
-        busy = order is not None and order["status"] in ("queued", "running")
+        # A formula only takes over once the scan has finished with the bench.
+        # Until then the run, the plan and the bar all belong to the scan, and
+        # a queued order speaks for none of them.
+        busy = done and order is not None and order["status"] in ("queued", "running")
         status = "failed" if scan.error else "completed" if done and not busy else "running"
         info = self.catalogue.samples.get(focus.sample) if focus is not None and focus.sample else None
         target = (focus.sample or f"track {focus.id}") if focus is not None else None
         reading = fsm in ("LOOK", "READ_RING")
         ring = (focus.confirmation.marker_id if focus is not None and focus.confirmation else None)
-        steps = self._steps(tracks, focus, clock, done, order)
+        steps = self._steps(tracks, focus, clock, done, order if busy else None)
         dosing = self._dosing(order)
         external = self.workflow.executor == "external"
 
@@ -310,8 +313,8 @@ class ScanState:
             # With an order, the run is the order, from queued to its end.
             # While the bench is being read the run is the scan, whatever sits
             # on the queue: the header should name the task, not the next job.
-            "run": {"id": order["id"] if (done and order) else self._run_id(),
-                    "status": status if not order or scan.error else
+            "run": {"id": order["id"] if busy else self._run_id(),
+                    "status": status if not done or not order or scan.error else
                     "running" if busy else order["status"],
                     "elapsedSeconds": order["elapsedSeconds"] if order else clock,
                     "progress": (order["done"] / max(order["total"], 1)) if order
@@ -334,7 +337,10 @@ class ScanState:
                 "status": "failed" if scan.error else "running" if (not done or busy) else "completed",
                 "queued": len(order["queue"]) if order else 0,
             },
-            "workflow": {"stages": order["stages"] if order else self._idle_stages(done),
+            # The scan is a task of its own: while it runs the bar is its single
+            # step, not a formula's. A formula's bar appears when one starts.
+            "workflow": {"stages": self._scan_stages(done, bool(scan.error)) if not done
+                         else order["stages"] if busy or order else self._idle_stages(done),
                          "executor": self.workflow.executor},
             "recipe": self._recipe(order),
             "execution": {"currentStepId": next((s["id"] for s in steps if s["status"] == "active"), None),
@@ -407,9 +413,14 @@ class ScanState:
             return [f"{order['done']}/{order['total']} ingredients", "after the last one"]
         return [f"{len(named)}/{len(live)} identified", "written" if done else "after the scan"]
 
+    def _scan_stages(self, done: bool, failed: bool) -> list[dict]:
+        """The scan task's bar, which is the one step it is."""
+        status = "failed" if failed else "completed" if done else "active"
+        return [{"id": sid, "label": label, "status": status} for sid, label in SCAN_STAGES]
+
     def _idle_stages(self, done: bool) -> list[dict]:
         work = "Fetch" if self.workflow.executor == "fetch" else "Dose"
-        stages = [("scan", "Scan", "completed" if done else "active"), ("formula", "Formula", "queued"),
+        stages = [("formula", "Formula", "queued"),
                   ("check", "Check", "queued"), (work.lower(), work, "queued")]
         if work == "Dose":
             stages.append(("qc", "QC", "queued"))

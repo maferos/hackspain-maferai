@@ -82,22 +82,29 @@ function LabStatus({ state, connected }) {
   if (!connected || !state) {
     return <span className="lab-status lab-status--off">Lab offline</span>;
   }
-  const order = state.order;
-  if (order && (order.status === "queued" || order.status === "running")) {
-    const stage = order.stages.find((s) => s.status === "active");
-    return (
-      <span className="lab-status lab-status--busy">
-        {order.id} · {stage ? stage.label : "Queued"} {order.done}/{order.total} · {clock(order.elapsedSeconds)}
-      </span>
-    );
-  }
+  // The header names the task, and the scan is a task: a formula waiting behind
+  // it is not what the lab is doing, however many are on the queue.
   const scan = state.scan;
   if (scan && !scan.done) {
+    const queued = state.task?.queued ?? 0;
     return (
       <span className="lab-status lab-status--busy">
         Scanning · {scan.named}/{scan.tracked} named
+        {queued ? ` · ${queued} ${queued === 1 ? "formula" : "formulas"} waiting` : ""}
       </span>
     );
+  }
+  const order = state.order;
+  if (order && order.status === "running") {
+    const stage = order.stages.find((s) => s.status === "active");
+    return (
+      <span className="lab-status lab-status--busy">
+        {order.id} · {stage ? stage.label : "Starting"} {order.done}/{order.total} · {clock(order.elapsedSeconds)}
+      </span>
+    );
+  }
+  if (order && order.status === "queued") {
+    return <span className="lab-status lab-status--busy">{order.id} · waiting its turn</span>;
   }
   if (order && order.qc) {
     return (
@@ -435,22 +442,32 @@ export default function App() {
   const resize = (patch) => setLayout((l) => ({ ...l, ...patch }));
   const toggleView = (id) => setLayout((l) => ({ ...l, views: { ...l.views, [id]: !l.views[id] } }));
 
-  // An order the chat sent finishes (or is stopped) long after the chat said
-  // anything about it, so the asked list takes its ending from the lab state.
-  const orderId = lab.state?.order?.id ?? null;
-  const orderStatus = lab.state?.order?.status ?? null;
+  // A formula the chat sent lives on in the lab long after the chat said
+  // anything about it: it waits behind the bench scan, takes its turn, and
+  // ends. The asked list is where that is followed, because a queued formula
+  // is not part of the scan's task — it is a formula of its own, waiting.
+  const ASKED_OF = { queued: "queued", running: "sent", completed: "done",
+                     aborted: "aborted", rejected: "rejected" };
+  const order = lab.state?.order ?? null;
+  // One string per distinct lab verdict, so the effect only runs when one moves.
+  const verdicts = [order && `${order.id}:${order.status}`,
+                    ...(order?.queue ?? []).map((o) => `${o.id}:${o.status}`)]
+    .filter(Boolean).join("|");
   useEffect(() => {
-    if (!orderId || !["completed", "aborted", "rejected"].includes(orderStatus)) return;
+    if (!verdicts) return;
+    const said = Object.fromEntries(verdicts.split("|").map((v) => v.split(":")));
     setAsked((list) => {
-      const i = list.findIndex((e) => e.order === orderId);
-      if (i === -1 || list[i].status === "rejected") return list;
-      const status = orderStatus === "completed" ? "done" : orderStatus;
-      if (list[i].status === status) return list;
-      const next = [...list];
-      next[i] = { ...next[i], status };
-      return next;
+      let changed = false;
+      const next = list.map((entry) => {
+        const status = ASKED_OF[said[entry.order]];
+        // A rejection is the check's verdict and nothing later overrides it.
+        if (!status || entry.status === "rejected" || entry.status === status) return entry;
+        changed = true;
+        return { ...entry, status };
+      });
+      return changed ? next : list;
     });
-  }, [orderId, orderStatus]);
+  }, [verdicts]);
 
   // Start with the general camera when opening or switching viewport sources.
   useEffect(() => {

@@ -23,7 +23,7 @@ async function post(url, body) {
   return data;
 }
 
-function Proposal({ formula, json, latest, busy, locked, onSend }) {
+function Proposal({ formula, json, latest, busy, locked, scanning, onSend }) {
   const [showJson, setShowJson] = useState(false);
   const [copied, setCopied] = useState(false);
   const found = formula.ingredients.filter((i) => !i.problem);
@@ -71,17 +71,24 @@ function Proposal({ formula, json, latest, busy, locked, onSend }) {
       )}
       <div className="proposal__foot">
         <span className="mono">
-          {formula.targetMass.toFixed(3)} g · {found.length}/{formula.ingredients.length} on the bench
+          {formula.targetMass.toFixed(3)} g ·{" "}
+          {scanning ? "bench still being read" : `${found.length}/${formula.ingredients.length} on the bench`}
         </span>
-        {latest && found.length > 0 ? (
+        {latest && (scanning || found.length > 0) ? (
           <button
             type="button"
             className="chat-button chat-button--run"
-            disabled={busy || locked}
+            disabled={busy}
             onClick={onSend}
-            title={locked ? "The robot is working on an order" : "Make it the robot's order"}
+            title={
+              scanning
+                ? "Queue it: it is checked against the bench when the scan finishes"
+                : locked
+                  ? "Queue it behind the order the robot is on"
+                  : "Make it the robot's order"
+            }
           >
-            Send to robot
+            {scanning || locked ? "Add to queue" : "Send to robot"}
           </button>
         ) : null}
       </div>
@@ -101,7 +108,10 @@ export default function FormulaChat({ backendUrl, lab, style, onAsked, onToast }
   const fileRef = useRef(null);
   const heard = useRef({ order: null, lines: 0, scanDone: null });
   const order = lab?.order ?? null;
-  const running = order ? order.status === "queued" || order.status === "running" : false;
+  const running = order ? order.status === "running" : false;
+  // The scan is the lab's first task; until it is done a formula can only be
+  // queued, and it is matched to the bench when its turn comes.
+  const scanning = lab?.scan ? !lab.scan.done : false;
 
   useEffect(() => {
     let cancelled = false;
@@ -301,6 +311,7 @@ export default function FormulaChat({ backendUrl, lab, style, onAsked, onToast }
                     latest={i === latest}
                     busy={busy}
                     locked={running}
+                    scanning={scanning}
                     onSend={() => sendToRobot(m.formula)}
                   />
                 ) : null}
