@@ -2,20 +2,20 @@
   {
     "pattern": "p01",
     "seed": 30,
-    "count": 16,
+    "count": 7,
     "fps": 10,
-    "frames": 879,
+    "frames": 674,
     "resolution": [
       1920,
       1080
     ],
     "global_video": "p01/rail_global.mp4",
     "robot_video": "p01/rail_robot.mp4",
-    "revision": "scan-p01-1080p-v1",
+    "revision": "scan-p01-no10ml-1080p-v2",
     "render_updates_per_frame": 3,
-    "duration_seconds": 87.9,
+    "duration_seconds": 67.4,
     "mode": "scan",
-    "render_total_seconds": 258.041,
+    "render_total_seconds": 203.001,
     "scan_complete": true
   },
   {

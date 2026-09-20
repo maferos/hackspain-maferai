@@ -97,9 +97,11 @@ the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 the selected seed; Replay waits for that selection instead of showing a
 different layout. The provisional camera pairs loop at 10 fps with normal lighting and three
 render updates per frame. Pattern `p01` uses 1920×1080; the other patterns use
-960×540. Rendering both p01 views (87.9 seconds each) on an NVIDIA L4 took
-258 seconds, including Isaac startup and MP4 encoding, using the existing
-USD animation. Scan recording, USD export, and file transfer are excluded. All four patterns (`p01`–`p04`)
+960×540. Pattern `p01` uses the current hanging-arm scene with all 10 ml
+flasks excluded: 7 flasks, all identified, in a 67.4-second scan. Its fresh USD
+export took 104 seconds; rendering both views took 203 seconds on an NVIDIA
+L4, including Isaac startup and MP4 encoding. Other patterns retain their
+earlier recordings. All four patterns (`p01`–`p04`)
 play recorded initial scans, capped at 240 seconds. Patterns `p01` and `p03` finish before that limit; `p02` and `p04` stop at 240 seconds. A capped
 recording may end before the scan completes; the replay manifest records this
 as `scan_complete: false`.

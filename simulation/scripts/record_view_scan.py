@@ -36,6 +36,7 @@ def main():
             pass
     model, metadata = build_pattern(scan_scene(), args.pattern)
     data = mujoco.MjData(model)
+    vp.rk.rest(model, data)
     mujoco.mj_forward(model, data)
     mujoco.mj_saveModel(model, str(args.out / 'scene.mjb'))
     physics = threading.Lock()
