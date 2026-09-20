@@ -120,17 +120,26 @@ def pick_tcp(model: mujoco.MjModel) -> str:
     known = {mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_SITE, i)
              for i in range(model.nsite)}
     TCP_SITE = next(name for name in TCP_SITES if name in known)
-    ENVELOPE = (ENVELOPE[0], ARM_REACH + tool_offset(model))
+    offset = tool_offset(model)
+    if offset is not None:
+        ENVELOPE = (ENVELOPE[0], ARM_REACH + offset)
     return TCP_SITE
 
 
-def tool_offset(model: mujoco.MjModel) -> float:
+def tool_offset(model: mujoco.MjModel) -> float | None:
     """How far the fitted tool's centre point stands from the wrist flange.
 
     Read off the compiled scene, with the arm wherever its qpos happens to put
     it: the tool is rigid on the flange, so the distance is the same in every
     pose and one forward pass is enough.
+
+    Returns:
+        The offset in metres, or None when the scene has no arm to measure it
+        against. The gantry hangs the same hand off a vertical slide, and a
+        Cartesian machine has no reach envelope for the offset to widen.
     """
+    if mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, FLANGE) < 0:
+        return None
     data = mujoco.MjData(model)
     mujoco.mj_kinematics(model, data)
     return float(np.linalg.norm(data.site(TCP_SITE).xpos

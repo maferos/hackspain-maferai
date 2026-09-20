@@ -13,6 +13,15 @@ import numpy as np
 import vision_pick as vp
 from gantry_motion import JOINTS, SITE, move_to
 
+# How high the hand camera stands while it reads a label, tried in this order.
+# The camera is bolted to the lift at a fixed 45 degrees, so the gantry cannot
+# turn it: the only thing it can change about a view is how close it comes, and
+# coming closer is the whole of its aim. The first height clears everything on
+# the bench, and each one after it is a descent worth making only because the
+# ring did not read from the one above --- a marker 55 cm away spans half the
+# pixels it spans at 27, and that is the difference between a read and a miss.
+LOOK_HEIGHTS = (1.34, 1.24, 1.15)
+
 
 def machine_contacts(model, data):
     """Contacts involving the moving machine, excluding its own hand internals."""
@@ -115,32 +124,45 @@ def controller(model, data, world, perception, bench_map_to):
         camera_id = model.camera('arm_eih').id
         offset = data.cam_xpos[camera_id] - data.site(SITE).xpos
         direction = -data.cam_xmat[camera_id].reshape(3, 3)[:, 2]
-        camera_height = 1.30
-        distance = (target[2] - camera_height) / direction[2]
-        eye = target - distance * direction
-        point = eye - offset
-        try:
-            yield from drive(point, f'Gantry: looking at track {track.id}')
-        except ValueError as exc:
+        result, rings, refused, looks = None, [], [], 0
+        for rung, height in enumerate(LOOK_HEIGHTS):
+            # Where the lens has to be for the target to sit on the fixed ray,
+            # and where the pinch site goes to put it there.
+            distance = (target[2] - height) / direction[2]
+            point = target - distance * direction - offset
+            try:
+                yield from drive(point, f'Gantry: looking at track {track.id} '
+                                        f'from {distance * 100:.0f} cm')
+            except ValueError as exc:
+                refused.append(str(exc))
+                continue
+            looks += 1
+            request = perception.read(target)
+            deadline = time.monotonic() + 30
+            while not request.done.is_set():
+                if time.monotonic() > deadline:
+                    raise RuntimeError('Gantry marker reader timed out after 30 seconds')
+                yield from hold(.05, f'Gantry: reading track {track.id}')
+            result, rings = request.result, rings + request.rings
+            if result and result.sample_id:
+                break
+            if rung + 1 < len(LOOK_HEIGHTS):
+                lower = (target[2] - LOOK_HEIGHTS[rung + 1]) / direction[2]
+                world.log(data.time, f'track {track.id}: no ring from {distance * 100:.0f} cm, '
+                                     f'coming down to {lower * 100:.0f} cm')
+        if not looks:
             with world.lock:
-                track.state, track.note = 'unreachable', str(exc)
-            world.log(data.time, f'track {track.id}: {exc}')
+                track.state, track.note = 'unreachable', refused[0] if refused else 'no view'
+            world.log(data.time, f'track {track.id}: {track.note}')
             continue
-        request = perception.read(target)
-        deadline = time.monotonic() + 30
-        while not request.done.is_set():
-            if time.monotonic() > deadline:
-                raise RuntimeError('Gantry marker reader timed out after 30 seconds')
-            yield from hold(.05, f'Gantry: reading track {track.id}')
-        result = request.result
         with world.lock:
             track.confirmation = result
             track.state = 'named' if result and result.sample_id else 'empty'
             track.note = (f'ring read, {result.votes} markers' if result and result.sample_id
-                          else 'No marker identified from this view')
+                          else f'no marker from {looks} descents')
         if track.sample:
             world.named(track, data.time)
-        world.sighted(request.rings, data.time, track)
+        world.sighted(rings, data.time, track)
         world.log(data.time, f'track {track.id}: {track.sample or track.note}')
     # Return to the raised pose at the current XY, then preserve the scan report.
     home = data.site(SITE).xpos.copy()
