@@ -341,6 +341,37 @@ Standing outside and facing in also puts more of the bench in frame, so one
 look names more than one flask: on the run above, a single look at track 3
 named two more with no visit of their own.
 
+### The arm may cross the bench, but not low
+
+Reading from outside the hull fixes where the arm *stands*. It says nothing
+about how it gets there. IK answers with a pose, the servos ramp joint by joint
+from the last one, and a straight line in joint space is not a straight line in
+the world: two poses that both stand clear of the flasks can have a path
+between them that sweeps the hand straight through the middle of the bench.
+
+`path_clear` already walked the whole move — it interpolates at 10 cm of rail
+or 0.08 rad of joint per sample and can demand a floor at each. The gap was
+that **three of its seven call sites passed no floor at all** (`carry_pose`,
+`plan`, `hover_pose`), and `blocked` leaves the free flasks out on purpose, so
+on those three moves nothing stopped the arm going through them.
+
+They now carry `bench=keepout()`: `(hull, margin, height)`. At every sample,
+`lowest_over_hull` asks how low the arm reaches *where the flasks are* —
+`lowest_point` asks how low it reaches anywhere, which is a different question —
+and the move is refused if that is under the height.
+
+**The rule is not "stay out of the hull".** A flask in the middle of the bench
+can only be looked at from over the bench, so a flat ban would make the middle
+unreachable. The rule is to stay *above* the hull, and the margin (8 cm) grows
+it outward because a link whose centre clears the edge still sweeps in. Outside
+the hull the arm may come as low as it likes, which is how it reads a rim flask
+from the side.
+
+Seed 1 (35 flasks in rows, 106 mm apart), with the hull bearings, before and
+after the keep-out: 35 of 35 in 56 s against 34 of 36 in 41 s, neither felling
+anything. The keep-out costs nothing measurable here; what it buys is that the
+paths which were never checked are checked.
+
 ### The flyover, tried and set aside
 
 A pass-based scan that went to no bottle at all was flown on 2026-09-19

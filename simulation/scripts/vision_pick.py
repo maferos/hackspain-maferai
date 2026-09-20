@@ -949,14 +949,88 @@ def lowest_point(model: mujoco.MjModel, data: mujoco.MjData) -> float:
     return float(z.min())
 
 
+# The bench the arm must stay over rather than through, as (hull, margin,
+# height), or None before the cameras have seen anything. It is module state
+# because every pose and every path has to respect it and threading it through
+# a dozen signatures would say less than this does: it is a property of the
+# bench, not an argument of a move.
+BENCH_KEEPOUT: tuple | None = None
+# The arm has width, so a link whose centre clears the hull still sweeps in.
+KEEPOUT_MARGIN = 0.08
+
+
+def keepout() -> tuple | None:
+    """The bench to stay over, for the path checks."""
+    return BENCH_KEEPOUT
+
+
+def set_keepout(hull: list[tuple[float, float]], height: float) -> None:
+    """Fix the hull and the height the arm must clear it by."""
+    global BENCH_KEEPOUT
+    BENCH_KEEPOUT = (hull, KEEPOUT_MARGIN, height) if len(hull) >= 3 else None
+
+
+def inside_hull(xy: tuple[float, float], hull: list[tuple[float, float]],
+                margin: float = 0.0) -> bool:
+    """Whether a point is inside the hull, grown by ``margin``.
+
+    The hull comes out of :func:`convex_hull` anticlockwise, so a point inside
+    is left of every edge. The margin grows it outward, because the arm has
+    width and a link whose centre is just outside still sweeps in.
+    """
+    if len(hull) < 3:
+        return False
+    for i, (ax, ay) in enumerate(hull):
+        bx, by = hull[(i + 1) % len(hull)]
+        ex, ey = bx - ax, by - ay
+        length = math.hypot(ex, ey)
+        if length < 1e-9:
+            continue
+        # Signed distance to the edge, positive inside for an anticlockwise hull.
+        if (ex * (xy[1] - ay) - ey * (xy[0] - ax)) / length < -margin:
+            return False
+    return True
+
+
+def lowest_over_hull(model: mujoco.MjModel, data: mujoco.MjData,
+                     hull: list[tuple[float, float]], margin: float) -> float:
+    """The lowest point of the arm that stands over the bench, or +inf.
+
+    :func:`lowest_point` asks how low the arm goes anywhere; this asks how low
+    it goes *where the flasks are*, which is the question that decides whether a
+    move sweeps through them. Outside the hull the arm may be as low as it
+    likes — that is how it reads a rim flask from the side.
+    """
+    arm = _ARM_GEOMS.get(id(model))
+    if arm is None:
+        bodies = [b for b in range(model.nbody) if model.body(b).name.startswith('arm_')]
+        arm = _ARM_GEOMS[id(model)] = np.flatnonzero(np.isin(model.geom_bodyid, bodies))
+    centre, half = model.geom_aabb[arm, :3], model.geom_aabb[arm, 3:]
+    rot = data.geom_xmat[arm].reshape(-1, 3, 3)
+    up = rot[:, 2, :]
+    world = data.geom_xpos[arm] + np.einsum('ijk,ik->ij', rot, centre)
+    z = world[:, 2] - np.einsum('ij,ij->i', np.abs(up), half)
+    over = [zi for xy, zi in zip(world[:, :2], z) if inside_hull(tuple(xy), hull, margin)]
+    return min(over, default=math.inf)
+
+
 def path_clear(model: mujoco.MjModel, scratch: mujoco.MjData,
                start: tuple[float, np.ndarray], goal: tuple[float, np.ndarray],
-               floor: float | None = None) -> bool:
+               floor: float | None = None, bench: tuple | None = None) -> bool:
     """Whether the straight joint-space move between two poses touches nothing.
 
     With ``floor``, the arm's lowest point must also stay above that height the
     whole way: the free flasks are not in :func:`blocked`, so passing over them
     is a matter of height.
+
+    With ``bench`` — ``(hull, margin, height)`` — the arm must also stay above
+    ``height`` wherever it stands over the hull of what the cameras have seen.
+    IK is free to answer with a path that crosses the bench, and a straight line
+    in joint space is not a straight line in the world: a move between two poses
+    that are both outside the flasks can still sweep the hand through them
+    half-way along. This is what forbids that, and it forbids it only where the
+    flasks are, so the arm can still come down outside the bench to read a rim
+    flask from the side.
 
     The servos are ramped from one pose to the other joint by joint, so this is
     the path the arm will take. It matters: the first live run solved a grasp
@@ -973,6 +1047,10 @@ def path_clear(model: mujoco.MjModel, scratch: mujoco.MjData,
         if blocked(model, scratch) or (floor is not None
                                        and lowest_point(model, scratch) < floor):
             return False
+        if bench is not None:
+            hull, margin, height = bench
+            if lowest_over_hull(model, scratch, hull, margin) < height:
+                return False
     return True
 
 
@@ -1007,7 +1085,7 @@ def carry_pose(model: mujoco.MjModel, scratch: mujoco.MjData,
                 or blocked(model, scratch):
             continue
         pose = scratch.qpos[rk.arm_qpos(model)].copy()
-        if path_clear(model, scratch, (station, start), (station, pose)):
+        if path_clear(model, scratch, (station, start), (station, pose), bench=keepout()):
             return pose
     raise SystemExit('no carry pose the arm can reach: has the bench changed?')
 
@@ -1048,8 +1126,10 @@ def plan(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
                     or blocked(model, scratch):
                 continue
             q_second = scratch.qpos[rk.arm_qpos(model)].copy()
-            if path_clear(model, scratch, (station, carry), (station, q_first)) and \
-                    path_clear(model, scratch, (station, q_first), (station, q_second)):
+            if path_clear(model, scratch, (station, carry), (station, q_first),
+                              bench=keepout()) and \
+                    path_clear(model, scratch, (station, q_first), (station, q_second),
+                               bench=keepout()):
                 return station, q_first, q_second
     return None
 
@@ -1106,7 +1186,8 @@ def hover_pose(model: mujoco.MjModel, scratch: mujoco.MjData, station: float,
             or blocked(model, scratch) or lowest_point(model, scratch) < floor:
         return None
     q = scratch.qpos[rk.arm_qpos(model)].copy()
-    return q if path_clear(model, scratch, (station, q), (station, q_look)) else None
+    return q if path_clear(model, scratch, (station, q), (station, q_look),
+                       bench=keepout()) else None
 
 
 def hub_pose(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
@@ -1437,8 +1518,12 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         # reach across is still reached: the order is a preference, not a wall.
         standing = [t.seen_xy for t in world.tracks.values() if t.state != 'lost']
         others = [xy for xy in standing if xy != track.seen_xy]
-        sides = tuple(bearings_outward(track.seen_xy, others,
-                                       convex_hull(standing), STANDOFF))
+        hull = convex_hull(standing)
+        sides = tuple(bearings_outward(track.seen_xy, others, hull, STANDOFF))
+        # Every path from here on must stay over the bench rather than through
+        # it. IK will happily answer with a pose whose straight joint-space path
+        # crosses the flasks: this is what makes those answers unusable.
+        set_keepout(hull, rk.BENCH_TOP + tallest() + HOVER_MARGIN)
         looks, result, rings = 0, None, []
         # The looks in turn, the clearest first: only a ring that will not read
         # from up there brings the hand down to the next one.
