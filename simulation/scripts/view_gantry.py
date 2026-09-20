@@ -25,8 +25,11 @@ def main():
     data = mujoco.MjData(model)
     mujoco.mj_forward(model, data)
     with mujoco.viewer.launch_passive(model, data) as viewer:
-        viewer.cam.type = mujoco.mjtCamera.mjCAMERA_FIXED
-        viewer.cam.fixedcamid = model.camera('general').id
+        viewer.cam.type = mujoco.mjtCamera.mjCAMERA_FREE
+        viewer.cam.lookat[:] = [-1.5, -.4, 1.35]
+        viewer.cam.distance = 2.7
+        viewer.cam.azimuth = 90
+        viewer.cam.elevation = -25
         print('Use the Control panel: gantry_x, gantry_y, gantry_z and hand fingers.')
         while viewer.is_running():
             began = time.monotonic()
