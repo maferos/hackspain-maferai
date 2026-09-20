@@ -1,15 +1,41 @@
-# The bench vial detector, for the demo
+# The vision system, for the demo
 
-Everything to show about how the detector was trained, in the order it is told:
-the data, the training, the results. The full account is
-[`../YOLO26_TRAINING.md`](../YOLO26_TRAINING.md); the interactive page with all
-10,300 images is https://claude.ai/artifact/9sFAnHGXH6hzXr366sKU12 (private).
+Everything to show about the vision system, one folder a chapter. Figures only,
+each with its message in the title and its conditions in the note under it; the
+record behind every number is the document named beside its chapter.
+
+| folder | chapter | the record |
+| --- | --- | --- |
+| `0_overview/` | The pipeline on one slide | this page |
+| `4_detector_choice/` | Why a detector was trained: pretrained models, prompts, the size floor | [`../BENCHMARK.md`](../BENCHMARK.md), [`../FIXED_CAMERA_BENCHMARK.md`](../FIXED_CAMERA_BENCHMARK.md) |
+| `1_dataset/`, `2_training/`, `3_results/` | The trained detector: its data, its training, what it can do | [`../YOLO26_TRAINING.md`](../YOLO26_TRAINING.md) |
+| `5_identity/` | Naming a bottle: barcode against ArUco ring, and the silent misread | [`../../README.md`](../../README.md), [`../READ_CONFIDENCE.md`](../READ_CONFIDENCE.md) |
+| `6_position/` | From a box to a point on the bench, and the chain end to end | [`../../README.md`](../../README.md) |
+
+The folder numbers are the order the work was filed in, not the order it is
+told: tell it 0, 4, 1, 2, 3, 5, 6. The interactive page with all 10,300
+training images is https://claude.ai/artifact/9sFAnHGXH6hzXr366sKU12 (private).
 
 **The model:** `yolo26n_full_1920_e100.pt`, YOLO26n, threshold 0.52, backend
 `full`. How to use it: [`../../weights/README.md`](../../weights/README.md).
-Everything here is MuJoCo; nothing has been scored on a real photograph.
+Everything here is MuJoCo, except the pretrained-detector benchmark, which is
+five real laboratory photographs; nothing of ours has been scored on a real
+photograph.
 
-## The story in five slides
+## The whole system in eight slides
+
+| # | say | show |
+| --- | --- | --- |
+| 1 | One frame from a wall camera becomes a bench where every bottle has a name and a position | `0_overview/pipeline_on_one_slide.png` |
+| 2 | We started with what needs no training. Fourteen pretrained detectors: the words you prompt with matter more than the model, and all of them need about 48 px of bottle. Our camera gives 19 to 48 | `4_detector_choice/pretrained_accuracy_against_speed.png`, `4_detector_choice/size_floor.png` |
+| 3 | One epoch of fine-tuning on a laptop CPU, on frames the simulator labels for free, already matched the best pretrained model and beat it on the smallest bottles. So we trained | `4_detector_choice/fine_tuned_against_pretrained.png` |
+| 4 | The data: 10,300 rendered frames from every side of the bench | `1_dataset/pose_map_training_set.png`, `1_dataset/examples_by_bench_layout.jpg` |
+| 5 | The result: from 3,477 vials missed to 760, from 953 false boxes to 48, and it sees from 25 cm what the old one could not | `3_results/scoreboard_missed_and_false.png`, `3_results/examples_as_the_camera_nears.jpg` |
+| 6 | Naming the bottle: a barcode on a 10 ml flask reads from 15 cm, closer than the lens focuses. A ring of ArUco markers reads 38 of 40 bottles from 30 cm, none misread | `5_identity/ean13_against_aruco.png`, `5_identity/wrist_scan_forty_bottles.png` |
+| 7 | Placing it: one calibrated camera puts a bottle within 7 to 10 mm, the wrist camera refines that to a tenth of a millimetre | `6_position/end_to_end.png`, `6_position/scan_bench_p05_truth_proposal_refinement.png` |
+| 8 | What it still cannot do: a room under 15 % light, a flask hidden behind a larger one, and no real photograph yet | `3_results/recall_by_darkness.png` |
+
+## The trained detector alone, in five slides
 
 | # | say | show |
 | --- | --- | --- |
@@ -84,6 +110,46 @@ figures the same four colours name the cameras instead: orange the wall camera
 (the one the previous detector was trained on), blue any angle, yellow low,
 green close.
 
+## 0_overview
+
+| file | what it shows |
+| --- | --- |
+| `pipeline_on_one_slide.png` | The six stages, wall camera to bench memory, each with the number that backs it |
+
+## 4_detector_choice: why a detector was trained
+
+| file | what it shows |
+| --- | --- |
+| `pretrained_accuracy_against_speed.png` | Fourteen pretrained detectors on five real lab photographs: average precision against seconds a frame on a CPU. YOLO-World L with everyday words is top left; Grounding DINO and OWLv2 cost 9 to 13 s |
+| `prompts_matter.png` | The same YOLO-World L with two vocabularies: recall 0.91 to 1.00 on real photographs, AP50 0.58 to 0.85 on our renders |
+| `size_floor.png` | **The reason for everything after.** Recall of pretrained detectors by bottle side in pixels (reliable from 48 px), and the side of the kit's bottles from the wall camera: 19 to 48 px at 1080p |
+| `found_by_distance.png` | Rendered bottles found by distance to the wall camera: past 4 m YOLO-World finds 23 % |
+| `fine_tuned_against_pretrained.png` | YOLO26n fine-tuned for one epoch on a CPU against YOLO-World L and YOLO26s COCO, on the robot's scene, a scene never seen and a degraded camera: AP50 with 95 % intervals, recall, false boxes |
+| `recall_by_bottle_and_size.png` | The same three models by bottle of the kit and by apparent size: training pays on the smallest bottles |
+| `worktop_filter.png` | False boxes a frame before and after keeping only what stands on the bench plane: 65 to 3.9 and 17.5 to 1.8, no bottle lost |
+| `examples_three_models_same_frames.jpg` | The three models' boxes on the same test frames |
+
+## 5_identity: naming the bottle
+
+| file | what it shows |
+| --- | --- |
+| `ean13_against_aruco.png` | Module size, reading distance and tolerated turn of an EAN-13 label against one ArUco marker, for the ten vessels: ten times the module, 4 to 12 times the reach, but lost 10 to 20 degrees off square, which is why the label became a ring of eight |
+| `wrist_scan_forty_bottles.png` | The same forty bottles read by the wrist camera with each label: read from 0.30 m (where a GoPro focuses), had to come closer, not read. Ring 38 / 2 / 0, barcode from the aisle 12 / 25 / 3 |
+| `marker_separation_and_silent_misreads.png` | The risk that remains: marker ids left at each minimum distance against a 200-sample catalogue, and what the reader reports with 0 to 3 cells flipped at two correction settings. Proposed work, not implemented: `../READ_CONFIDENCE.md` |
+
+## 6_position: from a box to a point on the bench
+
+| file | what it shows |
+| --- | --- |
+| `which_pixel_of_the_box.png` | Mean position error of four ways to turn a box into a bench point, by bottle: from 23 to 59 mm with the bottom of the box as is, to 0 fitting the known silhouette |
+| `millimetres_per_pixel.png` | Bench covered by one pixel at 1080p, 4K and 5.3K, and position error against box noise: 5.5 mm a pixel at the bench centre |
+| `end_to_end.png` | The whole chain on 12 random benches: 77 bottles, 74 proposed, 74 named, 0 wrong; and position error from the wall camera alone (10 mm median) and after the wrist (0.1 mm) |
+| `radius_bias.png` | Why the wall camera's error is bias and not noise: each flask class is off by the radius assumed before it is named |
+| `scan_bench_p05_*.png` | The catalogue bench p05 scanned: truth, proposal and refinement on the bench (offsets drawn 20x), per-bottle residuals, the errors at true scale on each flask's footprint, and the anatomy of one proposal |
+
+On these chapters' figures the colours are: orange ours (the trained detector),
+violet YOLO-World or the EAN-13 label, teal the COCO model or ArUco.
+
 ## If someone asks
 
 - **Is it tested on images it trained on?** No frame seed is shared between
@@ -109,9 +175,11 @@ at).
 ```bash
 python computer-vision/scripts/demo_figures.py          # the headline figures
 python computer-vision/scripts/demo_figures_detail.py   # everything per frame or per vial
+python computer-vision/scripts/demo_figures_pipeline.py # chapters 0, 4, 5 and 6
 ```
 
-Neither needs a GPU, the weights or the rendered frames. These do:
+None needs a GPU, the weights or the rendered frames. `numbers/vision_pipeline.json`
+holds the tables of chapters 0, 4, 5 and 6, copied from the documents it names. These do:
 `scripts/demo_tables.py` rebuilds `frames.csv` and `test_vials.csv` from the
 rendered sets and the boxes `viewpoint_study.py` cached; `scripts/demo_strips.py`
 draws the three `examples_as_*.jpg` strips from `limits_sweep.py`'s frames and
