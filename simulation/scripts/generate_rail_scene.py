@@ -127,6 +127,12 @@ HAND_EIH_OFFSET = 0.19
 OPEN_BALANCE = 'balance_2_'
 BALANCE_PAN = (-0.005, 0.031, 0.077)    # pan centre in the balance's own frame
 BALANCE_POS = (-1.70, -1.16, BENCH_TOP)
+# The bench ends, for the flasks, at the leftmost balance. Two of the stock
+# vessels stand past it, in the corner behind it, where they are of no use: the
+# arm hangs from a rail that stops short of them, so a camera put over them is
+# at the edge of the UR10e's envelope and most bearings will not solve. They are
+# dropped rather than left to be scanned and failed.
+BENCH_LEFT = -3.35
 
 # Eye-in-hand camera, in the tool frame (+Z is the approach direction).
 EIH_OFFSET = 0.09   # to the side of the tool axis, clear of the fingers
@@ -444,7 +450,7 @@ def build_bench(keep: int) -> list[dict[str, str]]:
         for geom in geoms:
             parent_of[geom].remove(geom)
 
-    lifted = []
+    lifted, dropped = [], []
     for sample in picked:
         geoms = vessels[sample]
         # A mesh geom's xpos is the mesh's own centre, because the compiler
@@ -457,11 +463,20 @@ def build_bench(keep: int) -> list[dict[str, str]]:
         shift = base.mesh_pos[base.geom_dataid[base.geom(f'room_stock_{sample}_glass_0').id]]
         origin = placed.xpos - rotation @ shift
         yaw = np.degrees(np.arctan2(rotation[1, 0], rotation[0, 0]))
-        lifted.append({'sample': sample,
-                       'pos': ' '.join(f'{v:.6g}' for v in origin),
-                       'euler': f'0 0 {yaw:.6g}'})
+        # Past the last balance it is scenery the arm cannot work with, so it
+        # goes with the rest of the cleared stock: its geoms come out of the
+        # room below and no body replaces them.
+        if origin[0] < BENCH_LEFT:
+            dropped.append(sample)
+        else:
+            lifted.append({'sample': sample,
+                           'pos': ' '.join(f'{v:.6g}' for v in origin),
+                           'euler': f'0 0 {yaw:.6g}'})
         for geom in geoms:
             parent_of[geom].remove(geom)
+    if dropped:
+        print(f'bench: {", ".join(dropped)} stood left of the last balance '
+              f'(x < {BENCH_LEFT}); cleared')
 
     ET.indent(tree.getroot(), space='  ')
     DYNAMIC_ROOM.write_text(
@@ -648,7 +663,7 @@ def main() -> None:
           f'({2 * TRAVEL:.2f} m), bench spans {BENCH_X[0]} .. {BENCH_X[1]} m')
     print(f'camera: modelled body clears its own lens by '
           f'{check_camera_clearance() * 1000:.1f} mm')
-    print(f'bench: cleared to {BENCH_VESSELS} vessels, all of them liftable')
+    print(f'bench: cleared to at most {BENCH_VESSELS} vessels, all of them liftable')
 
 
 if __name__ == '__main__':

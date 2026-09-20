@@ -8,16 +8,21 @@
     <mesh name="flask_10ml_cap" file="../labelled_bottles/meshes/flask_10ml_cap.obj" inertia="exact"/>
     <mesh name="flask_10ml_label" file="../labelled_bottles/meshes/flask_10ml_label.obj" inertia="shell"/>
     <mesh name="flask_10ml_label_back" file="../labelled_bottles/meshes/flask_10ml_label_back.obj" inertia="shell"/>
+    <mesh name="flask_10ml_cap_label" file="../labelled_bottles/meshes/flask_10ml_cap_label.obj" inertia="shell"/>
     <texture name="label" type="2d" file="../labelled_bottles/textures/SMP-0041.png"/>
     <material name="label" texture="label" specular="0.05" shininess="0.1"/>
+    <texture name="cap_label" type="2d" file="../labelled_bottles/textures/SMP-0041_cap.png"/>
+    <material name="cap_label" texture="cap_label" specular="0.05" shininess="0.1"/>
   </asset>
   <worldbody>
     <body name="SMP-0041">
       <inertial pos="-0.00001 -0.00000 0.02648" mass="0.01566"
                 diaginertia="4.821e-06 4.821e-06 1.335e-06"/>
       <geom name="glass" type="mesh" mesh="flask_10ml_glass" rgba="0.620 0.280 0.050 0.500" contype="0" conaffinity="0" mass="0"/>
+      <geom name="cap" type="mesh" mesh="flask_10ml_cap" rgba="0.930 0.930 0.910 1.000" density="900"/>
       <geom name="label" type="mesh" mesh="flask_10ml_label" material="label" contype="0" conaffinity="0" mass="0"/>
       <geom name="label_back" type="mesh" mesh="flask_10ml_label_back" rgba="0.950 0.950 0.930 1" contype="0" conaffinity="0" mass="0"/>
+      <geom name="cap_label" type="mesh" mesh="flask_10ml_cap_label" material="cap_label" contype="0" conaffinity="0" mass="0"/>
       <geom name="body_00" type="box" pos="0.01020 0.00000 0.02090"
             size="0.00100 0.00334 0.01790" euler="0 0 0.000"
             rgba="0 0 0 0" mass="0" group="3"/>
@@ -130,7 +135,7 @@
             size="0.01120 0.00150"
             rgba="0 0 0 0" mass="0" group="3"/>
       <geom name="liquid" type="cylinder" pos="0 0 0.01491"
-            size="0.00920 0.01191" rgba="0.86 0.62 0.18 0.55"
+            size="0.00920 0.01191" rgba="0.72 0.38 0.04 0.95"
             contype="0" conaffinity="0" mass="0"/>
       <site name="mouth" pos="0 0 0.05388" size="0.00598 0.001" type="cylinder"
             rgba="0.2 0.7 0.9 0.25" group="4"/>

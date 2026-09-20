@@ -77,6 +77,7 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(REPO / 'computer-vision'))
 import grasp_test as gt
+import pipetting as pt
 import rail_kinematics as rk
 from generate_rail_scene import BENCH_X, BENCH_Y
 from labvision import registry
@@ -133,8 +134,27 @@ WORKTOP = (BENCH_X, BENCH_Y)
 # so that nothing which used to be named stops being named.
 # Standing further out beats tilting further over: with 0.36 m at 55 degrees as the
 # only look, the ring foreshortens and 8 of 19 would not read (seed 0, measured).
-LOOKS = ((0.45, 40.0), (0.36, 55.0), (0.36, 25.0))
-STANDOFF, ELEVATION = LOOKS[-1]     # the low look; the back-row test uses STANDOFF
+#
+# Every look is now straight down. Two things made the oblique ones both
+# impossible and unnecessary. The cage hand reaches 46 cm along whatever the
+# camera looks at, so aiming it at a flask from 25 to 55 degrees drove the clamp
+# through that flask and into the worktop: of 216 oblique poses tried on this
+# bench, none was collision-free. And the caps now carry one cell of the ring on
+# top, so a camera overhead reads the marker whole instead of reading an arc of
+# the ring round the side. The standoff is therefore a height above the flask's
+# base, not a distance along a slope, and the bearing no longer picks where the
+# camera stands --- overhead is the only place it stands --- but which way the
+# cage hangs while it is there.
+LOOKS = ((0.58, 90.0), (0.50, 90.0), (0.44, 90.0))
+STANDOFF, ELEVATION = LOOKS[-1]     # the closest look
+# How far the cage reaches sideways from the camera it is mounted beside. The
+# camera stands over the flask, so nothing of the camera's own is near a
+# neighbour; the cage is, and this is the radius the bearings keep clear.
+CAGE_REACH = 0.25
+# The front row from the back strip. It used to fall out of the oblique look's
+# standoff, which was the camera's reach across the bench; overhead there is no
+# such reach, and the split is still worth keeping, so it is stated.
+ROW_REACH = 0.36
 LOOK_ABOVE_BENCH = 0.05     # the camera aims this far above the proposal's base
 CLEARANCE = 0.25            # the look pose is entered and left from this far above
 # During the initial scan the arm does not climb back to the carry pose between
@@ -146,7 +166,16 @@ HOVER_MARGIN = 0.03
 HUB_ABOVE = (0.03, 0.08)    # how far over the floor the low poses stand, tried in turn
 SLIDE_STEP = 0.10           # waypoint spacing when the hand slides without turning
 LIFTS = (0.12, 0.25)        # how high a slide may climb to clear what is in its way
+# The dose the hand pretends to draw when the caller does not say, and how far
+# over the beaker's mouth it stands to let it go. Nothing is poured: the liquid
+# in this scene is a level and a number (see pipetting.py), so a dose is the
+# flask's column going down and the beaker's coming up by the same amount.
+DOSE_ML = 2.0
+POUR_ABOVE = 0.06           # how far over the beaker's mouth the hand stands to dose
+POUR_SECONDS = 1.2          # how long the beaker's column takes to rise by the dose
+POUR_STEPS = 12
 MAX_LOOKS = 2               # bearings tried before a proposal is called empty
+GIVE_UP_AFTER = 2           # failed looks at one position before the scan leaves it
 # Bearings the camera can stand at, from the bottle. The rail side first while
 # the camera still clears the gantry beam at y = 0.30, the aisle side otherwise.
 RAIL_SIDE = (90, 60, 120, 30, 150)
@@ -209,10 +238,15 @@ def bearings_outward(at: tuple[float, float], others: list[tuple[float, float]],
                      hull: list[tuple[float, float]], standoff: float) -> list[int]:
     """The bearings to try for one flask, the ones that keep the hand out first.
 
-    Ordered by two things, in this order: whether the camera would stand clear
-    of every other flask, and how nearly it faces the way out of the hull. The
-    first is what stops the arm knocking bottles over; the second is what makes
-    the looks sweep round the bench instead of crossing it.
+    Ordered by two things, in this order: whether the hand would hang clear of
+    every other flask, and how nearly the bearing faces the way out of the hull.
+    The first is what stops the arm knocking bottles over; the second is what
+    makes the looks sweep round the bench instead of crossing it.
+
+    Args:
+        standoff: How far from the flask the hand reaches at this bearing. The
+            camera is overhead, so this is the cage's own reach, not the
+            camera's: what has to miss the neighbours is the cage.
     """
     out = outward(at, hull)
     def rank(bearing: int) -> tuple[int, float]:
@@ -339,6 +373,14 @@ class World:
         self.caption = 'starting'
         self.scan: dict | None = None       # the initial scan's record, once it is done
         self.scene = GRIPPER_SCENE.relative_to(REPO).as_posix()    # for the bench map
+        # Bench positions the wrist camera could not be put over. The initial
+        # scan works through everything `proposed` until nothing is left, so a
+        # flask out of the arm's reach has to stop being proposed or the sweep
+        # never ends. Marking the track is not enough: the fixed camera loses
+        # sight of it behind the arm, the track dies, and the next cycle
+        # proposes the same flask under a new id. The position is what is out
+        # of reach, so the position is what is remembered.
+        self.out_of_reach: list[list] = []
         self._next = 1
 
     def log(self, clock: float, text: str) -> None:
@@ -371,9 +413,13 @@ class World:
                     track.bbox, track.misses = proposal.bbox, 0
                     track.hits, track.wrist_only = track.hits + 1, False
                     if track.state == 'tentative' and track.hits >= CONFIRM_HITS:
-                        track.state = 'proposed'
-                        self.log(clock, f'track {track.id}: new at ({track.xy[0]:+.2f}, '
-                                        f'{track.xy[1]:+.2f}), score {track.score:.2f}')
+                        if self._beyond(track.seen_xy):
+                            track.state = 'unreachable'
+                            track.note = 'named, but the wrist camera cannot get there'
+                        else:
+                            track.state = 'proposed'
+                            self.log(clock, f'track {track.id}: new at ({track.xy[0]:+.2f}, '
+                                            f'{track.xy[1]:+.2f}), score {track.score:.2f}')
                 else:
                     track = Track(self._next, proposal.xy, proposal.score, proposal.bbox)
                     self.tracks[track.id] = track
@@ -408,6 +454,33 @@ class World:
                     track.state, track.note = 'lost', 'no longer where it was'
                     self.log(clock, f'track {track.id}: lost, nothing stands there any more')
             self.cycles += 1
+
+    def _beyond(self, xy: tuple[float, float]) -> bool:
+        """Whether looks at this position have failed often enough to stop trying.
+
+        Once is not enough. Every pose is solved from wherever the arm happens
+        to stand, so a bearing that will not come out now may come out from the
+        next flask along; giving up on the first failure would write off flasks
+        the arm can reach. Twice in a row, from two different places, is the
+        arm saying the same thing about the position rather than about itself.
+        """
+        return any(math.dist(xy, seen) < ASSOCIATE and failures >= GIVE_UP_AFTER
+                   for seen, failures in self.out_of_reach)
+
+    def beyond_reach(self, track: Track, clock: float) -> None:
+        """Count a look that could not be put over where this track stands."""
+        with self.lock:
+            for remembered in self.out_of_reach:
+                if math.dist(track.seen_xy, remembered[0]) < ASSOCIATE:
+                    remembered[1] += 1
+                    break
+            else:
+                self.out_of_reach.append([track.seen_xy, 1])
+                return
+            if remembered[1] == GIVE_UP_AFTER:
+                self.log(clock, f'track {track.id} at ({track.seen_xy[0]:+.2f}, '
+                                f'{track.seen_xy[1]:+.2f}): out of the arm\'s reach '
+                                f'from {GIVE_UP_AFTER} tries; the scan leaves it')
 
     def named(self, track: Track, clock: float) -> None:
         """A ring was read: if that sample was known elsewhere, it has moved."""
@@ -1181,34 +1254,50 @@ def plan_look(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
     """Arm poses that put the wrist camera on a proposal from one bearing.
 
     Args:
-        look: Which of :data:`LOOKS` to stand at; the low look when not given.
+        look: Which of :data:`LOOKS` to stand at; the closest when not given.
 
     Returns:
         The carriage station, the arm pose well above the view, and the arm pose
         at the view; or None when this bearing cannot be held.
     """
-    eye, gaze = look_view(target, bearing_deg, look)
+    eye, gaze, up = look_view(target, bearing_deg, look)
     return plan(model, scratch, carry, eye + (0.0, 0.0, CLEARANCE), eye,
-                approach=gaze, site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0))
+                approach=gaze, site_name=rk.EIH_SITE, image_up=up)
 
 
 def look_view(target: np.ndarray, bearing_deg: float, look: tuple | None = None
-              ) -> tuple[np.ndarray, tuple]:
-    """Where the wrist camera stands to look at a target from a bearing, and its gaze.
+              ) -> tuple[np.ndarray, tuple, tuple]:
+    """Where the wrist camera stands to look at a target, its gaze, and its up.
 
-    ``look`` is one of :data:`LOOKS`, a (standoff, elevation) pair; the low look
-    is used when it is not given.
+    ``look`` is one of :data:`LOOKS`, a (standoff, elevation) pair; the closest
+    look is used when it is not given.
+
+    The third value is the world direction that ends at the top of the picture.
+    Looking down it cannot be world up --- that is the gaze --- and leaving it
+    out would leave the roll free, which here is the one thing that must not be
+    free: the cage hangs off the camera's +Y, so the roll is what swings it over
+    empty bench instead of over a neighbouring flask. The bearing sets it, and
+    :func:`rail_kinematics.solve_ik` puts the site's +Y along minus the up it is
+    given, so minus the bearing's direction points the cage along the bearing.
+
+    Returns:
+        The camera position, the direction it looks along, and its image up.
     """
     standoff, elevation = LOOKS[-1] if look is None else look
     rise, turn = math.radians(elevation), math.radians(bearing_deg)
-    offset = standoff * np.array([math.cos(rise) * math.cos(turn),
-                                  math.cos(rise) * math.sin(turn), math.sin(rise)])
-    return target + offset, tuple(-offset / np.linalg.norm(offset))
+    if elevation >= 90.0 - 1e-6:
+        offset = np.array([0.0, 0.0, standoff])
+        up = (-math.cos(turn), -math.sin(turn), 0.0)
+    else:
+        offset = standoff * np.array([math.cos(rise) * math.cos(turn),
+                                      math.cos(rise) * math.sin(turn), math.sin(rise)])
+        up = (0.0, 0.0, 1.0)
+    return target + offset, tuple(-offset / np.linalg.norm(offset)), up
 
 
 def hover_pose(model: mujoco.MjModel, scratch: mujoco.MjData, station: float,
-               q_look: np.ndarray, eye: np.ndarray, gaze: tuple, floor: float
-               ) -> np.ndarray | None:
+               q_look: np.ndarray, eye: np.ndarray, gaze: tuple, up: tuple,
+               floor: float) -> np.ndarray | None:
     """The view pose raised to clear ``floor``, camera aimed the same way.
 
     It stands a little over the floor, as the hub does, since moving between
@@ -1223,7 +1312,7 @@ def hover_pose(model: mujoco.MjModel, scratch: mujoco.MjData, station: float,
     mujoco.mj_forward(model, scratch)
     rise = max(floor - lowest_point(model, scratch) + HUB_ABOVE[0], 0.03)
     if not ik(model, scratch, eye + (0.0, 0.0, rise), q_look, seed=q_look, approach=gaze,
-              site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)) \
+              site_name=rk.EIH_SITE, image_up=up) \
             or blocked(model, scratch) or lowest_point(model, scratch) < floor:
         return None
     q = scratch.qpos[rk.arm_qpos(model)].copy()
@@ -1319,6 +1408,11 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
     # in the way of the first move, and no carry pose would clear it.
     clear_keepout()
     carry = carry_pose(model, scratch, data.qpos[rk.arm_qpos(model)].copy())
+    # The liquid columns already in the scene, and the beaker on the balance
+    # they are dosed into. Read off the compiled model, so the levels the arm
+    # moves are the ones the viewer draws.
+    vessels = pt.containers(model, data)
+    beaker = 'beaker' if 'beaker' in vessels else None
     general = camera_at(model, data, 'general')     # fixed: its calibration, once
     open_hand = lambda *_: gt.OPEN
 
@@ -1385,7 +1479,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             yield caption
         yield from still(0.3, caption)
 
-    def straight(start, goal, gaze, floor):
+    def straight(start, goal, gaze, up, floor):
         """Waypoints that carry the camera along a straight line, turned one way.
 
         Two views at one bearing look the same way, but a joint-space move
@@ -1420,7 +1514,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
                 point = goal
             else:
                 if not ik(model, scratch, ends[0] + f * (ends[1] - ends[0]), q, seed=q,
-                          approach=gaze, site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)):
+                          approach=gaze, site_name=rk.EIH_SITE, image_up=up):
                     return None
                 point = (station, scratch.qpos[arm].copy())
             if not path_clear(model, scratch, last, point, floor=floor):
@@ -1480,7 +1574,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
                 return legs[1:]
         return None
 
-    def lifted(pose, rise, gaze):
+    def lifted(pose, rise, gaze, up):
         """The same view pose with the camera ``rise`` higher, turned the same way."""
         station, q = pose
         mujoco.mj_copyData(scratch, model, data)
@@ -1489,11 +1583,11 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         mujoco.mj_kinematics(model, scratch)
         eye = scratch.site(rk.EIH_SITE).xpos + (0.0, 0.0, rise)
         if not ik(model, scratch, eye, q, seed=q, approach=gaze,
-                  site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)) or blocked(model, scratch):
+                  site_name=rk.EIH_SITE, image_up=up) or blocked(model, scratch):
             return None
         return station, scratch.qpos[rk.arm_qpos(model)].copy()
 
-    def over(start, goal, gaze, floor):
+    def over(start, goal, gaze, up, floor):
         """Straight across; else straight up, across and down. The hand never turns.
 
         Across the back strip a line at waiting height runs the tool into the
@@ -1503,15 +1597,15 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         Returns:
             The waypoints after ``start``, or None.
         """
-        line = straight(start, goal, gaze, floor)
+        line = straight(start, goal, gaze, up, floor)
         for rise in LIFTS:
             if line is not None:
                 return line
-            up, across = lifted(start, rise, gaze), lifted(goal, rise, gaze)
-            if up is None or across is None:
+            high, across = lifted(start, rise, gaze, up), lifted(goal, rise, gaze, up)
+            if high is None or across is None:
                 continue
-            legs = [straight(a, b, gaze, floor) for a, b in
-                    itertools.pairwise((start, up, across, goal))]
+            legs = [straight(a, b, gaze, up, floor) for a, b in
+                    itertools.pairwise((start, high, across, goal))]
             line = None if None in legs else [point for leg in legs for point in leg]
         return line
 
@@ -1534,20 +1628,20 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         rk.set_rail(model, scratch, station0)
         scratch.qpos[rk.arm_qpos(model)] = q0
         mujoco.mj_kinematics(model, scratch)
-        eye, gaze = look_view(target, bearing, look)
+        eye, gaze, up = look_view(target, bearing, look)
         offset = station0 - float(scratch.site(rk.EIH_SITE).xpos[0])
         for station_offset in (offset, *rk.STANDOFFS):
             mujoco.mj_copyData(scratch, model, data)
             station = rk.set_rail(model, scratch, float(eye[0]) + station_offset)
             if not ik(model, scratch, eye, q0, seed=q0, approach=gaze,
-                      site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)) \
+                      site_name=rk.EIH_SITE, image_up=up) \
                     or blocked(model, scratch):
                 continue
             q_look = scratch.qpos[rk.arm_qpos(model)].copy()
-            q_hover = hover_pose(model, scratch, station, q_look, eye, gaze, floor)
+            q_hover = hover_pose(model, scratch, station, q_look, eye, gaze, up, floor)
             if q_hover is None:
                 continue
-            line = over(hover, (station, q_hover), gaze, floor)
+            line = over(hover, (station, q_hover), gaze, up, floor)
             if line is not None:
                 return station, q_hover, q_look, line
             mujoco.mj_copyData(scratch, model, data)
@@ -1557,7 +1651,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
 
     def back_row(track: Track) -> bool:
         """Whether a flask stands on the back strip, seen from the aisle side."""
-        return track.seen_xy[1] + STANDOFF >= 0.10
+        return track.seen_xy[1] + ROW_REACH >= 0.10
 
     def look(track: Track, low: bool = False, hover=None):
         """Put the wrist camera on a track from its bearings until a ring reads.
@@ -1575,15 +1669,16 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         x, y = track.seen_xy
         target = np.array([x, y, rk.BENCH_TOP + LOOK_ABOVE_BENCH])
         tag = f'track {track.id} at ({x:+.2f}, {y:+.2f})'
-        # Look from outside the bench, never from over it. The bearings that
-        # put the camera clear of every other flask come first, and among those
-        # the ones that face the way out of the hull, so the looks work round
-        # the bench rather than reaching across it. A flask the arm can only
-        # reach across is still reached: the order is a preference, not a wall.
+        # The camera comes straight down over the flask and reads the cap. What
+        # the bearing picks is where the cage hangs while it does: the bearings
+        # that keep it clear of every other flask come first, and among those
+        # the ones that face the way out of the hull, so the hand leans off the
+        # bench rather than over it. A flask whose cage side can only fall over
+        # a neighbour is still read: the order is a preference, not a wall.
         standing = [t.seen_xy for t in world.tracks.values() if t.state != 'lost']
         others = [xy for xy in standing if xy != track.seen_xy]
         hull = convex_hull(standing)
-        sides = tuple(bearings_outward(track.seen_xy, others, hull, STANDOFF))
+        sides = tuple(bearings_outward(track.seen_xy, others, hull, CAGE_REACH))
         # Every path from here on must stay over the bench rather than through
         # it. IK will happily answer with a pose whose straight joint-space path
         # crosses the flasks: this is what makes those answers unusable.
@@ -1658,6 +1753,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             return hover
         if result is None:
             track.state, track.note = 'unreachable', 'the wrist camera cannot get there'
+            world.beyond_reach(track, data.time)
         elif not result.sample_id:
             track.confirmation, track.state = result, 'empty'
             track.note = f'no ring from {looks} views: not a sample'
@@ -1671,7 +1767,46 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         world.sighted(rings, data.time, track)
         return hover
 
-    def pick(track: Track):
+    def pour(sample: str, millilitres: float):
+        """Carry the hand over the beaker on the balance and let the dose down.
+
+        The flask has already been picked up, held and set back: that is the
+        pipetting, mimed. What is left is to take what it gave to the mixture,
+        and the mixture is the beaker on the open balance. The hand goes there
+        empty --- there is no tip on this tool to carry liquid in --- stands
+        over the mouth, and the beaker's column rises while it stands there.
+
+        The flask went down by this much when it was set back, so the two
+        columns only ever move together and the total in the scene is conserved.
+        """
+        if beaker is None or millilitres <= 0:
+            return
+        mouth = np.array(data.site(vessels[beaker].mouth).xpos)
+        mujoco.mj_copyData(scratch, model, data)
+        found = plan(model, scratch, carry, mouth + (0.0, 0.0, POUR_ABOVE + gt.APPROACH),
+                     mouth + (0.0, 0.0, POUR_ABOVE))
+        if found is None:
+            world.log(data.time, f'{sample}: the hand cannot reach the beaker; '
+                                 f'{millilitres:.1f} ml not dosed')
+            return
+        station, q_over, q_pour = found
+        yield from travel(station, f'carrying {sample} to the balance', None)
+        yield from drive(station, q_over, open_hand, 1.5, f'over the beaker with {sample}')
+        yield from drive(station, q_pour, open_hand, 1.2, f'at the beaker with {sample}')
+        # The column rises over a second rather than jumping, because a jump
+        # reads as a glitch and this is the one moment the demo is about.
+        was = vessels[beaker].volume
+        for step in range(POUR_STEPS):
+            vessels[beaker].volume = was + millilitres * (step + 1) / POUR_STEPS
+            pt.sync(model, vessels)
+            yield from still(POUR_SECONDS / POUR_STEPS,
+                             f'dosing {millilitres:.1f} ml of {sample} into the beaker')
+        world.log(data.time, f'{sample}: {millilitres:.1f} ml into the beaker, '
+                             f'which now holds {vessels[beaker].volume:.1f} ml')
+        yield from drive(station, q_over, open_hand, 1.2, f'clear of the beaker')
+        yield from drive(station, carry, open_hand, 1.5, f'clear of the beaker')
+
+    def pick(track: Track, millilitres: float | None = None):
         if grip_id is None:
             world.log(data.time, f'{track.sample}: this arm carries no gripper')
             return
@@ -1712,8 +1847,20 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         world.log(data.time, f'{sample}: {track.note}')
         yield from drive(station, q_on, keep, 1.5, f'putting {sample} back')
         yield from drive(station, q_on, open_hand, 0.8, f'releasing {sample}')
+        # Lifting it, holding it and setting it back is the pipetting, mimed:
+        # what the flask gave up comes off its column now, and goes into the
+        # beaker in pour(). A flask that was never lifted gives nothing.
+        drawn = 0.0
+        if got and sample in vessels:
+            drawn = min(DOSE_ML if millilitres is None else millilitres,
+                        vessels[sample].volume)
+            vessels[sample].volume -= drawn
+            pt.sync(model, vessels)
+            world.log(data.time, f'{sample}: {drawn:.1f} ml drawn, '
+                                 f'{vessels[sample].volume:.1f} ml left in the flask')
         yield from drive(station, q_above, open_hand, 1.2, f'clear of {sample}')
         yield from drive(station, carry, open_hand, 1.5, f'clear of {sample}')
+        yield from pour(sample, drawn)
         # A bottle let go of settles where it likes, up to 30 mm from where it
         # was taken. The ring's position is spent; the fixed camera's stands in
         # until the next pick reads the ring again.
@@ -1808,13 +1955,13 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         for command in asked:
             track = by_id.get(command.get('track'))
             if job is None and track and track.sample and track.state != 'lost':
-                job = (pick, track)
+                job = (pick, track, command.get('ml'))
         if job is None:
             # A bottle just named is picked before anything else is looked at: the
             # arm is already there, and its position is as fresh as it will be.
-            todo = [(pick, t) for t in tracks
+            todo = [(pick, t, None) for t in tracks
                     if t.state == 'named' and not t.picks] if world.auto else []
-            todo = todo or [(look, t) for t in tracks if t.state == 'proposed']
+            todo = todo or [(look, t, None) for t in tracks if t.state == 'proposed']
             if todo:
                 # What the detector is sure of first, nearest along the rail first.
                 # A ring is surer than any box: a bottle it named goes with the
@@ -1824,7 +1971,7 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         if job is None:
             yield from still(0.2, 'idle: watching the bench')
             continue
-        yield from job[0](job[1])
+        yield from (job[0](job[1], job[2]) if job[0] is pick else job[0](job[1]))
 
 
 def annotate(frame: np.ndarray, tracks: list[Track], camera: Camera) -> np.ndarray:
