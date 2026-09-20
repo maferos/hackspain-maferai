@@ -1,0 +1,16 @@
+{
+ "frames_per_test": {
+  "close_test": 150,
+  "dark_test": 150,
+  "lab_rail_test": 100,
+  "lab_test": 150,
+  "low_test": 100,
+  "orbit_dark_test": 150,
+  "orbit_test": 300,
+  "overhead_test": 150,
+  "pattern_orbit_test": 100,
+  "pattern_test": 100,
+  "rail_test": 150,
+  "rail_test_shift": 100
+ }
+}
