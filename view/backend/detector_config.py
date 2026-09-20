@@ -10,7 +10,7 @@ DETECTOR_WEIGHTS = WEIGHTS_DIR / 'yolo26n_full_1920_e25.pt'
 DETECTOR_CONF = 0.41
 
 # Isaac Replay retains its separately selected model; upgrades also require code.
-REPLAY_WEIGHTS = WEIGHTS_DIR / 'yolo26n_isaac_v2.pt'
-REPLAY_INPUT_PX = 1600
+REPLAY_WEIGHTS = WEIGHTS_DIR / 'yolo26n_isaac_1920_e25.pt'
+REPLAY_INPUT_PX = 1920
 # Initial inference cutoff, not a calibrated best-F1 score for these replay videos.
 REPLAY_CONF = 0.25
