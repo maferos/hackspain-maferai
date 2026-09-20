@@ -28,19 +28,13 @@ modes (see Lab state panels below).
 
 ## Run it
 
-To select the current MuJoCo detector, copy `yolo26n_full_1920_e25.pt` into
-`computer-vision/weights/`, then put these settings in `view/backend/.env`
-(or export them before starting the backend):
-
-```sh
-VIEW_DETECTOR=full
-VIEW_DETECTOR_CONF=0.41
-```
-
-This selection applies to both live scan perception and the optional live box
-detector. Restart the backend after changing it. The scan uses the named
-backend's threshold unless `VIEW_DETECTOR_CONF` overrides it; a missing selected
-model produces an error instead of silently loading an older one.
+The MuJoCo model and confidence threshold are intentionally hardcoded in
+`backend/detector_config.py`: `yolo26n_full_1920_e25.pt` at 0.41. Copy the file
+into `computer-vision/weights/`. Upgrading the detector requires editing that
+code and restarting the backend; environment variables cannot select a model
+or override its threshold. Both live scanning and live box detection share
+these constants. Missing weights produce an error instead of loading an older
+model. Replay's separate model is pinned in the same file.
 
 The viewer uses camera WebSockets so multiple open tabs do not exhaust the
 browser's per-host HTTP connection limit. Cameras reconnect automatically
@@ -128,14 +122,13 @@ viewer subscribes, every `VIEW_DETECTOR_FRAME_STRIDE` rendered frames (default 5
 using `VIEW_DETECTOR_THREADS` torch threads (default 2). It uses the table crop
 and discards intermediate frames rather than queuing inference.
 
-It needs `ultralytics` in the backend's venv and the weights: `VIEW_DETECTOR`
-names a `labvision.detector` backend or a weights path, and the default,
-`full`, is the YOLO26n trained on MuJoCo renders of this scene from every
+It needs `ultralytics` in the backend's venv and the pinned weights.
+The `full` model is the YOLO26n trained on MuJoCo renders of this scene from every
 angle, which the backend finds as
 `computer-vision/weights/yolo26n_full_1920_e25.pt` (not in git; get it from the
 team Drive, `hackathon/weights/yolo26n_full_1920_e25`, and see
 `computer-vision/weights/README.md`). The boxes use that backend's own best-F1
-threshold, 0.41; `VIEW_DETECTOR_CONF` overrides it. Without the weights the
+threshold, 0.41, pinned in `backend/detector_config.py`. Without the weights the
 button is greyed out and says why. Replay stays on
 `yolo26n_rail_general.pt`, the model scored against those Isaac videos. On the rail scene's test frames the model finds 99 %
 of the bottles on the bench at 99.6 % precision
@@ -334,7 +327,7 @@ The viewport label shows measured inference and round-trip times; the side
 panels continue to read live lab state.
 
 Copy the Drive `General MAFER AI/hackathon/yolo26n_rail_general/yolo26n_rail_general.pt` weights to
-`computer-vision/weights/yolo26n_rail_general.pt` (or set `VIEW_REPLAY_WEIGHTS`).
+`computer-vision/weights/yolo26n_rail_general.pt` (pinned in `backend/detector_config.py`).
 Replay detection uses rail weights at 1280 px and confidence 0.47, and requires
 Ultralytics in the backend environment. It crops the fixed general camera to
 the table band (30–75% of frame height, full width) before inference, removing

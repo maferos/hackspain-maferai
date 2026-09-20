@@ -10,32 +10,21 @@ from live_scan import LiveScan, vp
 
 
 class LiveScanTest(unittest.TestCase):
-    def test_selected_backend_and_threshold_reach_scan_worker(self):
+    def test_environment_cannot_override_pinned_model(self):
         weights = Path(__file__)
-        for override, expected in (({}, 0.41), ({'VIEW_DETECTOR_CONF': '0.35'}, 0.35)):
-            with self.subTest(override=override), \
-                 patch.dict(os.environ, {'VIEW_DETECTOR': 'full', **override}, clear=True), \
-                 patch('live_scan.resolve_detector', return_value=(str(weights), 0.41)) as resolve, \
-                 patch('live_scan.ScanDetector') as detector, \
-                 patch('live_scan.ScanPerception'), patch.object(vp, 'controller'):
-                scan = LiveScan(Mock(), SimpleNamespace(time=0), threading.Lock(), 3)
-                self.assertIsNone(scan.error)
-                resolve.assert_called_once_with('full')
-                detector.assert_called_once_with(weights, expected)
-
-    def test_missing_selected_backend_does_not_fall_back_to_old_model(self):
-        with patch.dict(os.environ, {'VIEW_DETECTOR': 'full'}, clear=True), \
-             patch('live_scan.resolve_detector', side_effect=FileNotFoundError('missing full weights')), \
-             patch('live_scan.ScanDetector') as detector:
+        with patch.dict(os.environ, {'VIEW_DETECTOR': 'rail', 'VIEW_DETECTOR_CONF': '0.10'}), \
+             patch('live_scan.DETECTOR_WEIGHTS', weights), \
+             patch('live_scan.ScanDetector') as detector, \
+             patch('live_scan.ScanPerception'), patch.object(vp, 'controller'):
             scan = LiveScan(Mock(), SimpleNamespace(time=0), threading.Lock(), 3)
-        self.assertIn('missing full weights', scan.error)
-        detector.assert_not_called()
+            self.assertIsNone(scan.error)
+            detector.assert_called_once_with(weights, 0.41)
 
-    def test_missing_weights_is_visible_without_starting_perception(self):
-        with patch.object(vp, 'DETECTORS', []):
+    def test_missing_weights_is_visible_without_falling_back(self):
+        with patch('live_scan.DETECTOR_WEIGHTS', Path('/missing/yolo26n_full_1920_e25.pt')):
             scan = LiveScan(Mock(), SimpleNamespace(time=0), threading.Lock(), 3)
         self.assertEqual(scan.snapshot()['status'], 'error')
-        self.assertIn('yolo26n_rail_general.pt', scan.error)
+        self.assertIn('yolo26n_full_1920_e25.pt', scan.error)
         self.assertIsNone(scan.perception)
         scan.advance(1 / 15)
         scan.close()

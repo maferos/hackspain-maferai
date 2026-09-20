@@ -75,7 +75,7 @@ sys.path.insert(0, str(REPO_ROOT / "computer-vision"))
 from labbridge.mock_run import ACTIVE_BALANCE, RAIL, ScriptedRun  # noqa: E402
 from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
-from labvision.detector import resolve as resolve_detector
+from detector_config import DETECTOR_SPEC, DETECTOR_WEIGHTS, DETECTOR_CONF, REPLAY_WEIGHTS
 from catalogue import Catalogue, resolve, shelf_from_tracks  # noqa: E402
 from formula_chat import MODEL as CHAT_MODEL, FormulaChat  # noqa: E402
 
@@ -120,30 +120,7 @@ RENDER_FPS = 15
 JPEG_QUALITY = 80
 PREVIEW_FPS = 5
 
-# Bottle detector on the general camera's live frames, run only while a client
-# has the boxes on (see Detector). VIEW_DETECTOR is a labvision backend name or
-# a weights path; the default `full` is the YOLO26n trained on MuJoCo renders of
-# this scene from every angle (computer-vision/weights/README.md), which it
-# finds as computer-vision/weights/yolo26n_full_1920_e25.pt. The boxes are drawn
-# raw, at the backend's own best-F1 threshold; VIEW_DETECTOR_CONF overrides it,
-# and a bare weights path with no backend behind it falls back to DEFAULT_CONF.
-# The older `rail` backend carries 0.10 instead, the operating point
-# propose_confirm wants, so drawing its boxes wants VIEW_DETECTOR_CONF=0.47.
-DETECTOR_SPEC = os.environ.get("VIEW_DETECTOR", "full")
-DETECTOR_CONF = os.environ.get("VIEW_DETECTOR_CONF")
-DEFAULT_CONF = 0.41
-# The live scan reads these from the environment (live_scan.py). Set them from
-# the same defaults, so the scan and the boxes drawn over it are one model --
-# but only when that model's weights are here, or a machine that has only the
-# older ones would get an error instead of the scan it used to run.
-if SCAN_ENABLED and not os.environ.get("VIEW_DETECTOR"):
-    try:
-        resolve_detector(DETECTOR_SPEC)
-        os.environ["VIEW_DETECTOR"] = DETECTOR_SPEC
-        os.environ.setdefault("VIEW_DETECTOR_CONF", str(DETECTOR_CONF or DEFAULT_CONF))
-    except FileNotFoundError as exc:
-        print(f"[view] {exc}; the scan keeps its own detector", file=sys.stderr)
-
+# Model and threshold are intentionally pinned in detector_config.py.
 DETECTOR_CAMERA = "scene"  # logical id; the model only knows the fixed camera
 DETECTOR_FRAME_STRIDE = int(os.environ.get("VIEW_DETECTOR_FRAME_STRIDE", "5"))
 if DETECTOR_FRAME_STRIDE < 1:
@@ -408,19 +385,14 @@ class Detector:
     boxes.
     """
 
-    def __init__(self, renderer: SceneRenderer, spec: str) -> None:
+    def __init__(self, renderer: SceneRenderer) -> None:
         self.renderer = renderer
         self.mj_camera = renderer.cameras[DETECTOR_CAMERA]["mj_name"]
         self.error = None
-        score = None
-        try:
-            path, score = resolve_detector(spec)
-        except FileNotFoundError as exc:
-            path, self.error = "", str(exc)
-        self.weights = Path(path)
-        if self.error is None and not self.weights.exists():
-            self.error = f"no weights at {path}"
-        self.conf = float(DETECTOR_CONF) if DETECTOR_CONF else (score or DEFAULT_CONF)
+        self.weights = DETECTOR_WEIGHTS
+        if not self.weights.is_file():
+            self.error = f"Missing detector weights: {self.weights}"
+        self.conf = DETECTOR_CONF
         self.watchers = 0
         self.latest: dict | None = None
         self._lock = threading.Lock()
@@ -498,7 +470,7 @@ class Detector:
                 worker.wait()
 
 
-detector = Detector(scene, DETECTOR_SPEC)
+detector = Detector(scene)
 threading.Thread(target=detector.run_forever, daemon=True).start()
 
 # --- FastAPI app -----------------------------------------------------------
@@ -786,8 +758,7 @@ async def ws_replay_detections(websocket: WebSocket, pattern: str | None = None)
     try:
         # Replay plays Isaac renders, which the newer `full` model has not been
         # scored on, so this stays on the model measured against these videos.
-        weights = Path(os.environ.get("VIEW_REPLAY_WEIGHTS", str(
-            REPO_ROOT / "computer-vision/weights/yolo26n_rail_general.pt")))
+        weights = REPLAY_WEIGHTS
         renders = REPO_ROOT / "view/frontend/public/renders"
         if pattern is None:
             video = renders / "rail_global.mp4"
