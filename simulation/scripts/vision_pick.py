@@ -96,6 +96,7 @@ from labvision.perception import (
     propose,
     refine,
     refine_marker,
+    refine_identity,
     ring_geometry,
     vessel_height,
 )
@@ -645,13 +646,7 @@ def rings_in_view(frame: np.ndarray, camera: Camera, rows: dict[int, dict],
         vessel = row.get('vessel_class') if row else None
         if not vessel or not (KIT / 'meshes' / f'{vessel}_label.obj').exists():
             continue
-        radius, ring_height = ring_geometry(vessel)
-        facing = identity.frontal
-        xy = (refine_marker(camera, facing.corners, radius, ring_height,
-                            bench_z=rk.BENCH_TOP) if facing else None)
-        if xy is None:
-            uv = facing.centre if facing else identity.bbox.centre
-            xy = refine(camera, uv, radius, ring_height, bench_z=rk.BENCH_TOP)
+        xy = refine_identity(camera, identity, vessel, bench_z=rk.BENCH_TOP)
         if xy is None or math.dist(xy, camera.position[:2]) > RING_RANGE:
             continue
         if not (WORKTOP[0][0] <= xy[0] <= WORKTOP[0][1]

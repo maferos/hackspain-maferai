@@ -318,3 +318,32 @@ def test_confirm_places_a_turned_ring_by_the_way_its_marker_faces():
     found = confirm(frame, camera, (0.0, 0.0, BENCH_TOP_Z + 0.05), ROWS)
     assert found.sample_id == "SMP-0005"
     assert math.dist(found.refined_xy, (0.0, 0.0)) < 0.003
+
+
+@pytest.mark.parametrize('eye', [(0, -.3, 1.2), (.18, -.2, 1.3), (0, 0, 1.5)])
+def test_cap_marker_is_located_on_its_horizontal_plane(eye):
+    from labvision.perception import cap_geometry, refine_cap
+    height, side = cap_geometry('flask_50ml')
+    centre = np.array([.04, -.02, BENCH_TOP_Z + height])
+    camera = Camera.look_at(INTRINSICS, eye, centre)
+    corners = np.array([[-1,-1,0],[1,-1,0],[1,1,0],[-1,1,0]])*side/2 + centre
+    assert refine_cap(camera, camera.project(corners), 'flask_50ml') == pytest.approx(centre[:2], abs=1e-8)
+
+
+def test_lateral_marker_is_not_mistaken_for_a_cap():
+    from labvision.perception import marker_side, refine_cap
+    radius, height = ring_geometry('flask_50ml')
+    side = marker_side('flask_50ml')
+    centre = np.array([0, -radius, BENCH_TOP_Z + height])
+    camera = Camera.look_at(INTRINSICS, (0, -.3, 1.2), centre)
+    corners = np.array([[-1,0,-1],[1,0,-1],[1,0,1],[-1,0,1]])*side/2 + centre
+    assert refine_cap(camera, camera.project(corners), 'flask_50ml') is None
+
+
+def test_wrong_marker_size_is_not_accepted_on_a_cap():
+    from labvision.perception import cap_geometry, refine_cap
+    height, side = cap_geometry('flask_50ml')
+    centre = np.array([0, 0, BENCH_TOP_Z + height])
+    camera = Camera.look_at(INTRINSICS, (0, -.3, 1.2), centre)
+    corners = np.array([[-1,-1,0],[1,-1,0],[1,1,0],[-1,1,0]])*side + centre
+    assert refine_cap(camera, camera.project(corners), 'flask_50ml') is None

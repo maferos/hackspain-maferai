@@ -360,6 +360,63 @@ def refine_marker(
     return float(axis[0]), float(axis[1])
 
 
+@functools.lru_cache(maxsize=32)
+def cap_geometry(vessel: str, kit: Path = KIT) -> tuple[float, float] | None:
+    """Cap sticker height and printed marker side, including its quiet-zone scale."""
+    mesh = kit / 'meshes' / f'{vessel}_cap_label.obj'
+    if not mesh.exists():
+        return None
+    vertices = np.array([line.split()[1:4] for line in mesh.read_text().splitlines()
+                         if line.startswith('v ')], dtype=float)
+    width = float(np.ptp(vertices[:, 0]))
+    fraction = bottles.ARUCO_MARKER_MODULES / (bottles.ARUCO_MARKER_MODULES
+                                             + 2*bottles.ARUCO_QUIET_MODULES)
+    return float(vertices[:, 2].mean()), width*fraction
+
+
+def refine_cap(camera: Camera, corners: np.ndarray, vessel: str, *,
+               bench_z: float = BENCH_TOP_Z, kit: Path = KIT):
+    """Accept a cap marker only if its known plane recovers a square of its size.
+
+    Applying cylindrical-ring geometry to a cap creates a displaced phantom
+    vessel. The physical sticker size and four corners distinguish the planes.
+    """
+    geometry = cap_geometry(vessel, kit)
+    if geometry is None:
+        return None
+    height, side = geometry
+    points = [_on_height(camera, uv, bench_z+height) for uv in corners]
+    if any(p is None for p in points):
+        return None
+    points = np.asarray(points)
+    edges = np.roll(points, -1, axis=0)-points
+    lengths = np.linalg.norm(edges, axis=1)
+    if np.max(np.abs(lengths/side-1)) > .18:
+        return None
+    directions = edges/lengths[:, None]
+    if np.max(np.abs(np.sum(directions*np.roll(directions, -1, axis=0), axis=1))) > .20:
+        return None
+    centre = _on_height(camera, _quad_centre(np.asarray(corners)), bench_z+height)
+    return tuple(float(v) for v in centre[:2])
+
+
+def refine_identity(camera: Camera, identity, vessel: str, *,
+                    bench_z: float = BENCH_TOP_Z, kit: Path = KIT):
+    """Locate a cap on its horizontal plane, otherwise use the lateral ring."""
+    for marker in sorted(identity.read, key=lambda marker: marker.area, reverse=True):
+        cap = refine_cap(camera, marker.corners, vessel, bench_z=bench_z, kit=kit)
+        if cap is not None:
+            return cap
+    radius, height = ring_geometry(vessel, kit)
+    facing = identity.frontal
+    if facing:
+        xy = refine_marker(camera, facing.corners, radius, height, bench_z=bench_z)
+        if xy is not None:
+            return xy
+    uv = facing.centre if facing else identity.bbox.centre
+    return refine(camera, uv, radius, height, bench_z=bench_z)
+
+
 def confirm(
     frame: np.ndarray,
     camera: Camera,
@@ -372,7 +429,7 @@ def confirm(
     bench_z: float = BENCH_TOP_Z,
     kit: Path = KIT,
 ) -> Confirmation:
-    """Name and place the bottle at a proposal from the wrist camera's frame
+    """Name and place a bottle from cap or lateral markers in the wrist frame
 
     Args:
         frame: The wrist camera's BGR frame, taken looking at ``target``.
@@ -404,14 +461,7 @@ def confirm(
         offset = math.dist(uv, expected)
         if offset >= associate_px:
             continue
-        radius, ring_height = ring_geometry(vessel, kit)
-        refined = None
-        if facing is not None:
-            refined = refine_marker(
-                camera, facing.corners, radius, ring_height, bench_z=bench_z
-            )
-        if refined is None:
-            refined = refine(camera, uv, radius, ring_height, bench_z=bench_z)
+        refined = refine_identity(camera, identity, vessel, bench_z=bench_z, kit=kit)
         if refined is None:
             continue
         # Placed as the bottle its ring names, it must stand where the proposal
