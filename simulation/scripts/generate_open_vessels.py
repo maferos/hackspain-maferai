@@ -165,9 +165,11 @@ def build(sample: str, bore: Bore, millilitres: float) -> Path:
     xml = (CATALOGUE / f'{sample}.xml').read_text()
     xml = xml.replace('file="meshes/', 'file="../labelled_bottles/meshes/')
     xml = xml.replace('file="textures/', 'file="../labelled_bottles/textures/')
-    # Open it: the cap is a geom of its own, so the flask opens by deleting a
-    # line. Unscrewing it is a different job and needs it to be its own body.
-    xml = re.sub(r'\n\s*<geom name="cap".*?/>', '', xml)
+    # Open it: the cap and its sticker are geoms of their own, so the flask opens
+    # by deleting two lines. Unscrewing it is a different job and needs it to be
+    # its own body.
+    xml = re.sub(r'\n\s*<geom name="cap(?:_label)?".*?/>', '', xml)
+    xml = re.sub(r'\n\s*<(?:mesh|texture|material) name="(?:\w+_)?cap_label"[^>]*/>', '', xml)
     # The glass keeps its looks and gives up its collision to the shell below.
     xml = re.sub(r'(<geom name="glass"[^/]*?)density="\d+"',
                  r'\1contype="0" conaffinity="0" mass="0"', xml)

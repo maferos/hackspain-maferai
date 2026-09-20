@@ -12,6 +12,7 @@ only the picture on the sticker differs. So the output is split the same way:
     assets/labelled_bottles/
         meshes/<vessel_class>_<part>.obj    one set per bottle size, shared
         textures/<sample id>.png            the label of one sample
+        textures/<sample id>_cap.png        the same marker once, for the top of its cap
         <sample id>.xml                     an MJCF body: shared meshes + its texture
         meshes/<vessel_class>_shelf_<part>.obj   light stand-ins, for bottles by the hundred
         textures/shelf/<sample id>.png           the same label at half resolution
@@ -26,6 +27,12 @@ facing -Y, closed with its cap. Attach it like any other asset:
 Bottle and cap collide (convex hull) and carry the mass, with ``inertia="exact"``
 because they are thin shells. The sticker is visual only: no collision, no mass, and
 its own geom, so a segmentation render tells label from bottle for free.
+
+The cap carries a second sticker, ``cap_label``: one cell of the bottle's ring (the
+marker and its quiet zone) on a square inscribed in the flat top of the cap, so a
+camera looking down on the bench reads the same id the ring gives from the side.
+It is cut out of the ring texture rather than drawn again, so the two can never
+disagree. Shelf stand-ins do without it: nobody looks down on a shelf.
 
 The shelf stand-ins exist because the kit meshes are modelled for close-ups: a 1 L
 bottle with its ribbed cap is 48 000 triangles, and the room's shelving holds
@@ -70,7 +77,14 @@ MATERIALS = {
     "Label_paper": ("label", 0),
     "Label_back": ("label_back", 0),
 }
-STICKER_PARTS = ("label", "label_back")
+STICKER_PARTS = ("label", "label_back", "cap_label")
+
+STICKER_LIFT = 0.0002
+"""Metres a sticker floats off the surface it is stuck to, the same 0.2 mm the kits
+use for the ring."""
+
+CAP_FLAT_TOLERANCE = 0.0003
+"""Vertices this close to a cap's highest point count as its flat top."""
 
 SHELF_SEGMENTS = 24
 """Sides of a shelf stand-in. The sticker floats 0.2 mm off the true wall, and a
@@ -206,6 +220,43 @@ def revolve(profile: list[tuple[float, float]]) -> tuple[np.ndarray, np.ndarray]
     return np.array(vertices, float), np.array(faces, int)
 
 
+def cap_sticker(cap: dict) -> dict:
+    """A square sticker inscribed in the flat top of a cap, UVs over the whole image.
+
+    Args:
+        cap: The cap part, vertices in the bottle's frame.
+
+    Returns:
+        A part like ``parts_of`` returns: two triangles facing +Z, no mass.
+    """
+    v = cap["v"]
+    top = v[:, 2].max()
+    flat = v[v[:, 2] > top - CAP_FLAT_TOLERANCE]
+    half = np.hypot(flat[:, 0], flat[:, 1]).max() / math.sqrt(2)
+    z = top + STICKER_LIFT
+    corners = np.array([(-half, -half, z), (half, -half, z), (half, half, z), (-half, half, z)])
+    # glTF UVs, origin top left: write_obj flips them for OBJ.
+    uv = np.array([(0.0, 1.0), (1.0, 1.0), (1.0, 0.0), (0.0, 0.0)])
+    faces = np.array([(0, 1, 2), (0, 2, 3)])
+    return {"v": corners, "f": faces, "uv": uv, "rgba": (1.0, 1.0, 1.0, 1.0), "density": 0}
+
+
+def cap_png(ring: bytes) -> bytes:
+    """Cut the middle cell out of a ring texture: one marker with its quiet zone.
+
+    The ring is a strip of square cells rolled so a marker, not a seam, sits at its
+    centre (``labvision.bottles.render_ring``), so the centre square is one whole cell.
+    """
+    strip = Image.open(io.BytesIO(ring))
+    w, h = strip.size
+    if w % h:
+        raise ValueError(f"ring texture {w}x{h} is not a strip of square cells")
+    cell = strip.crop((w // 2 - h // 2, 0, w // 2 + h // 2, h))
+    out = io.BytesIO()
+    cell.save(out, format="PNG", optimize=True)
+    return out.getvalue()
+
+
 def label_png(glb: Glb) -> bytes:
     """Pull the embedded label image out of a labelled GLB."""
     image = glb.json["images"][-1]
@@ -224,7 +275,8 @@ def sample_xml(sample_id: str, record: dict, parts: dict[str, dict]) -> str:
         if name in STICKER_PARTS:
             # An open surface: shell inertia, and neither mass nor contacts.
             meshes.append(f'    <mesh name="{mesh}" file="meshes/{mesh}.obj" inertia="shell"/>')
-            look = 'material="label"' if name == "label" else f'rgba="{r:.3f} {g:.3f} {b:.3f} 1"'
+            look = (f'material="{name}"' if name in ("label", "cap_label")
+                    else f'rgba="{r:.3f} {g:.3f} {b:.3f} 1"')
             geoms.append(f'      <geom name="{name}" type="mesh" mesh="{mesh}" {look}'
                          f' contype="0" conaffinity="0" mass="0"/>')
         else:
@@ -239,6 +291,8 @@ def sample_xml(sample_id: str, record: dict, parts: dict[str, dict]) -> str:
 {chr(10).join(meshes)}
     <texture name="label" type="2d" file="textures/{sample_id}.png"/>
     <material name="label" texture="label" specular="0.05" shininess="0.1"/>
+    <texture name="cap_label" type="2d" file="textures/{sample_id}_cap.png"/>
+    <material name="cap_label" texture="cap_label" specular="0.05" shininess="0.1"/>
   </asset>
   <worldbody>
     <body name="{sample_id}">
@@ -276,6 +330,7 @@ def main() -> None:
                 # Screwed down, the cap overlaps the neck finish by all but a millimetre.
                 seat = parts["body"]["v"][:, 2].max() - height + 0.001
                 parts["cap"] = parts_of(cap, lift=seat)["cap"]
+            parts["cap_label"] = cap_sticker(parts["cap"])
             order = sorted(parts, key=lambda name: name in STICKER_PARTS)
             shared[vessel] = {name: parts[name] for name in order}
             triangles = {"full": 0, "shelf": 0}
@@ -288,7 +343,10 @@ def main() -> None:
                     light = {"v": v, "f": f, "uv": None}
                     write_obj(args.out / "meshes" / f"{vessel}_shelf_{name}.obj", light)
                 triangles["shelf"] += len(light["f"])
-            everything = np.vstack([p["v"] for p in shared[vessel].values()])
+            # The size of the bottle as the room generators know it: without the
+            # cap sticker, which they do not place and which floats off the top.
+            everything = np.vstack([p["v"] for name, p in shared[vessel].items()
+                                    if name != "cap_label"])
             size = np.ptp(everything, axis=0)
             manifest["vessels"][vessel] = {
                 "phase": record["phase"],
@@ -296,7 +354,7 @@ def main() -> None:
                 "diameter_m": round(float(max(size[0], size[1])), 5),
                 "height_m": round(float(size[2]), 5),
                 "parts": {name: [round(float(c), 3) for c in part["rgba"]]
-                          for name, part in shared[vessel].items()},
+                          for name, part in shared[vessel].items() if name != "cap_label"},
             }
             print(f"{vessel}: {', '.join(shared[vessel])}; "
                   f"{size[0] * 1e3:.0f} x {size[1] * 1e3:.0f} x {size[2] * 1e3:.0f} mm; "
@@ -309,6 +367,7 @@ def main() -> None:
         manifest["label"] = extras.get("label", "ean13")
         png = label_png(glb)
         (args.out / "textures" / f"{sample_id}.png").write_bytes(png)
+        (args.out / "textures" / f"{sample_id}_cap.png").write_bytes(cap_png(png))
         # Half size by box filter: every texel is the mean of four, so a module stays
         # four whole pixels wide and the bars stay sharp.
         label = Image.open(io.BytesIO(png))

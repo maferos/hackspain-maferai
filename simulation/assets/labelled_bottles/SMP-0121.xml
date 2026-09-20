@@ -7,8 +7,11 @@
     <mesh name="flask_10ml_cap" file="meshes/flask_10ml_cap.obj" inertia="exact"/>
     <mesh name="flask_10ml_label" file="meshes/flask_10ml_label.obj" inertia="shell"/>
     <mesh name="flask_10ml_label_back" file="meshes/flask_10ml_label_back.obj" inertia="shell"/>
+    <mesh name="flask_10ml_cap_label" file="meshes/flask_10ml_cap_label.obj" inertia="shell"/>
     <texture name="label" type="2d" file="textures/SMP-0121.png"/>
     <material name="label" texture="label" specular="0.05" shininess="0.1"/>
+    <texture name="cap_label" type="2d" file="textures/SMP-0121_cap.png"/>
+    <material name="cap_label" texture="cap_label" specular="0.05" shininess="0.1"/>
   </asset>
   <worldbody>
     <body name="SMP-0121">
@@ -16,6 +19,7 @@
       <geom name="cap" type="mesh" mesh="flask_10ml_cap" rgba="0.930 0.930 0.910 1.000" density="900"/>
       <geom name="label" type="mesh" mesh="flask_10ml_label" material="label" contype="0" conaffinity="0" mass="0"/>
       <geom name="label_back" type="mesh" mesh="flask_10ml_label_back" rgba="0.950 0.950 0.930 1" contype="0" conaffinity="0" mass="0"/>
+      <geom name="cap_label" type="mesh" mesh="flask_10ml_cap_label" material="cap_label" contype="0" conaffinity="0" mass="0"/>
     </body>
   </worldbody>
 </mujoco>

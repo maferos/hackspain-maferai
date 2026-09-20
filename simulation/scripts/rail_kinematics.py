@@ -161,7 +161,7 @@ def bottles(model: mujoco.MjModel, data: mujoco.MjData) -> list[Bottle]:
         One Bottle per sample, sorted along the bench.
     """
     pattern = re.compile(
-        r'^(?:room_stock|dyn)_(.+?)_(body|glass|cap|label|label_back)(?:_\d+)?$')
+        r'^(?:room_stock|dyn)_(.+?)_(body|glass|cap|cap_label|label|label_back)(?:_\d+)?$')
     groups: dict[str, list[int]] = {}
     labels: dict[str, list[int]] = {}
     free: set[str] = set()
