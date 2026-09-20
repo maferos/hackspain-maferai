@@ -9,4 +9,11 @@ Hackathon project. Two components:
 
 [`SCANNING_PLAN.md`](SCANNING_PLAN.md) is the plan for the first scanning pass: the general camera finds the vessels, the arm drives its wrist camera over each one, and the bench memory that comes out maps every sample to its compound and its 3D position.
 
-See [`AGENTS.md`](AGENTS.md) for the team and conventions.
+## Team
+
+- Eki Gonzalez
+- Nacho Gris
+- Martí Martinez
+- Eloi Torrents
+
+See [`AGENTS.md`](AGENTS.md) for who owns which component, and the conventions.
