@@ -118,9 +118,16 @@ function LabStatus({ state, connected }) {
   return <span className="lab-status lab-status--ok">{scan ? `Bench mapped · ${scan.named} flasks · ready` : "Ready"}</span>;
 }
 
+// Which of the three a box is: a flask the current formula calls for, a flask
+// the scan has named, or something the detector boxed and nobody has read yet.
+function boxClass(label, wanted) {
+  if (!label?.startsWith("SMP-")) return "";
+  return wanted?.has(label) ? "scan-formula" : "scan-identified";
+}
+
 // The detector's boxes over a camera, in the frame's own pixels: the viewBox is
 // the frame and "slice" crops it exactly as the image's object-fit: cover does.
-function DetectionBoxes({ detections }) {
+function DetectionBoxes({ detections, wanted }) {
   return (
     <svg
       className="camera-frame__boxes"
@@ -129,12 +136,15 @@ function DetectionBoxes({ detections }) {
       aria-hidden="true"
     >
       {detections.boxes.map(([x0, y0, x1, y1], i) => (
-        <g key={i} className={detections.labels?.[i]?.startsWith("SMP-") ? "scan-identified" : ""}>
+        <g key={i} className={boxClass(detections.labels?.[i], wanted)}>
           <rect x={x0 - 3} y={y0 - 3} width={x1 - x0 + 6} height={y1 - y0 + 6} />
-          {/* Only the identified code, revealed on hover (see App.css); the
-              pre-identification track numbers (#1, #2 …) are never drawn. */}
+          {/* The identified code, on hover; a flask the current formula calls
+              for says so without being asked, because that is the one the
+              operator is looking for on the bench. */}
           {detections.labels?.[i]?.startsWith("SMP-") && (
-            <text x={x0 - 3} y={y0 - 10}>{detections.labels[i]}</text>
+            <text x={x0 - 3} y={y0 - 10}>
+              {wanted?.has(detections.labels[i]) ? `● ${detections.labels[i]}` : detections.labels[i]}
+            </text>
           )}
         </g>
       ))}
@@ -264,12 +274,12 @@ function LiveCameraImage({ cameraId, label, preview }) {
   </>;
 }
 
-function CameraStream({ cameraId, label, className, onClick, big, detections }) {
+function CameraStream({ cameraId, label, className, onClick, big, detections, wanted }) {
   const boxes = detections && detections.camera === cameraId ? detections : null;
   return (
     <div className={`camera-frame ${className ?? ""}`} onClick={onClick}>
       <LiveCameraImage key={`${cameraId}-${big}`} cameraId={cameraId} label={label} preview={!big} />
-      {boxes && <DetectionBoxes detections={boxes} />}
+      {boxes && <DetectionBoxes detections={boxes} wanted={wanted} />}
       <span className="camera-frame__label">
         {label}
         {boxes && ` · ${boxes.boxes.length} bottles`}
@@ -516,6 +526,18 @@ export default function App() {
   // The chat and the header follow the live lab state only, never the recording.
   const live = lab.connected ? lab.state : null;
 
+  // The flasks the order on the bench calls for, drawn apart from the rest.
+  // Only when the bench can make the whole formula: a half-answer picked out in
+  // red would say the run is ready when it is not, and a formula with a line
+  // missing is refused at the check anyway.
+  const live_order = lab.state?.order ?? null;
+  const wanted = (() => {
+    if (!live_order || !["queued", "running"].includes(live_order.status)) return null;
+    const lines = live_order.ingredients ?? [];
+    if (!lines.length || lines.some((i) => i.problem || !i.sampleId)) return null;
+    return new Set(lines.map((i) => i.sampleId));
+  })();
+
   const { views } = layout;
 
   // Each handle measures its parent when the drag starts and keeps every view
@@ -635,6 +657,7 @@ export default function App() {
                 className="camera-frame--main"
                 big
                 detections={detections}
+                wanted={wanted}
               />
               <CameraStream
                 cameraId={pipCameraId}
@@ -642,6 +665,7 @@ export default function App() {
                 className="camera-frame--pip"
                 onClick={swapCameras}
                 detections={detections}
+                wanted={wanted}
               />
             </> : replayPattern ? <ReplayViewport key={`${replayPattern.pattern}:${replayPattern.revision ?? "original"}`} pattern={replayPattern} mainCameraId={mainCameraId} onSwap={swapCameras} showBoxes={showBoxes} />
               : <div className="camera-frame camera-frame--main"><span className="camera-frame__connection" role="status">
