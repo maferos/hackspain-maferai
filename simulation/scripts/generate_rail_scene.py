@@ -89,6 +89,11 @@ ARM_BASE_Z = BEAM_BOTTOM - ARM_BASE_DZ
 # stood on the beam: solved for the tool at the carry point (y -0.35, z 1.30),
 # hand down, 1.08 m clear of the worktop and touching nothing.
 SCAN_POSE = (-1.9066, -0.1282, 1.7589, 0.8415, -1.3035, -1.9808)
+# The same hand-down scan, 0.30 m higher, for the vertical hand: its cage hangs 0.49 m
+# under the flange, and at SCAN_POSE its foot would sweep 0.97 m over the floor, through
+# the bottles' tops (0.99 m). Solved with rail_kinematics.solve_ik (approach -Z, the
+# eye-in-hand image kept upright); the foot then passes 0.35 m over the worktop.
+HAND_SCAN_POSE = (-2.2225, 0.2725, 1.8075, 0.3085, -1.0588, -1.7589)
 
 # How many vessels stand on the bench in this scene, spread along it. The open
 # scene the computer-vision work renders from keeps its full population; here
@@ -103,8 +108,19 @@ SCAN_POSE = (-1.9066, -0.1282, 1.7589, 0.8415, -1.3035, -1.9808)
 BENCH_VESSELS = 12
 
 # Which tool hangs on the flange. 'pipette' is the pipetting scene; 'gripper'
-# puts the Robotiq back for scripts/grasp_test.py.
+# puts the Robotiq back for scripts/grasp_test.py; 'vertical_hand' hangs the
+# uncap-and-pipette hand of gripper-design/vertical_hand.html
+# (assets/vertical_hand_minimal), which offers the Robotiq's actuator, sensors
+# and pinch site under the same names, so everything downstream drives it alike.
 TOOL = 'pipette'
+GRIP_TOOLS = ('gripper', 'vertical_hand')     # tools with `fingers_actuator`
+HAND_DIR = SIM / 'assets/vertical_hand_minimal'
+# The hand's flange face is 532 mm over its origin at x = -106 mm (its head), and it
+# hangs flipped so its -Z runs along the tool's approach axis.
+HAND_ATTACH = 'pos="0.106 0 0.532" quat="0 1 0 0"'
+# The camera sits beyond the hand's open front (x <= 171 mm in the tool frame)
+# and looks down through it: at the Robotiq's 90 mm it would be inside the cage.
+HAND_EIH_OFFSET = 0.19
 
 # The open balance replaces the middle covered balance in the front row.
 # The former balance_5 station is removed, leaving four balances in total.
@@ -185,6 +201,22 @@ def build_gripper() -> Path:
     return out
 
 
+def build_vertical_hand() -> Path:
+    """The minimal vertical hand, as generated into assets/vertical_hand_minimal.
+
+    Returns:
+        Path of the hand's MJCF.
+
+    Raises:
+        FileNotFoundError: If it has not been generated (gripper-design/blend/build_vertical_hand.py).
+    """
+    out = HAND_DIR / 'vertical_hand_minimal.xml'
+    if not out.exists():
+        raise FileNotFoundError(f'{out} missing --- run: uv run --no-project --python 3.11 --with bpy '
+                                '--with mujoco python gripper-design/blend/build_vertical_hand.py')
+    return out
+
+
 def build_pipette() -> Path:
     """Generate the pipette, and the beaker it dispenses into.
 
@@ -247,6 +279,8 @@ def build_arm() -> Path:
         '<asset>\n'
         + ('    <model name="robotiq_2f85" file="../robotiq_2f85_sensed/2f85_sensed.xml"/>\n'
            if TOOL == 'gripper' else
+           '    <model name="vertical_hand" file="../vertical_hand_minimal/vertical_hand_minimal.xml"/>\n'
+           if TOOL == 'vertical_hand' else
            '    <model name="pipette" file="../pipette/pipette.xml"/>\n')
         + '    <model name="wrist_camera" file="../wrist_camera/wrist_camera.xml"/>',
         1)
@@ -258,6 +292,7 @@ def build_arm() -> Path:
     # the wrist, just under it, clear of the fingers --- looking EIH_TILT off the
     # tool axis. A MuJoCo camera looks along its own -Z; `eih_site` is the same
     # pose with +Z along the view instead, which is what solve_ik expects.
+    eih_offset = HAND_EIH_OFFSET if TOOL == 'vertical_hand' else EIH_OFFSET
     view = np.array([-np.sin(np.radians(EIH_TILT)), 0.0,
                      np.cos(np.radians(EIH_TILT))])
     up = np.cross(-view, (0.0, 1.0, 0.0))
@@ -267,14 +302,18 @@ def build_arm() -> Path:
         '                  <frame pos="0 0.1 0" quat="-1 1 0 0">\n'
         + ('                    <attach model="robotiq_2f85" body="base_mount" prefix="grip_"/>\n'
            if TOOL == 'gripper' else
+           f'                    <frame {HAND_ATTACH}>\n'
+           '                      <attach model="vertical_hand" body="vertical_hand" prefix="grip_"/>\n'
+           '                    </frame>\n'
+           if TOOL == 'vertical_hand' else
            '                    <attach model="pipette" body="pipette" prefix="pip_"/>\n')
         +
-        f'                    <camera name="eih" pos="{EIH_OFFSET} 0 {EIH_DROP}"\n'
+        f'                    <camera name="eih" pos="{eih_offset} 0 {EIH_DROP}"\n'
         f'                            xyaxes="0 1 0 {_fmt(up)}"\n'
         '                            fovy="60.44" resolution="1920 1080"/>\n'
-        f'                    <site name="eih_site" pos="{EIH_OFFSET} 0 {EIH_DROP}"\n'
+        f'                    <site name="eih_site" pos="{eih_offset} 0 {EIH_DROP}"\n'
         f'                          xyaxes="0 1 0 {_fmt(-up)}" size="0.004" group="4"/>\n'
-        f'                    <frame pos="{EIH_OFFSET} 0 {EIH_DROP}"\n'
+        f'                    <frame pos="{eih_offset} 0 {EIH_DROP}"\n'
         f'                           xyaxes="0 1 0 {_fmt(-up)}">\n'
         '                      <attach model="wrist_camera" body="wrist_camera"\n'
         '                              prefix="cam_"/>\n'
@@ -538,8 +577,8 @@ def build_scene() -> Path:
 
     keyframe = ET.SubElement(root, 'keyframe')
     # Rail, the six arm joints, and the gripper's finger drive when it is on.
-    pose = ' '.join(f'{q:.4f}' for q in SCAN_POSE)
-    tail = ' 0' if TOOL == 'gripper' else ''
+    pose = ' '.join(f'{q:.4f}' for q in (HAND_SCAN_POSE if TOOL == 'vertical_hand' else SCAN_POSE))
+    tail = ' 0' if TOOL in GRIP_TOOLS else ''
     ET.SubElement(keyframe, 'key', name='scan', ctrl=f'0 {pose}{tail}')
 
     ET.indent(root, space='  ')
@@ -596,7 +635,8 @@ def main() -> None:
                         help='vessels to leave standing on the bench')
     BENCH_VESSELS = parser.parse_args().vessels
 
-    tool = build_gripper() if TOOL == 'gripper' else build_pipette()
+    tool = (build_gripper() if TOOL == 'gripper' else build_vertical_hand() if TOOL == 'vertical_hand'
+            else build_pipette())
     arm = build_arm()
     scene = build_scene()
     print(f'wrote {tool.relative_to(SIM)}')

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<!-- The uncap-and-pipette hand, vertical: the forearm comes straight down beside the vial and a
-     metal harness hangs from the flange with the three servos. The parabolic cradles hold the vial
-     from the sides; the iris clamp slides in over the cap on a horizontal rail, unscrews, lifts the
-     cap straight off and slides out; the micropipette, parked outboard, swings onto the vial's axis
-     and only then goes down. Same parts and numbers as uncap_pipette_hand.html (gripper.py,
-     iris_pipette_rig.py, params.py, pipette_geometry.py), one file, everything parametric. -->
+<!-- The uncap-and-pipette hand, vertical and narrow: the forearm comes straight down beside the vial
+     and a U-channel cage hangs from the flange, as wide as the iris clamp's housing plus a slight
+     margin (Ø138 + 2 × 8 mm = 154 mm). Everything lives inside it: the parabolic cradles hold the vial
+     from the sides on a beam that spans the cage's foot; the iris clamp slides straight back along a
+     rail on one side plate, unscrews, lifts the cap off and slides back out of the way; the
+     micropipette hangs fixed on the vial's axis above the clamp's path and only goes down. Same parts
+     and numbers as uncap_pipette_hand.html (gripper.py, iris_pipette_rig.py, params.py,
+     pipette_geometry.py), one file, everything parametric. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -58,7 +60,7 @@
 <body>
 <header>
   <h1>Vertical uncap and pipette hand</h1>
-  <p>The forearm comes straight down beside the vial. From its flange hangs a harness with the three servos: the parabolic cradles grip the vial, the iris clamp slides in over the cap, unscrews it and slides out with it, the micropipette swings onto the axis and goes down, and the clamp comes back to screw the cap on.</p>
+  <p>The forearm comes straight down beside the vial. From its flange hangs a cage 154 mm wide: the iris clamp's housing plus 4 mm to each 4 mm side plate. Inside it the parabolic cradles grip the vial, the iris clamp slides in over the cap, unscrews it and slides straight back with it, the micropipette hanging on the axis above it goes down, and the clamp comes back to screw the cap on.</p>
 </header>
 <main>
   <div id="view"><div id="phase">—</div><div id="hint">Drag to orbit · wheel to zoom · right-drag or shift-drag to pan</div></div>
@@ -76,12 +78,11 @@
     <h2>Joints</h2>
     <div class="coord"><div class="head"><label for="liftIn">Hand · lift</label><span class="val" id="liftTxt"></span></div><input id="liftIn" type="range" min="0" max="100" step="0.5"></div>
     <div class="coord"><div class="head"><label for="gripIn">Gripper · aperture between the vertices</label><span class="val" id="gripTxt"></span></div><input id="gripIn" type="range" step="0.1"></div>
-    <div class="coord"><div class="head"><label for="slideIn">Clamp · slid out of the axis</label><span class="val" id="slideTxt"></span></div><input id="slideIn" type="range" min="0" max="160" step="0.5"></div>
+    <div class="coord"><div class="head"><label for="slideIn">Clamp · slid back off the axis</label><span class="val" id="slideTxt"></span></div><input id="slideIn" type="range" min="0" max="90" step="0.5"></div>
     <div class="coord"><div class="head"><label for="cliftIn">Clamp · lift on its own axis</label><span class="val" id="cliftTxt"></span></div><input id="cliftIn" type="range" min="0" max="30.5" step="0.1"></div>
     <div class="coord"><div class="head"><label for="irisIn">Iris · closed</label><span class="val" id="irisTxt"></span></div><input id="irisIn" type="range" min="0" max="1000" step="1"></div>
     <div class="coord"><div class="head"><label for="turnIn">Unscrew · housing turns</label><span class="val" id="turnTxt"></span></div><input id="turnIn" type="range" min="0" max="2" step="0.01"></div>
     <div class="coord"><div class="head"><label for="tipIn">Pipette · tip above the bottle floor</label><span class="val" id="tipTxt"></span></div><input id="tipIn" type="range" step="0.5"></div>
-    <div class="coord"><div class="head"><label for="swingIn">Pipette · swung out</label><span class="val" id="swingTxt"></span></div><input id="swingIn" type="range" min="0" max="80" step="0.5"></div>
     <div class="coord"><div class="head"><label for="plungerIn">Pipette · plunger pressed</label><span class="val" id="plungerTxt"></span></div><input id="plungerIn" type="range" min="0" max="14" step="0.1"></div>
 
     <h2>View</h2>
@@ -92,9 +93,10 @@
       <button id="tBottle" aria-pressed="true">Bottle</button>
       <button id="tArm" aria-pressed="true">Arm stub</button>
       <button id="tHousing" aria-pressed="true">Clamp housing</button>
+      <button id="tPlates" aria-pressed="true">Side plates</button>
     </div>
     <div class="legend">
-      <span style="--c:#1f2226">Harness, housings</span>
+      <span style="--c:#1f2226">Cage, housings</span>
       <span style="--c:#767d86">Links, brackets</span>
       <span style="--c:#d4a63d">Iris blades, cam ring, gears</span>
       <span style="--c:#eeeeeb">Micropipette</span>
@@ -103,11 +105,11 @@
     </div>
 
     <h2>Layout</h2>
-    <p class="note"><b>Harness.</b> A vertical box, 75 × 120 mm and 386 mm tall, bolted under the UR flange 112 mm behind the vial's axis. It holds the three servos and everything hangs from it: the gripper's beam on a U-frame at its foot, the clamp's rail off its flank at 224 mm, the pipette's mast off the other flank.</p>
-    <p class="note"><b>Gripper.</b> The cradles close on the vial 21 mm under the cap seat, the same parabolic pair as before, hung from a beam that runs across in front of the harness. Nothing but the jaws and the beam sits within ±16 mm of that height, so the clamp's housing passes 10 mm over the beam.</p>
-    <p class="note"><b>Iris clamp.</b> The same six-blade clamp and planetary train, on a carriage that runs along a rail beside the axis: 160 mm out, the housing is clear of the vial and of the pipette; at 0 it is centred on the cap. Its housing is a closed ring, so it cannot come in sideways at cap height: it travels in and out 30 mm up on its own lift column, 9.5 mm over the cap, and lowers onto the cap only once it is centred. The same column follows the cap up the thread while it unscrews and pulls it straight off the neck before the carriage slides out.</p>
-    <p class="note"><b>Micropipette.</b> Parked swung 80° out beside the harness, on a vertical pin in the carriage of a mast off the harness's −Y flank. Once the clamp is out it swings onto the vial's axis, seats on its cone, and only then does the slide take it down the neck, 15 mm over the lip to 20 mm over the floor. The plunger has its own actuator on the frame.</p>
-    <p class="note">Numbers: <code>uncap-robustness/gripper.py</code>, <code>uncap-robustness/scene.py</code> (v3, clamp lift), <code>simulation/scripts/iris_pipette_rig.py</code> (heights, pivot, mast) and <code>iris_pipette_plan.py</code> (steps), <code>assets/iris_clamp/params.py</code>, <code>assets/micropipette/pipette_geometry.py</code>. The horizontal twin is <code>uncap_pipette_hand.html</code>.</p>
+    <p class="note"><b>Cage.</b> A U-channel of two 4 mm side plates and a back plate, 154 mm wide: the iris housing's Ø138 plus 4 mm of clearance to each plate. That clearance is the only width the design spends. Everything hangs inside: the gripper's beam spans between the plates at their foot, the clamp's rail is bolted to the +Y plate, the pipette's rail to the −Y plate, and the servo head under the UR flange closes the top at the back. 232 mm deep, 485 mm from the plates' foot to the flange.</p>
+    <p class="note"><b>Gripper.</b> The same parabolic cradles 21 mm under the cap seat, now exactly as wide as themselves: each jaw reaches back to its carriage through tabs in its own comb bands, where the other jaw's wing tip never comes (1 mm, like the comb), so nothing sits outboard of a cradle's back. Fully open on the 100 ml the gripper spans ±70 mm, 2.6 mm from the plates. Its servo rides behind the beam, under the clamp's path (10 mm). <code>parabolic_gripper.html</code> keeps the arm-behind-the-hub mount; the cradles are identical.</p>
+    <p class="note"><b>Iris clamp.</b> The same six-blade clamp and planetary train, on a carriage that slides straight back along the +Y plate: 90 mm out its housing stops 4 mm short of the pipette's rings, and its lift column rides over its own housing, so the clamp never grows wider than the housing. The housing is a closed ring, so it travels 30.5 mm up on that column, 9.5 mm over the cap, and lowers onto the cap only once it is centred; the same column follows the cap up the thread and pulls it straight off the neck before the carriage slides back.</p>
+    <p class="note"><b>Micropipette.</b> Fixed on the vial's axis, held by two arm plates off a carriage on the −Y plate. Parked with its tip 4 mm above the clamp's motor, it only goes down: 200 mm from the parked height to 20 mm over the floor, once the clamp is out. That is the price of the width: the flange sits at 530 mm, 100 mm higher than a side-parked pipette would need. The plunger has its own actuator on the pipette's frame.</p>
+    <p class="note">Numbers: <code>uncap-robustness/gripper.py</code>, <code>uncap-robustness/scene.py</code> (v3, clamp lift), <code>simulation/scripts/iris_pipette_rig.py</code> (heights, slide) and <code>iris_pipette_plan.py</code> (steps), <code>assets/iris_clamp/params.py</code>, <code>assets/micropipette/pipette_geometry.py</code>. The horizontal twin is <code>uncap_pipette_hand.html</code>.</p>
   </aside>
 </main>
 
@@ -122,37 +124,39 @@
   // bottle's axis at x = y = 0; the reference (60 ml) bottle's base at z = 0.
   const REF_CAP_Z=78.1;                       // the reference cap seat; everything on the hand is placed off it
   const AXIS_BELOW_CAP=21, GRIP_Z=REF_CAP_Z-AXIS_BELOW_CAP;   // 57.1: the tool axis
-  const JAW={p:8, half_width:22.5, clearance:0.2, liner:3, half_height:16, plate:6, open_clear:6};
-  const BODY={length:52, half_width:32, half_height:16};
-  const FRONT_CLEAR=30, FLANGE_X=-118;
-  const HUB_HALF=14, COMB_X=12, COMB_GAP=1;
-  const BEAM={x0:-31, x1:-25, half_z:8, half_y:96};        // 10 mm longer each side than the horizontal hand: its ends carry the U-frame's struts
-  const CARRIAGE={x0:-30, x1:-24, width:14, half_z:12};
-  const ARM={x0:-24, x1:-2, width:12, half_z:11};
-  const FLANGE={r:45, face_r:31.5, pcd:25, bolt_r:3.3, ring_h:12, stub_r:45, stub_len:150};
-  // The harness: a vertical box behind the vial, under the flange; the three servos live in it.
-  const SPINE={x0:-150, x1:-75, half_y:60, z0:44, z1:430};   // its foot clears the table by 5.6 mm on the 10 ml vial
-  const FLANGE_Z=SPINE.z1, FLANGE_C=(SPINE.x0+SPINE.x1)/2;  // the flange face, looking down, centred on the harness
-  const STRUT_Y=92;                                          // the U-frame's struts, outside the carriages' travel (±83 on the 100 ml)
-  // The clamp's rail: along Y beside the axis, above the clamp's motor even when lifted
-  const RAIL={x:-45, z:230, y0:36, y1:264, park:160, col_y:80};
+  const JAW={p:8, half_width:22.5, clearance:0.2, liner:3, half_height:16, plate:6, tip:2, open_clear:6};
+  const COMB_X=12, COMB_GAP=1;
+  const CARRIAGE={x0:-30, x1:-24, width:14, half_z:12};     // on the beam's front, flush with the cradle's back
+  const TAB={x0:-24, x1:-10, depth:6};                       // the jaw's tabs to its carriage, in its own comb bands
   // Iris clamp (params.py); its plane sits on the cap seat as in iris_pipette_rig.py
   const IRIS={r_pivot:55, n_blades:6, blade_len:62, blade_w:12, blade_t:2.5, blade_max:80, housing_r:69, housing_ri:59,
               z_cam:18, cam_t:6, z_gears:30, gear_t:8, z_carrier:42, carrier_t:6, z_top:60, r_ring:36, r_sun:12, planet_r:24,
-              open_r:35, cap_dz:-1.5};
+              open_r:35, cap_dz:-1.5, motor_top:106};
   const Z_IRIS=REF_CAP_Z-IRIS.cap_dz;         // 79.6: iris plane when the blades meet the cap
   const CLAMP_LIFT=25, PITCH=2.75, TURNS=2, CAP_LIFT=PITCH*TURNS;   // the thread walks the cap up 5.5 mm
   const LIFT_HI=CAP_LIFT+CLAMP_LIFT;                                  // 30.5: the clamp travels in and out this high, its housing 9.5 mm over the cap
+  // The cage: the iris housing plus a slight margin sets the width; everything else fits inside
+  const GAP=4, PLATE=4;                                      // clearance to the housing, plate thickness
+  const HALF_IN=IRIS.housing_r+GAP, HALF_OUT=HALF_IN+PLATE;  // 73 / 77: the plates' inner and outer faces, 154 mm overall
+  const BEAM={x0:-31, x1:-25, half_z:8, half_y:HALF_IN};     // spans the cage between the plates
   // Micropipette (pipette_geometry.py) and its slide (iris_pipette_rig.py)
   const PIP={tip_len:12, tip_r0:2.4, tip_r1:3.6, shaft_len:78, shaft_r1:5.8, collar_len:26, collar_r1:11.2,
              body_z0:116, body_len:105, body_w0:24, body_w1:30, body_d0:20, body_d1:24,
              plunger_x:3, plunger_r:4, plunger_len:30, button_r:8.5, button_h:8.5,
              ejector_x:16.5, ejector_r:2.8, ejector_btn_r:7.5, ejector_btn_h:6, ejector_btn_z:232, ejector_sleeve_r:6.8, ejector_sleeve_z0:66, ejector_sleeve_z1:94,
              hook_z:213, hook_reach:24, grip_z:168.5, stroke:14};
-  const PIVOT={x:30, y:-90}, STOW=80, YOKE_Y=PIVOT.y-28;   // mirrored to -Y: +Y is the clamp's rail
-  const NECK_H=95-REF_CAP_Z;                              // 16.9: cap seat to lip on the reference bottle
-  const TIP_READY=REF_CAP_Z+NECK_H+15;                    // 110: tip just over the neck
-  const CLIPS=[125, PIP.grip_z], CAR=[PIP.grip_z-20, PIP.grip_z+60], RAIL_TOP=TIP_READY+CAR[1], MAST_BOTTOM=70;
+  const HALF_D=PIP.body_d1/2, RING_R=HALF_D+5;                          // 17: the clip rings around the pipette
+  const PARK_X=-(IRIS.housing_r+RING_R+GAP);                            // -90: the clamp slid back, its housing 4 mm off the pipette's rings
+  const CAGE={x0:PARK_X-IRIS.housing_r-GAP-PLATE, x1:65, z0:GRIP_Z-BEAM.half_z-4, z1:530};   // -167 … 65, 45 … 530
+  const HEAD={x0:CAGE.x0, x1:-45, z0:470};                              // the servo head at the back of the cage's top
+  const FLANGE_C=(HEAD.x0+HEAD.x1)/2, FLANGE_Z=CAGE.z1+2;               // -106: the flange face, looking down, centred on the head
+  const FLANGE={r:45, face_r:31.5, pcd:25, bolt_r:3.3, ring_h:12, stub_r:45, stub_len:150};
+  // The clamp's rail: along X on the +Y plate, above the clamp's motor even when lifted; its lift column rides over the housing
+  const XR={y:HALF_IN-3, z:230, x0:-160, x1:0, col:{x:-30, y:52}};
+  // The pipette: fixed on the axis, parked over the clamp's motor; its rail on the -Y plate
+  const TIP_READY=Z_IRIS+LIFT_HI+IRIS.motor_top+GAP;                    // 220.1: tip 4 mm over the sun's gearmotor with the clamp high
+  const CLIPS=[125, PIP.grip_z], CAR=[PIP.grip_z-20, PIP.grip_z+60], RAIL_TOP=TIP_READY+CAR[1];
+  const PR={x:45, y:-(HALF_IN-3)};                                      // the pipette's rail, where the centred housing only reaches |y| 52
   const TIP_DIVE=20, LIFT_Z=100;
 
   // bottles.py catalogue (mm): radius, height, shoulder, neck start, neck radius, cap seat, cap height, cap radius
@@ -193,7 +197,7 @@
     const m=new THREE.Mesh(new THREE.BoxGeometry(q[3],q[4],q[5]),new THREE.MeshBasicMaterial({color:i?0xdfe6ee:0xffffff})); m.position.set(q[0],q[1],q[2]); envScene.add(m); });
   scene.environment=pmrem.fromScene(envScene,0.04).texture;
 
-  const orbit={yaw:0.8,pitch:0.22,dist:1.0,target:new THREE.Vector3(-0.04,0.22,0)};
+  const orbit={yaw:0.8,pitch:0.22,dist:1.45,target:new THREE.Vector3(-0.04,0.33,0)};
   function updateCam(){ const p=orbit.pitch,y=orbit.yaw,d=orbit.dist,t=orbit.target;
     camera.position.set(t.x+d*Math.cos(p)*Math.sin(y),t.y+d*Math.sin(p),t.z+d*Math.cos(p)*Math.cos(y)); camera.lookAt(t); }
   let drag=null; const el=renderer.domElement;
@@ -241,7 +245,6 @@
   }
   const withMat=(o,m)=>{o.material=m; return o;};
   const cylX=(r,x0,x1,yc,zc,mat,seg=64)=>{ const o=mesh(new THREE.CylinderGeometry(r*MM,r*MM,(x1-x0)*MM,seg),mat); o.rotation.z=Math.PI/2; o.position.set((x0+x1)/2*MM,yc*MM,zc*MM); return o; };
-  const cylY=(r,y0,y1,xc,zc,mat,seg=48)=>{ const o=mesh(new THREE.CylinderGeometry(r*MM,r*MM,(y1-y0)*MM,seg),mat); o.position.set(xc*MM,(y0+y1)/2*MM,zc*MM); return o; };
   const cylZ=(r,z0,z1,xc,yc,mat,seg=48,r1)=>{ const o=mesh(new THREE.CylinderGeometry((r1??r)*MM,r*MM,(z1-z0)*MM,seg),mat); o.rotation.x=Math.PI/2; o.position.set(xc*MM,yc*MM,(z0+z1)/2*MM); return o; };
   const box=(x0,x1,y0,y1,z0,z1,mat)=>{ const o=mesh(new THREE.BoxGeometry((x1-x0)*MM,(y1-y0)*MM,(z1-z0)*MM),mat); o.position.set((x0+x1)/2*MM,(y0+y1)/2*MM,(z0+z1)/2*MM); return o; };
   const ringZ=(ro,ri,z0,z1,mat,seg=96)=>{ const s=new THREE.Shape(); s.absarc(0,0,ro,0,TAU,false); const h=new THREE.Path(); h.absarc(0,0,ri,0,TAU,true); s.holes.push(h);
@@ -251,6 +254,11 @@
   function slab(pts,z0,z1,bevel,mat){ const s=new THREE.Shape(pts.map(([x,y])=>new THREE.Vector2(x,y)));
     const g=new THREE.ExtrudeGeometry(s,{depth:(z1-z0)-2*bevel,bevelEnabled:bevel>0,bevelThickness:bevel,bevelSize:bevel,bevelSegments:2,curveSegments:4});
     g.translate(0,0,z0+bevel); g.scale(MM,MM,MM); g.computeVertexNormals(); return mesh(g,mat); }
+  // a plate in the XZ plane, y0 … y1 thick, with an outline in (x, z) and rounded windows [x0, x1, z0, z1, r]
+  function plateY(y0,y1,outline,holes,mat){ const s=new THREE.Shape(outline.map(([x,z])=>new THREE.Vector2(x,z)));
+    for(const [x0,x1,z0,z1,r] of holes){ const pts=roundedRect(x1-x0,z1-z0,r).getPoints(6).map(v=>new THREE.Vector2(v.x+(x0+x1)/2,v.y+(z0+z1)/2)); s.holes.push(new THREE.Path(pts)); }
+    const g=new THREE.ExtrudeGeometry(s,{depth:y1-y0,bevelEnabled:false,curveSegments:6}); g.rotateX(Math.PI/2); g.translate(0,y1,0);
+    g.scale(MM,MM,MM); g.computeVertexNormals(); return mesh(g,mat); }
 
   // ============================== world: Z up, the table at z = 0 ==============================
   const world=new THREE.Group(); world.rotation.x=-Math.PI/2; scene.add(world);
@@ -277,57 +285,66 @@
   // ============================== the hand ==============================
   const hand=new THREE.Group(); world.add(hand);
 
-  // ---------- gripper (parabolic_gripper.html), on the tool axis z = GRIP_Z ----------
-  const grip=new THREE.Group(); grip.position.z=GRIP_Z*MM; hand.add(grip);
-  // the U-frame: two struts back to a crossbar on the harness's foot; the gripper servo is in the harness
-  for(const s of [-1,1]) grip.add(rb('x',SPINE.x1-14,BEAM.x1,s*STRUT_Y,0,8,12,2,0.8));
-  grip.add(rb('y',-STRUT_Y-4,STRUT_Y+4,SPINE.x1-7,0,14,16,3,1));
-  grip.add(rb('x',BEAM.x0,BEAM.x1,0,0,2*BEAM.half_y,2*BEAM.half_z,3,1.2));
-  for(const s of [-1,1]) grip.add(withMat(rb('x',BEAM.x0-1,BEAM.x1+1,s*(BEAM.half_y-4),0,8,2*BEAM.half_z+2,3,1),MAT.black));
-  for(const s of [-1,1]) grip.add(cylX(2.2,BEAM.x0+1.5,BEAM.x1-1.5,0,s*(BEAM.half_z-2.2),MAT.steel,24));
-  const wingBands=side=>{ const H=JAW.half_height, third=(2*H-2*COMB_GAP)/3; return side>0?[[-H,-H+third],[H-third,H]]:[[-H+third+COMB_GAP,H-third-COMB_GAP]]; };
-  function buildJaw(side){
-    const jaw=new THREE.Group(), N=48, W=JAW.half_width, H=JAW.half_height, C=COMB_X;
-    const outer=x=>JAW.liner+JAW.plate-Math.max(0,x*x-HUB_HALF*HUB_HALF)/(2*JAW.p);
-    const arc=(x0,x1,f)=>{ const p=[]; for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N; p.push([x,side*f(x)]); } return p; };
-    const liner=(x0,x1)=>[...arc(x0,x1,parab),...arc(x1,x0,x=>parab(x)+JAW.liner)];
-    const plate=(x0,x1)=>[...arc(x0,x1,x=>parab(x)+JAW.liner),...arc(x1,x0,x=>parab(x)+outer(x))];
-    jaw.add(slab(plate(-C,C),-H,H,0.8,MAT.gray)); jaw.add(slab(liner(-C,C),-H,H,0.6,MAT.liner));
-    for(const [z0,z1] of wingBands(side)) for(const [x0,x1] of [[C,W],[-W,-C]]){ jaw.add(slab(plate(x0,x1),z0,z1,0.8,MAT.gray)); jaw.add(slab(liner(x0,x1),z0,z1,0.6,MAT.liner)); }
-    const back=JAW.liner+JAW.plate, armY=side*(back+ARM.width/2), carY=side*(back-1+CARRIAGE.width/2);
-    jaw.add(rb('x',ARM.x0,ARM.x1,armY,0,ARM.width,2*ARM.half_z,3,1));
-    jaw.add(withMat(rb('x',CARRIAGE.x0,CARRIAGE.x1,carY,0,CARRIAGE.width,2*CARRIAGE.half_z,3.5,1.2),MAT.black));
-    for(const z of [-6,6]) jaw.add(cylX(2.4,CARRIAGE.x1-0.3,CARRIAGE.x1+0.9,carY,z,MAT.bolt,20));
-    for(const x of [-12,-5]){ const h=mesh(new THREE.CylinderGeometry(2.2*MM,2.2*MM,1.2*MM,16),MAT.bolt); h.position.set(x*MM,side*(back+ARM.width+0.4)*MM,0); jaw.add(h); }
-    grip.add(jaw); return {group:jaw, side};
-  }
-  const jaws=[buildJaw(+1),buildJaw(-1)];
-
-  // ---------- the harness and the UR flange over it ----------
-  hand.add(withMat(rb('z',SPINE.z0,SPINE.z1,FLANGE_C,0,SPINE.x1-SPINE.x0,2*SPINE.half_y,8,2),MAT.black));
-  hand.add(rb('z',SPINE.z0-2,SPINE.z0+6,FLANGE_C,0,SPINE.x1-SPINE.x0+4,2*SPINE.half_y+4,9,1.5));
-  hand.add(rb('z',SPINE.z1-6,SPINE.z1+2,FLANGE_C,0,SPINE.x1-SPINE.x0+4,2*SPINE.half_y+4,9,1.5));
-  for(const z of [62,200,330]) hand.add(box(SPINE.x1-0.2,SPINE.x1+0.4,-8,8,z,z+6,MAT.led));            // one servo window each: gripper, clamp, pipette
+  // ---------- the cage: two side plates, a back plate, the servo head and the UR flange over it ----------
+  const outline=[[CAGE.x0,CAGE.z0],[-20,CAGE.z0],[CAGE.x1,115],[CAGE.x1,CAGE.z1],[CAGE.x0,CAGE.z1]];   // the toe is cut back so the vial shows from the side
+  const windows=[[-150,30,110,200,10],[-150,30,280,440,10]];                                          // the clamp's zone, the pipette's zone
+  const plates=[]; for(const s of [-1,1]){ const y0=s>0?HALF_IN:-HALF_OUT; const p=plateY(y0,y0+PLATE,outline,windows,MAT.black); hand.add(p); plates.push(p); }
+  hand.add(withMat(rb('y',-HALF_IN,HALF_IN,CAGE.x0+PLATE/2,(CAGE.z0+CAGE.z1)/2,PLATE,CAGE.z1-CAGE.z0,1,0.5),MAT.black));   // back plate
+  hand.add(withMat(rb('z',HEAD.z0,CAGE.z1,FLANGE_C,0,HEAD.x1-HEAD.x0,2*HALF_OUT,8,2),MAT.black));                       // the servo head
+  hand.add(rb('z',CAGE.z1-4,CAGE.z1+2,FLANGE_C,0,HEAD.x1-HEAD.x0,2*HALF_OUT,8,1.5));                                    // its top plate
+  hand.add(box(HEAD.x1-0.2,HEAD.x1+0.4,-8,8,497,503,MAT.led));                                                          // controller window
   const armStub=new THREE.Group(); hand.add(armStub);
   armStub.add(cylZ(FLANGE.stub_r,FLANGE_Z+24,FLANGE_Z+24+FLANGE.stub_len,FLANGE_C,0,MAT.linkgray,64));
   armStub.add(cylZ(FLANGE.stub_r+1,FLANGE_Z+24,FLANGE_Z+24+FLANGE.ring_h,FLANGE_C,0,MAT.urblue,64));
   { const w=latheZ([[0,FLANGE_Z],[FLANGE.r-2,FLANGE_Z],[FLANGE.r,FLANGE_Z+3],[FLANGE.stub_r,FLANGE_Z+8],[FLANGE.stub_r,FLANGE_Z+24],[0,FLANGE_Z+24]],MAT.linkgray,96);
-    w.position.set(FLANGE_C*MM,0,0); hand.add(w); }                                                     // wrist_3, face down on the harness
-  hand.add(cylZ(37.5,FLANGE_Z-0.5,FLANGE_Z+0.5,FLANGE_C,0,MAT.steel,96));                              // the Ø75 mount plate between flange and harness
+    w.position.set(FLANGE_C*MM,0,0); hand.add(w); }                                                     // wrist_3, face down on the head
+  hand.add(cylZ(37.5,FLANGE_Z-0.5,FLANGE_Z+0.5,FLANGE_C,0,MAT.steel,96));                              // the Ø75 mount plate between flange and head
 
-  // ---------- the clamp's rail, its carriage, and the lift column hanging from it ----------
-  hand.add(rb('y',RAIL.y0,RAIL.y1,RAIL.x,RAIL.z,12,12,3,1));                                            // rail
-  hand.add(withMat(rb('x',SPINE.x1-2,RAIL.x+6,(RAIL.y0+10),RAIL.z,20,20,4,1),MAT.black));                // root bracket off the harness
-  hand.add(withMat(rb('y',RAIL.y1-2,RAIL.y1+6,RAIL.x,RAIL.z,16,16,3,1),MAT.black));                       // end stop
-  const clampSlide=new THREE.Group(); hand.add(clampSlide);                                              // moves along Y with clamp_y
-  clampSlide.add(withMat(rb('y',RAIL.col_y-20,RAIL.col_y+20,RAIL.x,RAIL.z,22,24,4,1.2),MAT.black));       // carriage on the rail
-  clampSlide.add(rb('z',Z_IRIS+30,RAIL.z-8,RAIL.x,RAIL.col_y,6,24,2,0.8));                              // the lift column, hanging from the carriage
+  // ---------- gripper (parabolic_gripper.html), on the tool axis z = GRIP_Z ----------
+  const grip=new THREE.Group(); grip.position.z=GRIP_Z*MM; hand.add(grip);
+  grip.add(rb('x',BEAM.x0,BEAM.x1,0,0,2*BEAM.half_y,2*BEAM.half_z,3,1.2));                            // the beam, plate to plate
+  for(const s of [-1,1]) grip.add(withMat(rb('x',BEAM.x0-1,BEAM.x1+1,s*(BEAM.half_y-4),0,8,2*BEAM.half_z+2,3,1),MAT.black));
+  for(const s of [-1,1]) grip.add(cylX(2.2,BEAM.x0+1.5,BEAM.x1-1.5,0,s*(BEAM.half_z-2.2),MAT.steel,24));
+  grip.add(withMat(rb('x',-52,-32,0,0,44,16,3,1),MAT.black));                                          // the gripper's servo, behind the beam
+  grip.add(box(-52.6,-52,-6,6,-2,2,MAT.led));
+  const wingBands=side=>{ const H=JAW.half_height, third=(2*H-2*COMB_GAP)/3; return side>0?[[-H,-H+third],[H-third,H]]:[[-H+third+COMB_GAP,H-third-COMB_GAP]]; };
+  function buildJaw(side){
+    const jaw=new THREE.Group(), N=48, W=JAW.half_width, H=JAW.half_height, C=COMB_X;
+    const outerHub=x=>JAW.liner+JAW.plate-0.8-parab(x);                                                 // flat back 9 mm behind the vertex once the 0.8 mm bevel is added: the mounting pad
+    const outerWing=x=>JAW.liner+JAW.plate-(JAW.plate-JAW.tip)*(Math.abs(x)-COMB_X)/(JAW.half_width-COMB_X);   // the wings taper from 6 mm to 2 mm at the tips
+    const arc=(x0,x1,f)=>{ const p=[]; for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N; p.push([x,side*f(x)]); } return p; };
+    const liner=(x0,x1)=>[...arc(x0,x1,parab),...arc(x1,x0,x=>parab(x)+JAW.liner)];
+    const plate=(x0,x1,outer)=>[...arc(x0,x1,x=>parab(x)+JAW.liner),...arc(x1,x0,x=>parab(x)+outer(x))];
+    jaw.add(slab(plate(-C,C,outerHub),-H,H,0.8,MAT.gray)); jaw.add(slab(liner(-C,C),-H,H,0.6,MAT.liner));
+    const back=JAW.liner+JAW.plate;
+    const tab=[[TAB.x0,side*(back-TAB.depth)],[TAB.x1,side*(back-TAB.depth)],[TAB.x1,side*(back-0.8)],[TAB.x0,side*(back-0.8)]];   // bevelled out to the pad's back
+    for(const [z0,z1] of wingBands(side)){
+      for(const [x0,x1] of [[C,W],[-W,-C]]){ jaw.add(slab(plate(x0,x1,outerWing),z0,z1,0.8,MAT.gray)); jaw.add(slab(liner(x0,x1),z0,z1,0.6,MAT.liner)); }
+      jaw.add(slab(tab,z0,z1,0.8,MAT.gray));                                                          // the tab to the carriage, in this jaw's own band
+      const h=mesh(new THREE.CylinderGeometry(2.2*MM,2.2*MM,1.2*MM,16),MAT.bolt); h.position.set(-18*MM,side*(back-0.2)*MM,(z0+z1)/2*MM); jaw.add(h); }
+    const carY=side*(back-CARRIAGE.width/2);                                                           // the carriage's outer face flush with the cradle's back
+    jaw.add(withMat(rb('x',CARRIAGE.x0,CARRIAGE.x1,carY,0,CARRIAGE.width,2*CARRIAGE.half_z,3.5,1.2),MAT.black));
+    for(const z of [-6,6]) jaw.add(cylX(2.4,CARRIAGE.x1-0.3,CARRIAGE.x1+0.9,carY,z,MAT.bolt,20));
+    grip.add(jaw); return {group:jaw, side};
+  }
+  const jaws=[buildJaw(+1),buildJaw(-1)];
+
+  // ---------- the clamp's rail on the +Y plate, its carriage, and the lift column hanging over the housing ----------
+  hand.add(rb('x',XR.x0,XR.x1,XR.y,XR.z,6,12,2,0.8));                                                  // rail
+  hand.add(withMat(rb('x',XR.x0-3,XR.x0+5,XR.y-2,XR.z,10,16,3,1),MAT.black));                          // back stop
+  hand.add(withMat(rb('x',XR.x1-5,XR.x1+3,XR.y-2,XR.z,10,16,3,1),MAT.black));                          // front stop
+  hand.add(withMat(rb('x',CAGE.x0+PLATE,-135,61.5,263,23,26,3,1),MAT.black));                          // the slide's servo, over the rail's back end
+  hand.add(box(-155,-143,49.6,50.4,260,266,MAT.led));
+  const clampSlide=new THREE.Group(); hand.add(clampSlide);                                              // moves along X with clamp_x
+  const CX=XR.col.x, CY=XR.col.y;
+  clampSlide.add(withMat(rb('x',CX-20,CX+20,(40+HALF_IN)/2,XR.z+1,HALF_IN-40,30,4,1.2),MAT.black));     // carriage around the rail
+  clampSlide.add(rb('z',Z_IRIS+64,XR.z-14,CX,CY,14,24,2,0.8));                                          // the lift column, over the housing's top ring
   const clampG=new THREE.Group(); clampG.position.set(0,0,Z_IRIS*MM); clampSlide.add(clampG);            // iris plane at the clamp's z = 0
-  const px=RAIL.x, py=RAIL.col_y;                                                                        // the column, seen from the clamp axis
-  clampG.add(withMat(rb('z',44,92,px,py,14,32,3,1),MAT.black));                                          // lift carriage, around the column
+  const px=CX, py=CY;                                                                                    // the column, seen from the clamp axis
+  clampG.add(withMat(rb('z',64,102,px,py,22,32,3,1),MAT.black));                                         // lift carriage, around the column
   clampG.add(rb('y',-4,py+4,px,66,24,8,3,1)); clampG.add(rb('x',px-4,0,0,66,24,8,3,1));                  // L-bridge over the housing's top ring to the mount disc
   clampG.add(cylZ(20,60,64,0,0,MAT.housing,64));                                                         // mount disc
-  clampG.add(cylZ(14,70,104,0,0,MAT.housing,48)); clampG.add(cylZ(15,102,106,0,0,MAT.gray,48));          // the sun's gearmotor, on the bridge
+  clampG.add(cylZ(14,70,IRIS.motor_top-2,0,0,MAT.housing,48)); clampG.add(cylZ(15,IRIS.motor_top-4,IRIS.motor_top,0,0,MAT.gray,48));   // the sun's gearmotor, on the bridge
   const housingG=new THREE.Group(); clampG.add(housingG);                                          // turns with body_yaw
   const H=IRIS;
   housingG.add(ringZ(H.housing_r,H.housing_ri,-4,H.z_cam-2,MAT.housing));                        // front ring
@@ -351,26 +368,17 @@
   const sun=new THREE.Group(); clampG.add(sun); sun.add(cylZ(H.r_sun,H.z_gears,H.z_gears+H.gear_t,0,0,MAT.gold,24)); sun.add(cylZ(4,H.z_gears,70,0,0,MAT.steel,16));
   const capSeat=new THREE.Group(); capSeat.position.z=H.cap_dz*MM; housingG.add(capSeat);       // the cap, once the housing has turned it
 
-  // ---------- pipette slide: mast arm from the housing's +Y rail, mast, rail, carriage, swing frame ----------
-  const PX=PIVOT.x, PY=PIVOT.y, YY=YOKE_Y, CY0=YY+7, CY1=YY+19;                                   // carriage faces, between the pin and the mast
-  for(const z of [72,346]){                                                                        // two brackets off the harness's -Y flank, under the pipette's tip and over the mast
-    hand.add(rb('y',YY-9,-SPINE.half_y+2,SPINE.x1-6,z,12,12,3,1));
-    hand.add(rb('x',SPINE.x1-12,PX+16,YY-3,z,12,12,3,1)); }
-  hand.add(rb('z',MAST_BOTTOM,RAIL_TOP+5,PX,YY-3,32,12,3,1));                                     // the mast
-  const RAIL_L0=RAIL_TOP-MAST_BOTTOM, rail=withMat(rb('z',0,RAIL_L0,PX,YY+5,12,4,1,0.5),MAT.housing); hand.add(rail);   // from its origin up; cut to the dive in solve()
+  // ---------- pipette slide: rail on the -Y plate, carriage, two arm plates to the pipette on the axis ----------
+  const RAIL_L0=RAIL_TOP-100, rail=withMat(rb('z',0,RAIL_L0,PR.x,PR.y,12,6,1,0.5),MAT.housing); hand.add(rail);   // from its origin up; cut to the dive in solve()
+  hand.add(withMat(rb('z',RAIL_TOP+3,RAIL_TOP+29,PR.x,PR.y+9,32,12,3,1),MAT.black));                // the slide's servo, on top of the rail
+  hand.add(box(PR.x-6,PR.x+6,PR.y+14.6,PR.y+15.4,RAIL_TOP+13,RAIL_TOP+19,MAT.led));
   const slide=new THREE.Group(); hand.add(slide);                                                  // moves with pipette_tip
-  slide.add(rb('z',CAR[0],CAR[1],PX,(CY0+CY1)/2,32,CY1-CY0,3,1));                                  // carriage
-  slide.add(rb('z',CAR[0],CAR[0]+12,PX,(PY+CY1)/2,32,PY-CY1,2,0.8)); slide.add(rb('z',CAR[1]-12,CAR[1],PX,(PY+CY1)/2,32,PY-CY1,2,0.8));   // bearing lugs
-  slide.add(withMat(rb('x',PX+16,PX+46,(CY0+CY1-6)/2,CAR[1]-17,CY1-CY0+6,34,3,1),MAT.housing));   // swing gearmotor
-  const web=Math.atan2(-PY,-PX), webLen=Math.hypot(PX,PY);
-  { const rec=box(-9,9,-8,8,CAR[0]+30,CAR[0]+50,MAT.housing); rec.position.set((PX+21*Math.cos(web)-16*Math.sin(web))*MM,(PY+21*Math.sin(web)+16*Math.cos(web))*MM,rec.position.z); rec.rotation.z=web; slide.add(rec); }
-  const frame=new THREE.Group(); frame.position.set(PX*MM,PY*MM,0); slide.add(frame);              // turns on the pin
-  frame.add(cylZ(5,CAR[0]-6,CAR[1]+6,0,0,MAT.steel,24));
-  const HALF_D=PIP.body_d1/2, BTN_TOP=PIP.body_z0+PIP.body_len+PIP.plunger_len+PIP.button_h, FTOP=BTN_TOP+37, FBOT=CLIPS[0]-8;
-  { const w=rb('x',5,webLen-HALF_D-4,0,(FTOP+FBOT)/2,8,FTOP-FBOT,2,0.8); w.rotation.z=web; frame.add(w);   // the web, pin to pipette
-    const cone=cylZ(5,0,10,0,0,MAT.gray,16,0.5); cone.rotation.set(-Math.PI/2,0,web); cone.position.set((21*Math.cos(web)-9*Math.sin(web))*MM,(21*Math.sin(web)+9*Math.cos(web))*MM,(CAR[0]+40)*MM); frame.add(cone); }
-  const held=new THREE.Group(); held.position.set(-PX*MM,-PY*MM,0); frame.add(held);              // the pipette's frame: tip at the origin
-  for(const z of CLIPS){ held.add(ringZ(HALF_D+5,HALF_D+0.5,z-8,z+8,MAT.gray,48)); }
+  const CB0=CLIPS[0]-8;
+  slide.add(rb('z',CB0,CAR[1],PR.x,PR.y+9,32,12,3,1));                                             // carriage block on the rail
+  for(const z of CLIPS) slide.add(rb('z',z-7,z+7,(PR.x+16-RING_R+1)/2,(PR.y+15-RING_R+1)/2,PR.x+16+RING_R-1,-(PR.y+15)-RING_R+1,6,1));   // arm plates, carriage to the rings
+  const held=new THREE.Group(); slide.add(held);                                                   // the pipette's frame: tip at the origin
+  for(const z of CLIPS){ held.add(ringZ(RING_R,HALF_D+0.5,z-8,z+8,MAT.gray,48)); }
+  const BTN_TOP=PIP.body_z0+PIP.body_len+PIP.plunger_len+PIP.button_h, FTOP=BTN_TOP+37;
   held.add(rb('z',BTN_TOP+25,FTOP,0,HALF_D+2,12,HALF_D+14,2,0.8));                                  // actuator arm
   held.add(cylZ(9,BTN_TOP+10,BTN_TOP+46,PIP.plunger_x,0,MAT.housing,32));                          // plunger actuator
   // the pipette body (pipette_geometry.py)
@@ -396,30 +404,28 @@
   const baseZ=()=>REF_CAP_Z-B.cap_z;                        // the bottle's base in the hand frame
   const diveZ=()=>baseZ()+TIP_DIVE;                          // tip at the dive
   const st={};
-  const START=()=>({lift_z:LIFT_Z, grip:stroke(B.r), clamp_y:RAIL.park, clift:LIFT_HI, iris:irisOpen, turns:0, tip:TIP_READY, swing:STOW, plunger:0, fill:0});
-  // (name, seconds, changes): iris_pipette_plan.STEPS, the clamp sliding instead of swinging, plus the reference hand's clamp lift (scene.py, v3.1)
+  const START=()=>({lift_z:LIFT_Z, grip:stroke(B.r), clamp_x:PARK_X, clift:LIFT_HI, iris:irisOpen, turns:0, tip:TIP_READY, plunger:0, fill:0});
+  // (name, seconds, changes): iris_pipette_plan.STEPS, the clamp sliding back instead of swinging, plus the reference hand's clamp lift (scene.py, v3.1)
   const STEPS=[
     ['Lower the hand over the bottle',1.6,{lift_z:0}],
     ['Close the gripper: the cradles centre the bottle',0.9,{grip:'closed'}],
     ['Lift the bottle',1.2,{lift_z:LIFT_Z}],
-    ['Slide the iris clamp in, high over the cap',1.6,{clamp_y:0}],
+    ['Slide the iris clamp forward onto the axis, high over the cap',1.4,{clamp_x:0}],
     ['Lower the clamp onto the cap',0.9,{clift:0}],
     ['Close the iris on the cap',0.9,{iris:'contact'}],
     ['Unscrew: the housing turns 2×, the clamp follows the cap up',3.0,{turns:TURNS, clift:CAP_LIFT}],
     ['Lift the cap straight off the neck',0.9,{clift:LIFT_HI}],
-    ['Slide the clamp out with the cap',1.6,{clamp_y:RAIL.park}],
-    ['Swing the pipette onto the axis: the cone seats',1.4,{swing:0}],
+    ['Slide the clamp back with the cap, under the pipette',1.4,{clamp_x:PARK_X}],
     ['Press the plunger',0.6,{plunger:PIP.stroke}],
-    ['Lower the pipette into the liquid',1.4,{tip:'dive'}],
+    ['Lower the pipette down the axis into the liquid',2.4,{tip:'dive'}],
     ['Aspirate: release the plunger',1.2,{plunger:0, fill:1}],
-    ['Withdraw the pipette',1.2,{tip:TIP_READY}],
-    ['Swing the pipette out beside the harness',1.4,{swing:STOW}],
-    ['Slide the clamp back in, the cap high over the neck',1.6,{clamp_y:0}],
+    ['Withdraw the pipette to its parked height',2.0,{tip:TIP_READY}],
+    ['Slide the clamp forward, the cap high over the neck',1.4,{clamp_x:0}],
     ['Lower the cap onto the thread',0.9,{clift:CAP_LIFT}],
     ['Screw the cap back',3.0,{turns:0, clift:0}],
     ['Open the iris',0.9,{iris:irisOpen}],
     ['Lift the clamp clear of the cap',0.9,{clift:LIFT_HI}],
-    ['Slide the clamp out',1.6,{clamp_y:RAIL.park}],
+    ['Slide the clamp back',1.4,{clamp_x:PARK_X}],
     ['Put the bottle down',1.2,{lift_z:0}],
     ['Open the gripper and lift the hand clear',1.6,{grip:'open', lift_z:LIFT_Z}],
   ];
@@ -444,15 +450,14 @@
   function solve(){
     hand.position.z=(st.lift_z-baseZ())*MM;                       // at lift 0 the bottle's base is on the table
     for(const j of jaws) j.group.position.y=j.side*st.grip*MM;
-    clampSlide.position.y=st.clamp_y*MM;
+    clampSlide.position.x=st.clamp_x*MM;
     clampG.position.z=(Z_IRIS+st.clift)*MM;
     housingG.rotation.z=st.turns*TAU;
     camRing.rotation.z=-st.iris; for(const p of planets) p.rotation.z=-3*st.iris; for(const b of blades) b.rotation.z=b.userData.phi+st.iris;
     sun.rotation.z=3*st.iris+st.turns*TAU;
-    slide.position.z=st.tip*MM;                                   // the slide's frame is the tip: carriage, pin and frame ride with it
-    frame.rotation.z=st.swing*DEG;
+    slide.position.z=st.tip*MM;                                   // the slide's frame is the tip: carriage, arm plates and pipette ride with it
     plunger.position.z=pusher.position.z=-st.plunger*MM; pusher.position.z+=(BTN_TOP+13)*MM;
-    const lo=diveZ()+CAR[0]; rail.scale.z=(RAIL_TOP-lo)/RAIL_L0; rail.position.z=lo*MM;   // the rail runs from the dive to the top
+    const lo=diveZ()+CB0; rail.scale.z=(RAIL_TOP-lo)/RAIL_L0; rail.position.z=lo*MM;   // the rail runs from the dive to the top
     // the tip: dark, or the liquid's colour once it has drawn
     const wet=st.tip<baseZ()+B.level-2; tipMat.color.copy(MAT.dark.color).lerp(MAT.liquid.color,wet?st.fill:0);
     // the bottle rides in the hand once the cradles are on it; the cap rides in the clamp once the housing has turned
@@ -470,7 +475,7 @@
   for(const ml of Object.keys(CATALOGUE)){ const b=document.createElement('button'); b.textContent=ml+' ml'; b.dataset.ml=ml; b.setAttribute('aria-pressed',ml==='60');
     b.addEventListener('click',()=>{ stop(); setBottle({...CATALOGUE[ml],ml:+ml,level:0.5*CATALOGUE[ml].shoulder}); }); bottlesEl.appendChild(b); }
   function setBottle(b){
-    const wasT=st.t; B=b; shapeBottle(B); makeKeys();
+    B=b; shapeBottle(B); makeKeys();
     [...bottlesEl.children].forEach(btn=>btn.setAttribute('aria-pressed',+btn.dataset.ml===B.ml));
     $('gripIn').min=(2*vertex(B.r)).toFixed(1); $('gripIn').max=(2*stroke(B.r)).toFixed(1);
     $('tipIn').min=TIP_DIVE; $('tipIn').max=(TIP_READY-baseZ()).toFixed(1);
@@ -480,12 +485,11 @@
   function refresh(step){
     $('liftTxt').textContent=st.lift_z.toFixed(0)+' mm'; $('liftIn').value=st.lift_z;
     $('gripTxt').textContent=(2*st.grip).toFixed(1)+' mm'; $('gripIn').value=2*st.grip;
-    $('slideTxt').textContent=st.clamp_y.toFixed(0)+' mm'; $('slideIn').value=st.clamp_y;
+    $('slideTxt').textContent=(-st.clamp_x).toFixed(0)+' mm'; $('slideIn').value=-st.clamp_x;
     $('cliftTxt').textContent=st.clift.toFixed(1)+' mm'; $('cliftIn').value=st.clift;
     const c=irisContact(B); $('irisTxt').textContent='Ø'+(2*IRIS.r_pivot*Math.cos(st.iris)).toFixed(0)+' mm · '+(st.iris/DEG).toFixed(0)+'°'; $('irisIn').value=Math.round((st.iris-irisOpen)/(c-irisOpen)*1000);
     $('turnTxt').textContent=st.turns.toFixed(2); $('turnIn').value=st.turns;
     $('tipTxt').textContent=(st.tip-baseZ()).toFixed(0)+' mm'; $('tipIn').value=st.tip-baseZ();
-    $('swingTxt').textContent=Math.abs(st.swing)<1e-3?'in, seated':(-st.swing).toFixed(0)+'° out'; $('swingIn').value=-st.swing;
     $('plungerTxt').textContent=st.plunger.toFixed(1)+' mm'; $('plungerIn').value=st.plunger;
     [...stepsEl.children].forEach((li,i)=>li.classList.toggle('on',i===step));
     $('phase').textContent=step>=0?(step+1)+' · '+STEPS[step][0]:(playing?'—':'Manual');
@@ -493,17 +497,18 @@
   function set(s,step=-1){ Object.assign(st,s); solve(); refresh(step); }
   const stop=()=>{playing=false; $('play').textContent='Play';};
   const bind=(id,fn)=>$(id).addEventListener('input',e=>{stop(); set(fn(+e.target.value));});
-  bind('liftIn',v=>({lift_z:v})); bind('gripIn',v=>({grip:v/2})); bind('slideIn',v=>({clamp_y:v})); bind('cliftIn',v=>({clift:v}));
+  bind('liftIn',v=>({lift_z:v})); bind('gripIn',v=>({grip:v/2})); bind('slideIn',v=>({clamp_x:-v})); bind('cliftIn',v=>({clift:v}));
   bind('irisIn',v=>({iris:irisOpen+(irisContact(B)-irisOpen)*v/1000})); bind('turnIn',v=>({turns:v}));
-  bind('tipIn',v=>({tip:baseZ()+v})); bind('swingIn',v=>({swing:-v})); bind('plungerIn',v=>({plunger:v}));
+  bind('tipIn',v=>({tip:baseZ()+v})); bind('plungerIn',v=>({plunger:v}));
   $('play').addEventListener('click',()=>{playing=!playing; $('play').textContent=playing?'Pause':'Play'; t0=performance.now()/1000-(st.t||0); if(!playing) st.t=0;});
   $('reset').addEventListener('click',()=>{stop(); st.t=0; set(keys[0].s);});
   const toggle=(id,fn)=>$(id).addEventListener('click',e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true'; e.currentTarget.setAttribute('aria-pressed',on); fn(on);});
-  toggle('tBottle',on=>{glass.visible=liquid.visible=on;}); toggle('tArm',on=>{armStub.visible=on;}); toggle('tHousing',on=>{housingG.children.forEach(c=>{ if(c!==camRing&&!blades.includes(c)&&!planets.includes(c)&&c!==capSeat) c.visible=on; });});
-  const cam=(yaw,pitch,dist,tz=0.22,tx=-0.04)=>()=>{orbit.yaw=yaw; orbit.pitch=pitch; orbit.dist=dist; orbit.target.set(tx,tz,0); updateCam();};
-  $('camIso').addEventListener('click',cam(0.8,0.22,1.0)); $('camFront').addEventListener('click',cam(Math.PI/2,0.05,0.95));
-  $('camTop').addEventListener('click',cam(Math.PI/2,1.49,0.8,0.22,-0.04)); $('camSide').addEventListener('click',cam(Math.PI,0.05,1.0));
-  $('camClamp').addEventListener('click',cam(0.6,0.45,0.45,0.17,-0.02));
+  toggle('tBottle',on=>{glass.visible=liquid.visible=on;}); toggle('tArm',on=>{armStub.visible=on;}); toggle('tPlates',on=>{plates.forEach(p=>p.visible=on);});
+  toggle('tHousing',on=>{housingG.children.forEach(c=>{ if(c!==camRing&&!blades.includes(c)&&!planets.includes(c)&&c!==capSeat) c.visible=on; });});
+  const cam=(yaw,pitch,dist,tz=0.33,tx=-0.04)=>()=>{orbit.yaw=yaw; orbit.pitch=pitch; orbit.dist=dist; orbit.target.set(tx,tz,0); updateCam();};
+  $('camIso').addEventListener('click',cam(0.8,0.22,1.45)); $('camFront').addEventListener('click',cam(Math.PI/2,0.05,1.4));
+  $('camTop').addEventListener('click',cam(Math.PI/2,1.49,0.9)); $('camSide').addEventListener('click',cam(Math.PI,0.05,1.45));
+  $('camClamp').addEventListener('click',cam(0.6,0.45,0.5,0.2,-0.03));
   $('camIris').addEventListener('click',()=>{orbit.yaw=0.5; orbit.pitch=-0.75; orbit.dist=0.3; orbit.target.set(0,(st.lift_z-baseZ()+Z_IRIS)*MM,0); updateCam();});
 
   function resize(){ const w=view.clientWidth,h=view.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
@@ -511,7 +516,8 @@
   function loop(){ requestAnimationFrame(loop);
     if(playing){ const t=(performance.now()/1000-t0)%TOTAL; st.t=t; const [s,step]=at(t); set(s,step); $('clock').textContent=t.toFixed(1)+' / '+TOTAL.toFixed(1)+' s'; }
     renderer.render(scene,camera); }
-  window.RIG={hand,grip,clampSlide,clampG,housingG,blades,slide,frame,held,plunger,pusher,bottleG,cap,st,solve,set,at,keys:()=>keys,B:()=>B};   // for inspection from the console
+  window.RIG={hand,grip,jaws,plates,clampSlide,clampG,housingG,blades,slide,held,plunger,pusher,bottleG,cap,rail,st,solve,set,at,keys:()=>keys,B:()=>B,
+              P:{GAP,PLATE,HALF_IN,HALF_OUT,PARK_X,CAGE,HEAD,XR,PR,TIP_READY,RAIL_TOP,Z_IRIS,LIFT_HI,GRIP_Z}};   // for inspection from the console
   setBottle(B);
   const deep=/step=(\d+)/.exec(location.hash), n=deep?Math.min(STEPS.length,Math.max(1,+deep[1])):0;
   if(n){ const [s]=at(keys[n-1].t+0.6*(keys[n].t-keys[n-1].t)); set(s,n-1); }

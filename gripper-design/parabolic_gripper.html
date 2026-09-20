@@ -132,11 +132,10 @@
   // ============================== PARAMETERS (mm) ==============================
   // uncap-robustness/gripper.py, hand frame: +X from the arm to the bottle, Y the
   // closing direction, Z up; the bottle's axis at x = 0, the tool axis at z = 0.
-  const JAW={p:8, half_width:22.5, facets:11, clearance:0.2, liner:3, half_height:16, plate:6, open_clear:6};
+  const JAW={p:8, half_width:22.5, facets:11, clearance:0.2, liner:3, half_height:16, plate:6, tip:2, open_clear:6};
   const BODY={length:52, half_width:32, half_height:16};
   const FRONT_CLEAR=30, FLANGE_X=-118, AXIS_BELOW_CAP=21;
   // the stylised parts
-  const HUB_HALF=14;            // the cradle's flat back, where the arm bolts on
   const COMB_X=12;              // the wings comb beyond |x| = COMB_X
   const COMB_GAP=1;             // between interleaved bands
   const BEAM={x0:-31, x1:-25, half_z:8, half_y:86};           // the linear axis across the front, 1 mm into the housing
@@ -315,21 +314,22 @@
   function cradleShapes(side){
     // inner edge = liner surface (the parabola); the plate sits behind it; the hub is flat behind the vertex
     const N=48, W=JAW.half_width;
-    const outer=x=>JAW.liner+JAW.plate-Math.max(0,x*x-HUB_HALF*HUB_HALF)/(2*JAW.p);   // plate's back, flat over the hub
+    const outerHub=x=>JAW.liner+JAW.plate-0.8-parab(x);                                                 // flat back 9 mm behind the vertex once the 0.8 mm bevel is added: the mounting pad
+    const outerWing=x=>JAW.liner+JAW.plate-(JAW.plate-JAW.tip)*(Math.abs(x)-COMB_X)/(JAW.half_width-COMB_X);   // the wings taper from 6 mm to 2 mm at the tips
     const arc=(x0,x1,f)=>{ const p=[]; for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N; p.push([x,side*f(x)]); } return p; };
     const liner=(x0,x1)=>[...arc(x0,x1,parab),...arc(x1,x0,x=>parab(x)+JAW.liner)];
-    const plate=(x0,x1)=>[...arc(x0,x1,x=>parab(x)+JAW.liner),...arc(x1,x0,x=>parab(x)+outer(x))];
-    return {liner,plate};
+    const plate=(x0,x1,outer)=>[...arc(x0,x1,x=>parab(x)+JAW.liner),...arc(x1,x0,x=>parab(x)+outer(x))];
+    return {liner,plate,outerHub,outerWing};
   }
   function buildJaw(side){
     const jaw=new THREE.Group();                                   // origin: the cradle's vertex on the bottle-facing surface
-    const {liner,plate}=cradleShapes(side), H=JAW.half_height, C=COMB_X, W=JAW.half_width;
+    const {liner,plate,outerHub,outerWing}=cradleShapes(side), H=JAW.half_height, C=COMB_X, W=JAW.half_width;
     // centre section, full height
-    jaw.add(slab(plate(-C,C),-H,H,0.8,MAT.gray));
+    jaw.add(slab(plate(-C,C,outerHub),-H,H,0.8,MAT.gray));
     jaw.add(slab(liner(-C,C),-H,H,0.6,MAT.liner));
     // wings, combed
     for(const [z0,z1] of wingBands(side)) for(const [x0,x1] of [[C,W],[-W,-C]]){
-      jaw.add(slab(plate(x0,x1),z0,z1,0.8,MAT.gray));
+      jaw.add(slab(plate(x0,x1,outerWing),z0,z1,0.8,MAT.gray));
       jaw.add(slab(liner(x0,x1),z0,z1,0.6,MAT.liner));
     }
     const back=JAW.liner+JAW.plate;                                // the hub's back face, y = back

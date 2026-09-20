@@ -60,6 +60,7 @@ import argparse
 import http.server
 import itertools
 import json
+import os
 import math
 import sys
 import threading
@@ -676,22 +677,27 @@ def gripper_scene() -> Path:
     scene it is built from is rebuilt: editing the generator and seeing the old
     bench is a long way to debug, because the file is there and looks current.
     """
+    tool = os.environ.get('RAIL_TOOL', 'vertical_hand')     # 'gripper' puts the Robotiq back
     sources = [Path(__file__).resolve(), rk.SIM / 'scripts/generate_rail_scene.py',
-               rk.SCENE]
+               rk.SCENE, rk.SIM / 'assets/vertical_hand_minimal/vertical_hand_minimal.xml']
+    stamp = GRIPPER_SCENE.with_suffix('.tool')
+    if stamp.exists() and stamp.read_text().strip() != tool:
+        GRIPPER_SCENE.unlink(missing_ok=True)
     if (GRIPPER_SCENE.exists() and (GRIPPER_ARM / 'ur10e_2f85.xml').exists()
             and all(s.exists() and s.stat().st_mtime <= GRIPPER_SCENE.stat().st_mtime
                     for s in sources)):
         return GRIPPER_SCENE
     import generate_rail_scene as gen
     shipped = f'../{gen.ARM_DIR.relative_to(rk.SIM).as_posix()}/'
-    gen.TOOL, gen.ARM_DIR, gen.OUT_SCENE = 'gripper', GRIPPER_ARM, GRIPPER_SCENE
-    gen.build_gripper()
+    gen.TOOL, gen.ARM_DIR, gen.OUT_SCENE = tool, GRIPPER_ARM, GRIPPER_SCENE
+    gen.build_gripper() if tool == 'gripper' else gen.build_vertical_hand()
     gen.build_arm()
     gen.build_scene()
     # The scene names the arm's file by its shipped path; point it at this one.
     GRIPPER_SCENE.write_text(GRIPPER_SCENE.read_text(encoding='utf-8').replace(
         shipped, f'../{GRIPPER_ARM.relative_to(rk.SIM).as_posix()}/'), encoding='utf-8')
-    print(f'built {GRIPPER_SCENE.relative_to(rk.SIM)}')
+    stamp.write_text(tool + '\n')
+    print(f'built {GRIPPER_SCENE.relative_to(rk.SIM)} with the {tool}')
     return GRIPPER_SCENE
 
 
@@ -1247,8 +1253,28 @@ def plan_grasp(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
     Returns:
         The carriage station, the pose above and the pose at the grasp; or None.
     """
-    on = np.array([xy[0], xy[1], rk.BENCH_TOP + height * gt.GRASP_FRACTION])
+    on = np.array([xy[0], xy[1], rk.BENCH_TOP + grasp_height(model, height)])
     return plan(model, scratch, carry, on + (0.0, 0.0, gt.APPROACH), on)
+
+
+# The vertical hand's cradles sit 21 mm under the cap seat (gripper-design/vertical_hand.html):
+# 35 mm under the vessel's top over the catalogue's caps. The cradles reach 16 mm under their
+# axis, so grasping a 52 mm vessel at the Robotiq's 35 % would put them through the bench; on
+# that vessel the axis stays 20 mm up, the cradles 4 mm over the worktop.
+HAND_GRASP_BELOW_TOP = 0.035
+HAND_GRASP_MIN = 0.020
+
+
+def has_vertical_hand(model: mujoco.MjModel) -> bool:
+    """Whether the tool on the flange is the vertical uncap-and-pipette hand."""
+    return mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_BODY, 'arm_grip_vertical_hand') >= 0
+
+
+def grasp_height(model: mujoco.MjModel, height: float) -> float:
+    """Where the tool centre point goes on a vessel of this height, over the bench top."""
+    if has_vertical_hand(model):
+        return max(height - HAND_GRASP_BELOW_TOP, HAND_GRASP_MIN)
+    return height * gt.GRASP_FRACTION
 
 
 def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,

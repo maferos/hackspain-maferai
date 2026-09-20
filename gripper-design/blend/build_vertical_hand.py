@@ -1,0 +1,108 @@
+"""Build the minimal vertical hand: simulation/assets/vertical_hand_minimal/{vertical_hand_minimal.blend, .xml, .png}.
+
+    uv run --no-project --python 3.11 --with bpy --with mujoco python gripper-design/blend/build_vertical_hand.py
+
+No robot arm and no bottle: the model ends at the black head under the flange. Frame as vertical_hand.html
+(hand at lift 0, the 60 ml bottle's base would sit at z = 0). Modules: cage, gripper, clamp, pipette.
+
+Every part is a collider: a passive rigid body with an exact primitive shape in Blender, a geom in MuJoCo.
+The MJCF is a drop-in for the Robotiq on the rail arm (scripts/generate_rail_scene.py, TOOL = 'vertical_hand'):
+the jaws are slide joints coupled by an equality, closed by `fingers_actuator` (ctrl 0 open ... 255 shut, like the
+2F-85), and it reports what rail_kinematics.read_grip reads: `right/left_pad_force` (touch sites on the pads),
+`finger_drive`, `right/left_finger` (closure 0 ... 0.8, so FINGERS_SHUT still means "closed on nothing").
+The tool centre point is the site `pinch` on the cradles' axis, +Z the approach direction.
+"""
+import os, sys, math
+HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+REPO = os.path.dirname(os.path.dirname(HERE)); OUT = os.path.join(REPO, 'simulation', 'assets', 'vertical_hand_minimal')
+os.makedirs(OUT, exist_ok=True)
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+scene = bpy.context.scene; scene.unit_settings.system = 'METRIC'; scene.unit_settings.length_unit = 'MILLIMETERS'
+import hand_common as H, cage, gripper, clamp, pipette
+
+root = bpy.data.objects.new('vertical_hand', None); root.empty_display_type = 'ARROWS'; root.empty_display_size = 0.05; scene.collection.objects.link(root)
+H.ROOT = root; M = H.Mats()
+cage.build(root, M); gripper.build(root, M); clamp.build(root, M); pipette.build(root, M)
+H.add_collisions()
+
+# ---- preview render (Workbench) ----
+cam = bpy.data.objects.new('cam', bpy.data.cameras.new('cam')); scene.collection.objects.link(cam); scene.camera = cam
+cam.location = (0.55, -0.85, 0.62); cam.rotation_euler = (math.radians(68), 0, math.radians(33)); cam.data.lens = 40
+sun = bpy.data.objects.new('sun', bpy.data.lights.new('sun', 'SUN')); scene.collection.objects.link(sun); sun.rotation_euler = (math.radians(50), math.radians(10), math.radians(40))
+scene.render.engine = 'BLENDER_WORKBENCH'; scene.display.shading.light = 'STUDIO'; scene.display.shading.color_type = 'MATERIAL'; scene.display.shading.show_shadows = True
+scene.render.resolution_x, scene.render.resolution_y = 900, 700; scene.render.filepath = os.path.join(OUT, 'vertical_hand_minimal.png')
+bpy.ops.render.render(write_still=True)
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT, 'vertical_hand_minimal.blend'))
+
+# ---- MJCF: the same solids as collision geoms, the jaws jointed, the gripper's senses ----
+MM = H.MM
+def f(v): return f'{v:.5f}'
+def vec(vs, k=MM): return ' '.join(f(v * k) for v in vs)
+def quat_z(a): return f'{math.cos(a / 2):.6f} 0 0 {math.sin(a / 2):.6f}'
+def geom(p):
+    q = f' quat="{quat_z(p["rz"])}"' if abs(p['rz']) > 1e-9 else ''
+    t = 'box' if p['kind'] == 'box' else 'cylinder'
+    return f'<geom name="{p["name"]}" type="{t}" size="{vec(p["size"])}" pos="{vec(p["pos"])}"{q} material="{p["mat"]}"/>'
+def site(s):
+    return f'<site name="{s["name"]}" type="{s["type"]}" pos="{vec(s["pos"])}" size="{vec(s["size"])}" rgba="0.9 0.4 0.1 0.25" group="4"/>'
+TREE = {'vertical_hand': None, 'jaw_P': 'vertical_hand', 'jaw_N': 'vertical_hand', 'clamp': 'vertical_hand', 'pipette': 'vertical_hand'}
+POS = {'vertical_hand': (0, 0, 0), 'jaw_P': (0, 0, 0), 'jaw_N': (0, 0, 0), 'clamp': (H.CLAMP_POSE['x'], 0, H.Z_IRIS + H.CLAMP_POSE['lift']), 'pipette': (0, 0, H.TIP_READY)}
+JOINT_OF = {j['body']: j for j in H.JOINTS}
+def body_xml(name, ind):
+    lines = [f'{ind}<body name="{name}" pos="{vec(POS[name])}">']
+    if name in JOINT_OF:
+        j = JOINT_OF[name]
+        lines.append(f'{ind}  <joint name="{j["name"]}" type="slide" axis="{" ".join(str(a) for a in j["axis"])}" range="{vec(j["range"], 1)}" damping="5"/>')
+    if name == 'vertical_hand':   # the TCP: the cradles' axis, +Z the approach direction (down the hand)
+        lines.append(f'{ind}  <site name="pinch" pos="{vec((0, 0, H.GRIP_Z))}" quat="0 1 0 0" size="0.003" group="4"/>')
+    lines += [f'{ind}  {geom(p)}' for p in H.PARTS if p['body'] == name]
+    lines += [f'{ind}  {site(s)}' for s in H.SITES if s['body'] == name]
+    lines += [body_xml(k, ind + '  ') for k, parent in TREE.items() if parent == name]
+    lines.append(f'{ind}</body>')
+    return '\n'.join(lines)
+travel = gripper.JAW_TRAVEL * MM
+KP, FMAX = 1500.0, 15.0                               # N/m on the jaw, and the squeeze the servo stalls at
+mats = '\n'.join(f'    <material name="{m.name}" rgba="{" ".join(f"{v:.3f}" for v in m["rgba"])}"/>' for m in bpy.data.materials if 'rgba' in m)
+xml = f'''<mujoco model="vertical_hand_minimal">
+  <!-- Generated by gripper-design/blend/build_vertical_hand.py; do not edit by hand. Every geom is a collider.
+       Frame as gripper-design/vertical_hand.html: +X arm to bottle, Z up, the cradles' axis at z = {H.GRIP_Z} mm,
+       the flange face at z = {H.CAGE['z1'] + 2} mm over x = {(H.HEAD['x0'] + H.HEAD['x1']) / 2} mm. -->
+  <compiler angle="radian"/>
+  <default>
+    <geom condim="3" friction="0.6 0.005 0.0001" density="700"/>
+  </default>
+  <asset>
+{mats}
+  </asset>
+  <worldbody>
+{body_xml('vertical_hand', '    ')}
+  </worldbody>
+  <contact>
+    <exclude body1="jaw_P" body2="jaw_N"/>
+  </contact>
+  <equality>
+    <joint joint1="jaw_N" joint2="jaw_P" polycoef="0 1 0 0 0"/>
+  </equality>
+  <tendon>
+    <fixed name="right_finger_t"><joint joint="jaw_P" coef="{0.8 / travel:.4f}"/></fixed>
+    <fixed name="left_finger_t"><joint joint="jaw_N" coef="{0.8 / travel:.4f}"/></fixed>
+  </tendon>
+  <actuator>
+    <general name="fingers_actuator" joint="jaw_P" ctrlrange="0 255" forcerange="{-FMAX} {FMAX}"
+             gainprm="{KP * travel / 255:.5f} 0 0" biasprm="0 {-KP} -30"/>
+  </actuator>
+  <sensor>
+    <touch name="right_pad_force" site="right_pad_touch"/>
+    <touch name="left_pad_force" site="left_pad_touch"/>
+    <actuatorfrc name="finger_drive" actuator="fingers_actuator"/>
+    <tendonpos name="right_finger" tendon="right_finger_t"/>
+    <tendonpos name="left_finger" tendon="left_finger_t"/>
+  </sensor>
+</mujoco>
+'''
+xml_path = os.path.join(OUT, 'vertical_hand_minimal.xml'); open(xml_path, 'w').write(xml)
+import mujoco
+m = mujoco.MjModel.from_xml_path(xml_path); d = mujoco.MjData(m); mujoco.mj_forward(m, d)
+print(f'blend: {len([o for o in bpy.data.objects if o.type == "MESH"])} meshes, all rigid bodies; '
+      f'mjcf: {m.ngeom} geoms, {m.nbody - 1} bodies, {m.njnt} joints, {m.nsensor} sensors, mass {m.body_subtreemass[1]:.2f} kg, loads in MuJoCo')

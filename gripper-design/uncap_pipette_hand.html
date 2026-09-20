@@ -123,10 +123,10 @@
   // bottle's axis at x = y = 0; the reference (60 ml) bottle's base at z = 0.
   const REF_CAP_Z=78.1;                       // the reference cap seat; everything on the hand is placed off it
   const AXIS_BELOW_CAP=21, GRIP_Z=REF_CAP_Z-AXIS_BELOW_CAP;   // 57.1: the tool axis
-  const JAW={p:8, half_width:22.5, clearance:0.2, liner:3, half_height:16, plate:6, open_clear:6};
+  const JAW={p:8, half_width:22.5, clearance:0.2, liner:3, half_height:16, plate:6, tip:2, open_clear:6};
   const BODY={length:52, half_width:32, half_height:16};
   const FRONT_CLEAR=30, FLANGE_X=-118;
-  const HUB_HALF=14, COMB_X=12, COMB_GAP=1;
+  const COMB_X=12, COMB_GAP=1;
   const BEAM={x0:-31, x1:-25, half_z:8, half_y:86};
   const CARRIAGE={x0:-30, x1:-24, width:14, half_z:12};
   const ARM={x0:-24, x1:-2, width:12, half_z:11};
@@ -295,12 +295,13 @@
   const wingBands=side=>{ const H=JAW.half_height, third=(2*H-2*COMB_GAP)/3; return side>0?[[-H,-H+third],[H-third,H]]:[[-H+third+COMB_GAP,H-third-COMB_GAP]]; };
   function buildJaw(side){
     const jaw=new THREE.Group(), N=48, W=JAW.half_width, H=JAW.half_height, C=COMB_X;
-    const outer=x=>JAW.liner+JAW.plate-Math.max(0,x*x-HUB_HALF*HUB_HALF)/(2*JAW.p);
+    const outerHub=x=>JAW.liner+JAW.plate-0.8-parab(x);                                                 // flat back 9 mm behind the vertex once the 0.8 mm bevel is added: the mounting pad
+    const outerWing=x=>JAW.liner+JAW.plate-(JAW.plate-JAW.tip)*(Math.abs(x)-COMB_X)/(JAW.half_width-COMB_X);   // the wings taper from 6 mm to 2 mm at the tips
     const arc=(x0,x1,f)=>{ const p=[]; for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N; p.push([x,side*f(x)]); } return p; };
     const liner=(x0,x1)=>[...arc(x0,x1,parab),...arc(x1,x0,x=>parab(x)+JAW.liner)];
-    const plate=(x0,x1)=>[...arc(x0,x1,x=>parab(x)+JAW.liner),...arc(x1,x0,x=>parab(x)+outer(x))];
-    jaw.add(slab(plate(-C,C),-H,H,0.8,MAT.gray)); jaw.add(slab(liner(-C,C),-H,H,0.6,MAT.liner));
-    for(const [z0,z1] of wingBands(side)) for(const [x0,x1] of [[C,W],[-W,-C]]){ jaw.add(slab(plate(x0,x1),z0,z1,0.8,MAT.gray)); jaw.add(slab(liner(x0,x1),z0,z1,0.6,MAT.liner)); }
+    const plate=(x0,x1,outer)=>[...arc(x0,x1,x=>parab(x)+JAW.liner),...arc(x1,x0,x=>parab(x)+outer(x))];
+    jaw.add(slab(plate(-C,C,outerHub),-H,H,0.8,MAT.gray)); jaw.add(slab(liner(-C,C),-H,H,0.6,MAT.liner));
+    for(const [z0,z1] of wingBands(side)) for(const [x0,x1] of [[C,W],[-W,-C]]){ jaw.add(slab(plate(x0,x1,outerWing),z0,z1,0.8,MAT.gray)); jaw.add(slab(liner(x0,x1),z0,z1,0.6,MAT.liner)); }
     const back=JAW.liner+JAW.plate, armY=side*(back+ARM.width/2), carY=side*(back-1+CARRIAGE.width/2);
     jaw.add(rb('x',ARM.x0,ARM.x1,armY,0,ARM.width,2*ARM.half_z,3,1));
     jaw.add(withMat(rb('x',CARRIAGE.x0,CARRIAGE.x1,carY,0,CARRIAGE.width,2*CARRIAGE.half_z,3.5,1.2),MAT.black));
