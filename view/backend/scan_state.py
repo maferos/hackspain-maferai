@@ -468,7 +468,7 @@ class ScanState:
             scan["group"] = "Bench"
             return [scan] + self.workflow.plan_steps()
         steps = [
-            S.step("park", "Park at the end of the rail", status=(
+            S.step("park", "Stretch the arm out along the rail", status=(
                 "active" if self._phase == "init" else "completed")),
             S.step("survey", "Survey the bench with the fixed camera", status=(
                 "queued" if self._phase == "init" else "active" if self._phase == "survey" else "completed")),

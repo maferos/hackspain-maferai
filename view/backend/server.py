@@ -202,9 +202,13 @@ class SceneRenderer:
         # Optional scripted viewport motion (the rail sweep for the railed scene;
         # None for scenes that just step physics as before).
         self.scan = None
-        # The lab waits to be asked: the scan is created by the render thread
-        # once a formula has been sent, and again for every layout after that.
+        # The scan is the lab's first task and it starts on its own: reading the
+        # bench is what every formula is checked against, so waiting for one
+        # means the first formula waits for the whole bench. The render thread
+        # creates the scan as soon as it can, and again for every layout after
+        # that; start_scan stays for the layouts, and is a no-op once set.
         self.want_scan = threading.Event()
+        self.want_scan.set()
         self._motion = None if SCAN_ENABLED else self._build_rail_sweep()
 
     def _build_rail_sweep(self) -> dict | None:
@@ -563,8 +567,6 @@ def scanned_shelf() -> list[dict]:
 def scan_progress() -> str:
     scan = scene.scan
     if not SCAN_ENABLED or scan is None or scan.world is None:
-        if SCAN_ENABLED and not scene.want_scan.is_set():
-            return " (The bench scan has not started: it begins with the first formula.)"
         return " (The bench scan is not running.)"
     if scan.world.scan is None:
         return f" (The scan is still going: {len(scanned_shelf())} flasks named so far.)"
@@ -842,8 +844,7 @@ def scan_info():
     if not SCAN_ENABLED:
         return {"status": "disabled"}
     if scene.scan is None:
-        caption = ("Preparing the scan" if scene.want_scan.is_set()
-                   else "Waiting for a formula: the lab scans the bench once it is asked for one")
+        caption = "Preparing the scan"
         return {"status": "starting", "caption": caption, "named": 0, "tracked": 0}
     return scene.scan.snapshot()
 

@@ -384,11 +384,28 @@ class World:
                 track.misses += 1
                 if track.state == 'tentative':
                     del self.tracks[i]          # a flicker; it never was a track
+                elif track.sample:
+                    # A named flask is never unnamed by the fixed camera. Its
+                    # name came from the wrist reading an ArUco ring 36 cm away,
+                    # which is the strongest look this lab gets; dropping it
+                    # because a detector missed three frames throws out good
+                    # evidence on the strength of weak evidence. The arm itself
+                    # is the usual reason for those misses — `hidden` masks the
+                    # projected links, not the solid arm around them, so a flask
+                    # behind the side of the forearm reads as absent.
+                    #
+                    # What the misses do mean is that nobody can currently see
+                    # it, which is worth saying but is not the same as its not
+                    # being there. A look that goes for it and finds nothing is
+                    # what settles that.
+                    if track.misses == LOST_AFTER:
+                        track.note = 'out of the fixed camera''s sight'
+                        self.log(clock, f'track {track.id} ({track.sample}): the fixed '
+                                        f'camera cannot see it; it stays named where '
+                                        f'it was last read')
                 elif track.misses >= LOST_AFTER:
                     track.state, track.note = 'lost', 'no longer where it was'
-                    self.log(clock, f'track {track.id}'
-                                    f'{" (" + track.sample + ")" if track.sample else ""}: '
-                                    'lost, nothing stands there any more')
+                    self.log(clock, f'track {track.id}: lost, nothing stands there any more')
             self.cycles += 1
 
     def named(self, track: Track, clock: float) -> None:
@@ -1025,6 +1042,11 @@ def path_clear(model: mujoco.MjModel, scratch: mujoco.MjData,
 
     With ``bench`` — ``(hull, margin, height)`` — the arm must also stay above
     ``height`` wherever it stands over the hull of what the cameras have seen.
+    That is for **transit**, not for the approach to a look: going to read a
+    ring means coming down over the bench, which is what the keep-out forbids.
+    Measured on the hanging arm, demanding it of the approach left 1 look pose
+    reachable in 21 where 15 were reachable without. The look pose itself is
+    guarded by ``floor`` and :func:`blocked`, which is the right guard for it.
     IK is free to answer with a path that crosses the bench, and a straight line
     in joint space is not a straight line in the world: a move between two poses
     that are both outside the flasks can still sweep the hand through them
@@ -1062,6 +1084,14 @@ CARRY = (-0.35, 1.30)       # world y and z of the tool; x is wherever the carri
 # turning the base over turns the whole branch over with it, so this is solved
 # for the tool at CARRY rather than carried across from the old mount.
 HAND_DOWN = (-1.9066, -0.1282, 1.7589, 0.8415, -1.3035, -1.9808)
+# Where the arm waits while the fixed camera surveys the bench: laid out along
+# the rail, not folded over the bench. The carriage used to run to whichever end
+# was nearer so that the arm stood off the end and hid nothing; stretched, it
+# hides nothing from wherever it is, and the sweep starts where it stands
+# instead of after a trip to the end. The tool ends 1.25 m along the rail from
+# the base, level with it in y, and the whole arm stays 1.46 m up — the flasks
+# top out at 1.04, and the rail's own strip at y = 0.14 is behind them.
+STRETCHED = (2.9671, 0.0, -0.1745, 0.0, 0.0, 0.0)
 
 
 def carry_pose(model: mujoco.MjModel, scratch: mujoco.MjData,
@@ -1127,10 +1157,8 @@ def plan(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
                     or blocked(model, scratch):
                 continue
             q_second = scratch.qpos[rk.arm_qpos(model)].copy()
-            if path_clear(model, scratch, (station, carry), (station, q_first),
-                              bench=keepout()) and \
-                    path_clear(model, scratch, (station, q_first), (station, q_second),
-                               bench=keepout()):
+            if path_clear(model, scratch, (station, carry), (station, q_first)) and \
+                    path_clear(model, scratch, (station, q_first), (station, q_second)):
                 return station, q_first, q_second
     return None
 
@@ -1187,8 +1215,7 @@ def hover_pose(model: mujoco.MjModel, scratch: mujoco.MjData, station: float,
             or blocked(model, scratch) or lowest_point(model, scratch) < floor:
         return None
     q = scratch.qpos[rk.arm_qpos(model)].copy()
-    return q if path_clear(model, scratch, (station, q), (station, q_look),
-                       bench=keepout()) else None
+    return q if path_clear(model, scratch, (station, q), (station, q_look)) else None
 
 
 def hub_pose(model: mujoco.MjModel, scratch: mujoco.MjData, carry: np.ndarray,
@@ -1675,19 +1702,20 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
     def initial_scan():
         """Read every bottle on the bench once, in one sweep of the rail.
 
-        The carriage parks at the end of the rail nearer to it. From there the
-        arm stands past the end of the bench in the fixed camera's picture and
-        hides no bottle, so the survey sees them all. The proposals are then
-        looked at in order along the rail from that end, and the carriage
-        crosses the bench once. A proposal that turns up during the sweep joins
-        it, or waits for the way back if the carriage has already passed it.
+        The arm stretches out along the rail where it stands. Laid out like
+        that it hides no bottle from the fixed camera, which is what the trip
+        to the end of the rail used to buy, and it buys it without the trip.
+        The proposals are then looked at in order along the rail, and the
+        carriage crosses the bench once. A proposal that turns up during the
+        sweep joins it, or waits for the way back if the carriage has already
+        passed it.
         """
         lo, hi = (float(home + v) for v in model.joint(rk.RAIL_JOINT).range)
         start = hi if hi - here() <= here() - lo else lo
         sweep = -1.0 if start == hi else 1.0
         began = float(data.time)
-        yield from travel(start, 'initial scan: parking the arm at the end of the rail',
-                          None)
+        yield from drive(here(), np.array(STRETCHED), open_hand, 1.5,
+                         'initial scan: stretching the arm out along the rail')
         yield from survey(SURVEY_CYCLES, 'initial scan: the fixed camera surveys the bench')
         frontier, looked, settled, hover, row = start, 0, False, None, False
         world.log(data.time, f'initial scan: the tallest flask stands {tallest() * 100:.0f} cm, '
