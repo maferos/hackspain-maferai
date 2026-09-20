@@ -11,6 +11,8 @@ panels follow the order step by step, down to the mass on the balance pan. The
 lab is a UR10e on a rail, simulated in MuJoCo; the demo also replays the same
 scan rendered in Isaac Sim.
 
+Demo video: https://youtu.be/kdZ4qXKVD1E
+
 Each part has its own README:
 
 - [`simulation/`](simulation/) — robotic lab-automation simulation with MuJoCo + AutoBio. See [`simulation/README.md`](simulation/README.md).
