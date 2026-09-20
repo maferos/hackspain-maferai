@@ -136,7 +136,9 @@ BACKENDS: dict[str, Backend] = {
     "rail": Backend("yolo26n_rail_general.pt", 0.10),
     # Retrained on the full dataset (any camera, bench patterns, varied labs),
     # on the bench crop at 1920 px; 0.41 is its best-F1 point on validation.
-    "full": Backend("yolo26n_full_1920_e25.pt", 0.41),
+    "full": Backend("yolo26n_full_1920_e100.pt", 0.52),
+    # The same run stopped at 25 epochs, kept to compare against.
+    "full25": Backend("yolo26n_full_1920_e25.pt", 0.41),
     # The harness names this one `mujoco`; same weights, same threshold.
     "mujoco": Backend("yolo26n_rail_general.pt", 0.10),
 }
