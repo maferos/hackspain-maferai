@@ -1,0 +1,308 @@
+<title>Parabolic Cradle Hand</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eef1f3; --surface:#ffffff; --surface-2:#e3e9ed; --ink:#152028; --muted:#57666f; --line:#d3dbe0;
+  --accent:#a85a17; --ok:#17835a; --bad:#c0392b; --grid:#c9d3d9;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0d1316; --surface:#151e23; --surface-2:#1d272d; --ink:#e3eaee; --muted:#93a3ad; --line:#2a363d;
+  --accent:#e39a57; --ok:#3cc28a; --bad:#f07a66; --grid:#2c383f;
+}}
+:root[data-theme="dark"]{
+  --bg:#0d1316; --surface:#151e23; --surface-2:#1d272d; --ink:#e3eaee; --muted:#93a3ad; --line:#2a363d;
+  --accent:#e39a57; --ok:#3cc28a; --bad:#f07a66; --grid:#2c383f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--sans);padding:0 16px}
+[hidden]{display:none!important}
+.wrap{max-width:1240px;margin:0 auto;padding-block:24px 40px;display:grid;gap:18px}
+h1{font:700 clamp(24px,3.2vw,34px)/1.1 var(--cond);margin:0;letter-spacing:-.01em}
+p{margin:0;max-width:70ch;color:var(--muted)}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.stage{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:16px;align-items:start}
+@media (max-width:860px){ .stage{grid-template-columns:1fr} }
+.view{position:relative;background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden;aspect-ratio:16/10;min-height:360px}
+.view canvas{display:block;width:100%;height:100%}
+.hud{position:absolute;left:12px;top:12px;display:flex;gap:8px;flex-wrap:wrap;font:500 12px/1 var(--mono)}
+.hud span{background:color-mix(in oklab, var(--surface) 82%, transparent);border:1px solid var(--line);border-radius:999px;padding:6px 10px}
+.hint{position:absolute;right:12px;bottom:12px;font:12px/1 var(--sans);color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;display:grid;gap:12px}
+.panel h2{font:600 14px/1.2 var(--cond);margin:0;letter-spacing:.02em}
+.rows{display:grid;gap:6px;font-size:13px}
+.rows div{display:flex;justify-content:space-between;gap:10px}
+.rows b{font-weight:600;font-family:var(--mono);font-variant-numeric:tabular-nums}
+.steps{max-height:230px;overflow:auto;display:grid;gap:2px;font-size:13px}
+.steps button{all:unset;cursor:pointer;padding:4px 8px;border-radius:7px;display:flex;gap:8px}
+.steps button:hover{background:var(--surface-2)}
+.steps button[aria-current="true"]{background:var(--accent);color:#fff}
+.steps i{font-family:var(--mono);opacity:.6;font-style:normal}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+button,select{font:inherit;font-size:13px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:7px 12px;cursor:pointer}
+button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+input[type=range]{flex:1;min-width:180px;accent-color:var(--accent)}
+.time{font:500 13px/1 var(--mono);color:var(--muted);min-width:120px}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:12.5px;color:var(--muted)}
+.legend i{width:11px;height:11px;border-radius:3px;display:inline-block;margin-right:5px;vertical-align:-1px;font-style:normal}
+footer{font-size:13px;color:var(--muted)}
+code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="eyebrow">MuJoCo · contact physics</div>
+    <h1>The compact parabolic-cradle hand, step by step</h1>
+    <p id="lede"></p>
+  </header>
+
+  <div class="stage">
+    <div class="view" id="view">
+      <div class="hud"><span id="hudStep"></span><span id="hudTime"></span></div>
+      <div class="hint">drag to orbit · wheel to zoom · right-drag to pan</div>
+    </div>
+    <div style="display:grid;gap:16px">
+      <div class="panel">
+        <h2>This trial</h2>
+        <div class="rows" id="facts"></div>
+      </div>
+      <div class="panel">
+        <h2>The 19 steps</h2>
+        <div class="steps" id="steps"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="play" type="button">Pause</button>
+    <input id="scrub" type="range" min="0" max="100" value="0" step="1" aria-label="time">
+    <span class="time" id="clock"></span>
+    <label for="speed" class="time">speed</label>
+    <select id="speed"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+    <button id="collide" type="button" aria-pressed="false">Collision shapes</button>
+    <button id="cut" type="button" aria-pressed="false">Hide the clamp housing</button>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <footer id="foot"></footer>
+</div>
+
+<script src="three"></script>
+<script>/*DATA*/</script>
+<script>
+(function(){
+const M = window.MODEL, V = document.getElementById('view');
+const $ = id => document.getElementById(id);
+const dark = () => matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light'
+  || document.documentElement.dataset.theme === 'dark';
+
+// ---- poses ----------------------------------------------------------------
+const raw = Uint8Array.from(atob(M.poses.b64), c => c.charCodeAt(0));
+const POSES = new Float32Array(raw.buffer);
+const [NF, NB, STRIDE] = M.poses.shape;
+
+// ---- scene ----------------------------------------------------------------
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setPixelRatio(Math.min(2, devicePixelRatio));
+renderer.shadowMap.enabled = true;
+V.appendChild(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, 16 / 10, 0.02, 20);
+const key = new THREE.DirectionalLight(0xffffff, 2.1); key.position.set(0.5, -0.7, 1.1); key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048); key.shadow.camera.near = 0.05; key.shadow.camera.far = 4;
+for (const s of ['left','right','top','bottom']) key.shadow.camera[s] = (s === 'left' || s === 'bottom' ? -0.6 : 0.6);
+scene.add(key, new THREE.HemisphereLight(0xffffff, 0x666f77, 1.0));
+function paint(){
+  const d = dark();
+  scene.background = new THREE.Color(d ? 0x101a1f : 0xf2f5f7);
+  grid.material.color.set(d ? 0x2c383f : 0xc9d3d9);
+  floor.material.color.set(d ? 0x18222a : 0xffffff);
+}
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.MeshStandardMaterial({color:0xffffff, roughness:0.95}));
+floor.receiveShadow = true; scene.add(floor);
+const grid = new THREE.GridHelper(2, 40, 0xc9d3d9, 0xc9d3d9);
+grid.material.transparent = true; grid.material.opacity = 0.5; grid.rotation.x = Math.PI / 2; scene.add(grid);
+
+const groups = M.bodies.map(() => { const g = new THREE.Group(); scene.add(g); return g; });
+const meshCache = {};
+function meshGeom(key){
+  if (!meshCache[key]) {
+    const m = M.meshes[key];
+    const bytes = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+    const pos = new Float32Array(bytes(m.p).buffer);
+    const idx = m.wide ? new Uint32Array(bytes(m.i).buffer) : new Uint16Array(bytes(m.i).buffer);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setIndex(new THREE.BufferAttribute(idx, 1));
+    g.computeVertexNormals();
+    meshCache[key] = g;
+  }
+  return meshCache[key];
+}
+const Y2Z = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 2);
+const collisionParts = [], housing = [];
+for (const g of M.geoms) {
+  if (g.type === 'plane') continue;
+  const s = g.size;
+  const solid = g.group !== 3;
+  const mat = new THREE.MeshStandardMaterial({
+    color: new THREE.Color(g.rgba[0], g.rgba[1], g.rgba[2]),
+    transparent: g.rgba[3] < 1 || !solid, opacity: solid ? g.rgba[3] : 0.35,
+    roughness: 0.55, metalness: 0.05, side: g.rgba[3] < 1 ? THREE.DoubleSide : THREE.FrontSide,
+  });
+  let mesh = null;
+  if (g.type === 'box') mesh = new THREE.Mesh(new THREE.BoxGeometry(2 * s[0], 2 * s[1], 2 * s[2]), mat);
+  else if (g.type === 'sphere') mesh = new THREE.Mesh(new THREE.SphereGeometry(s[0], 24, 16), mat);
+  else if (g.type === 'cylinder') mesh = new THREE.Mesh(new THREE.CylinderGeometry(s[0], s[0], 2 * s[1], 28), mat);
+  else if (g.type === 'mesh') mesh = new THREE.Mesh(meshGeom(g.mesh), mat);
+  else if (g.type === 'capsule') {            // this build of three has no CapsuleGeometry
+    mesh = new THREE.Group();
+    const barrel = new THREE.Mesh(new THREE.CylinderGeometry(s[0], s[0], 2 * s[1], 20), mat);
+    mesh.add(barrel);
+    for (const end of [-1, 1]) {
+      const cap = new THREE.Mesh(new THREE.SphereGeometry(s[0], 18, 12), mat);
+      cap.position.y = end * s[1];
+      mesh.add(cap);
+    }
+  }
+  if (!mesh) continue;
+  mesh.traverse(o => { o.castShadow = solid; o.receiveShadow = solid; });
+  mesh.position.set(...g.pos);
+  mesh.quaternion.set(g.quat[1], g.quat[2], g.quat[3], g.quat[0]);
+  if (g.type === 'cylinder' || g.type === 'capsule') mesh.quaternion.multiply(Y2Z);   // MuJoCo runs them along Z
+  groups[g.body].add(mesh);
+  if (!solid) { mesh.visible = false; collisionParts.push(mesh); }
+  if (g.name === 'housing' || g.name === 'cam_ring' || g.name === 'clamp_envelope') housing.push(mesh);
+}
+
+// ---- camera and interaction ------------------------------------------------
+const orbit = {yaw: 2.05, pitch: 0.3, dist: 0.78, target: new THREE.Vector3(-0.02, 0.02, 0.12)};
+function place(){
+  const c = Math.cos(orbit.pitch);
+  camera.position.set(orbit.target.x + orbit.dist * c * Math.cos(orbit.yaw),
+                      orbit.target.y + orbit.dist * c * Math.sin(orbit.yaw),
+                      orbit.target.z + orbit.dist * Math.sin(orbit.pitch));
+  camera.up.set(0, 0, 1);
+  camera.lookAt(orbit.target);
+}
+let drag = null;
+V.addEventListener('pointerdown', e => { drag = {x:e.clientX, y:e.clientY, pan:e.button === 2}; V.setPointerCapture(e.pointerId); });
+V.addEventListener('pointermove', e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y; drag.x = e.clientX; drag.y = e.clientY;
+  if (drag.pan) {
+    const right = new THREE.Vector3(-Math.sin(orbit.yaw), Math.cos(orbit.yaw), 0);
+    orbit.target.addScaledVector(right, -dx * 0.0012 * orbit.dist);
+    orbit.target.z += dy * 0.0012 * orbit.dist;
+  } else {
+    orbit.yaw -= dx * 0.006;
+    orbit.pitch = Math.max(-1.2, Math.min(1.45, orbit.pitch + dy * 0.005));
+  }
+  place();
+});
+addEventListener('pointerup', () => { drag = null; });
+V.addEventListener('contextmenu', e => e.preventDefault());
+V.addEventListener('wheel', e => { e.preventDefault(); orbit.dist = Math.max(0.12, Math.min(2.2, orbit.dist * (1 + Math.sign(e.deltaY) * 0.1))); place(); }, {passive:false});
+
+function resize(){
+  const w = V.clientWidth, h = V.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h; camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+
+// ---- playback ---------------------------------------------------------------
+let frame = 0, playing = true, speed = 1;
+function applyFrame(i){
+  frame = Math.max(0, Math.min(NF - 1, i));
+  const base = frame * NB * STRIDE;
+  for (let b = 0; b < NB; b++) {
+    const o = base + b * STRIDE;
+    groups[b].position.set(POSES[o], POSES[o + 1], POSES[o + 2]);
+    groups[b].quaternion.set(POSES[o + 4], POSES[o + 5], POSES[o + 6], POSES[o + 3]);
+  }
+  const t = M.times[frame], step = M.steps[frame];
+  $('hudTime').textContent = t.toFixed(1) + ' s';
+  $('hudStep').textContent = step >= 0 && M.plan[step] ? `${step + 1}. ${M.plan[step][0]}` : 'done';
+  $('clock').textContent = `${t.toFixed(1)} / ${M.times[NF - 1].toFixed(1)} s`;
+  $('scrub').value = String(frame);
+  for (const [i2, b] of stepButtons.entries()) b.setAttribute('aria-current', String(i2 === step));
+}
+const stepButtons = [];
+M.plan.forEach(([name, secs], i) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.innerHTML = `<i>${String(i + 1).padStart(2, '0')}</i><span>${name}</span>`;
+  b.onclick = () => { const j = M.steps.indexOf(i); if (j >= 0) { playing = false; $('play').textContent = 'Play'; applyFrame(j); } };
+  $('steps').appendChild(b); stepButtons.push(b);
+});
+$('scrub').max = String(NF - 1);
+$('scrub').oninput = e => { playing = false; $('play').textContent = 'Play'; applyFrame(+e.target.value); };
+$('play').onclick = () => { playing = !playing; $('play').textContent = playing ? 'Pause' : 'Play'; };
+$('speed').onchange = e => { speed = +e.target.value; };
+$('collide').onclick = e => {
+  const on = e.target.getAttribute('aria-pressed') !== 'true';
+  e.target.setAttribute('aria-pressed', String(on));
+  for (const m of collisionParts) m.visible = on;
+};
+$('cut').onclick = e => {
+  const on = e.target.getAttribute('aria-pressed') !== 'true';
+  e.target.setAttribute('aria-pressed', String(on));
+  for (const m of housing) m.visible = !on;
+};
+
+// ---- text -------------------------------------------------------------------
+const T = M.trial, H = M.hand, B = M.bottle;
+$('eyebrow').textContent = `MuJoCo · contact physics · hand ${H.name} · ${B.ml} ml bottle`;
+$('lede').textContent = `The compact gripper cradles the bottle between two parabolic jaws — one shape for every size, `
+  + `${H.grip_force_N} N through a liner of friction ${H.friction} — while the iris clamp unscrews the cap and the micropipette `
+  + `draws from the neck. Everything here is the simulation's own geometry and its recorded motion: the jaws hold by friction, the cap rides a thread.`;
+const facts = [
+  ['Bottle', `${B.ml} ml · PP${B.neck} · Ø${B.diameter_mm} mm`],
+  ['Fill', `${Math.round(B.fill * 100)} %`],
+  ['Gripper envelope', `±${H.envelope_mm} mm about its axis`],
+  ['Axis under the cap', `${H.axis_below_cap_mm} mm`],
+  ['Jaw stroke', `${H.jaw_stroke_mm} mm`],
+  ['Jaw profile', `parabola, p = ${H.parabola_p_mm} mm`],
+  ['Contact lines', `±${H.contact_x_mm} mm, ${H.contact_deg}° off the closing axis`],
+  ['Pads on the bottle', `${(T.pad_height_mm ?? 0).toFixed(1)} mm (planned ${(T.pad_planned_mm ?? 0).toFixed(1)})`],
+  ['Bottle moved in the hand', `${(T.slip_mm ?? 0).toFixed(2)} mm`],
+  ['Cap off its seat', `${(T.cap_rise_mm ?? 0).toFixed(1)} mm`],
+  ['Tip under the surface', `${(T.tip_submerged_mm ?? 0).toFixed(1)} mm`],
+  ['Thread back down to', T.recap_lift_mm == null ? 'not recapped' : `${T.recap_lift_mm.toFixed(2)} mm`],
+  ['Outcome', T.first_failure ? `fails at ${T.first_failure}` : 'every stage passed'],
+];
+for (const [k, v] of facts) {
+  const row = document.createElement('div');
+  row.innerHTML = `<span>${k}</span><b>${v}</b>`;
+  $('facts').appendChild(row);
+}
+$('legend').innerHTML = [['#22262a', 'parabolic jaws'], ['#2a2f33', 'gripper and clamp'], ['#d4a24a', 'iris blades'], ['#9e4a10', 'amber glass'],
+  ['#e8e8e6', 'cap'], ['#6a93d8', 'micropipette'], ['#4f7fbf', 'liquid']]
+  .map(([c, t]) => `<span><i style="background:${c}"></i>${t}</span>`).join('');
+$('foot').innerHTML = `Written by <code>uncap-robustness/viewer3d.py</code> from the compiled MuJoCo model: `
+  + `${M.geoms.length} geoms on ${M.bodies.length} bodies, ${NF} frames at 40 Hz. `
+  + `The protocol and the pass rules are in <code>uncap-robustness/README.md</code>.`;
+
+// ---- go ---------------------------------------------------------------------
+paint();
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', paint);
+resize(); place(); applyFrame(0);
+let last = performance.now();
+renderer.setAnimationLoop(now => {
+  const dt = (now - last) / 1000; last = now;
+  if (playing) {
+    const step = dt * speed * 40;
+    frame += step;
+    if (frame >= NF - 1) frame = 0;
+    applyFrame(Math.round(frame));
+  }
+  renderer.render(scene, camera);
+});
+})();
+</script>

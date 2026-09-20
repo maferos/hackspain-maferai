@@ -1,0 +1,358 @@
+<title>Iris Uncap Robustness</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#f3f5f6; --surface:#ffffff; --surface-2:#e9eef1; --ink:#162026; --muted:#566570; --line:#d6dde2;
+  --accent:#a85a17; --accent-soft:#f3e3d2; --ok:#17835a; --ok-soft:#d7efe4; --bad:#c0392b; --bad-soft:#f7dcd8;
+  --heat-0:#eef1f3; --heat-1:#17835a;
+  --s-success:#009E73; --s-table:#7a6a5d; --s-grip:#D55E00; --s-lift:#E69F00; --s-uncap:#CC79A7;
+  --s-rig_clear:#b3312a; --s-cap_away:#0072B2; --s-reach_liquid:#56B4E9; --s-recap:#8E5DB0; --s-place:#3d4c57; --s-diverged:#111; --s-error:#111;
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0e1417; --surface:#151d22; --surface-2:#1d272d; --ink:#e4ebef; --muted:#93a3ad; --line:#2a363d;
+  --accent:#e39a57; --accent-soft:#3a2a1c; --ok:#3cc28a; --ok-soft:#173327; --bad:#f07a66; --bad-soft:#3b1f1b;
+  --heat-0:#1d272d; --heat-1:#2fae78; --s-place:#9aa9b3; --s-table:#a8968a; --s-diverged:#ddd; --s-error:#ddd;
+}}
+:root[data-theme="dark"]{
+  --bg:#0e1417; --surface:#151d22; --surface-2:#1d272d; --ink:#e4ebef; --muted:#93a3ad; --line:#2a363d;
+  --accent:#e39a57; --accent-soft:#3a2a1c; --ok:#3cc28a; --ok-soft:#173327; --bad:#f07a66; --bad-soft:#3b1f1b;
+  --heat-0:#1d272d; --heat-1:#2fae78; --s-place:#9aa9b3; --s-table:#a8968a; --s-diverged:#ddd; --s-error:#ddd;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 var(--sans);padding:0 20px}
+.wrap{max-width:1180px;margin:0 auto;padding-block:36px 64px;display:grid;gap:44px}
+h1,h2,h3{font-family:var(--cond);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(30px,4.2vw,44px);font-weight:700;letter-spacing:-.01em}
+h2{font-size:24px;font-weight:600}
+h3{font-size:15px;font-weight:600;letter-spacing:.02em}
+p{margin:0;max-width:68ch}
+.eyebrow{font:500 12px/1 var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.muted{color:var(--muted)}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+header{display:grid;gap:14px}
+section{display:grid;gap:16px}
+.lede{font-size:17px;color:var(--muted)}
+.checks{display:flex;flex-wrap:wrap;gap:10px}
+.check{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;flex:1 1 300px}
+.pill{font:600 12px/1 var(--mono);padding:5px 8px;border-radius:999px;white-space:nowrap}
+.pill.ok{background:var(--ok-soft);color:var(--ok)} .pill.bad{background:var(--bad-soft);color:var(--bad)}
+.check b{display:block;font-weight:600}
+.check small{color:var(--muted);font-size:13px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.kpi{background:var(--surface);padding:16px 18px;display:grid;gap:4px;align-content:start}
+.kpi .v{font:600 30px/1.1 var(--cond)}
+.kpi .l{font-size:13px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:18px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.grid-heat{display:grid;grid-template-columns:repeat(auto-fit,minmax(400px,1fr));gap:16px}
+[hidden]{display:none!important}
+.scroll{overflow-x:auto}
+svg text{fill:var(--ink);font-family:var(--sans);font-size:12px}
+svg .ax{fill:var(--muted);font-size:11px}
+svg .gl{stroke:var(--line)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-weight:600;color:var(--muted);font-size:12px;letter-spacing:.03em;position:sticky;top:0;background:var(--surface)}
+td.num,th.num{text-align:right}
+.tol td:first-child{font-weight:600}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 8px;border-radius:999px;background:var(--surface-2)}
+.chip i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.filters{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.filters label{display:grid;gap:4px;font-size:12px;color:var(--muted)}
+select,button{font:inherit;font-size:13px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 10px}
+button{cursor:pointer}
+button[aria-pressed="true"]{background:var(--ink);color:var(--surface);border-color:var(--ink)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.tablebox{max-height:560px;overflow:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.shot{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px;display:grid;gap:10px}
+.shot .imgs{display:flex;gap:6px;overflow-x:auto}
+.shot img{width:140px;max-width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px;background:var(--surface-2)}
+.shot figcaption{font-size:13px;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.twocol{display:grid;grid-template-columns:repeat(auto-fit,minmax(420px,1fr));gap:16px}
+.note{font-size:13px;color:var(--muted)}
+footer{font-size:13px;color:var(--muted);display:grid;gap:6px}
+code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 5px;border-radius:4px}
+@media (max-width:520px){ .twocol{grid-template-columns:1fr} .grid-heat{grid-template-columns:1fr} }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="eyebrow">MuJoCo · contact physics</div>
+    <h1>Can the iris clamp open, pipette and close every amber bottle?</h1>
+    <p class="lede" id="lede"></p>
+    <div class="checks" id="checks"></div>
+    <div class="kpis" id="kpis"></div>
+  </header>
+
+  <section id="cmpSec">
+    <h2>What the v2 hand changed</h2>
+    <p class="muted">v1 is the shipped rig. v2 raises the gripper's axis 14 mm with L fingertips that keep the pads where they were, lets the iris close to 80° with the same squeeze, and screws the cap back until the torque says it is seated. Same trials, one by one.</p>
+    <div class="panel scroll"><table id="cmp"></table></div>
+  </section>
+
+  <section>
+    <h2>Where each bottle breaks</h2>
+    <p class="muted">Every trial counted once, by the first stage that did not pass. The stages run in the order of the sequence.</p>
+    <div class="panel"><div class="legend" id="stageLegend"></div><div class="scroll" id="bars"></div></div>
+  </section>
+
+  <section>
+    <h2>One factor at a time</h2>
+    <p class="muted">Design A. Each cell is one level of one factor with all others nominal, run at the three fills (25, 50, 80 %): the number is how many of the three succeeded. Hover a cell for the failure behind it.</p>
+    <div class="grid-heat" id="heat"></div>
+  </section>
+
+  <section>
+    <h2>Tolerance</h2>
+    <p class="muted">The widest run of tested levels around the nominal where all three fills succeed. “none” means the nominal itself fails for that bottle.</p>
+    <div class="panel scroll"><table class="tol" id="tol"></table></div>
+  </section>
+
+  <section>
+    <h2>Everything at once</h2>
+    <p class="muted">Design B. Pitch, yaw, approach and position error drawn together at random for the bottles that clear the table in the nominal pose. Each dot is a trial, coloured by its first failure.</p>
+    <div class="filters" id="bFilter"></div>
+    <div class="twocol"><div class="panel scroll" id="scatter1"></div><div class="panel scroll" id="scatter2"></div></div>
+  </section>
+
+  <section>
+    <h2>Margins when it works</h2>
+    <p class="muted">Successful trials only, all designs. The tick marks the median. How close each success came to its limit.</p>
+    <div class="twocol" id="strips"></div>
+  </section>
+
+  <section id="framesSec">
+    <h2>What it looks like</h2>
+    <p class="muted">Re-simulated for the page: the nominal trial of each bottle, then one trial for each kind of failure.</p>
+    <div class="gallery" id="gallery"></div>
+  </section>
+
+  <section>
+    <h2>All trials</h2>
+    <div class="filters">
+      <label for="fBottle">Bottle<select id="fBottle"></select></label>
+      <label for="fDesign">Design<select id="fDesign"><option value="">all</option><option value="A">A — one factor</option><option value="B">B — all at once</option></select></label>
+      <label for="fOutcome">Outcome<select id="fOutcome"></select></label>
+      <span class="note num" id="fCount"></span>
+    </div>
+    <div class="tablebox"><table id="trials"></table></div>
+  </section>
+
+  <footer>
+    <div>Protocol, pass rules and calibration: <code>uncap-robustness/README.md</code>. Reproduce: <code>simulation/.venv/bin/python uncap-robustness/sweep.py</code>, then <code>report.py</code>.</div>
+    <div id="foot"></div>
+  </footer>
+</div>
+
+<script>/*DATA*/</script>
+<script>
+(function(){
+const R = window.REPORT, M = R.meta, NS = 'http://www.w3.org/2000/svg';
+const STAGE_LABEL = {success:'success', table:'hits the table', rig_clear:'clamp or pipette hits the gripper', grip:'grip', lift:'lift / slip', uncap:'uncap', cap_away:'cap away', reach_liquid:'reach liquid', recap:'recap', place:'set down', diverged:'diverged', error:'error'};
+const ORDER = ['success', ...M.stages, 'diverged', 'error'];
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const col = s => css('--s-' + (s || 'success'));
+const $ = id => document.getElementById(id);
+const pct = x => x == null ? '–' : (100 * x).toFixed(0) + '%';
+const fmt = (v, d = 1) => v == null || v === '' ? '–' : (typeof v === 'number' ? v.toFixed(d) : v);
+const el = (tag, attrs = {}, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; };
+const h = (tag, attrs = {}, html = '') => { const e = document.createElement(tag); for (const k in attrs) e.setAttribute(k, attrs[k]); e.innerHTML = html; return e; };
+const bottleName = ml => { const r = R.rows.find(r => r.bottle === ml); return `${ml} ml` + (r ? ` · PP${r.neck_mm} · Ø${Math.round(r.bottle_d_mm)}` : ''); };
+
+// header
+$('eyebrow').textContent = `MuJoCo · contact physics · commit ${M.commit} · ${M.date}`;
+$('lede').textContent = `${M.n} of ${M.design_n} planned trials with the v2 hand: six amber bottles (10–100 ml), three fills, the hand tilted, turned, approaching from three directions and missing the bottle by up to 6 mm. The bottle is held by pad friction and the cap by the blades on a thread; nothing is welded.`;
+for (const c of R.sanity) {
+  const list = (c.list || []).map(x => `<div>${x}</div>`).join('');
+  const d = h('div', {class:'check'}, `<span class="pill ${c.ok ? 'ok' : 'bad'}">${c.name} ${c.ok ? 'holds' : 'fails'}</span><div><b>${c.what}</b><small>${c.detail}${list ? '<br>' + list : ''}</small></div>`);
+  $('checks').appendChild(d);
+}
+const passNominal = M.bottles.filter(ml => R.rows.some(r => r.design === 'A' && r.varied === 'nominal' && r.bottle === ml && r.fill === 0.5 && r.success));
+const kpis = [
+  [pct(R.overall.B.p), `Design B success, all perturbations at once (95 % CI ${pct(R.overall.B.lo)}–${pct(R.overall.B.hi)}, n = ${R.overall.B.n})`],
+  [pct(R.overall.A.p), `Design A success, one factor at a time (n = ${R.overall.A.n})`],
+  [`${passNominal.length} / ${M.bottles.length}`, `bottles that pass the nominal pose half full: ${passNominal.map(b => b + ' ml').join(', ') || 'none'}`],
+  [`${fmt(M.wall_median, 0)} s`, `median wall time per trial (${fmt(M.sim_s, 1)} s simulated at ${M.timestep_ms} ms steps)`],
+];
+for (const [v, l] of kpis) $('kpis').appendChild(h('div', {class:'kpi'}, `<div class="v num">${v}</div><div class="l">${l}</div>`));
+
+// v1 vs v2
+(function(){
+  const C = R.compare; if (!C) { $('cmpSec').hidden = true; return; }
+  const t = $('cmp'), cell = r => r.n ? `${r.k}/${r.n} <span class="muted">(${pct(r.p)})</span>` : '–';
+  const topFail = f => Object.entries(f).filter(([k]) => k !== 'success').sort((a, b) => b[1] - a[1]).slice(0, 2)
+    .map(([k, v]) => `<span class="chip"><i style="background:${col(k)}"></i>${STAGE_LABEL[k]} ${v}</span>`).join(' ') || '<span class="muted">none</span>';
+  t.appendChild(h('tr', {}, '<th>Bottle</th><th class="num">v1 · one factor</th><th class="num">v2 · one factor</th><th class="num">v1 · all at once</th><th class="num">v2 · all at once</th><th class="num">gained / lost</th><th>v1 fails at</th><th>v2 fails at</th>'));
+  for (const ml of M.bottles) {
+    const b = C.bottles[ml]; if (!b) continue;
+    t.appendChild(h('tr', {}, `<td>${bottleName(ml)}</td><td class="num">${cell(b.v1.A)}</td><td class="num">${cell(b.v2.A)}</td><td class="num">${cell(b.v1.B)}</td><td class="num">${cell(b.v2.B)}</td>`
+      + `<td class="num">+${b.gained} / −${b.lost}</td><td>${topFail(b.v1.first)}</td><td>${topFail(b.v2.first)}</td>`));
+  }
+  t.appendChild(h('tr', {}, `<td><b>All</b></td><td class="num">${cell(C.v1.A)}</td><td class="num">${cell(C.v2.A)}</td><td class="num">${cell(C.v1.B)}</td><td class="num">${cell(C.v2.B)}</td><td class="num muted">${C.n_paired} paired</td><td></td><td></td>`));
+})();
+
+// stage legend + stacked bars
+const present = ORDER.filter(s => M.bottles.some(ml => (R.per_bottle[ml].first[s] || 0) > 0));
+for (const s of present) $('stageLegend').appendChild(h('span', {}, `<i style="background:${col(s)}"></i>${STAGE_LABEL[s]}`));
+(function bars(){
+  const W = 1100, rowH = 34, L = 170, T = 8, H = T + M.bottles.length * rowH + 26;
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, width:W, height:H, role:'img', 'aria-label':'first failure per bottle'});
+  const x = v => L + v * (W - L - 20);
+  for (const t of [0, .25, .5, .75, 1]) { el('line', {x1:x(t), x2:x(t), y1:T, y2:H - 22, class:'gl'}, svg); el('text', {x:x(t), y:H - 6, 'text-anchor':'middle', class:'ax'}, svg).textContent = pct(t); }
+  M.bottles.forEach((ml, i) => {
+    const pb = R.per_bottle[ml], y = T + i * rowH + 5;
+    el('text', {x:L - 10, y:y + 16, 'text-anchor':'end'}, svg).textContent = bottleName(ml);
+    let acc = 0;
+    for (const s of present) {
+      const n = pb.first[s] || 0; if (!n) continue;
+      const w = n / pb.n, r = el('rect', {x:x(acc), y, width:Math.max(0, x(acc + w) - x(acc) - 1), height:rowH - 10, fill:col(s), rx:2}, svg);
+      el('title', {}, r).textContent = `${bottleName(ml)}: ${STAGE_LABEL[s]} ${n} of ${pb.n}`;
+      if (w > .06) el('text', {x:x(acc) + 6, y:y + 16, style:'fill:#fff;font-size:11px;font-family:var(--mono)'}, svg).textContent = n;
+      acc += w;
+    }
+  });
+  $('bars').appendChild(svg);
+})();
+
+// heatmaps
+const heatCol = (k, n) => { if (!n) return css('--surface-2'); const t = k / n; return `color-mix(in oklab, ${css('--heat-1')} ${Math.round(t * 100)}%, ${css('--heat-0')})`; };
+const unit = {pitch:'°', yaw:'°', dx:' mm', dy:' mm', approach:''};
+const fname = {pitch:'Pitch (fingers down +)', approach:'Approach', yaw:'Yaw about the bottle', dx:'Bottle off along the fingers', dy:'Bottle off along the jaws'};
+for (const f of Object.keys(R.heat)) {
+  const {levels, grid} = R.heat[f];
+  const cw = f === 'approach' ? 78 : 44, L = 64, T = 26, W = L + levels.length * cw + 4, H = T + M.bottles.length * 30 + 4;
+  const p = h('div', {class:'panel scroll'}); p.appendChild(h('h3', {}, fname[f]));
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, width:W, height:H, role:'img', 'aria-label':`success by ${f}`});
+  levels.forEach((v, j) => { const t = el('text', {x:L + j * cw + cw / 2, y:16, 'text-anchor':'middle', class:'ax'}, svg); t.textContent = (typeof v === 'number' && v > 0 && f !== 'yaw' ? '+' : '') + v + (f === 'approach' ? '' : unit[f]); if (v === M.nominal[f]) t.setAttribute('style', 'font-weight:600;fill:var(--accent)'); });
+  M.bottles.forEach((ml, i) => {
+    el('text', {x:L - 8, y:T + i * 30 + 19, 'text-anchor':'end', class:'ax'}, svg).textContent = ml + ' ml';
+    grid[i].forEach((c, j) => {
+      const r = el('rect', {x:L + j * cw + 1, y:T + i * 30 + 1, width:cw - 2, height:28, rx:4, fill:heatCol(c.k, c.n)}, svg);
+      el('title', {}, r).textContent = `${ml} ml, ${f} ${levels[j]}: ${c.k}/${c.n} succeed` + (c.fail ? ` — fails at ${STAGE_LABEL[c.fail]}` : '');
+      const light = c.n && c.k / c.n > .55;
+      el('text', {x:L + j * cw + cw / 2, y:T + i * 30 + 19, 'text-anchor':'middle', style:`font-family:var(--mono);font-size:11px;${light ? 'fill:#fff' : ''}`}, svg).textContent = c.n ? `${c.k}/${c.n}` : '–';
+      if (c.fail && c.k < c.n) el('circle', {cx:L + j * cw + cw - 7, cy:T + i * 30 + 7, r:3.2, fill:col(c.fail)}, svg);
+    });
+  });
+  p.appendChild(svg); $('heat').appendChild(p);
+}
+
+// tolerance table
+(function(){
+  const t = $('tol'); const fs = Object.keys(M.levels);
+  t.appendChild(h('tr', {}, '<th>Bottle</th>' + fs.map(f => `<th>${fname[f]}</th>`).join('')));
+  for (const ml of M.bottles) {
+    const tol = R.tolerance[ml]; const cells = fs.map(f => {
+      const v = tol[f];
+      if (f === 'approach') return `<td>${v.length ? v.join(', ') : '<span class="muted">none</span>'}</td>`;
+      if (!v) return '<td class="muted">none</td>';
+      const s = x => (x > 0 && f !== 'yaw' ? '+' : '') + x;
+      return `<td class="num">${v[0] === v[1] ? 'nominal only' : `${s(v[0])} … ${s(v[1])}${unit[f]}`}</td>`;
+    });
+    t.appendChild(h('tr', {}, `<td>${bottleName(ml)}</td>` + cells.join('')));
+  }
+})();
+
+// design B scatter
+const Brows = R.rows.filter(r => r.design === 'B');
+const bBottles = [...new Set(Brows.map(r => r.bottle))].sort((a, b) => a - b);
+let bSel = new Set(bBottles);
+function scatter(host, fx, fy, lx, ly, xr, yr){
+  host.innerHTML = '';
+  const W = 520, H = 360, L = 48, B = 40, T = 12, Rr = 12;
+  const x = v => L + (v - xr[0]) / (xr[1] - xr[0]) * (W - L - Rr), y = v => H - B - (v - yr[0]) / (yr[1] - yr[0]) * (H - B - T);
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, width:W, height:H, role:'img', 'aria-label':`${lx} against ${ly}`});
+  const ticks = r => { const s = (r[1] - r[0]) / 4; return [0, 1, 2, 3, 4].map(i => r[0] + i * s); };
+  for (const t of ticks(xr)) { el('line', {x1:x(t), x2:x(t), y1:T, y2:H - B, class:'gl'}, svg); el('text', {x:x(t), y:H - B + 16, 'text-anchor':'middle', class:'ax'}, svg).textContent = +t.toFixed(1); }
+  for (const t of ticks(yr)) { el('line', {x1:L, x2:W - Rr, y1:y(t), y2:y(t), class:'gl'}, svg); el('text', {x:L - 6, y:y(t) + 4, 'text-anchor':'end', class:'ax'}, svg).textContent = +t.toFixed(1); }
+  el('text', {x:(L + W) / 2, y:H - 6, 'text-anchor':'middle', class:'ax'}, svg).textContent = lx;
+  const yl = el('text', {x:12, y:(T + H - B) / 2, 'text-anchor':'middle', class:'ax', transform:`rotate(-90 12 ${(T + H - B) / 2})`}, svg); yl.textContent = ly;
+  const rows = Brows.filter(r => bSel.has(r.bottle));
+  for (const r of rows.filter(r => !r.success).concat(rows.filter(r => r.success))) {
+    const c = el('circle', {cx:x(r[fx]), cy:y(r[fy]), r:r.success ? 4 : 4.6, fill:col(r.first_failure), 'fill-opacity':.85, stroke:css('--surface'), 'stroke-width':1}, svg);
+    el('title', {}, c).textContent = `${r.bottle} ml, fill ${r.fill}, pitch ${r.pitch}°, ${r.approach}, yaw ${r.yaw}°, dx ${r.dx}, dy ${r.dy} mm → ${STAGE_LABEL[r.first_failure || 'success']}`;
+  }
+  host.appendChild(svg);
+}
+function drawB(){
+  const k = Brows.filter(r => bSel.has(r.bottle)), n = k.length, s = k.filter(r => r.success).length;
+  scatter($('scatter1'), 'pitch', 'dy', 'pitch (°)', 'dy — off along the jaws (mm)', [-20, 20], [-6, 6]);
+  scatter($('scatter2'), 'dx', 'dy', 'dx — off along the fingers (mm)', 'dy — off along the jaws (mm)', [-6, 6], [-6, 6]);
+  $('bCount').textContent = `${s} of ${n} succeed`;
+}
+if (Brows.length) {
+  for (const ml of bBottles) { const b = h('button', {type:'button', id:'bb' + ml, 'aria-pressed':'true'}, ml + ' ml'); b.onclick = () => { bSel.has(ml) ? bSel.delete(ml) : bSel.add(ml); b.setAttribute('aria-pressed', bSel.has(ml)); drawB(); }; $('bFilter').appendChild(b); }
+  $('bFilter').appendChild(h('span', {class:'note num', id:'bCount'}));
+  drawB();
+} else { $('bFilter').textContent = 'No design-B trials in the results yet.'; $('scatter1').parentElement.hidden = true; }
+
+// strips of margins
+const STRIPS = [['slip_mm', 'Bottle moved in the hand (mm)', 3, 'limit'], ['tip_submerged_mm', 'Tip under the surface (mm)', 3, 'minimum'],
+  ['cap_to_seat_mm', 'Cap from the clamp seat, carried (mm)', 5, 'limit'], ['recap_lift_mm', 'Thread left when recapped (mm)', 1, 'limit'],
+  ['blade_slip_turns', 'Blades slipped on the cap (turns)', null, ''], ['placed_error_mm', 'Set down away from the pick (mm)', 10, 'limit'],
+  ['seat_torque_Nm', 'Torque on the cap when seated (N·m)', 0.10, 'threshold'], ['seat_extra_turns', 'Turned past the plan to seat it (turns)', 1, 'limit']];
+const ok = R.rows.filter(r => r.success);
+for (const [m, label, lim, kind] of STRIPS) {
+  const vals = ok.map(r => r[m]).filter(v => v != null);
+  const host = h('div', {class:'panel scroll'}); host.appendChild(h('h3', {}, label));
+  if (!vals.length) { host.appendChild(h('p', {class:'note'}, 'No successful trials yet.')); $('strips').appendChild(host); continue; }
+  const lo = Math.min(0, ...vals, lim ?? 0), hi = Math.max(...vals, lim ?? 0) * 1.05 || 1;
+  const W = 520, L = 64, rowH = 26, bots = M.bottles.filter(ml => ok.some(r => r.bottle === ml)), H = 20 + bots.length * rowH + 24;
+  const x = v => L + (v - lo) / (hi - lo) * (W - L - 12);
+  const svg = el('svg', {viewBox:`0 0 ${W} ${H}`, width:W, height:H, role:'img', 'aria-label':label});
+  for (let i = 0; i <= 4; i++) { const t = lo + i * (hi - lo) / 4; el('line', {x1:x(t), x2:x(t), y1:10, y2:H - 22, class:'gl'}, svg); el('text', {x:x(t), y:H - 6, 'text-anchor':'middle', class:'ax'}, svg).textContent = +t.toFixed(2); }
+  if (lim != null) { el('line', {x1:x(lim), x2:x(lim), y1:6, y2:H - 22, stroke:css('--bad'), 'stroke-dasharray':'4 3'}, svg); el('text', {x:x(lim) + 4, y:14, class:'ax', style:'fill:var(--bad)'}, svg).textContent = kind; }
+  bots.forEach((ml, i) => {
+    const y = 20 + i * rowH + rowH / 2, v = ok.filter(r => r.bottle === ml).map(r => r[m]).filter(v => v != null).sort((a, b) => a - b);
+    el('text', {x:L - 8, y:y + 4, 'text-anchor':'end', class:'ax'}, svg).textContent = ml + ' ml';
+    v.forEach((d, j) => el('circle', {cx:x(d), cy:y + ((j * 7) % 13 - 6) * .7, r:2.6, fill:css('--accent'), 'fill-opacity':.55}, svg));
+    if (v.length) { const md = v[Math.floor(v.length / 2)]; el('line', {x1:x(md), x2:x(md), y1:y - 9, y2:y + 9, stroke:css('--ink'), 'stroke-width':2}, svg); }
+  });
+  host.appendChild(svg); $('strips').appendChild(host);
+}
+
+// gallery
+if (!R.frames.length) $('framesSec').hidden = true;
+for (const f of R.frames) {
+  const fig = h('figure', {class:'shot', style:'margin:0'});
+  const imgs = h('div', {class:'imgs'});
+  for (const s of f.frames) imgs.appendChild(h('img', {src:s.src, alt:`${f.why}, ${s.key}`, title:s.key, loading:'lazy'}));
+  fig.appendChild(imgs);
+  fig.appendChild(h('figcaption', {}, `<span>${f.why}</span><span class="chip"><i style="background:${col(f.first_failure)}"></i>${STAGE_LABEL[f.first_failure || 'success']}</span>`));
+  fig.appendChild(h('div', {class:'note num'}, f.id));
+  $('gallery').appendChild(fig);
+}
+
+// table
+const COLS = [['bottle', 'ml', 0], ['design', '', null], ['fill', 'fill', 2], ['pitch', 'pitch °', 1], ['approach', 'approach', null], ['yaw', 'yaw °', 0],
+  ['dx', 'dx mm', 1], ['dy', 'dy mm', 1], ['first_failure', 'outcome', null], ['pad_height_mm', 'pads mm', 1], ['lift_mm', 'lift mm', 1],
+  ['slip_mm', 'slip mm', 2], ['blade_slip_turns', 'blade slip', 2], ['cap_to_seat_mm', 'cap↔seat mm', 1], ['tip_submerged_mm', 'tip depth mm', 1],
+  ['recap_lift_mm', 'recap mm', 2], ['placed_error_mm', 'set down mm', 1], ['placed_tilt_deg', 'tilt °', 1]];
+$('fBottle').innerHTML = '<option value="">all</option>' + M.bottles.map(b => `<option value="${b}">${b} ml</option>`).join('');
+$('fOutcome').innerHTML = '<option value="">all</option>' + ORDER.filter(s => R.rows.some(r => (r.first_failure || 'success') === s)).map(s => `<option value="${s}">${STAGE_LABEL[s]}</option>`).join('');
+function drawTable(){
+  const fb = $('fBottle').value, fd = $('fDesign').value, fo = $('fOutcome').value;
+  const rows = R.rows.filter(r => (!fb || r.bottle == fb) && (!fd || r.design === fd) && (!fo || (r.first_failure || 'success') === fo));
+  $('fCount').textContent = `${rows.length} trials`;
+  const t = $('trials'); t.innerHTML = '';
+  t.appendChild(h('tr', {}, COLS.map(([k, l, d]) => `<th class="${d != null ? 'num' : ''}">${l || k}</th>`).join('')));
+  const frag = document.createDocumentFragment();
+  for (const r of rows) {
+    frag.appendChild(h('tr', {}, COLS.map(([k, , d]) => k === 'first_failure'
+      ? `<td><span class="chip"><i style="background:${col(r.first_failure)}"></i>${STAGE_LABEL[r.first_failure || 'success']}</span></td>`
+      : `<td class="${d != null ? 'num' : ''}">${d != null ? fmt(r[k], d) : (r[k] ?? '–')}</td>`).join('')));
+  }
+  t.appendChild(frag);
+}
+for (const id of ['fBottle', 'fDesign', 'fOutcome']) $(id).onchange = drawTable;
+drawTable();
+$('foot').textContent = `${M.nA} design-A and ${M.nB} design-B trials · pass rules and sanity checks as fixed in the README before the sweep · generated ${M.date} at ${M.commit}`;
+})();
+</script>
