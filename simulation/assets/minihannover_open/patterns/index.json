@@ -29,8 +29,8 @@
       "seed": 176,
       "pattern": "p02",
       "style": "crowd",
-      "count": 24,
-      "gap_m": 0.01229,
+      "count": 22,
+      "gap_m": 0.05689,
       "gap_requested_m": 0.01229,
       "span": 0.4343,
       "x_window": [
