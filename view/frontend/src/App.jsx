@@ -547,7 +547,7 @@ export default function App() {
       <header className="app__header">
         <div className="app__brand">
           <img src="/mafer-logo.svg" alt="Mafer" className="app__logo" />
-          <h1>Robot monitor — mini-Hannover</h1>
+          <h1>Lab Robot</h1>
           <LabStatus state={live} connected={lab.connected} />
         </div>
         <div className="header-controls">
