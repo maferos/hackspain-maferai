@@ -36,7 +36,6 @@ Each part has its own README:
 - Python 3.10+ with [`uv`](https://docs.astral.sh/uv/); `simulation/install.sh` creates the venv the viewer backend also uses. The `mujoco` wheel ships the engine and viewer, but AutoBio needs its own MuJoCo 3.3.0 venv and only runs on Linux.
 - Node for the viewer frontend (`npm install` in `view/frontend`).
 - The MuJoCo Menagerie submodule for the UR10e and gripper meshes: `git submodule update --init third_party/mujoco_menagerie` from `simulation/`.
-- The trained YOLO weights, which are not in git: copy them from the team Drive into `computer-vision/weights/` (see its README).
 - A GPU is optional. CPU is enough for the simulation and the panels; detection and rendering are real time only with CUDA or MPS. The Isaac Sim replay videos were rendered on an NVIDIA L4 and are checked in.
 - `ANTHROPIC_API_KEY` in `view/backend/.env` for the brief and formula chat; without it the chat falls back to an offline parser.
 
@@ -53,18 +52,15 @@ git submodule update --init simulation/third_party/mujoco_menagerie
 (cd simulation && ./install.sh)
 uv pip install --python simulation/.venv/bin/python -r view/backend/requirements.txt
 
-# 3. Detector weights, from the team Drive (hackathon/weights) into computer-vision/weights/:
-#    yolo26n_full_1920_e25.pt for Real time, yolo26n_isaac_1920_e25.pt for Replay
-
-# 4. Backend on :8000 (cameras, scan, lab state on :8765)
+# 3. Backend on :8000 (cameras, scan, lab state on :8765). The detector weights
+#    are in computer-vision/weights/.
 simulation/.venv/bin/python view/backend/server.py
 
-# 5. Frontend on :5173, in another terminal
+# 4. Frontend on :5173, in another terminal
 cd view/frontend && npm install && npm run dev
 ```
 
 Open http://localhost:5173. Real time shows the live MuJoCo scan; the Replay
 switch in the header plays the Isaac Sim recordings for the same bench layout.
-Without the weights the scan reports the error in the viewport, and without a
-backend the panels play the recorded run in `view/frontend/public/scripted-run.json`.
+Without a backend the panels play the recorded run in `view/frontend/public/scripted-run.json`.
 `view/README.md` has the environment variables and the scene selection.

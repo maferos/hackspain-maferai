@@ -23,13 +23,13 @@ data/
 **/runs/**
 !**/runs/**/
 !**/runs/**/*.py
-# Weights live in computer-vision/weights/ and never in git. The contents are
-# ignored rather than the folder, because git does not descend into an ignored
-# directory and the README would go with it.
+# Training outputs stay out of git; the detector weights the demo uses are the
+# exception and live in computer-vision/weights/.
 **/weights/*
 !**/weights/README.md
 *.pt
 *.torchscript
+!computer-vision/weights/*.pt
 *.onnx
 *.mp4
 !view/frontend/public/renders/rail_global.mp4

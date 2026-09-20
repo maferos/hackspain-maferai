@@ -1,7 +1,7 @@
 # Detector weights
 
-Trained weights are **never committed** — they are megabytes of binary and they
-change often. Drop the `.pt` files here and the code finds them.
+The `.pt` files the demo runs with are committed in this folder, so a fresh
+clone works without the Drive. Training outputs elsewhere stay out of git.
 
 ## The current version: `yolo26n_full_1920_e100.pt`
 
