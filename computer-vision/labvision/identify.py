@@ -315,7 +315,8 @@ def cluster(markers: list[Marker], reach: float = 3.0) -> list[list[Marker]]:
         merged = [marker]
         for g in near:
             merged += g
-            groups.remove(g)
+        # Marker equality compares NumPy corner arrays; match the group objects.
+        groups = [g for g in groups if all(g is not match for match in near)]
         groups.append(merged)
     return groups
 

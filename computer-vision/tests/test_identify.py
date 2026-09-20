@@ -9,6 +9,7 @@ from labvision.identify import (
     Identity,
     Marker,
     MarkerReader,
+    cluster,
     identify,
     identify_frame,
     rows_by_marker,
@@ -38,6 +39,20 @@ def _canvas(markers: list[tuple[int, int, int]], size=(480, 640)) -> np.ndarray:
 def _marker(marker_id: int, u: float, v: float) -> Marker:
     corners = np.array([[u, v], [u + 10, v], [u + 10, v + 10], [u, v + 10]], float)
     return Marker(marker_id, corners)
+
+
+def test_cluster_merges_second_group_without_comparing_corner_arrays():
+    markers = [_marker(5, x, 0) for x in (0, 100, 110)]
+    groups = cluster(markers)
+    assert sorted(sorted(m.centre[0] for m in group) for group in groups) == [
+        [5.0], [105.0, 115.0],
+    ]
+
+
+def test_cluster_bridge_joins_multiple_groups():
+    groups = cluster([_marker(5, x, 0) for x in (0, 50, 25)])
+    assert len(groups) == 1
+    assert sorted(m.centre[0] for m in groups[0]) == [5.0, 30.0, 55.0]
 
 
 ROWS = {5: {"sample_id": "SMP-0006", "marker_id": 5}, 9: {"sample_id": "PWD-0010"}}
