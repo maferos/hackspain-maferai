@@ -12,17 +12,15 @@ matched against the bottles it already knows, so the world model follows the
 bench: a bottle that appears is a new track, one that goes missing is lost.
 
 **Control**, in the physics loop, takes its directions from that world model.
-It starts with the **initial scan**, which is a flyover. The arm is raised where
-it stands, the fixed camera surveys the bench from under it, and the rail then
-carries the wrist camera the length of the bench a few times over, the hand
-tilted to look across the bench rather than down at it, reading every ring that
-passes through the frame. It goes to no bottle and stops at none, and it never
-puts the hand down among the vessels: it flies as low as what stands under it
-allows, because the smallest flasks carry a marker that only reads from close
-to, and keeps the whole arm clear of the tallest vessel near it. A ring where
-the fixed camera boxed nothing is a bottle it cannot see, and it is kept. What
-it read is written to ``out/bench_map.json``, one entry per sample with where it
-stands, before the arm touches anything. After that:
+It starts with the **initial scan**: the carriage parks at the end of the rail,
+where the arm hides no bottle from the fixed camera, the fixed camera surveys
+the whole bench, and the arm then sweeps the rail once from that end to the
+other, reading every proposal's ring on the way. The wrist camera keeps every
+ring in its frame, not only the one it went for: a neighbour's ring names a
+track before the arm gets there, and a ring where the fixed camera boxed
+nothing is a bottle it cannot see. What it read is written to
+``out/bench_map.json``, one entry per sample with where it stands, before the
+arm touches anything. After that:
 
 1. A track nobody has looked at yet: the arm flies its eye-in-hand camera to
    0.36 m from it, 25 degrees above level, and ``confirm`` reads the ArUco ring.
@@ -181,44 +179,9 @@ FLASK_HEIGHT = 0.115
 MAX_BOX = (1.5, 0.8)        # a box's height and width, in flask heights at its place
 SURE = 0.5                  # tracks scoring this or better are looked at first
 MATCH = 0.06                # scoring only: a bottle this near a track is it
-# The initial scan waits this many perception cycles before it flies: enough
-# for every box to be seen CONFIRM_HITS times running.
+# The initial scan waits this many perception cycles with the arm parked before
+# it plans the sweep: enough for every box to be seen CONFIRM_HITS times running.
 SURVEY_CYCLES = CONFIRM_HITS + 2
-# The initial scan is a flyover. The arm holds one shape per pass, high over the
-# bench, and the rail carries the wrist camera the length of it while the camera
-# reads every ring that goes by. A pass is (what it looks at, where the camera
-# stands across the bench, how far it tilts down from level, which way it faces,
-# and the height it would rather fly at). A label ring is a band round the side
-# of a vessel, so the camera has to look across the bench and not down at it:
-# from the carry pose, which points the hand straight down, the whole rail read
-# one ring in nineteen. Measured on the demo bench, these three between them
-# reach the far side of the bench, the strip under the arm itself, and the back
-# strip over the rail. They differ in height as well as in aim, because the two
-# ends of the bench want opposite things: the far side is only in the frame at
-# all from high up, and the small vessels near the arm are only big enough to
-# read from low down. What a pass would rather do never overrules what stands
-# under it; the floor below always wins.
-SCAN_PASSES = (
-    ('the far side of the bench', -0.35, 50.0, -1, 1.45),
-    ('the strip under the arm', -0.35, 65.0, -1, 1.20),
-    ('the back strip', 0.00, 40.0, +1, 1.30),
-)
-# How high it flies. A 10 ml flask carries a 6.6 mm marker against the 100 ml
-# flask's 14.1 mm, and a marker has to be about a dozen pixels across to decode,
-# so the small vessels are only read from close to: flown at one safe height the
-# scan reads the big flasks and misses the little ones. It therefore flies as
-# low as it is allowed to, and what allows it is what stands under it: at every
-# read it takes the lowest band that leaves SCAN_CLEARANCE of air under the
-# whole arm over the tallest vessel the cameras know of within SCAN_WINDOW along
-# the rail, and it climbs again before it reaches a taller one. The heights the
-# arm can hold are solved once each, SCAN_BAND apart, between SCAN_HEIGHTS.
-SCAN_CLEARANCE = 0.12
-SCAN_WINDOW = 0.60
-SCAN_BAND = 0.05
-SCAN_HEIGHTS = (1.20, 1.55)     # world z of the camera, lowest and highest
-SCAN_SPACING = 0.15             # how far the camera moves between ring reads
-SCAN_SPEED = 0.30               # m/s along the rail while it reads
-SCAN_ROUNDS = 2                 # rounds of passes, while a round still names
 BENCH_MAP = rk.SIM / 'out/bench_map.json'
 # The wrist camera reads every ring in its frame, not only the one it went for,
 # and a neighbour's ring names a bottle nobody has visited yet. That is how the
@@ -367,9 +330,8 @@ class World:
                                     f'{other.id}, now track {track.id}')
                     del self.tracks[other.id]
 
-    def sighted(self, rings: list[Confirmation], clock: float,
-                beside: Track | None) -> None:
-        """Fold in the rings the wrist camera read around the bottle it went for.
+    def sighted(self, rings: list[Confirmation], clock: float, beside: Track) -> None:
+        """Fold in the rings a look read around the bottle it went for.
 
         A ring whose sample is known already adds nothing. One that lands near
         a track nobody has named names it, and saves that track a look of its
@@ -379,8 +341,7 @@ class World:
         Args:
             rings: Every ring the look read on the worktop, placed by its own geometry.
             clock: Simulated time, for the log.
-            beside: The track the look was for, or None on the flyover, which
-                goes to no bottle and reads whatever passes the camera.
+            beside: The track the look was for.
         """
         with self.lock:
             for ring in rings:
@@ -398,23 +359,20 @@ class World:
                 if near:
                     off, track = min(near, key=lambda pair: pair[0])
                     track.confirmation, track.state = ring, 'named'
-                    source = ('the flyover' if beside is None else
-                              'its own look' if track is beside
+                    source = ('its own look' if track is beside
                               else f'the look at track {beside.id}')
                     track.note = f'ring read from {source}, {off * 100:.1f} cm off its box'
                     self.log(clock, f'track {track.id} is {ring.sample_id}: its ring, read '
                                     f'from {source}, places it at ({x:+.4f}, {y:+.4f}), '
                                     f'{off * 100:.1f} cm off its box')
                 else:
-                    where = ('on the flyover' if beside is None
-                             else f'beside track {beside.id}')
                     track = Track(self._next, ring.refined_xy, 0.0, None, state='named',
                                   confirmation=ring, wrist_only=True,
-                                  note=f'no box; ring read {where}')
+                                  note=f'no box; ring read beside track {beside.id}')
                     self.tracks[track.id] = track
                     self._next += 1
                     self.log(clock, f'{ring.sample_id}: a bottle the fixed camera never boxed, '
-                                    f'its ring read {where}; track '
+                                    f'its ring read beside track {beside.id}; track '
                                     f'{track.id} at ({x:+.4f}, {y:+.4f})')
 
     def snapshot(self) -> list[Track]:
@@ -692,14 +650,9 @@ class Feed:
 
 
 class Read:
-    """A request for the wrist camera to read what it can see.
+    """A request for the wrist camera to read the ring at a target."""
 
-    With a target it reads the ring there, as a look does. With ``None`` it
-    keeps only the rings that happen to be in the frame, which is what the
-    flyover asks for: it reads whatever goes by rather than aiming at anything.
-    """
-
-    def __init__(self, target: np.ndarray | None) -> None:
+    def __init__(self, target: np.ndarray) -> None:
         self.target = target
         self.result: Confirmation | None = None
         self.rings: list[Confirmation] = []     # every ring in the frame, the target's too
@@ -739,11 +692,8 @@ class Perception(threading.Thread):
         self.finished = threading.Event()
         self.ready = threading.Event()
 
-    def read(self, target: np.ndarray | None = None) -> Read:
-        """Ask the wrist camera to read from where it stands now.
-
-        With a target, the ring there; without one, every ring in the frame.
-        """
+    def read(self, target: np.ndarray) -> Read:
+        """Ask for the ring at a target to be read from where the wrist is now."""
         request = Read(target)
         self.requests.append(request)
         return request
@@ -774,9 +724,8 @@ class Perception(threading.Thread):
                     with self.physics:
                         mujoco.mj_copyData(self.data, self.model, self.live)
                     wrist, lens = eyes.frame('arm_eih'), eyes.camera('arm_eih')
-                    if request.target is not None:
-                        request.result = confirm(wrist, lens, request.target, self.rows,
-                                                 reader=self.reader, bench_z=rk.BENCH_TOP)
+                    request.result = confirm(wrist, lens, request.target, self.rows,
+                                             reader=self.reader, bench_z=rk.BENCH_TOP)
                     request.rings = rings_in_view(wrist, lens, self.rows, self.reader)
                     request.done.set()
                 general = eyes.frame('general')
@@ -1271,18 +1220,11 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         """To a station in the carry pose; on Retarget the arm is already safe."""
         yield from drive(station, carry, open_hand, 1.0, caption, guard=guard)
 
-    def tallest(near: float | None = None) -> float:
-        """Height of the tallest flask on the bench: the ring's vessel, else the box's.
-
-        With ``near``, only the vessels within :data:`SCAN_WINDOW` of that place
-        along the rail count. That is what lets the flyover come down over a
-        stretch of small vessels without forgetting a tall one further along.
-        """
+    def tallest() -> float:
+        """Height of the tallest flask on the bench: the ring's vessel, else the box's."""
         heights = []
         for track in world.snapshot():
             if track.state == 'lost' or track.held:
-                continue
-            if near is not None and abs(track.xy[0] - near) > SCAN_WINDOW:
                 continue
             if track.sample:
                 vessel = perception.rows[track.confirmation.marker_id]['vessel_class']
@@ -1290,74 +1232,6 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
             elif track.bbox is not None:
                 heights.append(box_height(track, general))
         return max(heights, default=FLASK_HEIGHT)
-
-    def held() -> np.ndarray:
-        """The arm pose the servos are holding."""
-        return np.array([data.ctrl[i] for i in ids[1:]])
-
-    def ceiling(x: float) -> float:
-        """The top of the tallest vessel the cameras know of near a place on the rail."""
-        return rk.BENCH_TOP + tallest(near=x)
-
-    flying: dict[tuple[int, int], tuple[np.ndarray, float] | None] = {}
-
-    def flight_pose(index: int, z: float) -> tuple[np.ndarray, float] | None:
-        """The pose that flies pass ``index`` with the camera at height ``z``.
-
-        The rail only translates the arm, so one pose serves a whole pass: the
-        camera keeps its height, its place across the bench and its tilt
-        wherever the carriage stands. Solved once per pass and band.
-
-        Returns:
-            The arm pose and the height of its lowest point, or None if the arm
-            cannot hold the camera there.
-        """
-        key = (index, round(z * 100))
-        if key not in flying:
-            _, y_cam, tilt, facing, _wanted = SCAN_PASSES[index]
-            rise = math.radians(tilt)
-            gaze = (0.0, facing * math.cos(rise), -math.sin(rise))
-            station = here()
-            flying[key] = None
-            for seed in (carry, np.array(HAND_DOWN), *map(np.array, rk.SEED_POSES)):
-                mujoco.mj_copyData(scratch, model, data)
-                rk.set_rail(model, scratch, station)
-                if ik(model, scratch, np.array([station, y_cam, z]), carry, seed=seed,
-                      approach=gaze, site_name=rk.EIH_SITE, image_up=(0.0, 0.0, 1.0)) \
-                        and not blocked(model, scratch):
-                    flying[key] = (scratch.qpos[rk.arm_qpos(model)].copy(),
-                                   lowest_point(model, scratch))
-                    break
-        return flying[key]
-
-    def flight(index: int, from_pose: np.ndarray, x0: float, x1: float,
-               floor: float) -> np.ndarray | None:
-        """The lowest way to fly one stretch of a pass, or None.
-
-        Args:
-            index: Which pass.
-            from_pose: The pose the arm holds now.
-            x0: Where the carriage stands.
-            x1: Where the stretch ends.
-            floor: The arm's lowest point stays over this the whole way.
-
-        Returns:
-            The pose to fly the stretch in: the height the pass wants if the
-            floor allows it, else the nearest one to it that the floor allows.
-        """
-        low, high = SCAN_HEIGHTS
-        wanted = SCAN_PASSES[index][4]
-        bands = [low + step * SCAN_BAND
-                 for step in range(round((high - low) / SCAN_BAND) + 1)]
-        for z in sorted(bands, key=lambda z: (abs(z - wanted), z)):
-            found = flight_pose(index, z)
-            if found is None or found[1] < floor:
-                continue
-            pose = unwrap(model, found[0], from_pose)
-            mujoco.mj_copyData(scratch, model, data)
-            if path_clear(model, scratch, (x0, from_pose), (x1, pose), floor=floor):
-                return pose
-        return None
 
     hubs: dict[float, np.ndarray | None] = {}
 
@@ -1619,108 +1493,76 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         track.picks += 1
         track.held = False
 
+    def prefixed(prefix, job):
+        """Run a job with a prefix on its captions, and hand back what it returns."""
+        try:
+            while True:
+                yield prefix + next(job)
+        except StopIteration as done:
+            return done.value
+
     def survey(cycles, caption):
         """Hold still while the fixed camera looks at the bench this many times."""
         since = world.cycles
         while world.cycles < since + cycles:
             yield from still(0.2, caption)
 
-    def cruise(index: int, goal: float, caption: str):
-        """Fly one pass along the rail, reading every ring that goes by.
-
-        The carriage runs to ``goal`` in :data:`SCAN_SPACING` steps. Before each
-        one the arm takes the lowest height that clears whatever the cameras
-        know of over that stretch, so it comes down over the small vessels,
-        whose markers are a few pixels across from any height, and climbs before
-        it reaches a tall one. A read is asked for at every step and folded in
-        as it lands: the pass goes to no bottle and waits for nothing but its
-        own eyes.
-
-        Returns:
-            How many reads the pass made.
-        """
-        step = SCAN_SPACING if goal > here() else -SCAN_SPACING
-        read, reads = perception.read(), 0
-        while abs(goal - here()) > 1e-6:
-            x0 = here()
-            x1 = x0 + step if abs(goal - x0) > abs(step) else goal
-            floor = max(ceiling(x0), ceiling(x1)) + SCAN_CLEARANCE
-            pose = flight(index, held(), x0, x1, floor)
-            if pose is None and not np.allclose(held(), carry):
-                # Nowhere to go from the shape it is in: the carry pose is the
-                # one place every flight pose was solved to be reachable from.
-                yield from drive(x0, carry, open_hand, 1.5, caption)
-                pose = flight(index, carry, x0, x1, floor)
-            if pose is None:
-                pose = carry            # something tall stands there: pass over it
-            yield from drive(x1, pose, open_hand, abs(x1 - x0) / SCAN_SPEED, caption)
-            while not read.done.is_set():
-                yield from still(0.05, caption)
-            world.sighted(read.rings, float(data.time), None)
-            read, reads = perception.read(), reads + 1
-        while not read.done.is_set():
-            yield from still(0.05, caption)
-        world.sighted(read.rings, float(data.time), None)
-        return reads + 1
-
     def initial_scan():
-        """Read the whole bench from the air: nothing visited, nothing touched.
+        """Read every bottle on the bench once, in one sweep of the rail.
 
-        The arm is raised where it stands and the fixed camera surveys the bench
-        from there. There is no trip to the end of the rail first: the arm held
-        high hides little of the bench, and what it does hide the passes uncover
-        as they cross.
-
-        Then it flies. A pass holds one shape, tilted to look across the bench
-        rather than down at it, and the rail carries the wrist camera the length
-        of the bench while it reads every ring that passes through the frame.
-        Nothing ever goes down among the vessels: the lowest part of the arm
-        stays :data:`SCAN_CLEARANCE` over the tallest vessel the cameras know of
-        near it, so a scan cannot knock one over, and no bottle is stopped at,
-        so a bottle costs no trip of its own. Each pass reaches a different
-        strip of the bench and each crosses in the direction the last one left
-        it; they run in rounds until a round names nothing new.
+        The carriage parks at the end of the rail nearer to it. From there the
+        arm stands past the end of the bench in the fixed camera's picture and
+        hides no bottle, so the survey sees them all. The proposals are then
+        looked at in order along the rail from that end, and the carriage
+        crosses the bench once. A proposal that turns up during the sweep joins
+        it, or waits for the way back if the carriage has already passed it.
         """
-        began = float(data.time)
-        yield from survey(SURVEY_CYCLES, 'initial scan: the fixed camera surveys the bench')
         lo, hi = (float(home + v) for v in model.joint(rk.RAIL_JOINT).range)
-        world.log(data.time, f'initial scan: flying the wrist camera over the bench, '
-                             f'{SCAN_CLEARANCE * 100:.0f} cm clear of the tallest vessel '
-                             f'near it; it stops at nothing')
-        for _ in range(SCAN_ROUNDS):
-            before = sum(1 for t in world.snapshot() if t.sample)
-            for index, (what, *_rest) in enumerate(SCAN_PASSES):
-                goal = lo if here() - lo > hi - here() else hi
-                reads = yield from cruise(
-                    index, goal, f'initial scan: reading {what} from the air')
-                named = sum(1 for t in world.snapshot() if t.sample)
-                world.log(data.time, f'initial scan: {what} read in {reads} looks, '
-                                     f'{named} bottles named so far')
-            tracks = world.snapshot()
-            if sum(1 for t in tracks if t.sample) == before \
-                    or not any(t.state == 'proposed' for t in tracks):
-                break
-        # What the air could not read, the arm goes and looks at, nearest first.
-        # That is the old per-bottle visit, and it is what still names the few
-        # the passes miss --- `look` tries the raised looks before it brings the
-        # hand down to anything, so this is the exception and not the way in.
+        start = hi if hi - here() <= here() - lo else lo
+        sweep = -1.0 if start == hi else 1.0
+        began = float(data.time)
+        yield from travel(start, 'initial scan: parking the arm at the end of the rail',
+                          None)
+        yield from survey(SURVEY_CYCLES, 'initial scan: the fixed camera surveys the bench')
+        frontier, looked, settled, hover, row = start, 0, False, None, False
+        world.log(data.time, f'initial scan: the tallest flask stands {tallest() * 100:.0f} cm, '
+                             f'so between looks the arm keeps {HOVER_MARGIN * 100:.0f} cm over it')
         while True:
             todo = [t for t in world.snapshot() if t.state == 'proposed']
             if not todo:
-                break
-            track = min(todo, key=lambda t: abs(t.xy[0] - here()))
-            world.log(data.time, f'initial scan: no ring from the air for track '
-                                 f'{track.id}; going to look at it')
-            yield from look(track)
-        yield from survey(CONFIRM_HITS, 'initial scan: a last survey of the bench')
-        yield from drive(here(), carry, open_hand, 2.0, 'initial scan: back to carry')
+                if settled:
+                    break
+                # A box first seen during the last look needs CONFIRM_HITS cycles
+                # to become a track: one more survey before calling it done.
+                yield from survey(CONFIRM_HITS, 'initial scan: a last survey of the bench')
+                settled = True
+                continue
+            settled = False
+            # One row at a time: the front of the bench on the way out, the back
+            # strip on the way back. The camera looks at the two rows from
+            # opposite sides, so mixing them would turn the hand round each time.
+            in_row = [t for t in todo if back_row(t) == row]
+            if not in_row:
+                row, sweep = not row, -sweep
+                continue
+            ahead = [t for t in in_row if sweep * (t.seen_xy[0] - frontier) >= 0]
+            if not ahead:
+                sweep = -sweep
+                continue
+            track = min(ahead, key=lambda t: sweep * t.seen_xy[0])
+            frontier = track.seen_xy[0]
+            looked += 1
+            prefix = f'initial scan {looked}/{looked + len(todo) - 1}: '
+            hover = yield from prefixed(prefix, look(track, low=True, hover=hover))
+        if hover is not None:
+            yield from drive(here(), carry, open_hand, 1.5, 'initial scan: back to carry')
         world.scan = bench_map(world, began, float(data.time))
         bench_map_to.parent.mkdir(parents=True, exist_ok=True)
         bench_map_to.write_text(json.dumps(world.scan, indent=1) + '\n', encoding='utf-8')
         summary = world.scan['scans'][0]
         world.log(data.time, f'initial scan done in {summary["seconds"]:.0f} s: '
                              f'{summary["named"]} named, {summary["unidentified"]} '
-                             f'not read, {summary["unreachable"]} out of reach; '
+                             f'not samples, {summary["unreachable"]} out of reach; '
                              f'wrote {bench_map_to.name}')
 
     yield from still(0.5, 'settling')
@@ -2025,9 +1867,8 @@ def bench_map(world: World, began: float, ended: float) -> dict[str, object]:
         'version': 1,
         'scene': world.scene,
         'frame': f'MuJoCo world, metres, +Z up; bench top z = {rk.BENCH_TOP}',
-        'method': 'initial scan: the fixed camera proposes, and the arm flies its '
-                  'wrist camera over the bench in passes, reading the ArUco rings '
-                  'that go by without stopping at any of them',
+        'method': 'initial scan: the fixed camera proposes, the arm sweeps the rail '
+                  'once and its wrist camera reads each proposal\'s ArUco ring',
         'scans': [{
             'id': 0, 'started_s': round(began, 1), 'finished_s': round(ended, 1),
             'seconds': round(ended - began, 1), 'proposals': len(entries),
