@@ -11,7 +11,7 @@ panels follow the order step by step, down to the mass on the balance pan. The
 lab is a UR10e on a rail, simulated in MuJoCo; the demo also replays the same
 scan rendered in Isaac Sim.
 
-Demo video: https://youtu.be/kdZ4qXKVD1E
+Presentation video: https://youtu.be/kdZ4qXKVD1E
 
 Each part has its own README:
 
