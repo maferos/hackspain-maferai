@@ -54,7 +54,9 @@ def pattern_scene(scene_path, name):
     desk = next(f for f in room.iter('frame') if any(
         g.get('name') == 'worktop_finish_0' for g in f.findall('geom')))
     origin = list(map(float, desk.get('pos').split()))
-    for item in population['containers']:
+    containers = [item for item in population['containers']
+                  if item['container_ml'] != 10]
+    for item in containers:
         sample = item['sample_id']
         name = f'dyn_{sample}'
         ET.SubElement(asset, 'model', name=name,
@@ -64,7 +66,9 @@ def pattern_scene(scene_path, name):
                              euler=f"0 0 {item['yaw']}")
         ET.SubElement(body, 'freejoint')
         ET.SubElement(body, 'attach', model=name, body=sample, prefix=f'{name}_')
-    return root, {k: population[k] for k in ('pattern', 'seed', 'count', 'style')}
+    metadata = {k: population[k] for k in ('pattern', 'seed', 'style')}
+    metadata['count'] = len(containers)
+    return root, metadata
 
 
 def build_pattern(scene_path, name):

@@ -57,13 +57,15 @@ gripper copy of the rail bench. Each frontend page load requests
 a random bench layout from the ten shared `minihannover_open/patterns` seeds.
 The next choice excludes the current pattern. The backend replaces the rail
 scene's loose and dynamic bench samples with that catalogue population in
-memory; it never rewrites generated scene files. All connected tabs share the
+memory, excluding the 10 ml flasks; the reported sample count includes only
+the remaining flasks. It never rewrites generated scene files. All connected tabs share the
 new layout, and the viewport label shows its seed and sample count. Requests
 are deduplicated per page load, including React StrictMode and network retries.
 The render thread stops the previous scan and detector worker, installs the new
 MuJoCo model and graphics context, and starts a fresh scan. Tracks and identities
 from the old layout are discarded. Replay selects the recording for that same seed; switching modes does not
-request a new layout. The panel demo retains its original model, samples and `RECIPE`, so
+request a new layout. Existing Replay recordings still contain the 10 ml flasks.
+The panel demo retains its original model, samples and `RECIPE`, so
 the shared scripted-run recording continues to match the panel state.
 
 ```sh

@@ -23,7 +23,12 @@ class ScenePatternsTest(unittest.TestCase):
                          if model.body_parentid[i] == 0]
                 self.assertFalse(any(name.startswith('loose_') for name in roots))
                 self.assertEqual(sum(name.startswith('dyn_') for name in roots), info['count'])
+                self.assertEqual(info['count'], sum(
+                    item['container_ml'] != 10 for item in population['containers']))
                 for item in population['containers']:
+                    if item['container_ml'] == 10:
+                        self.assertNotIn('dyn_' + item['sample_id'], roots)
+                        continue
                     body = data.body('dyn_' + item['sample_id'])
                     np.testing.assert_allclose(body.xpos,
                                                [item['x'] - 1.5, item['y'] - .4, .9])
