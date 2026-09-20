@@ -135,8 +135,10 @@ BACKENDS: dict[str, Backend] = {
     "fixedcam": Backend("yolo26n_fixedcam.pt", 0.07),
     # The current detector: retrained on every camera view, the seeded bench
     # patterns and varied labs (docs/YOLO26_TRAINING.md, weights/README.md).
-    # 0.41 is its best-F1 point on validation.
-    "full": Backend("yolo26n_full_1920_e25.pt", 0.41),
+    # 0.52 is its best-F1 point on validation.
+    "full": Backend("yolo26n_full_1920_e100.pt", 0.52),
+    # The same training stopped at 25 epochs; kept to compare against.
+    "full25": Backend("yolo26n_full_1920_e25.pt", 0.41),
     # Superseded by `full`; kept to compare against and to fine-tune from.
     "rail": Backend("yolo26n_rail_general.pt", 0.10),
     # The harness names this one `mujoco`; same weights, same threshold.
