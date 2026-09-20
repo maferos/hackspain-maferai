@@ -1,4 +1,4 @@
-# hackspain-maferai
+# Mafer.ai at HackSpain 2026
 
 Hackathon project. Two components:
 
