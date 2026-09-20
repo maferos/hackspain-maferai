@@ -2,9 +2,12 @@
 const session = crypto.randomUUID();
 let request;
 
-export function chooseScene(backendUrl) {
+// With a seed (from ?seed=N) the backend loads that catalogue pattern instead
+// of a random one; the same seed the viewport label shows.
+export function chooseScene(backendUrl, seed) {
   if (!request) {
-    request = fetch(`${backendUrl}/api/scene/randomize?session=${session}`, {
+    const seedParam = seed != null && seed !== "" ? `&seed=${encodeURIComponent(seed)}` : "";
+    request = fetch(`${backendUrl}/api/scene/randomize?session=${session}${seedParam}`, {
       method: "POST",
     }).then(async (response) => {
       if (!response.ok) throw new Error("Scene selection unavailable");

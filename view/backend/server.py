@@ -504,15 +504,24 @@ pattern_requests = {}
 
 
 @app.post("/api/scene/randomize")
-async def randomize_scene(session: str = Query(min_length=1, max_length=100)):
-    """Choose once per page load, including React StrictMode and HTTP retries."""
+async def randomize_scene(session: str = Query(min_length=1, max_length=100),
+                          seed: int | None = Query(default=None)):
+    """Choose once per page load, including React StrictMode and HTTP retries.
+
+    With ?seed=N, load the catalogue pattern with that seed (the value the
+    viewport label shows) instead of a random one."""
     if not SCAN_ENABLED:
         raise HTTPException(409, "Seeded layouts require the rail scene")
     async with pattern_lock:
         if session in pattern_requests:
             return pattern_requests[session]
-        current = (scene.pattern or {}).get('pattern')
-        choice = random.choice([p for p in CATALOGUE if p['pattern'] != current])
+        if seed is not None:
+            choice = next((p for p in CATALOGUE if p['seed'] == seed), None)
+            if choice is None:
+                raise HTTPException(404, f"No catalogue pattern with seed {seed}")
+        else:
+            current = (scene.pattern or {}).get('pattern')
+            choice = random.choice([p for p in CATALOGUE if p['pattern'] != current])
         model, info = await asyncio.to_thread(build_pattern, SCENE_PATH, choice['pattern'])
         finished = threading.Event()
         scene.pending_pattern = (model, info, finished)
