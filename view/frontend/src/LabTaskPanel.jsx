@@ -1,5 +1,7 @@
-// The formula the robot has in hand, driven by the LabState. At the top, where
-// it is in its workflow (scan → formula → check → fetch → done); then the order, one row
+// The lab's current task, driven by the LabState. A task is the bench scan or a
+// formula: the scan is always the first, and no formula is checked or started
+// until it is done, so what this shows changes with it. At the top, where the
+// task is in its workflow (scan → formula → check → fetch → done); then the order, one row
 // per ingredient with its steps as dots, or the bench scan's tally before the
 // first order; and below, the plan around the current step (a few done and
 // crossed off, the active one, the next ones), grouped by ingredient.
@@ -70,7 +72,8 @@ function WorkflowBar({ stages }) {
 }
 
 // What the live scan has found so far.
-function ScanSummary({ scan }) {
+function ScanSummary({ scan, queue }) {
+  const waiting = queue ?? [];
   return (
     <div className="formula">
       <div className="formula__title">
@@ -86,6 +89,21 @@ function ScanSummary({ scan }) {
         </span>
       </div>
       {scan.error ? <div className="formula__summary formula__summary--fail">{scan.error}</div> : null}
+      {waiting.length ? (
+        <ol className="queue">
+          {waiting.map((o) => (
+            <li key={o.id} className="queue__row">
+              <span className="queue__mark">○</span>
+              <span className="queue__name" title={o.name}>{o.name}</span>
+              <span className="queue__meta">
+                {o.ingredients} {o.ingredients === 1 ? "ingredient" : "ingredients"}
+              </span>
+              <span className="chip">{o.id}</span>
+            </li>
+          ))}
+          <li className="queue__note">Checked and started when the bench is mapped.</li>
+        </ol>
+      ) : null}
     </div>
   );
 }
@@ -332,7 +350,7 @@ export default function LabTaskPanel({ state, connected }) {
     return (
       <aside className="task-panel">
         <header className="task-panel__header">
-          <h2>Current formula</h2>
+          <h2>Current task</h2>
           <span className={`status-dot ${connected ? "status-dot--live" : "status-dot--off"}`} />
         </header>
         <ol className="task-list">
@@ -342,17 +360,32 @@ export default function LabTaskPanel({ state, connected }) {
     );
   }
   const { run } = state;
+  const task = state.task ?? null;
+  const queued = task?.queued ?? 0;
+  // While the bench is being read, the task is the scan, whatever sits on the
+  // queue behind it.
+  const scanning = task ? task.type === "scan" : !state.order;
   return (
     <aside className="task-panel">
       <header className="task-panel__header">
         <div className="task-panel__title">
-          <h2>Current formula</h2>
+          <h2>Current task</h2>
           <span className="task-panel__run">
             {run.id} · {run.status.toUpperCase()} · {fmtClock(run.elapsedSeconds)}
             {run.status === "running" && run.progress > 0 ? ` · ${Math.round(run.progress * 100)} %` : ""}
           </span>
         </div>
         <div className="task-panel__badges">
+          {task ? (
+            <span className={`chip chip--task chip--${task.type}`} title={task.title}>
+              {task.type === "scan" ? "SCAN" : task.type === "formula" ? "FORMULA" : "IDLE"}
+            </span>
+          ) : null}
+          {queued > 0 ? (
+            <span className="chip" title={`${queued} more ${queued === 1 ? "formula" : "formulas"} on the queue`}>
+              +{queued}
+            </span>
+          ) : null}
           {run.scripted ? (
             <span className="chip chip--warn" title="A recorded run: no backend is publishing the lab state">
               SCRIPTED
@@ -363,10 +396,12 @@ export default function LabTaskPanel({ state, connected }) {
       </header>
       <div className="task-panel__scroll">
         {state.workflow ? <WorkflowBar stages={state.workflow.stages} /> : null}
-        {state.order ? (
+        {scanning && state.scan ? (
+          <ScanSummary scan={state.scan} queue={state.order?.queue} />
+        ) : state.order ? (
           <OrderCard order={state.order} />
         ) : state.scan ? (
-          <ScanSummary scan={state.scan} />
+          <ScanSummary scan={state.scan} queue={state.order?.queue} />
         ) : (
           <FormulaChecklist state={state} />
         )}

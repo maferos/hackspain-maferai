@@ -250,14 +250,47 @@ class WorkflowTest(unittest.TestCase):
         wf.report("SMP-0014", "dose", "completed", mass=1.204)
         self.assertAlmostEqual(self.catalogue.levels.left_ml("SMP-0014"), before - 1.204, places=3)
 
-    def test_one_order_at_a_time_and_stop(self):
+    def test_a_second_formula_queues_behind_the_first(self):
         wf, _ = self.order("external")
-        with self.assertRaises(RuntimeError):
-            wf.submit(self.chat.reply("1 g geraniol")["formula"], "chat")
+        second = wf.submit(self.chat.reply("1 g geraniol")["formula"], "chat")
+        # It is accepted, not refused, and it is not what the panel is about.
+        self.assertEqual(wf.order.id, "ORD-001")
+        self.assertEqual([o.id for o in wf.waiting()], ["ORD-002"])
+        # Behind the front, it is not checked: the bench it will be judged
+        # against is the one standing when its turn comes.
+        self.assertIsNone(second.check)
         wf.abort()
-        self.assertEqual(wf.state(True)["status"], "aborted")
-        wf.submit(self.chat.reply("1 g geraniol")["formula"], "chat")
-        self.assertEqual(wf.order.id, "ORD-002")
+        self.assertEqual(wf.state(True)["id"], "ORD-002")
+        wf.pump()
+        self.assertIsNotNone(wf.order.check)
+
+    def test_a_formula_queued_on_an_empty_bench_is_matched_again_later(self):
+        # The trap: an order queued mid-scan was resolved against whatever had
+        # been named at the time. Deferring the verdict is not enough — on an
+        # empty bench every line reads "not identified", and the check would
+        # refuse a formula the finished bench can make.
+        empty = []
+        shelf = lambda: shelf_from_tracks(empty, self.catalogue)
+        wf = Workflow(self.catalogue, shelf, executor="external", order_file=None,
+                      scan_done=lambda: False)
+        order = wf.submit(FormulaChat(self.catalogue, self.shelf)
+                          .reply("1.2 g geraniol, 0.5 g nerol")["formula"], "chat")
+        wf.shelf = self.shelf                   # the scan finishes; the bench fills
+        wf.scan_done = lambda: True
+        wf.pump()
+        self.assertTrue(order.check["passed"], order.check)
+        self.assertEqual([i["sampleId"] for i in order.items], ["SMP-0014", "SMP-0039"])
+
+    def test_a_formula_sent_before_the_scan_waits_unchecked(self):
+        wf = Workflow(self.catalogue, self.shelf, executor="external", order_file=None,
+                      scan_done=lambda: False)
+        order = wf.submit(self.chat.reply("1.2 g geraniol, 0.5 g nerol")["formula"], "chat")
+        self.assertEqual(order.status, "queued")
+        self.assertIsNone(order.check)
+        self.assertIsNone(wf.pump())        # still scanning: nothing is admitted
+        wf.scan_done = lambda: True
+        self.assertIs(wf.pump(), order)
+        self.assertTrue(order.check["passed"])
 
 
 class FetchExecutorTest(unittest.TestCase):

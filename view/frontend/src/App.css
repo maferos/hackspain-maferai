@@ -1645,3 +1645,60 @@ textarea.chat__input {
 .leg--failed .leg__mark {
   color: var(--error);
 }
+
+/* The formulas waiting behind the scan, on the scan's own card. */
+
+.queue {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0.4rem 0 0;
+  border-top: 1px solid var(--panel-border);
+}
+
+.queue__row {
+  display: grid;
+  grid-template-columns: 0.8rem minmax(0, 1fr) auto auto;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  padding: 0.12rem 0;
+}
+
+.queue__mark {
+  text-align: center;
+  color: var(--done);
+}
+
+.queue__name {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.queue__meta {
+  font-size: 0.7rem;
+}
+
+.queue__note {
+  margin-top: 0.2rem;
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  font-style: italic;
+}
+
+/* The task's kind, beside the run in the panel header. */
+.chip--task {
+  letter-spacing: 0.05em;
+}
+
+.chip--scan {
+  color: var(--warn);
+  border-color: var(--warn);
+}
+
+.chip--formula {
+  color: var(--accent);
+  border-color: var(--accent);
+}
