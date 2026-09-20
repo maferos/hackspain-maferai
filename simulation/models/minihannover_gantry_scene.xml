@@ -9,7 +9,7 @@
   </visual>
   <asset>
     <material name="floor" rgba="0.80 0.81 0.81 1" specular="0.3" shininess="0.6" reflectance="0.12" />
-    <model name="lab_room" file="../assets/minihannover_open/lab_room_dynamic.xml" />
+    <model name="lab_room" file="../assets/minihannover_open/lab_room_gantry.xml" />
     <model name="sink" file="../assets/sink/sink.xml" />
     <model name="balance" file="../assets/balance/balance.xml" />
     <model name="gc_ms" file="../assets/gc_ms/gc_ms.xml" />
