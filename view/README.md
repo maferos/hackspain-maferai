@@ -95,10 +95,10 @@ By default the viewport shows the live MuJoCo cameras. Select **Replay** in
 the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
 the selected seed; Replay waits for that selection instead of showing a
-different layout. Patterns `p01` and `p02` play the double-rail XYZ gantry with Eki's
+different layout. All four patterns play the double-rail XYZ gantry with Eki's
 vertical hand, without the overhead extractors. The corrected marker reader
-identified all 7 and 22 vessels respectively; each scan travels left to right
-at constant height. Patterns `p03`–`p04` retain their hanging-arm recordings. All four play at
+distinguishes cap and lateral labels; each scan travels left to right at
+constant height. All four play at
 1920×1080, 10 fps, with normal lighting and three render updates per frame.
 Their compiled sample models and exported USDs were checked: no 10 ml sample
 flasks remain on the scan bench. Replay keeps the current seed when switching
@@ -108,13 +108,15 @@ from Real time.
 | --- | ---: | ---: | ---: | ---: | ---: |
 | p01 | 30 | 7 | 7 | 46.2 s | 138 s |
 | p02 | 176 | 22 | 22 | 80.3 s | 235 s |
-| p03 | 21 | 29 | 29 | 129.8 s | 381 s |
-| p04 | 327 | 33 | 31 | 240 s | 716 s |
+| p03 | 21 | 29 | 28 | 83.5 s | 254 s |
+| p04 | 327 | 33 | 32 | 91.6 s | 276 s |
 
 Render times were measured on an NVIDIA L4 and include Isaac startup and
-MP4 encoding, excluding scan recording, USD export and transfer. The p04
-recording stops at the 240-second limit before its scan completes, recorded
-as `scan_complete: false` in the replay manifest.
+MP4 encoding, excluding scan recording, USD export and transfer. All four
+recordings reach the end of their scan. P03 and p04 each leave one vessel
+undetected; the identities they do read are correctly associated.
+`scan_complete` marks completion of the scan controller, not complete detection
+of every vessel.
 
 The worktop is one white satin mesh within the USD Table component. Click the small view to swap cameras
 without restarting playback. Files live in `frontend/public/renders/seeds/p01/`
