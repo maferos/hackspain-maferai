@@ -1,0 +1,22 @@
+{
+  "frames": 1000,
+  "fps": 30,
+  "duration_seconds": 33.333333333333336,
+  "usd": "vertical_hand.usdc",
+  "animation": "Eki vertical hand 23-step sequence with approach and retreat",
+  "rendered_frames": 1000,
+  "resolution": [
+    1920,
+    1080
+  ],
+  "quality": "final",
+  "renderer": "Isaac Lab / Isaac Sim 6.1.0.0 RTX Real-Time",
+  "isaaclab_package_version": "17.0.2",
+  "light_multiplier": 1.0,
+  "subframes": 2,
+  "antialiasing": "DLSS",
+  "start_frame": 0,
+  "asset": "vertical_hand.usdc",
+  "source_commit": "7bff5de",
+  "animation_start_frame": 1
+}
