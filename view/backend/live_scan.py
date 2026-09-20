@@ -78,11 +78,13 @@ class LiveScan:
         self.generation = generation
         self.weights, self.conf = DETECTOR_WEIGHTS, DETECTOR_CONF
         try:
-            # rk.load normally selects the tool; the viewer compiles seed models itself.
-            vp.rk.TCP_SITE = 'arm_grip_pinch'
-            model.site(vp.rk.TCP_SITE)
             if not self.weights.is_file():
                 raise FileNotFoundError(f'Missing detector weights: {self.weights}')
+            # rk.load normally names the tool; the viewer compiles seed models
+            # itself, so it asks the model which tool is on rather than assuming
+            # one. After the weights: a missing file is the cheaper question and
+            # the one worth reporting first.
+            model.site(vp.rk.pick_tcp(model))
             self.detector = ScanDetector(self.weights, self.conf)
             self.perception = ScanPerception(model, data, physics, self.world,
                                              self.detector, vp.Show(), None)

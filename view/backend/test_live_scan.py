@@ -15,7 +15,10 @@ class LiveScanTest(unittest.TestCase):
         with patch.dict(os.environ, {'VIEW_DETECTOR': 'rail', 'VIEW_DETECTOR_CONF': '0.10'}), \
              patch('live_scan.DETECTOR_WEIGHTS', weights), \
              patch('live_scan.ScanDetector') as detector, \
-             patch('live_scan.ScanPerception'), patch.object(vp, 'controller'):
+             patch('live_scan.ScanPerception'), patch.object(vp, 'controller'), \
+             patch.object(vp.rk, 'pick_tcp', return_value='arm_grip_pinch'):
+            # pick_tcp reads the compiled model's sites; this one is a Mock, and
+            # which tool is on it is not what this test is about.
             scan = LiveScan(Mock(), SimpleNamespace(time=0), threading.Lock(), 3)
             self.assertIsNone(scan.error)
             detector.assert_called_once_with(weights, 0.41)
