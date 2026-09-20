@@ -111,52 +111,61 @@
     "seed": 70,
     "count": 52,
     "fps": 10,
-    "frames": 203,
+    "frames": 2400,
     "resolution": [
       960,
       540
     ],
     "global_video": "p07/rail_global.mp4",
     "robot_video": "p07/rail_robot.mp4",
-    "revision": "satin-table-v1",
-    "render_updates_per_frame": 3
+    "revision": "scan-p07-v1",
+    "render_updates_per_frame": 3,
+    "duration_seconds": 240.0,
+    "mode": "scan",
+    "scan_complete": false
   },
   {
     "pattern": "p08",
     "seed": 4,
     "count": 57,
     "fps": 10,
-    "frames": 203,
+    "frames": 2400,
     "resolution": [
       960,
       540
     ],
     "global_video": "p08/rail_global.mp4",
     "robot_video": "p08/rail_robot.mp4",
-    "revision": "satin-table-v1",
-    "render_updates_per_frame": 3
+    "revision": "scan-p08-v1",
+    "render_updates_per_frame": 3,
+    "duration_seconds": 240.0,
+    "mode": "scan",
+    "scan_complete": false
   },
   {
     "pattern": "p09",
     "seed": 2,
     "count": 65,
     "fps": 10,
-    "frames": 203,
+    "frames": 2400,
     "resolution": [
       960,
       540
     ],
     "global_video": "p09/rail_global.mp4",
     "robot_video": "p09/rail_robot.mp4",
-    "revision": "satin-table-v1",
-    "render_updates_per_frame": 3
+    "revision": "scan-p09-v1",
+    "render_updates_per_frame": 3,
+    "duration_seconds": 240.0,
+    "mode": "scan",
+    "scan_complete": false
   },
   {
     "pattern": "p10",
     "seed": 15,
     "count": 71,
     "fps": 10,
-    "frames": 203,
+    "frames": 1722,
     "resolution": [
       960,
       540
@@ -164,6 +173,9 @@
     "global_video": "p10/rail_global.mp4",
     "robot_video": "p10/rail_robot.mp4",
     "render_updates_per_frame": 3,
-    "revision": "satin-table-v1"
+    "revision": "scan-p10-v1",
+    "duration_seconds": 172.2,
+    "mode": "scan",
+    "scan_complete": true
   }
 ]

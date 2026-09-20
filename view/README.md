@@ -94,9 +94,9 @@ the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
 the selected seed; Replay waits for that selection instead of showing a
 different layout. The ten provisional camera pairs loop at 960×540, 10 fps
-with normal lighting and three render updates per frame. Patterns `p01`–`p06`
-play recorded initial scans, capped at 240 seconds; the remaining patterns
-still use their 20.3-second rail sweeps while their scans render. A capped
+with normal lighting and three render updates per frame. All ten patterns (`p01`–`p10`)
+play recorded initial scans, capped at 240 seconds. Patterns `p01`, `p03`,
+`p05`, and `p10` finish before that limit; the other six stop at 240 seconds. A capped
 recording may end before the scan completes; the replay manifest records this
 as `scan_complete: false`.
 The worktop is one white satin mesh within the USD Table component. Click the small view to swap cameras
