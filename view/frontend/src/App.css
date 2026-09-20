@@ -232,8 +232,8 @@ body {
   position: absolute;
   bottom: 1rem;
   right: 1rem;
-  width: 22%;
-  min-width: 180px;
+  width: 26.4%;
+  min-width: 216px;
   aspect-ratio: 16 / 9;
   border: 2px solid var(--panel-border);
   border-radius: 8px;
