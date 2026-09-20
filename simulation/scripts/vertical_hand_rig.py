@@ -64,6 +64,7 @@ CAR = [PIP['grip_z'] - 20, PIP['grip_z'] + 60]
 RAIL_TOP = TIP_READY + CAR[1]
 PR = dict(x=45, y=-(HALF_IN - 3))                          # the pipette's rail, where the centred housing only reaches |y| 52
 TIP_DIVE, LIFT_Z = 20, 100
+APPROACH = 120                           # the hand starts this far behind the bottle's axis and backs off to it at the end (not on the page)
 BTN_TOP = PIP['body_z0'] + PIP['body_len'] + PIP['plunger_len'] + PIP['button_h']   # 259.5
 CB0 = CLIPS[0] - 8                                        # 117: the pipette carriage's foot, over the tip
 
@@ -113,9 +114,10 @@ def base_z(b: dict = BOTTLE) -> float:
 
 # ============================== STATE (SI) ==============================
 # The degrees of freedom, the custom properties of the .blend and the actuators of the MJCF.
-STATE = ['lift_z', 'grip_aperture', 'clamp_x', 'clamp_lift', 'iris_angle', 'housing_turns', 'pipette_tip', 'plunger']
+STATE = ['hand_x', 'lift_z', 'grip_aperture', 'clamp_x', 'clamp_lift', 'iris_angle', 'housing_turns', 'pipette_tip', 'plunger']
 # (default, min, max, subtype, description) for the Blender properties
 PROPS = {
+    'hand_x': (-APPROACH * MM, -0.2, 0.05, 'DISTANCE', 'Hand along X: 0 with the cage on the bottle axis, negative backed away (m)'),
     'lift_z': (LIFT_Z * MM, 0.0, 0.3, 'DISTANCE', 'Hand height: the bottle base above the table once held (m)'),
     'grip_aperture': (2 * stroke(BOTTLE['r']) * MM, 2 * vertex(CATALOGUE[10]['r']) * MM, 2 * stroke(CATALOGUE[100]['r']) * MM,
                       'DISTANCE', 'Opening between the two cradle vertices (m)'),
@@ -129,12 +131,13 @@ PROPS = {
 
 
 def start(b: dict = BOTTLE) -> dict:
-    return dict(lift_z=LIFT_Z * MM, grip_aperture=2 * stroke(b['r']) * MM, clamp_x=PARK_X * MM, clamp_lift=LIFT_HI * MM,
+    return dict(hand_x=-APPROACH * MM, lift_z=LIFT_Z * MM, grip_aperture=2 * stroke(b['r']) * MM, clamp_x=PARK_X * MM, clamp_lift=LIFT_HI * MM,
                 iris_angle=IRIS_OPEN, housing_turns=0.0, pipette_tip=TIP_READY * MM, plunger=0.0, fill=0.0)
 
 
-# (name, seconds, changes): the page's STEPS, in page units; keys() converts.
+# (name, seconds, changes): the page's STEPS, in page units, with an approach and a retreat around them; keys() converts.
 STEPS = [
+    ('Advance the hand over the bottle, onto its axis', 1.4, dict(hand_x=0)),
     ('Lower the hand over the bottle', 1.6, dict(lift_z=0)),
     ('Close the gripper: the cradles centre the bottle', 0.9, dict(grip='closed')),
     ('Lift the bottle', 1.2, dict(lift_z=LIFT_Z)),
@@ -156,9 +159,10 @@ STEPS = [
     ('Slide the clamp back', 1.4, dict(clamp_x=PARK_X)),
     ('Put the bottle down', 1.2, dict(lift_z=0)),
     ('Open the gripper and lift the hand clear', 1.6, dict(grip='open', lift_z=LIFT_Z)),
+    ('Back the hand away from the bottle', 1.4, dict(hand_x=-APPROACH)),
 ]
 TAIL = 0.8
-_PAGE_TO_STATE = dict(lift_z='lift_z', grip='grip_aperture', clamp_x='clamp_x', clift='clamp_lift', iris='iris_angle',
+_PAGE_TO_STATE = dict(hand_x='hand_x', lift_z='lift_z', grip='grip_aperture', clamp_x='clamp_x', clift='clamp_lift', iris='iris_angle',
                       turns='housing_turns', tip='pipette_tip', plunger='plunger', fill='fill')
 
 
@@ -169,7 +173,7 @@ def _convert(key: str, v, b: dict):
         return iris_contact(b) if v == 'contact' else v
     if key == 'tip':
         return (base_z(b) + TIP_DIVE) * MM if v == 'dive' else v * MM
-    if key in ('lift_z', 'clamp_x', 'clift', 'plunger'):
+    if key in ('hand_x', 'lift_z', 'clamp_x', 'clift', 'plunger'):
         return v * MM
     return v
 
@@ -202,14 +206,14 @@ def ease(x: float) -> float:
 def state_at(t: float, frames=KEYS) -> tuple[dict, int]:
     """The state at time t (the page's easing) and the step under way (0-based, -1 after the end).
 
-    The last step opens the jaws first and lifts after, as the page does.
+    The page's last step opens the jaws first and lifts after.
     """
     for i in range(1, len(frames)):
         if t < frames[i][0]:
             (ta, a), (tb, b) = frames[i - 1], frames[i]
             f = ease((t - ta) / (tb - ta))
             s = {k: a[k] + (b[k] - a[k]) * f for k in a}
-            if i == len(frames) - 1:
+            if i == len(frames) - 2:
                 g, m = ease(2 * (t - ta) / (tb - ta)), ease(2 * (t - ta) / (tb - ta) - 1)
                 s['grip_aperture'] = a['grip_aperture'] + (b['grip_aperture'] - a['grip_aperture']) * g
                 s['lift_z'] = a['lift_z'] + (b['lift_z'] - a['lift_z']) * m
@@ -240,7 +244,8 @@ def _links() -> list[dict]:
 
     jaw_lo, jaw_hi = PROPS['grip_aperture'][1] / 2, PROPS['grip_aperture'][2] / 2
     links = [
-        link('hand', None, (0, 0, 0), ('slide', Z, 'lift_z', 1.0, (0.0, 0.3)), mass=3.0),
+        link('approach', None, (0, 0, 0), ('slide', X, 'hand_x', 1.0, (-0.2, 0.05)), mass=0.5),
+        link('hand', 'approach', (0, 0, 0), ('slide', Z, 'lift_z', 1.0, (0.0, 0.3)), mass=3.0),
         link('jaw_l', 'hand', (0, 0, GRIP_Z), ('slide', Y, 'grip_aperture', 0.5, (jaw_lo, jaw_hi)), mass=0.12),
         link('jaw_r', 'hand', (0, 0, GRIP_Z), ('slide', _Y, 'grip_aperture', 0.5, (jaw_lo, jaw_hi)), mass=0.12),
         link('clamp_slide', 'hand', (0, 0, 0), ('slide', X, 'clamp_x', 1.0, (PROPS['clamp_x'][1], 0.0)), mass=0.3),
@@ -267,7 +272,7 @@ def _links() -> list[dict]:
 LINKS = _links()
 LINK = {b['name']: b for b in LINKS}
 # The joints the plan drives; every other joint follows one of these (MJCF equalities, URDF mimics).
-ACTUATED = ['lift', 'jaw_l', 'clamp_x', 'clamp_lift', 'body_yaw', 'cam', 'pip_slide', 'plunger']
+ACTUATED = ['approach', 'lift', 'jaw_l', 'clamp_x', 'clamp_lift', 'body_yaw', 'cam', 'pip_slide', 'plunger']
 # link -> joint name in the MJCF/URDF (the link and its joint share a name, except these three)
 JOINT_NAME = {'hand': 'lift', 'clamp_slide': 'clamp_x', 'housing': 'body_yaw'}
 FOLLOWS = {   # follower joint -> (leader joint, multiplier): q_follower = k * q_leader
@@ -336,7 +341,7 @@ def quat_z(a: float) -> tuple[float, float, float, float]:
 if __name__ == '__main__':
     s = start()
     print(f'{len(STEPS)} steps, {DURATION:.1f} s; start: ' + ', '.join(f'{k}={v:.4g}' for k, v in s.items()))
-    for n in (2, 7, 11):
+    for n in (3, 8, 12):
         st, _ = state_at(step_end(n) - 1e-6)
         pos = fk(st)
         print(f'after step {n}: tip {np.round(pos["tip"], 4)}, cap seat {np.round(pos["cap_seat"], 4)}, '

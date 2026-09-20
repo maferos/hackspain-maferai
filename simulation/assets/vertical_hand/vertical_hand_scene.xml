@@ -24,50 +24,50 @@
   <worldbody>
     <light pos="0.5 -0.5 1.5" dir="-0.3 0.3 -1" diffuse="0.8 0.8 0.8"/>
     <light pos="-0.6 0.4 1.2" dir="0.4 -0.3 -1" diffuse="0.4 0.4 0.45"/>
-    <geom name="floor" type="plane" size="1 1 0.05" material="floor" contype="32" conaffinity="26"/>
+    <geom name="floor" type="plane" size="1 1 0.05" material="floor" contype="32" conaffinity="11"/>
     <attach model="hand" body="vertical_hand" prefix=""/>
     <body name="bottle" pos="0 0 0">
       <freejoint name="bottle"/>
       <inertial pos="0 0 0.0475" mass="0.058" diaginertia="5e-5 5e-5 1.5e-5"/>
       <geom name="bottle__bottle" type="mesh" mesh="bottle__bottle" material="bottle" contype="0" conaffinity="0" group="2" mass="0"/>
       <geom name="bottle__liquid" type="mesh" mesh="bottle__liquid" material="liquid" contype="0" conaffinity="0" group="2" mass="0"/>
-      <geom name="bottle_floor" type="cylinder" pos="0 0 0.00125" size="0.02 0.00125" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_0" type="box" pos="0.019 0 0.034125" quat="1 0 0 0" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_1" type="box" pos="0.0183526 0.00491756 0.034125" quat="0.991445 0 0 0.130526" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_2" type="box" pos="0.0164545 0.0095 0.034125" quat="0.965926 0 0 0.258819" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_3" type="box" pos="0.013435 0.013435 0.034125" quat="0.92388 0 0 0.382683" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_4" type="box" pos="0.0095 0.0164545 0.034125" quat="0.866025 0 0 0.5" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_5" type="box" pos="0.00491756 0.0183526 0.034125" quat="0.793353 0 0 0.608761" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_6" type="box" pos="1.16341e-18 0.019 0.034125" quat="0.707107 0 0 0.707107" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_7" type="box" pos="-0.00491756 0.0183526 0.034125" quat="0.608761 0 0 0.793353" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_8" type="box" pos="-0.0095 0.0164545 0.034125" quat="0.5 0 0 0.866025" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_9" type="box" pos="-0.013435 0.013435 0.034125" quat="0.382683 0 0 0.92388" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_10" type="box" pos="-0.0164545 0.0095 0.034125" quat="0.258819 0 0 0.965926" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_11" type="box" pos="-0.0183526 0.00491756 0.034125" quat="0.130526 0 0 0.991445" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_12" type="box" pos="-0.019 2.32683e-18 0.034125" quat="6.12323e-17 0 0 1" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_13" type="box" pos="-0.0183526 -0.00491756 0.034125" quat="-0.130526 0 0 0.991445" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_14" type="box" pos="-0.0164545 -0.0095 0.034125" quat="-0.258819 0 0 0.965926" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_15" type="box" pos="-0.013435 -0.013435 0.034125" quat="-0.382683 0 0 0.92388" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_16" type="box" pos="-0.0095 -0.0164545 0.034125" quat="-0.5 0 0 0.866025" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_17" type="box" pos="-0.00491756 -0.0183526 0.034125" quat="-0.608761 0 0 0.793353" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_18" type="box" pos="-3.49024e-18 -0.019 0.034125" quat="-0.707107 0 0 0.707107" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_19" type="box" pos="0.00491756 -0.0183526 0.034125" quat="-0.793353 0 0 0.608761" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_20" type="box" pos="0.0095 -0.0164545 0.034125" quat="-0.866025 0 0 0.5" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_21" type="box" pos="0.013435 -0.013435 0.034125" quat="-0.92388 0 0 0.382683" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_22" type="box" pos="0.0164545 -0.0095 0.034125" quat="-0.965926 0 0 0.258819" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_wall_23" type="box" pos="0.0183526 -0.00491756 0.034125" quat="-0.991445 0 0 0.130526" size="0.001 0.00263305 0.031625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_0" type="box" pos="0.01145 0 0.086375" quat="1 0 0 0" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_1" type="box" pos="0.00991599 0.005725 0.086375" quat="0.965926 0 0 0.258819" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_2" type="box" pos="0.005725 0.00991599 0.086375" quat="0.866025 0 0 0.5" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_3" type="box" pos="7.0111e-19 0.01145 0.086375" quat="0.707107 0 0 0.707107" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_4" type="box" pos="-0.005725 0.00991599 0.086375" quat="0.5 0 0 0.866025" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_5" type="box" pos="-0.00991599 0.005725 0.086375" quat="0.258819 0 0 0.965926" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_6" type="box" pos="-0.01145 1.40222e-18 0.086375" quat="6.12323e-17 0 0 1" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_7" type="box" pos="-0.00991599 -0.005725 0.086375" quat="-0.258819 0 0 0.965926" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_8" type="box" pos="-0.005725 -0.00991599 0.086375" quat="-0.5 0 0 0.866025" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_9" type="box" pos="-2.10333e-18 -0.01145 0.086375" quat="-0.707107 0 0 0.707107" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_10" type="box" pos="0.005725 -0.00991599 0.086375" quat="-0.866025 0 0 0.5" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
-      <geom name="bottle_neck_11" type="box" pos="0.00991599 -0.005725 0.086375" quat="-0.965926 0 0 0.258819" size="0.001 0.00333597 0.008625" contype="2" conaffinity="49" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_floor" type="cylinder" pos="0 0 0.00125" size="0.02 0.00125" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_0" type="box" pos="0.019 0 0.034125" quat="1 0 0 0" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_1" type="box" pos="0.0183526 0.00491756 0.034125" quat="0.991445 0 0 0.130526" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_2" type="box" pos="0.0164545 0.0095 0.034125" quat="0.965926 0 0 0.258819" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_3" type="box" pos="0.013435 0.013435 0.034125" quat="0.92388 0 0 0.382683" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_4" type="box" pos="0.0095 0.0164545 0.034125" quat="0.866025 0 0 0.5" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_5" type="box" pos="0.00491756 0.0183526 0.034125" quat="0.793353 0 0 0.608761" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_6" type="box" pos="1.16341e-18 0.019 0.034125" quat="0.707107 0 0 0.707107" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_7" type="box" pos="-0.00491756 0.0183526 0.034125" quat="0.608761 0 0 0.793353" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_8" type="box" pos="-0.0095 0.0164545 0.034125" quat="0.5 0 0 0.866025" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_9" type="box" pos="-0.013435 0.013435 0.034125" quat="0.382683 0 0 0.92388" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_10" type="box" pos="-0.0164545 0.0095 0.034125" quat="0.258819 0 0 0.965926" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_11" type="box" pos="-0.0183526 0.00491756 0.034125" quat="0.130526 0 0 0.991445" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_12" type="box" pos="-0.019 2.32683e-18 0.034125" quat="6.12323e-17 0 0 1" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_13" type="box" pos="-0.0183526 -0.00491756 0.034125" quat="-0.130526 0 0 0.991445" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_14" type="box" pos="-0.0164545 -0.0095 0.034125" quat="-0.258819 0 0 0.965926" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_15" type="box" pos="-0.013435 -0.013435 0.034125" quat="-0.382683 0 0 0.92388" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_16" type="box" pos="-0.0095 -0.0164545 0.034125" quat="-0.5 0 0 0.866025" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_17" type="box" pos="-0.00491756 -0.0183526 0.034125" quat="-0.608761 0 0 0.793353" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_18" type="box" pos="-3.49024e-18 -0.019 0.034125" quat="-0.707107 0 0 0.707107" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_19" type="box" pos="0.00491756 -0.0183526 0.034125" quat="-0.793353 0 0 0.608761" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_20" type="box" pos="0.0095 -0.0164545 0.034125" quat="-0.866025 0 0 0.5" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_21" type="box" pos="0.013435 -0.013435 0.034125" quat="-0.92388 0 0 0.382683" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_22" type="box" pos="0.0164545 -0.0095 0.034125" quat="-0.965926 0 0 0.258819" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_wall_23" type="box" pos="0.0183526 -0.00491756 0.034125" quat="-0.991445 0 0 0.130526" size="0.001 0.00263305 0.031625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_0" type="box" pos="0.01145 0 0.086375" quat="1 0 0 0" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_1" type="box" pos="0.00991599 0.005725 0.086375" quat="0.965926 0 0 0.258819" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_2" type="box" pos="0.005725 0.00991599 0.086375" quat="0.866025 0 0 0.5" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_3" type="box" pos="7.0111e-19 0.01145 0.086375" quat="0.707107 0 0 0.707107" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_4" type="box" pos="-0.005725 0.00991599 0.086375" quat="0.5 0 0 0.866025" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_5" type="box" pos="-0.00991599 0.005725 0.086375" quat="0.258819 0 0 0.965926" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_6" type="box" pos="-0.01145 1.40222e-18 0.086375" quat="6.12323e-17 0 0 1" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_7" type="box" pos="-0.00991599 -0.005725 0.086375" quat="-0.258819 0 0 0.965926" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_8" type="box" pos="-0.005725 -0.00991599 0.086375" quat="-0.5 0 0 0.866025" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_9" type="box" pos="-2.10333e-18 -0.01145 0.086375" quat="-0.707107 0 0 0.707107" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_10" type="box" pos="0.005725 -0.00991599 0.086375" quat="-0.866025 0 0 0.5" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+      <geom name="bottle_neck_11" type="box" pos="0.00991599 -0.005725 0.086375" quat="-0.965926 0 0 0.258819" size="0.001 0.00333597 0.008625" contype="2" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
       <site name="neck" pos="0 0 0.0781" size="0.003" rgba="0.9 0.3 0.1 0.5" group="4"/>
     </body>
     <body name="cap" pos="0 0 0.0781">
@@ -75,7 +75,7 @@
       <inertial pos="0 0 0.00925" mass="0.0025" diaginertia="3e-7 3e-7 3e-7"/>
       <geom name="cap__cap" type="mesh" mesh="cap__cap" material="cap" contype="0" conaffinity="0" group="2" mass="0"/>
       <geom name="cap_col" type="cylinder" pos="0 0 0.00925" size="0.0144 0.00925"
-            contype="8" conaffinity="36" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
+            contype="8" conaffinity="33" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>
     </body>
   </worldbody>
 
@@ -86,6 +86,6 @@
   </equality>
 
   <keyframe>
-    <key name="home" qpos="0.1 0.0576406 0.0576406 -0.09 0.0305 0 0.881021 2.64306 2.64306 2.64306 2.64306 0.881021 0.881021 0.881021 0.881021 0.881021 0.881021 0.2201 0 0 0 0 1 0 0 0 0 0 0.0781 1 0 0 0" ctrl="0.1 0.0576406 -0.09 0.0305 0 0.881021 0.2201 0"/>
+    <key name="home" qpos="-0.12 0.1 0.0576406 0.0576406 -0.09 0.0305 0 0.881021 2.64306 2.64306 2.64306 2.64306 0.881021 0.881021 0.881021 0.881021 0.881021 0.881021 0.2201 0 0 0 0 1 0 0 0 0 0 0.0781 1 0 0 0" ctrl="-0.12 0.1 0.0576406 -0.09 0.0305 0 0.881021 0.2201 0"/>
   </keyframe>
 </mujoco>

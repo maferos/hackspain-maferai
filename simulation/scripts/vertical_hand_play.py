@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
-"""Play the vertical hand's 21-step uncap-and-pipette sequence in MuJoCo, and check that it worked.
+"""Play the vertical hand's 23-step uncap-and-pipette sequence in MuJoCo, and check that it worked.
 
 Run from simulation/ after scripts/generate_vertical_hand_blend.py:
     python scripts/vertical_hand_play.py            # headless, prints the checks
     python scripts/vertical_hand_play.py --view     # in the viewer, in real time
 
-The steps of vertical_hand_rig.STEPS (the page's sequence) as position
-targets on the eight actuated joints of assets/vertical_hand/vertical_hand_scene.xml.
+The steps of vertical_hand_rig.STEPS (the page's sequence, with the hand
+advancing onto the bottle's axis first and backing away at the end) as position
+targets on the nine actuated joints of assets/vertical_hand/vertical_hand_scene.xml.
 The bottle and the cap are carried by welds the way the page re-parents them:
 the bottle to the hand while the jaws are closed on it, the cap to the bottle
 until the housing turns and to the clamp's housing after. A weld is engaged at
@@ -35,7 +36,7 @@ B = rig.BOTTLE
 # weld -> which attachment turns it on: (rule index in attachments(), wanted value)
 WELDS = {'hold_bottle': (0, True), 'cap_on_bottle': (1, False), 'cap_in_clamp': (1, True)}
 # when to take the snapshots the checks read (s): just before the step ends
-AT = {'gripped': 2, 'lifted': 3, 'unscrewed': 7, 'away': 9, 'dived': 11, 'recapped': 16, 'down': 20}
+AT = {'gripped': 3, 'lifted': 4, 'unscrewed': 8, 'away': 10, 'dived': 12, 'recapped': 17, 'down': 21}
 
 
 def engage(model, data, eq: int) -> None:
@@ -64,6 +65,8 @@ def run(view: bool) -> bool:
     tip, seat = model.site('tip').id, model.site('cap_seat').id
     jaw_l, jaw_r = model.site('jaw_l_vertex').id, model.site('jaw_r_vertex').id
     start = data.xpos[bottle].copy()
+    hand_body = model.body('hand').id
+    hand_start = data.xpos[hand_body].copy()
     floor = model.geom('floor').id
     loose = {bottle, cap}
     snapshots_at = {k: rig.step_end(n) - 0.05 for k, n in AT.items()}
@@ -98,7 +101,7 @@ def run(view: bool) -> bool:
             track[name] = max(track.get(name, 0.0), abs(q - targets[name]))
         for key, at in snapshots_at.items():
             if key not in got and data.time >= at:
-                got[key] = dict(bottle=data.xpos[bottle].copy(), cap=data.xpos[cap].copy(), seat=data.site_xpos[seat].copy(),
+                got[key] = dict(bottle=data.xpos[bottle].copy(), cap=data.xpos[cap].copy(), seat=data.site_xpos[seat].copy(), hand_x=data.xpos[hand_body][0],
                                 tip=data.site_xpos[tip].copy(), jaws=(data.site_xpos[jaw_l] + data.site_xpos[jaw_r]) / 2)
         if viewer is not None:
             if not viewer.is_running():
@@ -124,6 +127,8 @@ def run(view: bool) -> bool:
         ('bottle set down where it was (mm)', np.linalg.norm(end[:2] - start[:2]) * 1000, (0.0, 1.0)),
         ('bottle upright at the end (deg)', tilt, (0.0, 0.5)),
         ('bottle on the floor at the end', end[2], (-0.001, 0.001)),
+        ('hand back where it started at the end (mm)', np.linalg.norm(data.xpos[hand_body] - hand_start) * 1000, (0.0, 1.0)),
+        ('hand on the axis while holding the bottle (mm)', abs(g['lifted']['hand_x']) * 1000, (0.0, 1.0)),
         ('worst slide tracking (mm)', max(v for k, v in track.items() if slide[k]) * 1000, (0.0, 3.0)),
         ('worst hinge tracking (mrad)', max(v for k, v in track.items() if not slide[k]) * 1000, (0.0, 10.0)),
     ]

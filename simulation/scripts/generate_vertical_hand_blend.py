@@ -10,15 +10,17 @@ Writes, under ``assets/vertical_hand/``:
 
 * ``vertical_hand.blend`` --- the hand rigged: every joint an empty driven by
   a custom property on the ``vertical_hand`` root (the names of
-  vertical_hand_rig.STATE), the 21-step sequence keyframed at 30 fps, the
+  vertical_hand_rig.STATE), the 23-step sequence keyframed at 30 fps, the
   reference 60 ml bottle and its cap changing hands by the page's rule
   (Child Of constraints switched by drivers).
 * ``vertical_hand.glb`` (+Y up, the sequence baked) and ``vertical_hand.usdc``
   (Blender's USD exporter, animation baked) --- for viewers and for Isaac Sim's
   stage.
 * ``meshes/*.stl`` --- one visual mesh per link and material, in the link's
-  joint frame, binary STL.
-* ``vertical_hand.xml`` --- the MJCF of the hand alone: 19 joints, 8 of them
+  joint frame, binary STL, plus ``col_*.stl`` convex hulls for the few parts
+  that are not boxes or cylinders. Every part collides (boxes, cylinders, ring
+  segments or hulls); only the LEDs, bolts, pins and the liners are decoration.
+* ``vertical_hand.xml`` --- the MJCF of the hand alone: 20 joints, 9 of them
   actuated, the rest following through joint equalities (MuJoCo).
 * ``vertical_hand_scene.xml`` --- the hand over a floor with the bottle and
   the cap as free bodies, the three welds the page's parenting rule switches
@@ -39,12 +41,12 @@ import bpy
 import bmesh  # noqa: E402  (a built-in of bpy, importable only after it)
 import mujoco
 import numpy as np
-from mathutils import Matrix, Vector
+from mathutils import Matrix, Quaternion, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import vertical_hand_rig as rig  # noqa: E402
-from vertical_hand_rig import (BEAM, BTN_TOP, CAGE, CAR, CARRIAGE, CB0, CLIPS, COMB_GAP, COMB_X, DEG, FLANGE, FLANGE_C,  # noqa: E402
-                               FLANGE_Z, GRIP_Z, HALF_D, HALF_IN, HALF_OUT, HEAD, IRIS, JAW, MM, PIP, PLATE, PR, RAIL_TOP,
+from vertical_hand_rig import (BEAM, BTN_TOP, CAGE, CAR, CARRIAGE, CB0, CLIPS, COMB_GAP, COMB_X, DEG, FLANGE_C,  # noqa: E402
+                               GRIP_Z, HALF_D, HALF_IN, HALF_OUT, HEAD, IRIS, JAW, MM, PIP, PLATE, PR, RAIL_TOP,
                                RING_R, TAB, TAU, TIP_DIVE, XR, Z_IRIS, parab)
 
 SIM = Path(__file__).resolve().parents[1]
@@ -71,28 +73,51 @@ MATERIALS = {
     'cap': ((0.93, 0.93, 0.91), 0.05, 0.5),
 }
 ALPHA = {'bottle': 0.55, 'liquid': 0.6}
-# Who touches whom in MuJoCo: (contype, conaffinity) bits. pads<->bottle, blades<->cap, tip<->bottle/floor, floor<->bottle/cap/tip
-COLLIDE = {'pad': (1, 2), 'bottle': (2, 1 | 16 | 32), 'blade': (4, 8), 'cap': (8, 4 | 32), 'tip': (16, 2 | 32), 'floor': (32, 2 | 8 | 16)}
+# Who touches whom in MuJoCo: (contype, conaffinity) bits. Every part of the hand collides with the bottle, the cap
+# and the floor, never with another part of the hand; the bottle and the cap never collide with each other (the cap
+# sits over the neck, a weld carries it).
+HAND, BOTTLE, CAP, FLOOR = 1, 2, 8, 32
+COLLIDE = {'hand': (HAND, BOTTLE | CAP | FLOOR), 'bottle': (BOTTLE, HAND | FLOOR), 'cap': (CAP, HAND | FLOOR), 'floor': (FLOOR, HAND | BOTTLE | CAP)}
 GAINS = {   # kp, kv, force for the position actuators: stiff enough to track the page's speeds within 3 mm / 10 mrad
-    'lift': (100000.0, 1000.0, 600.0), 'jaw_l': (2000.0, 20.0, 60.0), 'clamp_x': (20000.0, 300.0, 200.0),
+    'approach': (20000.0, 300.0, 200.0), 'lift': (100000.0, 1000.0, 600.0), 'jaw_l': (2000.0, 20.0, 60.0), 'clamp_x': (20000.0, 300.0, 200.0),
     'clamp_lift': (20000.0, 200.0, 200.0), 'body_yaw': (500.0, 1.0, 20.0), 'cam': (100.0, 1.0, 10.0),
     'pip_slide': (20000.0, 300.0, 200.0), 'plunger': (500.0, 5.0, 20.0),
 }
-CHECK_STEPS = (2, 5, 7, 9, 11, 16, 21)
+CHECK_STEPS = (3, 6, 8, 10, 12, 17, 22)
 
 
 # ============================== meshes (mm in) ==============================
+# A mesh is (verts, faces, bevel, col): col is the part's collision, a list of primitives in the part's own
+# frame (mm): ('box', centre, yaw, half sizes), ('cylinder', centre, (radius, half height)) along Z, or
+# ('hull', vertices), a convex hull.
+class Mesh(tuple):
+    """(verts, faces, bevel, col)."""
+    __slots__ = ()
+
+    def __new__(cls, verts, faces, bevel=0.0, col=None):
+        return super().__new__(cls, (verts, faces, bevel, col))
+
+
 def cyl(r0, r1, z0, z1, n=48):
-    """A cylinder or cone along Z, radius r0 at z0 and r1 at z1."""
-    return lathe([(0, z0), (r0, z0), (r1, z1), (0, z1)], n)
+    """A cylinder or cone along Z, radius r0 at z0 and r1 at z1; collides as a cylinder of the larger radius."""
+    v, f, _, _ = lathe([(0, z0), (r0, z0), (r1, z1), (0, z1)], n)
+    return Mesh(v, f, 0.0, [('cylinder', (0, 0, (z0 + z1) / 2), (max(r0, r1), (z1 - z0) / 2))])
 
 
 def ring(ro, ri, z0, z1, n=96):
-    return lathe([(ri, z0), (ro, z0), (ro, z1), (ri, z1), (ri, z0)], n)
+    """A ring; collides as a circle of boxes whose flat inner faces sit on the bore."""
+    v, f, _, _ = lathe([(ri, z0), (ro, z0), (ro, z1), (ri, z1), (ri, z0)], n)
+    m = 24 if ro > 40 else 16
+    col = []
+    for k in range(m):
+        a = k * TAU / m
+        rc = (ro + ri) / 2
+        col.append(('box', (rc * math.cos(a), rc * math.sin(a), (z0 + z1) / 2), a, ((ro - ri) / 2, rc * math.tan(math.pi / m), (z1 - z0) / 2)))
+    return Mesh(v, f, 0.0, col)
 
 
 def lathe(pts, n=72):
-    """Revolve a (r, z) profile about Z; r = 0 points become one vertex."""
+    """Revolve a (r, z) profile about Z; r = 0 points become one vertex. No collision of its own."""
     verts, rows = [], []
     for r, z in pts:
         if r > 1e-6:
@@ -111,34 +136,35 @@ def lathe(pts, n=72):
                 faces.append((a[k], a[k1], b))
             elif isinstance(b, list):
                 faces.append((a, b[k1], b[k]))
-    return verts, faces
+    return Mesh(verts, faces)
 
 
 def box(x0, x1, y0, y1, z0, z1):
     v = [(x, y, z) for z in (z0, z1) for y in (y0, y1) for x in (x0, x1)]
     f = [(0, 2, 3, 1), (4, 5, 7, 6), (0, 1, 5, 4), (2, 6, 7, 3), (0, 4, 6, 2), (1, 3, 7, 5)]
-    return v, f
+    col = [('box', ((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2), 0.0, ((x1 - x0) / 2, (y1 - y0) / 2, (z1 - z0) / 2))]
+    return Mesh(v, f, 0.0, col)
 
 
 def rb(axis, a0, a1, b, c, sb, sc, r):
     """The page's softened box: extruded along `axis` from a0 to a1, centred on (b, c) across
     ('x': b=y c=z, 'y': b=x c=z, 'z': b=x c=y), sb x sc across, edges rounded by r."""
     if axis == 'x':
-        v, f = box(a0, a1, b - sb / 2, b + sb / 2, c - sc / 2, c + sc / 2)
+        m = box(a0, a1, b - sb / 2, b + sb / 2, c - sc / 2, c + sc / 2)
     elif axis == 'y':
-        v, f = box(b - sb / 2, b + sb / 2, a0, a1, c - sc / 2, c + sc / 2)
+        m = box(b - sb / 2, b + sb / 2, a0, a1, c - sc / 2, c + sc / 2)
     else:
-        v, f = box(b - sb / 2, b + sb / 2, c - sc / 2, c + sc / 2, a0, a1)
-    return v, f, min(r, (a1 - a0) / 2.5, sb / 2.5, sc / 2.5)
+        m = box(b - sb / 2, b + sb / 2, c - sc / 2, c + sc / 2, a0, a1)
+    return Mesh(m[0], m[1], min(r, (a1 - a0) / 2.5, sb / 2.5, sc / 2.5), m[3])
 
 
 def slab(poly, z0, z1):
-    """A polygon in XY extruded from z0 to z1."""
+    """A polygon in XY extruded from z0 to z1. No collision of its own (the jaws give theirs)."""
     n = len(poly)
     v = [(x, y, z0) for x, y in poly] + [(x, y, z1) for x, y in poly]
     f = [tuple(range(n))[::-1], tuple(range(n, 2 * n))]
     f += [(k, (k + 1) % n, n + (k + 1) % n, n + k) for k in range(n)]
-    return v, f
+    return Mesh(v, f)
 
 
 def arc(x0, x1, fn, side, n=48):
@@ -193,7 +219,13 @@ def plate_y(y0, y1, outline, holes):
         m = len(loop)
         faces += [(base + k, base + (k + 1) % m, base + n + (k + 1) % m, base + n + k) for k in range(m)]
         base += m
-    return verts, faces
+    # collision: the outline split at the toe cut (the windows are left solid)
+    (x0, z0), (xt, _), (x1, zt), (_, z1), _ = outline
+    yc, hy = (y0 + y1) / 2, (y1 - y0) / 2
+    col = [('box', ((x0 + x1) / 2, yc, (zt + z1) / 2), 0.0, ((x1 - x0) / 2, hy, (z1 - zt) / 2)),
+           ('box', ((x0 + xt) / 2, yc, (z0 + zt) / 2), 0.0, ((xt - x0) / 2, hy, (zt - z0) / 2)),
+           ('hull', [(x, y, z) for y in (y0, y1) for x, z in ((xt, z0), (x1, zt), (xt, zt))])]
+    return Mesh(verts, faces, 0.0, col)
 
 
 def wing_bands(side):
@@ -201,15 +233,16 @@ def wing_bands(side):
     return [(-H, -H + third), (H - third, H)] if side > 0 else [(-H + third + COMB_GAP, H - third - COMB_GAP)]
 
 
-def pad_boxes(side):
-    """The liner as chord boxes MuJoCo can collide with: (pos, yaw, half size) in the jaw frame (m).
+def jaw_boxes(side):
+    """The whole cradle as chord boxes, in the jaw frame (mm): liner plus plate, hub and wings, plus the tabs.
 
-    Each box sits on its chord, pushed out by half the sag so it straddles the parabola.
+    Each box sits on its chord, pushed out by half the sag so it straddles the parabola; its thickness is the
+    liner's plus the plate's at the chord's middle.
     """
     out = []
     W, C, H = JAW['half_width'], COMB_X, JAW['half_height']
-    for z0, z1 in [(-H, H)] + wing_bands(side):
-        ranges = [(-C, C)] if (z0, z1) == (-H, H) else [(C, W), (-W, -C)]
+    bands = [((-H, H), [(-C, C)], outer_hub)] + [((z0, z1), [(C, W), (-W, -C)], outer_wing) for z0, z1 in wing_bands(side)]
+    for (z0, z1), ranges, outer in bands:
         for x0, x1 in ranges:
             n = max(2, round((x1 - x0) / 4))
             for i in range(n):
@@ -217,11 +250,14 @@ def pad_boxes(side):
                 ya, yb = side * parab(xa), side * parab(xb)
                 yaw = math.atan2(yb - ya, xb - xa)
                 sag = (xb - xa) ** 2 / (8 * JAW['p'])
-                length = math.hypot(xb - xa, yb - ya)
-                nx, ny = -math.sin(yaw), math.cos(yaw)         # the chord's normal, toward +y
-                off = side * (JAW['liner'] / 2 + sag / 2)       # the liner is on the +y side of the arc for the +y jaw
-                cx, cy = (xa + xb) / 2 + nx * off, (ya + yb) / 2 + ny * off
-                out.append(((cx * MM, cy * MM, (z0 + z1) / 2 * MM), yaw, (length / 2 * MM, JAW['liner'] / 2 * MM, (z1 - z0) / 2 * MM)))
+                t = outer((xa + xb) / 2)                        # liner + plate at this x
+                nx, ny = -math.sin(yaw), math.cos(yaw)          # the chord's normal, toward +y
+                off = side * (t / 2 + sag / 2)                  # the material is on the +y side of the arc for the +y jaw
+                out.append(('box', ((xa + xb) / 2 + nx * off, (ya + yb) / 2 + ny * off, (z0 + z1) / 2), yaw,
+                            (math.hypot(xb - xa, yb - ya) / 2, t / 2, (z1 - z0) / 2)))
+    for z0, z1 in wing_bands(side):
+        out.append(('box', ((TAB['x0'] + TAB['x1']) / 2, side * (BACK - TAB['depth'] / 2), (z0 + z1) / 2), 0.0,
+                    ((TAB['x1'] - TAB['x0']) / 2, TAB['depth'] / 2, (z1 - z0) / 2)))
     return out
 
 
@@ -284,11 +320,17 @@ def empty(name, parent=None, pos=(0, 0, 0), yaw=0.0, size=0.02):
     return obj
 
 
-def part(name, parent, mesh, mat, pos=(0, 0, 0), yaw=0.0, bevel=0.0, smooth_angle=35.0):
-    """One mesh object (mm in, metres out) under a link, with sharp edges by angle."""
-    verts, faces = mesh[0], mesh[1]
-    if len(mesh) == 3:
-        bevel = mesh[2]
+COLLISION = {}      # part name -> its collision primitives (mm, in the part's frame); see Mesh
+
+
+def part(name, parent, mesh, mat, pos=(0, 0, 0), yaw=0.0, collide=None, smooth_angle=35.0):
+    """One mesh object (mm in, metres out) under a link, with sharp edges by angle.
+
+    `collide`: None takes the mesh's own primitives, False makes the part decoration, a list overrides.
+    """
+    verts, faces, bevel, col = mesh
+    if collide is not False:
+        COLLISION[name] = col if collide is None else collide
     me = bpy.data.meshes.new(name)
     me.from_pydata([tuple(c * MM for c in v) for v in verts], [], faces)
     bm = bmesh.new()
@@ -360,17 +402,12 @@ def build_hand(J):
     windows = [(-150, 30, 110, 200, 10), (-150, 30, 280, 440, 10)]      # the clamp's zone, the pipette's zone
     for s_, name in ((1, 'plate_l'), (-1, 'plate_r')):
         y0 = HALF_IN if s_ > 0 else -HALF_OUT
-        part(name, hand, plate_y(y0, y0 + PLATE, outline, windows), 'black')
+        part(name, hand, plate_y(y0, y0 + PLATE, outline, windows), 'black')          # collides as two slabs and the toe
     part('back_plate', hand, rb('y', -HALF_IN, HALF_IN, CAGE['x0'] + PLATE / 2, (CAGE['z0'] + CAGE['z1']) / 2, PLATE, CAGE['z1'] - CAGE['z0'], 1), 'black')
     part('servo_head', hand, rb('z', HEAD['z0'], CAGE['z1'], FLANGE_C, 0, HEAD['x1'] - HEAD['x0'], 2 * HALF_OUT, 8), 'black')
     part('head_top', hand, rb('z', CAGE['z1'] - 4, CAGE['z1'] + 2, FLANGE_C, 0, HEAD['x1'] - HEAD['x0'], 2 * HALF_OUT, 8), 'gray')
-    part('led_controller', hand, box(HEAD['x1'] - 0.2, HEAD['x1'] + 0.4, -8, 8, 497, 503), 'led')
-    stub = empty('arm_stub', hand, size=0.01)
-    part('arm_stub_housing', stub, cyl(FLANGE['stub_r'], FLANGE['stub_r'], FLANGE_Z + 24, FLANGE_Z + 24 + FLANGE['stub_len'], 64), 'linkgray', pos=(FLANGE_C, 0, 0))
-    part('arm_stub_ring', stub, cyl(FLANGE['stub_r'] + 1, FLANGE['stub_r'] + 1, FLANGE_Z + 24, FLANGE_Z + 24 + FLANGE['ring_h'], 64), 'urblue', pos=(FLANGE_C, 0, 0))
-    part('wrist_3', hand, lathe([(0, FLANGE_Z), (FLANGE['r'] - 2, FLANGE_Z), (FLANGE['r'], FLANGE_Z + 3), (FLANGE['stub_r'], FLANGE_Z + 8),
-                                 (FLANGE['stub_r'], FLANGE_Z + 24), (0, FLANGE_Z + 24)], 96), 'linkgray', pos=(FLANGE_C, 0, 0))
-    part('mount_plate', hand, cyl(37.5, 37.5, FLANGE_Z - 0.5, FLANGE_Z + 0.5, 96), 'steel', pos=(FLANGE_C, 0, 0))
+    part('led_controller', hand, box(HEAD['x1'] - 0.2, HEAD['x1'] + 0.4, -8, 8, 497, 503), 'led', collide=False)
+    # the model ends at the head's top plate: the UR flange and the arm are not part of it
     # the gripper on the tool axis: the beam plate to plate, its servo behind it
     grip = empty('grip_frame', hand, (0, 0, GRIP_Z * MM), size=0.01)
     part('beam', grip, rb('x', BEAM['x0'], BEAM['x1'], 0, 0, 2 * BEAM['half_y'], 2 * BEAM['half_z'], 3), 'gray')
@@ -378,35 +415,35 @@ def build_hand(J):
         tag = 'l' if s_ > 0 else 'r'
         part(f'beam_cap_{tag}', grip, rb('x', BEAM['x0'] - 1, BEAM['x1'] + 1, s_ * (BEAM['half_y'] - 4), 0, 8, 2 * BEAM['half_z'] + 2, 3), 'black')
         rod = part(f'beam_rod_{"u" if s_ > 0 else "d"}', grip, cyl(2.2, 2.2, 0, BEAM['x1'] - BEAM['x0'] - 3, 24), 'steel',
-                   pos=(BEAM['x0'] + 1.5, 0, s_ * (BEAM['half_z'] - 2.2)))
+                   pos=(BEAM['x0'] + 1.5, 0, s_ * (BEAM['half_z'] - 2.2)), collide=False)
         rod.rotation_euler = (0, math.pi / 2, 0)
     part('grip_servo', grip, rb('x', -52, -32, 0, 0, 44, 16, 3), 'black')
-    part('led_grip', grip, box(-52.6, -52, -6, 6, -2, 2), 'led')
+    part('led_grip', grip, box(-52.6, -52, -6, 6, -2, 2), 'led', collide=False)
     # the jaws: the cradle, its comb bands with tabs back to the carriage
     for side, name in ((1, 'jaw_l'), (-1, 'jaw_r')):
         jaw = J[name]
         W, H, C = JAW['half_width'], JAW['half_height'], COMB_X
-        part(f'{name}_plate', jaw, slab(plate_poly(-C, C, side, outer_hub), -H, H), 'gray')
-        part(f'{name}_liner', jaw, slab(liner_poly(-C, C, side), -H, H), 'liner')
+        part(f'{name}_plate', jaw, slab(plate_poly(-C, C, side, outer_hub), -H, H), 'gray', collide=jaw_boxes(side))   # the whole cradle's collision
+        part(f'{name}_liner', jaw, slab(liner_poly(-C, C, side), -H, H), 'liner', collide=False)
         tab = [(TAB['x0'], side * (BACK - TAB['depth'])), (TAB['x1'], side * (BACK - TAB['depth'])), (TAB['x1'], side * BACK), (TAB['x0'], side * BACK)]
         for i, (z0, z1) in enumerate(wing_bands(side)):
             for j, (x0, x1) in enumerate(((C, W), (-W, -C))):
-                part(f'{name}_wing{i}{j}_plate', jaw, slab(plate_poly(x0, x1, side, outer_wing), z0, z1), 'gray')
-                part(f'{name}_wing{i}{j}_liner', jaw, slab(liner_poly(x0, x1, side), z0, z1), 'liner')
-            part(f'{name}_tab_{i}', jaw, slab(tab, z0, z1), 'gray')
-            o = part(f'{name}_tab_bolt_{i}', jaw, cyl(2.2, 2.2, -0.6, 0.6, 16), 'bolt', pos=(-18, side * (BACK - 0.2), (z0 + z1) / 2))
+                part(f'{name}_wing{i}{j}_plate', jaw, slab(plate_poly(x0, x1, side, outer_wing), z0, z1), 'gray', collide=False)
+                part(f'{name}_wing{i}{j}_liner', jaw, slab(liner_poly(x0, x1, side), z0, z1), 'liner', collide=False)
+            part(f'{name}_tab_{i}', jaw, slab(tab, z0, z1), 'gray', collide=False)
+            o = part(f'{name}_tab_bolt_{i}', jaw, cyl(2.2, 2.2, -0.6, 0.6, 16), 'bolt', pos=(-18, side * (BACK - 0.2), (z0 + z1) / 2), collide=False)
             o.rotation_euler = (math.pi / 2, 0, 0)
         car_y = side * (BACK - CARRIAGE['width'] / 2)        # the carriage's outer face flush with the cradle's back
         part(f'{name}_carriage', jaw, rb('x', CARRIAGE['x0'], CARRIAGE['x1'], car_y, 0, CARRIAGE['width'], 2 * CARRIAGE['half_z'], 3.5), 'black')
         for z in (-6, 6):
-            o = part(f'{name}_bolt_{"u" if z > 0 else "d"}', jaw, cyl(2.4, 2.4, 0, 1.2, 20), 'bolt', pos=(CARRIAGE['x1'] - 0.3, car_y, z))
+            o = part(f'{name}_bolt_{"u" if z > 0 else "d"}', jaw, cyl(2.4, 2.4, 0, 1.2, 20), 'bolt', pos=(CARRIAGE['x1'] - 0.3, car_y, z), collide=False)
             o.rotation_euler = (0, math.pi / 2, 0)
     # the clamp's rail on the +Y plate, its stops and servo
     part('clamp_rail', hand, rb('x', XR['x0'], XR['x1'], XR['y'], XR['z'], 6, 12, 2), 'gray')
     part('clamp_rail_back_stop', hand, rb('x', XR['x0'] - 3, XR['x0'] + 5, XR['y'] - 2, XR['z'], 10, 16, 3), 'black')
     part('clamp_rail_front_stop', hand, rb('x', XR['x1'] - 5, XR['x1'] + 3, XR['y'] - 2, XR['z'], 10, 16, 3), 'black')
     part('clamp_servo', hand, rb('x', CAGE['x0'] + PLATE, -135, 61.5, 263, 23, 26, 3), 'black')
-    part('led_clamp', hand, box(-155, -143, 49.6, 50.4, 260, 266), 'led')
+    part('led_clamp', hand, box(-155, -143, 49.6, 50.4, 260, 266), 'led', collide=False)
     cs = J['clamp_slide']
     CX, CY = XR['col']['x'], XR['col']['y']
     part('clamp_carriage', cs, rb('x', CX - 20, CX + 20, (40 + HALF_IN) / 2, XR['z'] + 1, HALF_IN - 40, 30, 4), 'black')
@@ -430,11 +467,11 @@ def build_hand(J):
     part('top_ring', hs, ring(H['r_ring'] + 24, H['r_ring'] + 10, H['z_top'] - 4, H['z_top']), 'housing')
     for i in range(3):
         a = i * TAU / 3
-        part(f'planet_pin_{i}', hs, cyl(2.5, 2.5, H['z_gears'] - 2, H['z_carrier'] + 2, 16), 'steel', pos=(H['planet_r'] * math.cos(a), H['planet_r'] * math.sin(a), 0))
+        part(f'planet_pin_{i}', hs, cyl(2.5, 2.5, H['z_gears'] - 2, H['z_carrier'] + 2, 16), 'steel', pos=(H['planet_r'] * math.cos(a), H['planet_r'] * math.sin(a), 0), collide=False)
         part(f'planet_{i}_gear', J[f'planet_{i}'], cyl(H['r_sun'], H['r_sun'], H['z_gears'], H['z_gears'] + H['gear_t'], 24), 'housing')
     for k in range(H['n_blades']):
         phi = k * TAU / H['n_blades']
-        part(f'blade_pin_{k}', hs, cyl(2, 2, -2, 18, 16), 'steel', pos=(H['r_pivot'] * math.cos(phi), H['r_pivot'] * math.sin(phi), 0))
+        part(f'blade_pin_{k}', hs, cyl(2, 2, -2, 18, 16), 'steel', pos=(H['r_pivot'] * math.cos(phi), H['r_pivot'] * math.sin(phi), 0), collide=False)
         bl = J[f'blade_{k}']
         part(f'blade_{k}_leaf', bl, box(0, H['blade_w'], 0, H['blade_len'], 0, H['blade_t']), 'gold')
         part(f'blade_{k}_tip', bl, cyl(H['blade_w'] / 2, H['blade_w'] / 2, 0, H['blade_t'], 24), 'gold', pos=(H['blade_w'] / 2, H['blade_len'], 0))
@@ -449,7 +486,7 @@ def build_hand(J):
     rail_lo = rig.base_z(B) + TIP_DIVE + CB0
     part('pipette_rail', hand, rb('z', rail_lo, RAIL_TOP, PR['x'], PR['y'], 12, 6, 1), 'housing')
     part('pipette_servo', hand, rb('z', RAIL_TOP + 3, RAIL_TOP + 29, PR['x'], PR['y'] + 9, 32, 12, 3), 'black')
-    part('led_pipette', hand, box(PR['x'] - 6, PR['x'] + 6, PR['y'] + 14.6, PR['y'] + 15.4, RAIL_TOP + 13, RAIL_TOP + 19), 'led')
+    part('led_pipette', hand, box(PR['x'] - 6, PR['x'] + 6, PR['y'] + 14.6, PR['y'] + 15.4, RAIL_TOP + 13, RAIL_TOP + 19), 'led', collide=False)
     sl = J['pip_slide']       # its origin is the tip
     part('pipette_carriage', sl, rb('z', CB0, CAR[1], PR['x'], PR['y'] + 9, 32, 12, 3), 'gray')
     for k, z in enumerate(CLIPS):
@@ -464,7 +501,7 @@ def build_hand(J):
     part('pipette_shaft', sl, cyl(P['tip_r1'], P['shaft_r1'], P['tip_len'], P['tip_len'] + P['shaft_len'], 32), 'blue')
     part('pipette_collar', sl, cyl(P['shaft_r1'], P['collar_r1'], P['tip_len'] + P['shaft_len'], P['body_z0'], 40), 'blue')
     part('pipette_body', sl, rb('z', P['body_z0'], P['body_z0'] + P['body_len'], 0, 0, P['body_w1'], P['body_d1'], 6), 'white')
-    part('pipette_display', sl, box(-5.5, 5.5, -P['body_d1'] / 2 - 0.6, -P['body_d1'] / 2 + 1, 148, 174), 'display')
+    part('pipette_display', sl, box(-5.5, 5.5, -P['body_d1'] / 2 - 0.6, -P['body_d1'] / 2 + 1, 148, 174), 'display', collide=False)
     part('ejector_sleeve', sl, cyl(P['ejector_sleeve_r'], P['ejector_sleeve_r'], P['ejector_sleeve_z0'], P['ejector_sleeve_z1'], 32), 'blue')
     part('ejector_rod', sl, cyl(P['ejector_r'], P['ejector_r'], P['ejector_sleeve_z1'], P['ejector_btn_z'], 16), 'blue', pos=(P['ejector_x'], 0, 0))
     part('ejector_button', sl, cyl(P['ejector_btn_r'], P['ejector_btn_r'], P['ejector_btn_z'], P['ejector_btn_z'] + P['ejector_btn_h'], 32), 'blue', pos=(P['ejector_x'] + 2, 0, 0))
@@ -482,14 +519,14 @@ def build_hand(J):
 
 def build_bottle(root, J):
     """The reference bottle, its liquid and the cap, carried as the page carries them."""
-    bottle = part('bottle', None, lathe(bottle_profile(B)), 'bottle')
-    part('liquid', bottle, lathe([(0, 2.6), (B['r'] - 2.6, 2.6), (B['r'] - 2.6, B['level']), (0, B['level'])], 48), 'liquid')
-    cap = part('cap', None, lathe(cap_profile(B), 64), 'cap')
+    bottle = part('bottle', None, lathe(bottle_profile(B)), 'bottle', collide=False)
+    part('liquid', bottle, lathe([(0, 2.6), (B['r'] - 2.6, 2.6), (B['r'] - 2.6, B['level']), (0, B['level'])], 48), 'liquid', collide=False)
+    cap = part('cap', None, lathe(cap_profile(B), 64), 'cap', collide=False)
     c = B['cap_r']
     for k in range(24):
         a = k * TAU / 24
         part(f'cap_rib_{k}', cap, box(-0.5, 0.5, -0.5, 0.5, 0, B['cap_h'] - 3.5), 'cap',
-             pos=((c - 0.4) * math.cos(a), (c - 0.4) * math.sin(a), 1.5), yaw=a)
+             pos=((c - 0.4) * math.cos(a), (c - 0.4) * math.sin(a), 1.5), yaw=a, collide=False)
     # held: in the hand frame (the origins coincide when the bottle stands on the table)
     hold = child_of(bottle, J['hand'])
     add_driver(hold, 'influence', -1, root, 'grip_aperture', f'1 if a <= {2 * rig.vertex(B["r"]) * MM + 0.3 * MM:.6g} else 0')
@@ -623,21 +660,56 @@ def rgba(mat):
     return vec((*MATERIALS[mat][0], ALPHA.get(mat, 1.0)))
 
 
-def collision_geoms(link):
-    """(kind, pos (m), yaw, size) primitives per link, MuJoCo style sizes (half sizes for boxes)."""
-    if link in ('jaw_l', 'jaw_r'):
-        return [('box', pos, yaw, half, 'pad') for pos, yaw, half in pad_boxes(1 if link == 'jaw_l' else -1)]
-    if link.startswith('blade_'):
-        return [('box', (IRIS['blade_w'] / 2 * MM, IRIS['blade_len'] / 2 * MM, IRIS['blade_t'] / 2 * MM), 0.0,
-                 (IRIS['blade_w'] / 2 * MM, IRIS['blade_len'] / 2 * MM, IRIS['blade_t'] / 2 * MM), 'blade')]
-    if link == 'pip_slide':
-        # the tip and the shaft, as one cylinder up to the collar, on the axis
-        return [('cylinder', (0, 0, (PIP['tip_len'] + PIP['shaft_len']) / 2 * MM), 0.0,
-                 (PIP['shaft_r1'] * MM, (PIP['tip_len'] + PIP['shaft_len']) / 2 * MM), 'tip')]
-    return []
+def export_collision(J):
+    """Every part's collision primitives, per link, in the link's joint frame at the rest pose (SI).
+
+    Returns {link name: [dict(kind, pos, quat, size | mesh)]}; hulls are written to meshes/col_*.stl.
+    """
+    for old in MESH_DIR.glob('col_*.stl'):
+        old.unlink()
+    bpy.context.view_layer.update()
+    out = {}
+    for obj in bpy.data.objects:
+        if obj.type != 'MESH' or obj.name not in COLLISION:
+            continue
+        link = link_of(obj, J)
+        if link is None:
+            continue
+        M = link.matrix_world.inverted() @ obj.matrix_world
+        geoms = out.setdefault(link.name, [])
+        for prim in COLLISION[obj.name]:
+            k = len(geoms)
+            if prim[0] == 'hull':
+                pts = [M @ Vector(tuple(c * MM for c in v)) for v in prim[1]]
+                hull = bpy.data.meshes.new(f'col_{link.name}_{k}')
+                bm = bmesh.new()
+                for v in pts:
+                    bm.verts.new(v)
+                bmesh.ops.convex_hull(bm, input=bm.verts[:])
+                bm.to_mesh(hull)
+                bm.free()
+                hull.calc_loop_triangles()
+                co = np.array([v.co for v in hull.vertices])
+                write_stl(MESH_DIR / f'col_{link.name}_{k}.stl', co[np.array([t.vertices for t in hull.loop_triangles])])
+                bpy.data.meshes.remove(hull)
+                geoms.append(dict(kind='mesh', mesh=f'col_{link.name}_{k}', pos=(0, 0, 0), quat=(1, 0, 0, 0)))
+                continue
+            kind, centre = prim[0], prim[1]
+            yaw, size = (prim[2], prim[3]) if kind == 'box' else (0.0, prim[2])
+            T = M @ Matrix.Translation(Vector(tuple(c * MM for c in centre))) @ Matrix.Rotation(yaw, 4, 'Z')
+            geoms.append(dict(kind=kind, pos=tuple(T.translation), quat=tuple(T.to_quaternion()),
+                              size=tuple(v * MM for v in size)))
+    return out
 
 
-def mjcf_body(b, children, meshes, indent):
+def geom_attrs(g):
+    quat = '' if np.allclose(g['quat'], (1, 0, 0, 0), atol=1e-9) else f' quat="{vec(g["quat"])}"'
+    if g['kind'] == 'mesh':
+        return f'type="mesh" mesh="{g["mesh"]}"'
+    return f'type="{g["kind"]}" pos="{vec(g["pos"])}"{quat} size="{vec(g["size"])}"'
+
+
+def mjcf_body(b, children, meshes, collision, indent):
     j = b['joint']
     attrs = f'name="{b["name"]}" pos="{vec(b["pos"])}"'
     if b['yaw']:
@@ -651,20 +723,19 @@ def mjcf_body(b, children, meshes, indent):
             f'range="{vec(j["range"])}" armature="{armature}" damping="{damping}"/>\n')
     for name, mat in meshes.get(b['name'], []):
         out += f'{indent}  <geom name="{name}" type="mesh" mesh="{name}" material="{mat}" contype="0" conaffinity="0" group="2" mass="0"/>\n'
-    for k, (kind, pos, yaw, size, who) in enumerate(collision_geoms(b['name'])):
-        ct, ca = COLLIDE[who]
-        quat = '' if not yaw else f' quat="{vec(rig.quat_z(yaw))}"'
-        out += (f'{indent}  <geom name="{b["name"]}_col_{k}" type="{kind}" pos="{vec(pos)}"{quat} size="{vec(size)}" '
+    ct, ca = COLLIDE['hand']
+    for k, g in enumerate(collision.get(b['name'], [])):
+        out += (f'{indent}  <geom name="{b["name"]}_col_{k}" {geom_attrs(g)} '
                 f'contype="{ct}" conaffinity="{ca}" group="3" rgba="0.8 0.3 0.3 0.3" mass="0"/>\n')
     for name, (link, pos) in rig.SITES.items():
         if link == b['name']:
             out += f'{indent}  <site name="{name}" pos="{vec(pos)}" size="0.003" rgba="0.9 0.3 0.1 0.5" group="4"/>\n'
     for c in children.get(b['name'], []):
-        out += mjcf_body(c, children, meshes, indent + '  ')
+        out += mjcf_body(c, children, meshes, collision, indent + '  ')
     return out + f'{indent}</body>\n'
 
 
-def write_hand_mjcf(meshes):
+def write_hand_mjcf(meshes, collision):
     children = {}
     for b in rig.LINKS:
         children.setdefault(b['parent'], []).append(b)
@@ -672,6 +743,8 @@ def write_hand_mjcf(meshes):
     materials = ''.join(f'    <material name="{m}" rgba="{rgba(m)}" specular="0.5" shininess="0.25"/>\n' for m in used)
     mesh_assets = ''.join(f'    <mesh name="{name}" file="{name}.stl"/>\n'
                           for link in rig.LINKS for name, _ in meshes.get(link['name'], []))
+    mesh_assets += ''.join(f'    <mesh name="{g["mesh"]}" file="{g["mesh"]}.stl"/>\n'
+                           for link in rig.LINKS for g in collision.get(link['name'], []) if g['kind'] == 'mesh')
     equalities = ''.join(f'    <joint name="eq_{f}" joint1="{f}" joint2="{leader}" polycoef="0 {num(k)} 0 0 0"/>\n'
                          for f, (leader, k) in rig.FOLLOWS.items())
     actuators = ''
@@ -684,13 +757,17 @@ def write_hand_mjcf(meshes):
                       f'ctrlrange="{vec(b["joint"]["range"])}" forcerange="{vec((-force, force))}"/>\n')
     HAND_XML.write_text(f'''<mujoco model="vertical_hand">
   <!-- {HEADER} -->
-  <!-- The vertical uncap-and-pipette hand of gripper-design/vertical_hand.html: the
-       parabolic-cradle gripper on a beam under a harness that hangs from the UR flange,
-       the iris clamp on a Y rail with its own lift column, the micropipette on a swing
-       frame on a vertical slide. Hand frame: +X arm to bottle, Z up, the bottle's axis
-       at the origin, the reference bottle's base at z = 0 when lift_z = 0.
-       Nine actuated joints; the second jaw, the cam ring's planets, the six blades and
-       the sun follow through equalities. See vertical_hand_rig.py. -->
+  <!-- The vertical uncap-and-pipette hand of gripper-design/vertical_hand.html: a 154 mm
+       U-channel cage, the parabolic-cradle gripper on a beam at its foot, the iris clamp
+       sliding along X on the +Y plate with its own lift column, the micropipette fixed on
+       the bottle's axis on a vertical slide. Hand frame: +X arm to bottle, Z up, the
+       bottle's axis at the origin, the reference bottle's base at z = 0
+       when lift_z = 0; `approach` slides the whole hand along X. Nine actuated joints; the
+       second jaw, the cam ring's planets, the six blades and the sun follow through
+       equalities. Every part collides (group 3): as boxes, cylinders, ring segments or hulls,
+       with the bottle, the cap and the floor, never with the rest of the hand. The model ends
+       at the servo head's top plate; the UR flange and arm are not part of it.
+       See vertical_hand_rig.py. -->
   <compiler angle="radian" meshdir="meshes" autolimits="true"/>
   <default>
     <equality solref="0.005 1"/>   <!-- the followers stay within a few milliradians of their leader -->
@@ -701,7 +778,7 @@ def write_hand_mjcf(meshes):
 
   <worldbody>
     <body name="vertical_hand">
-{''.join(mjcf_body(c, children, meshes, '      ') for c in children[None])}    </body>
+{''.join(mjcf_body(c, children, meshes, collision, '      ') for c in children[None])}    </body>
   </worldbody>
 
   <equality>
@@ -794,8 +871,8 @@ def urdf_origin(pos, yaw=0.0):
     return f'<origin xyz="{vec(pos)}" rpy="0 0 {num(yaw)}"/>'
 
 
-def write_urdf(meshes):
-    out = f'<?xml version="1.0"?>\n<!-- {HEADER} -->\n<!-- The vertical uncap-and-pipette hand for Isaac Lab\'s URDF importer: the tree of\n     vertical_hand.xml, followers as mimic joints. Root link vertical_hand; fix it to the world. -->\n<robot name="vertical_hand">\n'
+def write_urdf(meshes, collision):
+    out = f'<?xml version="1.0"?>\n<!-- {HEADER} -->\n<!-- The vertical uncap-and-pipette hand for Isaac Lab\'s URDF importer: the tree of\n     vertical_hand.xml, followers as mimic joints, every part with collision geometry\n     (boxes, cylinders, ring segments, convex hulls). Root link vertical_hand; fix it to the world. -->\n<robot name="vertical_hand">\n'
     for m in sorted({mat for b in rig.LINKS for _, mat in meshes.get(b['name'], [])}):
         out += f'  <material name="{m}"><color rgba="{rgba(m)}"/></material>\n'
     out += '  <link name="vertical_hand"/>\n'
@@ -807,12 +884,16 @@ def write_urdf(meshes):
         for name, mat in meshes.get(b['name'], []):
             out += (f'    <visual><origin xyz="0 0 0"/><geometry><mesh filename="meshes/{name}.stl"/></geometry>'
                     f'<material name="{mat}"/></visual>\n')
-        for kind, pos, yaw, size, _ in collision_geoms(b['name']):
-            if kind == 'box':
-                shape = f'<box size="{vec([2 * s for s in size])}"/>'
+        for g in collision.get(b['name'], []):
+            if g['kind'] == 'mesh':
+                out += f'    <collision><origin xyz="0 0 0"/><geometry><mesh filename="meshes/{g["mesh"]}.stl"/></geometry></collision>\n'
+                continue
+            if g['kind'] == 'box':
+                shape = f'<box size="{vec([2 * v for v in g["size"]])}"/>'
             else:
-                shape = f'<cylinder radius="{num(size[0])}" length="{num(2 * size[1])}"/>'
-            out += f'    <collision>{urdf_origin(pos, yaw)}<geometry>{shape}</geometry></collision>\n'
+                shape = f'<cylinder radius="{num(g["size"][0])}" length="{num(2 * g["size"][1])}"/>'
+            rpy = Quaternion(g['quat']).to_euler('XYZ')
+            out += f'    <collision><origin xyz="{vec(g["pos"])}" rpy="{vec(rpy)}"/><geometry>{shape}</geometry></collision>\n'
         out += '  </link>\n'
     for b in rig.LINKS:
         j, name = b['joint'], rig.joint_name(b['name'])
@@ -899,6 +980,24 @@ def check_urdf():
         raise RuntimeError('the URDF disagrees with vertical_hand_rig.fk')
     if model.neq != len(rig.FOLLOWS):
         print(f'  note: MuJoCo turned {model.neq} of the {len(rig.FOLLOWS)} <mimic> tags into equalities')
+    # the collision geoms land where the MJCF's do
+    hand = mujoco.MjModel.from_xml_path(str(HAND_XML))
+    hd = mujoco.MjData(hand)
+    mujoco.mj_kinematics(hand, hd)
+    mujoco.mj_resetData(model, data)         # both at the rest pose
+    mujoco.mj_kinematics(model, data)
+    worst = 0.0
+    for b in rig.LINKS:
+        a = [g for g in range(hand.ngeom) if hand.geom_bodyid[g] == hand.body(b['name']).id and hand.geom_contype[g]]
+        u = [g for g in range(model.ngeom) if model.geom_bodyid[g] == model.body(b['name']).id and model.geom_contype[g]]
+        if len(a) != len(u):
+            raise RuntimeError(f'{b["name"]}: {len(a)} collision geoms in the MJCF, {len(u)} in the URDF')
+        for ga, gu in zip(a, u):
+            worst = max(worst, float(np.linalg.norm(hd.geom_xpos[ga] - data.geom_xpos[gu])),
+                        float(np.abs(hd.geom_xmat[ga] - data.geom_xmat[gu]).max()) * 1e-3)
+    print(f'  URDF collision geoms against the MJCF\'s: {sum(1 for g in range(model.ngeom) if model.geom_contype[g])} geoms, worst {worst * 1e6:.3f} um')
+    if worst > 2e-6:                          # the URDF carries six significant digits
+        raise RuntimeError('the URDF collision geoms are off')
 
 
 # ============================== main ==============================
@@ -925,10 +1024,13 @@ def main() -> None:
     meshes = export_meshes(J, {bottle, cap})
     n_tris = sum(1 for _ in MESH_DIR.glob('*.stl'))
     print(f'wrote {n_tris} STL meshes to {MESH_DIR.relative_to(SIM)}')
-    write_hand_mjcf(meshes)
+    collision = export_collision(J)
+    n_col = sum(len(v) for v in collision.values())
+    print(f'{n_col} collision primitives over {len(collision)} links')
+    write_hand_mjcf(meshes, collision)
     write_scene_mjcf(meshes)
     write_scene_mjcf(meshes, home_keyframe(mujoco.MjModel.from_xml_path(str(SCENE_XML))))
-    write_urdf(meshes)
+    write_urdf(meshes, collision)
     check_mjcf(HAND_XML)
     check_mjcf(SCENE_XML)
     check_urdf()
