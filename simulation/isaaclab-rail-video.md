@@ -114,3 +114,24 @@ Perception and physical motion run during recording; Isaac Lab renders the
 resulting states offline. The video therefore reproduces the controller's real
 scan, while no new perception or control decisions are made by Isaac Lab.
 The bench map reports what the scan actually identified, including misses.
+
+To record a chat request through the end of its formula run, add `--brief`:
+
+```sh
+simulation/.venv/bin/python simulation/scripts/record_view_scan.py \
+  --pattern p01 --fps 10 --out simulation/out/gantry-p01-citrus-woody \
+  --brief 'Fragancia citrica con notas woody'
+```
+
+This submits the text to the same `Workflow.submit_brief` used by `/api/chat`.
+It waits for the scan, asks Claude to compose from the identified compounds,
+then runs the viewer's `FetchExecutor` and gantry controller. The API key comes
+from the environment or the gitignored `view/backend/.env`. The output also
+contains `composed.json` and `formula_order.json`; rejected briefs stop recording
+with an error rather than substituting a canned formula.
+
+The gantry mimes uncapping and pipetting while changing the source and beaker
+liquid levels. These levels are recorded alongside joint states and exported
+as animated cylinder positions and scales. Export and render use the same
+commands above; `--quality final --subframes 2` produces both views at 1080p.
+This is a camera recording of the simulated run, not a recording of the chat UI.

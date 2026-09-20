@@ -40,9 +40,11 @@ def main():
             raise ValueError('Recording and exporter must use the same MuJoCo version')
         model = mujoco.MjModel.from_binary_path(str(args.recording / 'scene.mjb'))
         data = mujoco.MjData(model)
-        rows = np.load(args.recording / 'trajectory.npz')['qpos']
+        with np.load(args.recording / 'trajectory.npz') as archive:
+            trajectory = {key: archive[key] for key in archive.files}
+        rows = trajectory['qpos']
         args.fps = pattern_metadata['fps']
-        args.mode = 'scan'
+        args.mode = pattern_metadata.get('mode', 'scan')
         if rows.shape != (pattern_metadata['frames'], model.nq):
             raise ValueError('Recorded states do not match the saved model')
     else:
@@ -68,10 +70,23 @@ def main():
     for index, row in enumerate(rows):
         if recorded:
             data.qpos[:] = row
+            if 'liquid_ids' in trajectory:
+                model.geom_size[trajectory['liquid_ids']] = trajectory['liquid_sizes'][index]
+                model.geom_pos[trajectory['liquid_ids']] = trajectory['liquid_positions'][index]
             mujoco.mj_forward(model, data)
         else:
             demo.apply(model, data, row, physics=False)
         exp.update_scene(data)
+        if recorded and 'liquid_ids' in trajectory:
+            # USDExporter animates poses but freezes primitive dimensions at
+            # creation. Liquid cylinders also need their local Z scale baked.
+            liquid_index = {int(gid): j for j, gid in enumerate(trajectory['liquid_ids'])}
+            for geom in exp.scene.geoms[:exp.scene.ngeom]:
+                j = liquid_index.get(geom.objid)
+                if geom.objtype == mujoco.mjtObj.mjOBJ_GEOM and j is not None:
+                    initial_half = trajectory['liquid_sizes'][0, j, 1]
+                    scale = np.array([1.0, 1.0, trajectory['liquid_sizes'][index, j, 1] / initial_half])
+                    exp.geom_refs[exp._get_geom_name(geom)].update_scale(scale, exp.updates - 1)
         if index % 60 == 0:
             print(f'Exported {index + 1}/{len(rows)} animation frames', flush=True)
     exp.stage.SetTimeCodesPerSecond(args.fps)
