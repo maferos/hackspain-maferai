@@ -993,6 +993,12 @@ def set_keepout(hull: list[tuple[float, float]], height: float) -> None:
     BENCH_KEEPOUT = (hull, KEEPOUT_MARGIN, height) if len(hull) >= 3 else None
 
 
+def clear_keepout() -> None:
+    """Forget the bench, for a run that starts before its cameras have seen it."""
+    global BENCH_KEEPOUT
+    BENCH_KEEPOUT = None
+
+
 def inside_hull(xy: tuple[float, float], hull: list[tuple[float, float]],
                 margin: float = 0.0) -> bool:
     """Whether a point is inside the hull, grown by ``margin``.
@@ -1308,6 +1314,10 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
     home = model.body('rail_carriage').pos[0]
     steps_per_second = round(1 / model.opt.timestep)
     scratch = mujoco.MjData(model)
+    # The keepout is module state, and the viewer starts a new run on a new
+    # layout in the same process: the last run's bench would otherwise stand
+    # in the way of the first move, and no carry pose would clear it.
+    clear_keepout()
     carry = carry_pose(model, scratch, data.qpos[rk.arm_qpos(model)].copy())
     general = camera_at(model, data, 'general')     # fixed: its calibration, once
     open_hand = lambda *_: gt.OPEN
