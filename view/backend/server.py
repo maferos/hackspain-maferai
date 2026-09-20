@@ -197,6 +197,9 @@ class SceneRenderer:
         # Optional scripted viewport motion (the rail sweep for the railed scene;
         # None for scenes that just step physics as before).
         self.scan = None
+        # The lab waits to be asked: the scan is created by the render thread
+        # once a formula has been sent, and again for every layout after that.
+        self.want_scan = threading.Event()
         self._motion = None if SCAN_ENABLED else self._build_rail_sweep()
 
     def _build_rail_sweep(self) -> dict | None:
@@ -253,8 +256,6 @@ class SceneRenderer:
         names = [info["mj_name"] for info in self.cameras.values()]
         due = dict.fromkeys(names, 0.0)
         was_main = dict.fromkeys(names, False)
-        if SCAN_ENABLED:
-            self.scan = LiveScan(self.model, self.data, self._data_lock, self.generation)
         while not self.stop.is_set():
             start = time.monotonic()
             if self.pending_pattern is not None:
@@ -263,6 +264,7 @@ class SceneRenderer:
                 try:
                     if self.scan:
                         self.scan.close()
+                        self.scan = None
                     new_context = mujoco.MjrContext(model, mujoco.mjtFontScale.mjFONTSCALE_150.value)
                     mujoco.mjr_setBuffer(mujoco.mjtFramebuffer.mjFB_OFFSCREEN, new_context)
                     new_scene = mujoco.MjvScene(model, maxgeom=10000)
@@ -277,19 +279,26 @@ class SceneRenderer:
                     with self._condition:
                         self._latest_rgb.clear()
                         self.generation += 1
-                    if SCAN_ENABLED:
-                        self.scan = LiveScan(self.model, self.data, self._data_lock, self.generation)
                     due = dict.fromkeys(names, 0.0)
                 except Exception as exc:
                     info['error'] = str(exc)
                 finally:
                     finished.set()
+            # The bench scan is the lab's first task, and the lab waits to be
+            # asked: it starts on the first formula, and again on the layout a
+            # randomize installs after that. Only this thread owns `scan`; the
+            # HTTP threads that take an order only set the flag.
+            if SCAN_ENABLED and self.scan is None and self.want_scan.is_set():
+                self.scan = LiveScan(self.model, self.data, self._data_lock, self.generation)
             with self._data_lock:
                 if self.scan is not None:
                     self.scan.advance(period)
                 elif self._motion is not None:
                     self._advance_motion()
                 else:
+                    # Also the wait for the first formula: the compiled pose is
+                    # ctrl's own setpoint, so the arm holds it (0.003 rad of
+                    # settle, measured) while the bench settles under gravity.
                     mujoco.mj_step(self.model, self.data)
             for name in names:
                 main = self._main_watchers.get(name, 0) > 0
@@ -548,6 +557,8 @@ def scanned_shelf() -> list[dict]:
 def scan_progress() -> str:
     scan = scene.scan
     if not SCAN_ENABLED or scan is None or scan.world is None:
+        if SCAN_ENABLED and not scene.want_scan.is_set():
+            return " (The bench scan has not started: it begins with the first formula.)"
         return " (The bench scan is not running.)"
     if scan.world.scan is None:
         return f" (The scan is still going: {len(scanned_shelf())} flasks named so far.)"
@@ -558,11 +569,30 @@ chat = FormulaChat(catalogue, scanned_shelf, scan_progress)
 
 
 def lab_state():
-    """The scan's LabState publisher, which also holds the order; 409 without the scan."""
+    """The LabState publisher, which also holds the order; 409 on a scene without one.
+
+    It does not ask for the scan. The scan is the lab's first task, but it is
+    the first formula that starts it, so an order has to be takeable before
+    there is one. Nothing below this reads the scan without checking for it.
+    """
     lab = getattr(scene, "lab", None)
-    if lab is None or scene.scan is None or scene.scan.world is None:
-        raise HTTPException(409, "The bench scan is not running, so there is no robot to send it to.")
+    if lab is None:
+        raise HTTPException(409, "This scene has no bench, so there is no robot to send it to.")
     return lab
+
+
+# Which formula asked for the bench, for the picker to show. The race between
+# two first formulas decides only whose name is kept; `set()` is idempotent.
+scan_started_by: dict | None = None
+
+
+def start_scan(formula: dict) -> None:
+    """Ask the render thread for the bench scan, on the first formula sent."""
+    global scan_started_by
+    if scan_started_by is None:
+        scan_started_by = {"id": str(formula.get("id") or "CHAT"),
+                           "name": str(formula.get("name") or "")}
+    scene.want_scan.set()
 
 
 def dispatch(formula: dict | None) -> dict:
@@ -570,6 +600,7 @@ def dispatch(formula: dict | None) -> dict:
     if not formula:
         raise HTTPException(409, "There is no formula yet: type one, or paste its JSON.")
     lab = lab_state()
+    start_scan(formula)
     lines = [{"compound": i.get("cas") or i.get("compound"), "grams": i.get("grams")}
              for i in formula.get("ingredients", [])]
     resolved = resolve(lines, scanned_shelf(), catalogue,
@@ -592,7 +623,7 @@ def dispatch(formula: dict | None) -> dict:
         return {"order": order.id, "json": order.doc, "rejected": True,
                 "problems": problems,
                 "reply": f"I cannot make {resolved['name']}: {lines}.{ask}"}
-    waiting = " It starts once the scan has finished." if scene.scan.world.scan is None else ""
+    waiting = "" if lab.workflow.scan_done() else " It starts once the scan has finished."
     return {"order": order.id, "json": order.doc, "rejected": False,
             "reply": f"{order.id} sent to the robot: {resolved['name']}, "
                      f"{len(order.active_items())} ingredients.{waiting}"}
@@ -605,6 +636,23 @@ def with_json(answer: dict) -> dict:
     if formula and lab is not None:
         answer["json"] = lab.workflow.formula_json(formula, formula.get("source", "chat"))
     return answer
+
+
+@app.get("/api/formulas")
+def formulas_list():
+    """The preloaded formulas of harness/formulas. The first one sent starts the scan."""
+    return {
+        "available": SCAN_ENABLED,
+        # The publisher is built on its own thread, and this panel is the first
+        # thing the operator touches: say when it is there to be sent to.
+        "ready": getattr(scene, "lab", None) is not None,
+        "loaded": scan_started_by,
+        "formulas": [{"id": f["id"], "name": f["name"], "family": f.get("family"),
+                      "description": f.get("description"), "product": f.get("product"),
+                      "ingredients": len(f.get("ingredients") or []),
+                      "batchG": (f.get("batch") or {}).get("concentrate_g")}
+                     for f in catalogue.formulas.values()],
+    }
 
 
 @app.get("/api/formulation")
@@ -633,6 +681,9 @@ def chat_message(payload: dict = Body(...)):
         return {"reply": chat.reply(message)["reply"], "formula": None, "action": None}
     if not STOP_WORD.match(message):
         lab = lab_state()
+        # A brief is a formula too: it asks for the bench the same way a picked
+        # one does. The name matches the one submit_brief gives the order.
+        start_scan({"id": "BRIEF", "name": message[:60]})
         try:
             order = lab.workflow.submit_brief(message, "chat")
         except RuntimeError as exc:
@@ -785,7 +836,9 @@ def scan_info():
     if not SCAN_ENABLED:
         return {"status": "disabled"}
     if scene.scan is None:
-        return {"status": "starting", "caption": "Preparing the scan", "named": 0, "tracked": 0}
+        caption = ("Preparing the scan" if scene.want_scan.is_set()
+                   else "Waiting for a formula: the lab scans the bench once it is asked for one")
+        return {"status": "starting", "caption": caption, "named": 0, "tracked": 0}
     return scene.scan.snapshot()
 
 

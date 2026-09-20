@@ -8,6 +8,7 @@ import InfoPanel from "./InfoPanel";
 import BalancePanel from "./LabPanels";
 import LabTaskPanel from "./LabTaskPanel";
 import FormulasPanel from "./FormulasPanel";
+import FormulaPicker from "./FormulaPicker";
 import Toast from "./Toast";
 import Splitter from "./Splitter";
 import { useLabState } from "./labState";
@@ -46,6 +47,7 @@ const REPLAY_CAMERAS = [
 // handles set. Both are remembered in this browser.
 const VIEWS = [
   { id: "formulas", label: "Formulas", title: "The formulas asked and the one the robot has in hand" },
+  { id: "picker", label: "Shelf", title: "The formulas the lab knows: the one you pick starts the bench scan" },
   { id: "balance", label: "Balance" },
   { id: "info", label: "Info", title: "What the viewer is running: models, scene and build" },
 ];
@@ -650,6 +652,9 @@ export default function App() {
         </div>
         <Splitter direction="col" onStart={dragChatWidth} onReset={() => resize({ chatWidth: DEFAULT_SIZES.chatWidth })} />
         <div className="side" style={{ width: layout.chatWidth }}>
+          {views.picker && (
+            <FormulaPicker backendUrl={BACKEND_URL} onAsked={recordAsked} onToast={setToast} />
+          )}
           {showMeters && (
             <>
               <div className="meters" style={{ height: layout.metersHeight }}>
