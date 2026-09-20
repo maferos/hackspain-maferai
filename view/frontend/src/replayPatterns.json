@@ -4,19 +4,21 @@
     "seed": 30,
     "count": 7,
     "fps": 10,
-    "frames": 674,
+    "frames": 462,
     "resolution": [
       1920,
       1080
     ],
     "global_video": "p01/rail_global.mp4",
     "robot_video": "p01/rail_robot.mp4",
-    "revision": "scan-p01-no10ml-1080p-v2",
+    "revision": "scan-p01-gantry-capfix-1080p-v1",
     "render_updates_per_frame": 3,
-    "duration_seconds": 67.4,
+    "duration_seconds": 46.2,
     "mode": "scan",
-    "render_total_seconds": 203.001,
-    "scan_complete": true
+    "render_total_seconds": 137.97,
+    "scan_complete": true,
+    "machine": "xyz_gantry",
+    "identified": 7
   },
   {
     "pattern": "p02",

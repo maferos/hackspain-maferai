@@ -66,7 +66,7 @@ are deduplicated per page load, including React StrictMode and network retries.
 The render thread stops the previous scan and detector worker, installs the new
 MuJoCo model and graphics context, and starts a fresh scan. Tracks and identities
 from the old layout are discarded. Replay selects the recording for that same seed; switching modes does not
-request a new layout. Existing Replay recordings still contain the 10 ml flasks.
+request a new layout. The current Replay recordings exclude 10 ml sample flasks.
 The panel demo retains its original model, samples and `RECIPE`, so
 the shared scripted-run recording continues to match the panel state.
 
@@ -95,15 +95,18 @@ By default the viewport shows the live MuJoCo cameras. Select **Replay** in
 the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
 the selected seed; Replay waits for that selection instead of showing a
-different layout. All four patterns (`p01`–`p04`) play the hanging-arm scene
-at 1920×1080, 10 fps, with normal lighting and three render updates per frame.
+different layout. Pattern `p01` plays the double-rail XYZ gantry with Eki's
+vertical hand, without the overhead extractors. Its corrected marker reader
+identified all seven vessels; the scan travels left to right at constant height.
+Patterns `p02`–`p04` retain their hanging-arm recordings. All four play at
+1920×1080, 10 fps, with normal lighting and three render updates per frame.
 Their compiled sample models and exported USDs were checked: no 10 ml sample
 flasks remain on the scan bench. Replay keeps the current seed when switching
 from Real time.
 
 | Pattern | Seed | Flasks | Identified | Video duration | Both views rendered in |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| p01 | 30 | 7 | 7 | 67.4 s | 203 s |
+| p01 | 30 | 7 | 7 | 46.2 s | 138 s |
 | p02 | 176 | 22 | 19 | 62.8 s | 190 s |
 | p03 | 21 | 29 | 29 | 129.8 s | 381 s |
 | p04 | 327 | 33 | 31 | 240 s | 716 s |
