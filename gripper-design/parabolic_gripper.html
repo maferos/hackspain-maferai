@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<!-- Stylised parabolic-cradle gripper for the UR10e uncap-and-pipette hand.
+
+     One file, all geometry parametric in three.js: edit the numbers under
+     "PARAMETERS" and reload. The mechanism and every number on the panel are
+     uncap-robustness/gripper.py's (the reference hand, "v3"); the look takes
+     its cues from the Robotiq 2F-85 on the UR wrist (simulation/assets/ur10e_hand).
+     Nothing here is a .blend: this page is the design. -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Parabolic cradle gripper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --panel:#f7f8fa; --line:#e4e7eb; --ink:#15181d; --ink-2:#6d7480;
+    --accent:#1f6feb; --warn:#b3261e;
+    box-sizing:border-box;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:inherit}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font-family:"IBM Plex Sans",-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    font-size:15px; line-height:1.45; display:flex; flex-direction:column; overflow:hidden;
+  }
+  header{display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 16px; padding:12px 20px; border-bottom:1px solid var(--line); flex:0 0 auto}
+  header h1{font-size:17px; font-weight:600; margin:0}
+  header p{margin:0; color:var(--ink-2); font-size:13px}
+  main{flex:1 1 auto; display:grid; grid-template-columns:1fr 360px; min-height:0}
+  #view{position:relative; min-height:0}
+  #view canvas{display:block; width:100%; height:100%; touch-action:none}
+  #hint{position:absolute; left:12px; bottom:10px; color:var(--ink-2); font-size:12px; pointer-events:none}
+  #state{position:absolute; left:12px; top:10px; font-weight:600; font-size:14px; background:rgba(255,255,255,.85);
+    border:1px solid var(--line); border-radius:6px; padding:5px 10px}
+  #state.on{color:var(--accent)}
+  aside{border-left:1px solid var(--line); background:var(--panel); padding:16px 18px; overflow-y:auto; display:flex; flex-direction:column; gap:14px}
+  .coord{display:flex; flex-direction:column; gap:2px}
+  .coord .head{display:flex; justify-content:space-between; align-items:baseline; gap:8px}
+  .coord label{color:var(--ink-2); font-size:13px}
+  .coord .val{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace; font-size:18px; font-weight:500; color:var(--accent)}
+  input[type=range]{width:100%; accent-color:var(--accent); height:26px; margin:0}
+  .row{display:flex; flex-wrap:wrap; gap:6px; align-items:center}
+  button{background:transparent; color:var(--ink); border:1px solid var(--line); border-radius:6px; padding:6px 10px; font:inherit; font-size:13px; cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  button:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  button.primary{background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600}
+  button[aria-pressed=false]{color:var(--ink-2)}
+  button[aria-pressed=true]{border-color:var(--accent); color:var(--accent)}
+  h2{font-size:13px; font-weight:600; margin:6px 0 0; text-transform:uppercase; letter-spacing:.04em; color:var(--ink-2)}
+  table{border-collapse:collapse; width:100%; font-size:13px}
+  td{padding:3px 0; border-bottom:1px solid var(--line); vertical-align:baseline}
+  td:first-child{color:var(--ink-2)}
+  td:last-child{text-align:right; font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+  td.warn{color:var(--warn)}
+  .note{color:var(--ink-2); font-size:12.5px; margin:0}
+  code{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace; font-size:12px}
+  .legend{display:flex; flex-wrap:wrap; gap:6px 14px; font-size:12.5px; color:var(--ink-2)}
+  .legend span::before{content:""; display:inline-block; width:10px; height:10px; border-radius:2px; margin-right:6px; vertical-align:-1px; background:var(--c); border:1px solid rgba(0,0,0,.12)}
+  @media (max-width:820px){ main{grid-template-columns:1fr; grid-template-rows:55vh 1fr} aside{border-left:0; border-top:1px solid var(--line)} }
+  #fail{padding:24px; max-width:560px}
+</style>
+</head>
+<body>
+<header>
+  <h1>Parabolic cradle gripper</h1>
+  <p>The compact two-finger hand of the uncap-and-pipette bench, drawn as a product: two parabolic cradles on a linear axis, ±16 mm about the tool axis, on the UR10e wrist.</p>
+</header>
+<main>
+  <div id="view"><div id="state">—</div><div id="hint">Drag to orbit · wheel to zoom · right-drag or shift-drag to pan</div></div>
+  <aside>
+    <div class="row">
+      <button id="play" class="primary">Play</button>
+      <button id="openBtn">Open</button>
+      <button id="closeBtn">Close</button>
+    </div>
+
+    <h2>Bottle</h2>
+    <div class="row" id="bottles"></div>
+    <div class="coord">
+      <div class="head"><label for="diaIn">Free diameter</label><span class="val" id="diaTxt"></span></div>
+      <input id="diaIn" type="range" min="20" max="50" step="0.5">
+    </div>
+
+    <h2>Jaws</h2>
+    <div class="coord">
+      <div class="head"><label for="apIn">Aperture · between the vertices</label><span class="val" id="apTxt"></span></div>
+      <input id="apIn" type="range" step="0.1">
+    </div>
+
+    <h2>View</h2>
+    <div class="row">
+      <button id="camIso">Iso</button><button id="camFront">Front</button><button id="camTop">Top</button><button id="camSide">Side</button>
+    </div>
+    <div class="row">
+      <button id="tBottle" aria-pressed="true">Bottle</button>
+      <button id="tContact" aria-pressed="true">Contacts</button>
+      <button id="tFacets" aria-pressed="false">MuJoCo facets</button>
+      <button id="tGhost" aria-pressed="false">2F-85 ghost</button>
+      <button id="tEnv" aria-pressed="false">±16 mm envelope</button>
+      <button id="tArm" aria-pressed="true">Arm stub</button>
+    </div>
+    <div class="legend">
+      <span style="--c:#1f2226">Housing, carriages</span>
+      <span style="--c:#767d86">Beam, arms, backing plates</span>
+      <span style="--c:#23262b">Liner</span>
+      <span style="--c:#d1d1d1">UR wrist</span>
+      <span style="--c:#7eadcc">UR ring</span>
+      <span style="--c:#c0651a">Bottle</span>
+      <span style="--c:#1f6feb">Contact lines</span>
+    </div>
+
+    <h2>Readout</h2>
+    <table id="readout"></table>
+
+    <h2>Why</h2>
+    <p class="note"><b>One cradle for every bottle.</b> A parabola <code>y = v − x²/2p</code> with p = 8 mm holds any cylinder of radius r &gt; p on two symmetric lines at <code>x = ±√(r² − p²)</code>, always at height y = p. The contact walks outwards as the bottle grows, so the same pair cradles the 10 ml and the 100 ml, and the pair centres the bottle. Two lines per jaw, four in all: the wedge is what lets the hand take the unscrewing torque.</p>
+    <p class="note"><b>Compact about its axis.</b> The 2F-85 hangs 37.5 mm below its axis and rises 13.5 mm above it; between the table and the clamp's housing that leaves no room under a 57.5 mm cap seat, so the 10, 20 and 30 ml bottles could not be picked. Here nothing but the jaws and the beam sits around the axis, ±16 mm: the axis goes 21 mm under the cap seat on every bottle, and the drive lives behind the jaws where there is room. Toggle the ghost on the 10 ml to see the difference.</p>
+    <p class="note"><b>Interleaved wings.</b> Closed on anything under Ø42 mm the cradles' wings cross the centre plane (by 20 mm on the 10 ml). The bench never saw it because jaw and jaw do not collide in MuJoCo; a real pair would clash. So beyond |x| = 12 mm each cradle is a comb: the left jaw's wings are the two outer bands, the right jaw's the middle one, and they pass through each other with 1 mm to spare. The two lines of contact are unchanged.</p>
+    <p class="note">Every number on this page is <code>uncap-robustness/gripper.py</code>'s (JAW, BODY, FRONT_CLEAR, FLANGE_X) and the bottles are <code>uncap-robustness/bottles.py</code>'s catalogue. The look follows <code>simulation/assets/ur10e_hand</code>: UR wrist, blue ring, anodised black housing, grey links.</p>
+  </aside>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  if(!window.THREE){ document.getElementById('view').innerHTML='<div id="fail"><h2>three.js did not load</h2><p class="note">The page fetches three.js r128 from cdnjs; it needs the network once.</p></div>'; return; }
+
+  // ============================== PARAMETERS (mm) ==============================
+  // uncap-robustness/gripper.py, hand frame: +X from the arm to the bottle, Y the
+  // closing direction, Z up; the bottle's axis at x = 0, the tool axis at z = 0.
+  const JAW={p:8, half_width:22.5, facets:11, clearance:0.2, liner:3, half_height:16, plate:6, open_clear:6};
+  const BODY={length:52, half_width:32, half_height:16};
+  const FRONT_CLEAR=30, FLANGE_X=-118, AXIS_BELOW_CAP=21;
+  // the stylised parts
+  const HUB_HALF=14;            // the cradle's flat back, where the arm bolts on
+  const COMB_X=12;              // the wings comb beyond |x| = COMB_X
+  const COMB_GAP=1;             // between interleaved bands
+  const BEAM={x0:-31, x1:-25, half_z:8, half_y:86};           // the linear axis across the front, 1 mm into the housing
+  const CARRIAGE={x0:-30, x1:-24, width:14, half_z:12};       // a saddle over the beam, behind the wings' reach (x = -22.5)
+  const ARM={x0:-24, x1:-2, width:12, half_z:11};             // carriage to hub, bolted flush on the hub's flat back
+  const FLANGE={r:45, face_r:31.5, pcd:25, bolt_r:3.3, ring_h:12, stub_r:46, stub_len:150};
+  const TWO85={below:37.5, above:13.5, half_y:42.4, x0:FLANGE_X+14, x1:FLANGE_X+14+90};
+
+  // bottles.py catalogue (mm): radius, height, shoulder, neck start, neck radius, cap seat, cap height, cap radius
+  const CATALOGUE={
+    10:{r:11.01,h:52.28,shoulder:32.98,neck:39.58,neck_r:8.95,cap_z:39.72,cap_h:14.16,cap_r:10.9},
+    20:{r:13.87,h:65.87,shoulder:44.85,neck:53.17,neck_r:8.95,cap_z:53.31,cap_h:14.16,cap_r:10.9},
+    30:{r:15.87,h:75.40,shoulder:51.88,neck:61.40,neck_r:9.95,cap_z:61.60,cap_h:15.40,cap_r:11.9},
+    50:{r:18.82,h:89.40,shoulder:60.86,neck:72.15,neck_r:12.45,cap_z:72.50,cap_h:18.50,cap_r:14.4},
+    60:{r:20.00,h:95.00,shoulder:65.75,neck:77.75,neck_r:12.45,cap_z:78.10,cap_h:18.50,cap_r:14.4},
+    100:{r:23.71,h:112.63,shoulder:79.21,neck:93.43,neck_r:13.95,cap_z:93.87,cap_h:20.36,cap_r:15.9},
+  };
+  const freeBottle=r=>{ const k=r/20, b=CATALOGUE[60]; return {r, h:b.h*k, shoulder:b.shoulder*k, neck:b.neck*k, neck_r:b.neck_r, cap_z:b.h*k-(b.cap_h-1.6), cap_h:b.cap_h, cap_r:b.cap_r, free:true}; };
+
+  // ---------- gripper.py's closed forms ----------
+  const vertex=r=>(r*r+JAW.p*JAW.p)/(2*JAW.p)+JAW.clearance;
+  const contactX=r=>Math.sqrt(Math.max(0,r*r-JAW.p*JAW.p));
+  const contactAngle=r=>Math.acos(Math.min(1,JAW.p/r));
+  const EDGE=JAW.half_width**2/(2*JAW.p);
+  const stroke=r=>EDGE+r+JAW.open_clear;
+  const mouth=r=>stroke(r)-EDGE;
+  const parab=x=>-x*x/(2*JAW.p);                 // the cradle about its vertex, towards the bottle
+
+  // ============================== renderer ==============================
+  const MM=0.001, DEG=Math.PI/180;
+  const view=document.getElementById('view');
+  const renderer=new THREE.WebGLRenderer({antialias:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputEncoding=THREE.sRGBEncoding; renderer.toneMapping=THREE.ACESFilmicToneMapping; renderer.toneMappingExposure=0.9;
+  view.appendChild(renderer.domElement);
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0xfafbfc);
+  const camera=new THREE.PerspectiveCamera(32,1,0.005,20);
+  scene.add(new THREE.HemisphereLight(0xffffff,0xdfe4ea,0.55));
+  const key=new THREE.DirectionalLight(0xffffff,0.9); key.position.set(0.5,1.2,0.7); key.castShadow=true;
+  key.shadow.mapSize.set(2048,2048); Object.assign(key.shadow.camera,{left:-0.4,right:0.4,top:0.4,bottom:-0.4,near:0.1,far:4});
+  key.shadow.bias=-0.0004; key.shadow.normalBias=0.0006; scene.add(key);
+  const fill=new THREE.DirectionalLight(0xdbe7ff,0.35); fill.position.set(-0.8,0.5,-0.6); scene.add(fill);
+  const pmrem=new THREE.PMREMGenerator(renderer);
+  const envScene=new THREE.Scene(); envScene.background=new THREE.Color(0xf2f4f7);
+  [[0,6,0,8,8,0],[6,3,0,0.4,8,6],[-6,3,0,0.4,8,6],[0,3,-6,8,6,0.4]].forEach((q,i)=>{
+    const m=new THREE.Mesh(new THREE.BoxGeometry(q[3],q[4],q[5]),new THREE.MeshBasicMaterial({color:i?0xdfe6ee:0xffffff})); m.position.set(q[0],q[1],q[2]); envScene.add(m); });
+  scene.environment=pmrem.fromScene(envScene,0.04).texture;
+
+  // ---------- orbit ----------
+  const orbit={yaw:0.85,pitch:0.28,dist:0.42,target:new THREE.Vector3(0,0.05,0)};
+  function updateCam(){
+    const p=orbit.pitch,y=orbit.yaw,d=orbit.dist,t=orbit.target;
+    camera.position.set(t.x+d*Math.cos(p)*Math.sin(y),t.y+d*Math.sin(p),t.z+d*Math.cos(p)*Math.cos(y));
+    camera.lookAt(t);
+  }
+  let drag=null; const el=renderer.domElement;
+  el.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY,b:e.button}; el.setPointerCapture(e.pointerId);});
+  el.addEventListener('pointermove',e=>{
+    if(!drag)return; const dx=e.clientX-drag.x, dy=e.clientY-drag.y; drag.x=e.clientX; drag.y=e.clientY;
+    if(drag.b===2||e.shiftKey){
+      const right=new THREE.Vector3().subVectors(camera.position,orbit.target).cross(camera.up).normalize();
+      const k=0.0012*orbit.dist; orbit.target.addScaledVector(right,-dx*k); orbit.target.y+=dy*k;
+    }else{ orbit.yaw-=dx*0.006; orbit.pitch=Math.max(-1.4,Math.min(1.5,orbit.pitch+dy*0.006)); }
+    updateCam();
+  });
+  el.addEventListener('pointerup',()=>drag=null);
+  el.addEventListener('contextmenu',e=>e.preventDefault());
+  el.addEventListener('wheel',e=>{e.preventDefault(); orbit.dist=Math.max(0.12,Math.min(2,orbit.dist*(1+e.deltaY*0.001))); updateCam();},{passive:false});
+
+  // ---------- materials (hand_linkage.MATERIALS, RIG_MATERIALS) ----------
+  const std=(rgb,o={})=>new THREE.MeshStandardMaterial(Object.assign({
+    color:new THREE.Color().setRGB(rgb[0],rgb[1],rgb[2]).convertSRGBToLinear(),roughness:0.45,metalness:0.3,envMapIntensity:0.9},o));
+  const MAT={
+    linkgray:std([0.82,0.82,0.82],{metalness:0.35,roughness:0.4}),
+    urblue:std([0.49,0.678,0.8],{metalness:0.1,roughness:0.45}),
+    black:std([0.12,0.13,0.15],{metalness:0.35,roughness:0.5}),        // anodised housing
+    gray:std([0.4627,0.49,0.53],{metalness:0.6,roughness:0.38}),       // machined links
+    liner:std([0.13,0.14,0.16],{metalness:0.0,roughness:0.92}),
+    steel:std([0.75,0.76,0.78],{metalness:0.9,roughness:0.25}),
+    bolt:std([0.2,0.21,0.23],{metalness:0.6,roughness:0.4}),
+    led:new THREE.MeshStandardMaterial({color:0x000000,emissive:new THREE.Color(0x36c26a),emissiveIntensity:1.2,roughness:0.3}),
+    bottle:std([0.62,0.28,0.05],{metalness:0.05,roughness:0.2,transparent:true,opacity:0.55,depthWrite:false,side:THREE.DoubleSide}),
+    cap:std([0.93,0.93,0.91],{metalness:0.05,roughness:0.5}),
+    contact:new THREE.MeshBasicMaterial({color:0x1f6feb}),
+    ghost:new THREE.MeshBasicMaterial({color:0x8b95a3,transparent:true,opacity:0.18,depthWrite:false}),
+    ghostLine:new THREE.LineBasicMaterial({color:0x6d7480}),
+    envPlane:new THREE.MeshBasicMaterial({color:0x1f6feb,transparent:true,opacity:0.08,depthWrite:false,side:THREE.DoubleSide}),
+    facet:new THREE.LineBasicMaterial({color:0xd4a63d}),
+  };
+  const mesh=(g,m)=>{const o=new THREE.Mesh(g,m); o.castShadow=o.receiveShadow=true; return o;};
+
+  // ---------- geometry helpers (mm in, metres out) ----------
+  const roundedRect=(w,h,r)=>{ const s=new THREE.Shape(), x=-w/2, y=-h/2; r=Math.min(r,w/2,h/2);
+    s.moveTo(x+r,y); s.lineTo(x+w-r,y); s.absarc(x+w-r,y+r,r,-Math.PI/2,0,false); s.lineTo(x+w,y+h-r);
+    s.absarc(x+w-r,y+h-r,r,0,Math.PI/2,false); s.lineTo(x+r,y+h); s.absarc(x+r,y+h-r,r,Math.PI/2,Math.PI,false);
+    s.lineTo(x,y+r); s.absarc(x+r,y+r,r,Math.PI,1.5*Math.PI,false); return s; };
+  // a box with every edge softened: extruded along X from x0 to x1, centred on (yc, zc)
+  function rbox(x0,x1,yc,zc,sy,sz,radius,bevel=1.2){
+    const depth=(x1-x0)-2*bevel;
+    const g=new THREE.ExtrudeGeometry(roundedRect(sz-2*bevel,sy-2*bevel,Math.max(0.1,radius-bevel)),
+      {depth,bevelEnabled:true,bevelThickness:bevel,bevelSize:bevel,bevelSegments:3,curveSegments:8});
+    g.rotateY(Math.PI/2);                       // shape x -> -Z, shape y -> Y, extrusion -> +X
+    g.translate(x0+bevel,yc,zc); g.scale(MM,MM,MM); g.computeVertexNormals(); return g;
+  }
+  const cylX=(r,x0,x1,yc,zc,mat,seg=64)=>{ const o=mesh(new THREE.CylinderGeometry(r*MM,r*MM,(x1-x0)*MM,seg),mat); o.rotation.z=Math.PI/2; o.position.set((x0+x1)/2*MM,yc*MM,zc*MM); return o; };
+  const cylZ=(r,z0,z1,xc,yc,mat,seg=48)=>{ const o=mesh(new THREE.CylinderGeometry(r*MM,r*MM,(z1-z0)*MM,seg),mat); o.rotation.x=Math.PI/2; o.position.set(xc*MM,yc*MM,(z0+z1)/2*MM); return o; };
+  const box=(x0,x1,y0,y1,z0,z1,mat)=>{ const o=mesh(new THREE.BoxGeometry((x1-x0)*MM,(y1-y0)*MM,(z1-z0)*MM),mat); o.position.set((x0+x1)/2*MM,(y0+y1)/2*MM,(z0+z1)/2*MM); return o; };
+  // a Z-extruded shape from a list of [x,y] mm points, between z0 and z1, edges softened by `bevel`
+  function slab(pts,z0,z1,bevel,mat){
+    const s=new THREE.Shape(pts.map(([x,y])=>new THREE.Vector2(x,y)));
+    const depth=(z1-z0)-2*bevel;
+    const g=new THREE.ExtrudeGeometry(s,{depth,bevelEnabled:bevel>0,bevelThickness:bevel,bevelSize:bevel,bevelSegments:2,curveSegments:4});
+    g.translate(0,0,z0+bevel); g.scale(MM,MM,MM); g.computeVertexNormals(); return mesh(g,mat);
+  }
+
+  // ============================== world: Z up, the table at z = 0 ==============================
+  const world=new THREE.Group(); world.rotation.x=-Math.PI/2; scene.add(world);
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(0.45,64),new THREE.ShadowMaterial({opacity:0.14})); floor.receiveShadow=true; world.add(floor);
+  const grid=new THREE.PolarGridHelper(0.45,12,9,64,0xe3e7ec,0xeef0f3); grid.rotation.x=Math.PI/2; grid.position.z=0.0004; world.add(grid);
+
+  // ---------- the bottle, standing on the table at x = y = 0 ----------
+  const bottleG=new THREE.Group(); world.add(bottleG);
+  const glass=mesh(new THREE.BufferGeometry(),MAT.bottle); glass.castShadow=false; glass.rotation.x=Math.PI/2; glass.renderOrder=3; bottleG.add(glass);
+  const capM=mesh(new THREE.BufferGeometry(),MAT.cap); capM.rotation.x=Math.PI/2; bottleG.add(capM);
+  const lathe=(pts,seg=72)=>new THREE.LatheGeometry(pts.map(([r,z])=>new THREE.Vector2(r*MM,z*MM)),seg);
+  function shapeBottle(b){
+    const R=b.r, hs=b.neck-b.shoulder;
+    const pts=[[0,1],[R-3,1],[R-0.8,0],[R,2.5],[R,b.shoulder]];
+    for(let i=1;i<=8;i++){ const t=i/8, e=Math.sin(t*Math.PI/2); pts.push([R+(b.neck_r-R)*e, b.shoulder+hs*t]); }
+    pts.push([b.neck_r,b.h],[b.neck_r-2,b.h],[b.neck_r-2,b.shoulder+2],[0,b.shoulder+2]);
+    glass.geometry.dispose(); glass.geometry=lathe(pts);
+    const c=b.cap_r, z0=b.cap_z, z1=b.cap_z+b.cap_h;
+    const cp=[[0,z0],[c-0.6,z0],[c,z0+0.6],[c,z1-1.2],[c-1.2,z1],[0,z1]];
+    capM.geometry.dispose(); capM.geometry=lathe(cp,64);
+  }
+
+  // ============================== the hand ==============================
+  const hand=new THREE.Group(); world.add(hand);   // tool axis along X at hand z = 0; placed cap_z - 21 over the table
+
+  // ---------- UR wrist: stub, blue ring, wrist_3 flange face ----------
+  const armStub=new THREE.Group(); hand.add(armStub);
+  armStub.add(cylX(FLANGE.stub_r,FLANGE_X-24-FLANGE.stub_len,FLANGE_X-24,0,0,MAT.linkgray));
+  armStub.add(cylX(FLANGE.stub_r+1,FLANGE_X-24-FLANGE.ring_h,FLANGE_X-24,0,0,MAT.urblue));
+  const wristProfile=[[0,FLANGE_X-24],[FLANGE.stub_r,FLANGE_X-24],[FLANGE.stub_r,FLANGE_X-8],[FLANGE.r,FLANGE_X-3],[FLANGE.r-2,FLANGE_X],[0,FLANGE_X]];
+  const wrist=mesh(new THREE.LatheGeometry(wristProfile.map(([r,x])=>new THREE.Vector2(r*MM,x*MM)),96),MAT.linkgray);
+  wrist.rotation.z=-Math.PI/2; hand.add(wrist);          // lathe axis Y -> X
+  // the ISO 9409-1-50 pattern on the face: a pilot and four M6
+  hand.add(cylX(FLANGE.face_r,FLANGE_X-0.2,FLANGE_X+0.6,0,0,MAT.steel));
+  for(let k=0;k<4;k++){ const a=k*Math.PI/2+Math.PI/4; hand.add(cylX(FLANGE.bolt_r,FLANGE_X+0.6,FLANGE_X+1.4,FLANGE.pcd*Math.cos(a),FLANGE.pcd*Math.sin(a),MAT.bolt,24)); }
+
+  // ---------- adapter: Ø75 mount disc waisting into the housing ----------
+  const adapterProfile=[[0,FLANGE_X],[37.5,FLANGE_X],[37.5,FLANGE_X+6],[35,FLANGE_X+8],[22,FLANGE_X+12],[14.5,FLANGE_X+22],[13.5,-BODY.length-FRONT_CLEAR+2],[0,-BODY.length-FRONT_CLEAR+2]];
+  const adapter=mesh(new THREE.LatheGeometry(adapterProfile.map(([r,x])=>new THREE.Vector2(r*MM,x*MM)),96),MAT.linkgray);
+  adapter.rotation.z=-Math.PI/2; hand.add(adapter);
+
+  // ---------- drive housing: BODY, front face at -FRONT_CLEAR ----------
+  const bx1=-FRONT_CLEAR, bx0=bx1-BODY.length;
+  hand.add(mesh(rbox(bx0,bx1,0,0,2*BODY.half_width,2*BODY.half_height,6,1.6),MAT.black));
+  // a grey waistband where the adapter meets the housing, and a status LED strip on top
+  hand.add(mesh(rbox(bx0-1,bx0+5,0,0,2*BODY.half_width+2,2*BODY.half_height+2,7,1.2),MAT.gray));
+  hand.add(box(bx0+16,bx0+40,-3,3,BODY.half_height-0.2,BODY.half_height+0.4,MAT.led));
+  // side rails on the housing: the tapped strips the rig's cheeks and mast arm bolt to
+  for(const s of [-1,1]) hand.add(mesh(rbox(bx0+8,bx1-4,s*(BODY.half_width+0.6),0,2.4,20,1,0.5),MAT.gray));
+
+  // ---------- the linear axis across the front: beam, end caps ----------
+  hand.add(mesh(rbox(BEAM.x0,BEAM.x1,0,0,2*BEAM.half_y,2*BEAM.half_z,3,1.2),MAT.gray));
+  for(const s of [-1,1]) hand.add(mesh(rbox(BEAM.x0-1,BEAM.x1+1,s*(BEAM.half_y-4),0,8,2*BEAM.half_z+2,3,1),MAT.black));
+  // the ground rod the carriages run on, peeking above and below the beam
+  for(const s of [-1,1]) hand.add(cylX(2.2,BEAM.x0+1.5,BEAM.x1-1.5,0,s*(BEAM.half_z-2.2),MAT.steel,24));
+
+  // ---------- jaws: carriage, arm, hub + cradle (plate and liner), mirrored ----------
+  // built with the bottle at -y: the local frame is the left jaw's (side = +1); the right jaw is its mirror.
+  const wingBands=side=>{ const H=JAW.half_height, g=COMB_GAP/2, third=(2*H-2*COMB_GAP)/3;
+    return side>0?[[-H,-H+third],[H-third,H]]:[[-H+third+COMB_GAP,H-third-COMB_GAP]]; };
+  function cradleShapes(side){
+    // inner edge = liner surface (the parabola); the plate sits behind it; the hub is flat behind the vertex
+    const N=48, W=JAW.half_width;
+    const outer=x=>JAW.liner+JAW.plate-Math.max(0,x*x-HUB_HALF*HUB_HALF)/(2*JAW.p);   // plate's back, flat over the hub
+    const arc=(x0,x1,f)=>{ const p=[]; for(let i=0;i<=N;i++){ const x=x0+(x1-x0)*i/N; p.push([x,side*f(x)]); } return p; };
+    const liner=(x0,x1)=>[...arc(x0,x1,parab),...arc(x1,x0,x=>parab(x)+JAW.liner)];
+    const plate=(x0,x1)=>[...arc(x0,x1,x=>parab(x)+JAW.liner),...arc(x1,x0,x=>parab(x)+outer(x))];
+    return {liner,plate};
+  }
+  function buildJaw(side){
+    const jaw=new THREE.Group();                                   // origin: the cradle's vertex on the bottle-facing surface
+    const {liner,plate}=cradleShapes(side), H=JAW.half_height, C=COMB_X, W=JAW.half_width;
+    // centre section, full height
+    jaw.add(slab(plate(-C,C),-H,H,0.8,MAT.gray));
+    jaw.add(slab(liner(-C,C),-H,H,0.6,MAT.liner));
+    // wings, combed
+    for(const [z0,z1] of wingBands(side)) for(const [x0,x1] of [[C,W],[-W,-C]]){
+      jaw.add(slab(plate(x0,x1),z0,z1,0.8,MAT.gray));
+      jaw.add(slab(liner(x0,x1),z0,z1,0.6,MAT.liner));
+    }
+    const back=JAW.liner+JAW.plate;                                // the hub's back face, y = back
+    // arm from the hub back to the carriage, and the carriage on the beam
+    // the other jaw's wing tip reaches y = 31.6 - vertex from this side's centre (19.9 mm on the 10 ml), at x = -22.5:
+    // everything behind the cradle at |x| > 20 therefore stays outside the hub's back, y >= vertex + 9.
+    const armY=side*(back+ARM.width/2), carY=side*(back-1+CARRIAGE.width/2);
+    jaw.add(mesh(rbox(ARM.x0,ARM.x1,armY,0,ARM.width,2*ARM.half_z,3,1),MAT.gray));
+    jaw.add(mesh(rbox(CARRIAGE.x0,CARRIAGE.x1,carY,0,CARRIAGE.width,2*CARRIAGE.half_z,3.5,1.2),MAT.black));
+    // socket heads: two on the carriage's front, two through the arm into the hub
+    for(const z of [-6,6]) jaw.add(cylX(2.4,CARRIAGE.x1-0.3,CARRIAGE.x1+0.9,carY,z,MAT.bolt,20));
+    for(const x of [-12,-5]){ const h=mesh(new THREE.CylinderGeometry(2.2*MM,2.2*MM,1.2*MM,16),MAT.bolt); h.position.set(x*MM,side*(back+ARM.width+0.4)*MM,0); jaw.add(h); }
+    // MuJoCo facets: the 11 chords, drawn a hair inside the liner surface, top and bottom edges plus the seams
+    const pts=[]; const n=JAW.facets, xs=[]; for(let i=0;i<=n;i++) xs.push(-W+2*W*i/n);
+    const eps=side*-0.15;
+    for(const z of [-H,H]) for(let i=0;i<n;i++) pts.push(xs[i],side*parab(xs[i])+eps,z, xs[i+1],side*parab(xs[i+1])+eps,z);
+    for(let i=0;i<=n;i++) pts.push(xs[i],side*parab(xs[i])+eps,-H, xs[i],side*parab(xs[i])+eps,H);
+    const fg=new THREE.BufferGeometry(); fg.setAttribute('position',new THREE.Float32BufferAttribute(pts.map(v=>v*MM),3));
+    const facets=new THREE.LineSegments(fg,MAT.facet); facets.visible=false; jaw.add(facets);
+    return {group:jaw, facets, side};
+  }
+  const jaws=[buildJaw(+1),buildJaw(-1)]; jaws.forEach(j=>hand.add(j.group));
+
+  // ---------- contact lines on the bottle: x = ±√(r²−p²), y = ±p ----------
+  const contacts=new THREE.Group(); hand.add(contacts);
+  const contactLines=[]; for(let i=0;i<4;i++){ const c=cylZ(0.5,-JAW.half_height,JAW.half_height,0,0,MAT.contact,12); c.castShadow=false; contacts.add(c); contactLines.push(c); }
+
+  // ---------- the 2F-85's envelope, for comparison ----------
+  const ghost=new THREE.Group(); ghost.visible=false; hand.add(ghost);
+  { const g=new THREE.BoxGeometry((TWO85.x1-TWO85.x0)*MM,2*TWO85.half_y*MM,(TWO85.below+TWO85.above)*MM);
+    const m=new THREE.Mesh(g,MAT.ghost); m.position.set((TWO85.x0+TWO85.x1)/2*MM,0,(TWO85.above-TWO85.below)/2*MM); ghost.add(m);
+    const e=new THREE.LineSegments(new THREE.EdgesGeometry(g),MAT.ghostLine); e.position.copy(m.position); ghost.add(e);
+    // its fingers, to the pads on the bottle axis
+    const f=new THREE.BoxGeometry((0-TWO85.x1+8)*MM,2*TWO85.half_y*MM,30*MM); const fm=new THREE.Mesh(f,MAT.ghost); fm.position.set((TWO85.x1+8)/2*MM-4*MM,0,0); ghost.add(fm);
+    const fe=new THREE.LineSegments(new THREE.EdgesGeometry(f),MAT.ghostLine); fe.position.copy(fm.position); ghost.add(fe); }
+
+  // ---------- the ±16 mm envelope ----------
+  const envG=new THREE.Group(); envG.visible=false; hand.add(envG);
+  for(const s of [-1,1]){ const p=new THREE.Mesh(new THREE.PlaneGeometry(0.2,0.2),MAT.envPlane); p.position.set(-0.04,0,s*JAW.half_height*MM); envG.add(p); }
+
+  // ============================== state ==============================
+  const st={bottle:60, r:20, y:0, playing:false, t0:0};   // y: the vertices' half-gap, mm
+  let B=CATALOGUE[60];
+  const axisZ=()=>B.cap_z-AXIS_BELOW_CAP;
+  const closed=()=>Math.abs(st.y-vertex(B.r))<0.3;
+
+  function setBottle(b){
+    const wasClosed=closed(), wasOpen=Math.abs(st.y-stroke(B.r))<0.05;
+    B=b; st.r=b.r; shapeBottle(b);
+    hand.position.z=axisZ()*MM;
+    st.y=wasClosed?vertex(B.r):wasOpen?stroke(B.r):Math.min(Math.max(st.y,vertex(B.r)),stroke(B.r));
+    const ap=document.getElementById('apIn'); ap.min=(2*vertex(B.r)).toFixed(1); ap.max=(2*stroke(B.r)).toFixed(1);
+    document.getElementById('diaIn').value=2*B.r;
+    [...document.getElementById('bottles').children].forEach(btn=>btn.setAttribute('aria-pressed',!b.free&&+btn.dataset.ml===b.ml));
+    solve();
+  }
+  function solve(){
+    for(const j of jaws) j.group.position.y=j.side*st.y*MM;
+    const on=closed(), cx=contactX(B.r);
+    contacts.visible=on&&showContacts;
+    [[cx,JAW.p],[-cx,JAW.p],[cx,-JAW.p],[-cx,-JAW.p]].forEach(([x,y],i)=>contactLines[i].position.set(x*MM,y*MM,0));
+    refresh();
+  }
+  const fmt=(v,d=1)=>v.toFixed(d);
+  function refresh(){
+    const r=B.r, v=vertex(r), s=stroke(r), air=axisZ()-JAW.half_height, twoAir=axisZ()-TWO85.below;
+    document.getElementById('apTxt').textContent=fmt(2*st.y)+' mm'; document.getElementById('apIn').value=2*st.y;
+    document.getElementById('diaTxt').textContent='Ø'+fmt(2*r)+' mm';
+    const rows=[
+      ['Bottle', (B.free?'free':B.ml+' ml')+' · Ø'+fmt(2*r)+' · cap seat '+fmt(B.cap_z,0)+' mm'],
+      ['Tool axis over the table', fmt(axisZ())+' mm  (cap seat − '+AXIS_BELOW_CAP+')'],
+      ['Air under the jaws', fmt(air)+' mm', air<2],
+      ['Air under a 2F-85 base', fmt(twoAir)+' mm', twoAir<0],
+      ['Vertex, closed', fmt(v,2)+' mm from the axis'],
+      ['Contact lines', 'x = ±'+fmt(contactX(r),2)+' mm · y = ±'+JAW.p+' mm · 4 lines'],
+      ['Contact normal', fmt(contactAngle(r)/DEG)+'° off the closing direction'],
+      ['Stroke, open', fmt(s,2)+' mm · mouth '+fmt(mouth(r),2)+' mm'],
+      ['Wing tips, closed', fmt(v-EDGE,2)+' mm from the centre plane', v-EDGE<0],
+      ['Envelope about the axis', '±'+JAW.half_height+' mm · flange at '+(-FLANGE_X)+' mm'],
+      ['Jaws', closed()?'closed on the bottle':st.y>=s-0.05?'open, bottle clears by '+JAW.open_clear+' mm':'travelling'],
+    ];
+    document.getElementById('readout').innerHTML=rows.map(([k,val,warn])=>`<tr><td>${k}</td><td${warn?' class="warn"':''}>${val}</td></tr>`).join('');
+    const stEl=document.getElementById('state'); stEl.textContent=closed()?'Closed · 4 lines of contact':st.playing?'Cycling':'Manual'; stEl.classList.toggle('on',closed());
+  }
+
+  // ============================== UI ==============================
+  const $=id=>document.getElementById(id);
+  const bottlesEl=$('bottles');
+  for(const ml of Object.keys(CATALOGUE)){ const b=document.createElement('button'); b.textContent=ml+' ml'; b.dataset.ml=ml; b.setAttribute('aria-pressed','false');
+    b.addEventListener('click',()=>{stop(); setBottle({...CATALOGUE[ml],ml:+ml});}); bottlesEl.appendChild(b); }
+  $('diaIn').addEventListener('input',e=>{stop(); setBottle(freeBottle(+e.target.value/2));});
+  $('apIn').addEventListener('input',e=>{stop(); st.y=+e.target.value/2; solve();});
+  $('openBtn').addEventListener('click',()=>{stop(); st.y=stroke(B.r); solve();});
+  $('closeBtn').addEventListener('click',()=>{stop(); st.y=vertex(B.r); solve();});
+  const stop=()=>{st.playing=false; $('play').textContent='Play';};
+  $('play').addEventListener('click',()=>{st.playing=!st.playing; $('play').textContent=st.playing?'Pause':'Play'; st.t0=performance.now()/1000; refresh();});
+  const ease=x=>0.5-0.5*Math.cos(Math.PI*Math.min(1,Math.max(0,x)));
+  function cycle(t){ // 4 s: close 1.2, hold 0.9, open 1.2, rest
+    const T=t%4, v=vertex(B.r), s=stroke(B.r);
+    if(T<1.2) st.y=s+(v-s)*ease(T/1.2); else if(T<2.1) st.y=v; else if(T<3.3) st.y=v+(s-v)*ease((T-2.1)/1.2); else st.y=s;
+  }
+  let showContacts=true;
+  const toggle=(id,fn)=>$(id).addEventListener('click',e=>{const on=e.currentTarget.getAttribute('aria-pressed')!=='true'; e.currentTarget.setAttribute('aria-pressed',on); fn(on); solve();});
+  toggle('tBottle',on=>{bottleG.visible=on;});
+  toggle('tContact',on=>{showContacts=on;});
+  toggle('tFacets',on=>jaws.forEach(j=>j.facets.visible=on));
+  toggle('tGhost',on=>{ghost.visible=on;});
+  toggle('tEnv',on=>{envG.visible=on;});
+  toggle('tArm',on=>{armStub.visible=on;});
+  const cam=(yaw,pitch,dist)=>()=>{orbit.yaw=yaw; orbit.pitch=pitch; orbit.dist=dist; orbit.target.set(-0.03,axisZ()*MM,0); updateCam();};
+  $('camIso').addEventListener('click',cam(0.85,0.28,0.42));
+  $('camFront').addEventListener('click',cam(Math.PI/2,0.02,0.4));
+  $('camTop').addEventListener('click',cam(Math.PI/2,1.49,0.45));
+  $('camSide').addEventListener('click',cam(Math.PI,0.02,0.45));
+
+  function resize(){ const w=view.clientWidth,h=view.clientHeight; renderer.setSize(w,h,false); camera.aspect=w/h; camera.updateProjectionMatrix(); }
+  new ResizeObserver(resize).observe(view); resize();
+  function loop(){ requestAnimationFrame(loop); if(st.playing){ cycle(performance.now()/1000-st.t0); solve(); } renderer.render(scene,camera); }
+
+  st.y=vertex(CATALOGUE[60].r); setBottle({...CATALOGUE[60],ml:60});
+  orbit.target.set(-0.03,axisZ()*MM,0); updateCam();
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
