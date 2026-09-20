@@ -15,6 +15,8 @@ Presentation video: https://youtu.be/kdZ4qXKVD1E
 
 Isaac Lab render of a formula end to end: https://youtu.be/przYaTslfyA
 
+Robot lab demo: https://youtu.be/lOhIzaWrY-g
+
 Each part has its own README:
 
 - [`simulation/`](simulation/) — robotic lab-automation simulation with MuJoCo + AutoBio. See [`simulation/README.md`](simulation/README.md).
