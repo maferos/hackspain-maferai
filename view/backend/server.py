@@ -78,6 +78,9 @@ from labbridge.mujoco_adapter import vessels, workcell  # noqa: E402
 from labbridge.server import StateServer  # noqa: E402
 from detector_config import DETECTOR_SPEC, DETECTOR_WEIGHTS, DETECTOR_CONF, REPLAY_WEIGHTS
 from catalogue import Catalogue, resolve, shelf_from_tracks  # noqa: E402
+
+sys.path.insert(0, str(REPO_ROOT / "simulation" / "scripts"))
+import rail_kinematics as rk  # noqa: E402  (for the arm's declared rest pose)
 from formula_chat import MODEL as CHAT_MODEL, FormulaChat  # noqa: E402
 
 
@@ -152,6 +155,7 @@ class SceneRenderer:
         self.stop = threading.Event()
         self.model = mujoco.MjModel.from_xml_path(str(xml_path))
         self.data = mujoco.MjData(self.model)
+        rk.rest(self.model, self.data)
         self.panel_model = self.model
         self.pending_pattern = None
         self.pattern = None
@@ -173,6 +177,7 @@ class SceneRenderer:
         # renders its camera streams; only the LabState feed is skipped.
         try:
             self.panel_data = mujoco.MjData(self.model)
+            rk.rest(self.model, self.panel_data)
             mujoco.mj_forward(self.model, self.panel_data)
             self.run = ScriptedRun(self.model, self.panel_data, vessels(self.model))
         except Exception as exc:  # noqa: BLE001
@@ -271,6 +276,7 @@ class SceneRenderer:
                     with self._data_lock:
                         self.model = model
                         self.data = mujoco.MjData(model)
+                        rk.rest(model, self.data)
                         mujoco.mj_forward(model, self.data)
                         self._motion = None if SCAN_ENABLED else self._build_rail_sweep()
                         self.pattern = info

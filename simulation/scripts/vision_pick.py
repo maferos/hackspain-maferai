@@ -1057,10 +1057,11 @@ def path_clear(model: mujoco.MjModel, scratch: mujoco.MjData,
 # Where the hand is carried between jobs: pointing down, 0.40 m over the middle
 # of the worktop, above every vessel and clear of the balances' draught shields.
 CARRY = (-0.35, 1.30)       # world y and z of the tool; x is wherever the carriage is
-# Hand down over the bench with the wrist unfolded (wrist 2 at +90 degrees), the
-# branch every grasp that worked was in. rail_kinematics' own seeds have wrist 2
-# at -90, which for targets this high converges on the fold the camera blocks.
-HAND_DOWN = (1.3, -0.35, 1.63, 0.29, 1.57, -1.69)
+# Hand down over the bench, for an arm that hangs from the beam. The pose the
+# arm stood in when it was mounted on top is not a pose it can hold hanging:
+# turning the base over turns the whole branch over with it, so this is solved
+# for the tool at CARRY rather than carried across from the old mount.
+HAND_DOWN = (-1.9066, -0.1282, 1.7589, 0.8415, -1.3035, -1.9808)
 
 
 def carry_pose(model: mujoco.MjModel, scratch: mujoco.MjData,

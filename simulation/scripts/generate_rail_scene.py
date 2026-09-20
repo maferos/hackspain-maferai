@@ -58,14 +58,21 @@ BENCH_Y = (-1.4, 0.6)
 BENCH_TOP = 0.90
 
 RAIL_Y = 0.30          # rail axis, on the back edge strip
-BEAM_BOTTOM = 1.36     # underside of the beam; balances on that strip top out at 1.30
+# Underside of the beam. The arm hangs from it rather than standing on it, so
+# this is what sets the arm's reach over the bench: the base ends up
+# ARM_BASE_DZ under this, and everything it does is below that. At 1.80 the
+# base is 0.85 m over the worktop and 0.71 m over the tallest flask, which puts
+# the bench in the middle of a UR10e's 1.30 m rather than at the end of it.
+# Balances on that strip top out at 1.30 and the sink at 1.22; the ceiling is
+# at 3.0, so the beam has room.
+BEAM_BOTTOM = 1.90
 BEAM_HALF_Z = 0.04
 BEAM_HALF_Y = 0.06
 BEAM_OVERHANG = 0.40   # beam sticks out past each end of the bench
 POST_HALF = 0.06
 CARRIAGE_HALF = (0.16, 0.20, 0.05)
 CARRIAGE_Y = 0.14      # carriage hangs off the bench side of the beam
-ARM_BASE_DZ = 0.05     # arm base sits on the top face of the carriage plate
+ARM_BASE_DZ = 0.05     # arm base bolts to the underside of the beam, hanging
 
 BEAM_Z = BEAM_BOTTOM + BEAM_HALF_Z
 BEAM_HALF_X = (BENCH_X[1] - BENCH_X[0]) / 2 + BEAM_OVERHANG
@@ -74,11 +81,14 @@ POST_X = BEAM_HALF_X - POST_HALF - 0.02
 # Travel: the carriage can stand over any point of the worktop and a little past
 # each end, stopping short of the posts.
 TRAVEL = BEAM_HALF_X - POST_HALF * 2 - CARRIAGE_HALF[0] - 0.08
-ARM_BASE_Z = BEAM_Z + ARM_BASE_DZ
+ARM_BASE_Z = BEAM_BOTTOM - ARM_BASE_DZ
 
 # Scan pose: hand pointing straight down, wrist about 0.45 m below the base, the
 # arm folded toward -Y so it leans over the bench rather than the back wall.
-SCAN_POSE = (-1.5708, -1.9199, 2.0944, -1.7453, -1.5708, 0.0)
+# The arm hangs, so the pose it rests in is not the one it rested in when it
+# stood on the beam: solved for the tool at the carry point (y -0.35, z 1.30),
+# hand down, 1.08 m clear of the worktop and touching nothing.
+SCAN_POSE = (-1.9066, -0.1282, 1.7589, 0.8415, -1.3035, -1.9808)
 
 # How many vessels stand on the bench in this scene, spread along it. The open
 # scene the computer-vision work renders from keeps its full population; here
@@ -507,7 +517,13 @@ def build_scene() -> Path:
     ET.SubElement(carriage, 'geom', name='rail_carriage_plate', type='box',
                   material='carriage', mass='40', contype='0', conaffinity='0',
                   size=' '.join(str(h) for h in CARRIAGE_HALF))
-    frame = ET.SubElement(carriage, 'frame', pos=f'0 0 {ARM_BASE_DZ}')
+    # The arm hangs under the beam instead of standing on it. Turning it over
+    # is the point: mounted on top it had to fold down to reach the bench and
+    # its own elbow was in the way; hanging, the whole bench is below it and
+    # the elbow has the room above to get there.
+    frame = ET.SubElement(carriage, 'frame',
+                          pos=f'0 0 {-(BEAM_HALF_Z + ARM_BASE_DZ):.3f}',
+                          euler='180 0 0')
     ET.SubElement(frame, 'attach', model='ur10e_2f85', body='base',
                   prefix='arm_')
     # Rides with the arm, looking down the bench from behind the carriage.

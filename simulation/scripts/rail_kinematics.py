@@ -104,8 +104,32 @@ def load(path: Path = SCENE) -> tuple[mujoco.MjModel, mujoco.MjData]:
              for i in range(model.nsite)}
     TCP_SITE = next(name for name in TCP_SITES if name in known)
     data = mujoco.MjData(model)
+    rest(model, data)
     mujoco.mj_forward(model, data)
     return model, data
+
+
+def rest(model: mujoco.MjModel, data: mujoco.MjData) -> None:
+    """Put the arm in the pose the scene declares, rather than the zero pose.
+
+    The scene's ``scan`` key is a control target, so nothing was applying it to
+    the state: the arm was born straight and the first move had to be planned
+    out of a pose it never means to be in. That was survivable when the arm
+    stood on the beam. Hanging, the zero pose reaches up through the beam and
+    no path out of it is clear, so the scan could not even find its carry pose.
+
+    Anything that compiles the scene itself — the viewer composes a bench into
+    it and compiles from a string — has to call this too.
+    """
+    key = next((i for i in range(model.nkey)
+                if mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_KEY, i) == 'scan'), None)
+    if key is None:
+        return
+    ctrl = model.key_ctrl[key]
+    data.ctrl[:len(ctrl)] = ctrl
+    for j, name in enumerate((RAIL_JOINT, *ARM_JOINTS)):
+        if j < len(ctrl):
+            data.qpos[model.joint(name).qposadr[0]] = ctrl[j]
 
 
 def arm_dofs(model: mujoco.MjModel) -> np.ndarray:
