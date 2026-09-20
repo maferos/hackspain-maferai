@@ -10,7 +10,7 @@ assignee: Eloi Torrents
 parent: hm-o6wf
 tags: [wayfinder:task]
 ---
-# Re-record the ten Replays on an NVIDIA GPU
+# Re-record the four Replays on an NVIDIA GPU
 
 ## Question
 

@@ -10,11 +10,11 @@ assignee: Eloi Torrents
 parent: hm-o6wf
 tags: [wayfinder:task]
 ---
-# Acceptance run: ten patterns, zero felled, timed
+# Acceptance run: four patterns, zero felled, timed
 
 ## Question
 
-Run the metric driver over p01–p10 with the scan, pick and move-aside changes
+Run the metric driver over p01–p04 with the scan, pick and move-aside changes
 in place, exercising scan, fetch orders and move-asides, not scan alone.
 Pass: zero felled on every pattern, with attempted/completed/skipped counts
 reported. Also record seconds per pattern against the Replay cap of 240 s;

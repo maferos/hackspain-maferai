@@ -10,11 +10,11 @@ assignee: Eloi Torrents
 parent: hm-o6wf
 tags: [wayfinder:task]
 ---
-# Count felled flasks automatically across the ten patterns
+# Count felled flasks automatically across the four patterns
 
 ## Question
 
-The acceptance criterion is zero felled flasks on p01–p10, but the planner only
+The acceptance criterion is zero felled flasks on p01–p04, but the planner only
 reads truth for position error; "flasks knocked over" in `vision-pick.md` was
 counted by hand. Build the metric from `truth()` poses:
 
@@ -26,7 +26,7 @@ counted by hand. Build the metric from `truth()` poses:
 - Report attempted / completed / skipped work per phase (looks, picks,
   move-asides) alongside felled, so "skip everything" cannot read as success.
 
-Add it to the scan report and to a headless driver that runs the ten patterns
+Add it to the scan report and to a headless driver that runs the four patterns
 of `scene_patterns.py` in sequence, scan and fetch orders both, and prints one
 table: pattern, flasks, named, picked, skipped, felled, seconds.
 

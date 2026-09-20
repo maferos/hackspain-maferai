@@ -33,6 +33,6 @@ pick shape and make grasp **yaw and opening first-class**:
 - No collision-free grasp: return "blocked by <track>" so the move-aside
   ticket can act.
 
-Done when a fetch order on p01 and p05 (`VIEW_FORMULA_EXECUTOR=fetch`) picks,
+Done when a fetch order on p01 and p04 (`VIEW_FORMULA_EXECUTOR=fetch`) picks,
 carries and releases every named flask with zero felled. HITL grilling, then
 TDD.

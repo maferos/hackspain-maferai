@@ -23,5 +23,5 @@ a hard filter followed by a preference. Decide what a look does when no
 bearing is clear: skip and mark the track "unread, blocked by <track>", to be
 retried after a move-aside.
 
-Done when p01 and p05 scan with zero felled and the metric table shows it.
+Done when p01 and p04 scan with zero felled and the metric table shows it.
 HITL grilling on the skip semantics, then implement with TDD.

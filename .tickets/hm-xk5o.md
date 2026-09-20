@@ -38,7 +38,7 @@ Also decide:
 - Sampling: clearance-dependent subdivision of `path_clear` instead of fixed
   100 mm / 0.08 rad steps.
 
-Prototype on p01 and p05 and report: looks and grasps still feasible at
+Prototype on p01 and p04 and report: looks and grasps still feasible at
 margins 0, 5, 10, 20 mm; the check's cost per sample; and, on the tightest
 perceived clusters, which flasks remain readable / pickable / unlockable by
 one neighbour move / skipped, enumerating grasp yaws and pre-openings (see

@@ -14,8 +14,8 @@ tags: [wayfinder:map]
 ## Destination
 
 The bench scan and the pick in `simulation/scripts/vision_pick.py` (MuJoCo) run
-on all ten bench patterns (p01–p10) without felling a single flask, counted
-automatically, and the ten Replay videos are re-recorded from that code. The
+on all four bench patterns (p01–p04) without felling a single flask, counted
+automatically, and the four Replay videos are re-recorded from that code. The
 change is made in place; this map carries execution, not only decisions.
 
 ## Notes
@@ -35,7 +35,7 @@ change is made in place; this map carries execution, not only decisions.
 - Tickets are worked by Eloi on macOS (`mjpython` for viewers, plain `python`
   headless). Eki owns MuJoCo and reviews.
 - Standing decisions from charting (2026-09-20):
-  - Acceptance: zero felled flasks on all ten patterns, measured by an automatic
+  - Acceptance: zero felled flasks on all four patterns, measured by an automatic
     metric (does not exist yet; hand-counted so far).
   - Perceived flasks (YOLO box, ArUco ring) become real obstacles for the
     planner, not an ordering preference. Ground truth is for scoring only.
@@ -48,6 +48,10 @@ change is made in place; this map carries execution, not only decisions.
   - Real time (`view/backend/live_scan.py`) picks up any change at once; the
     Replays need the four-step GPU pipeline (record_view_scan → export_rail_animation
     → render_rail_isaaclab → copy MP4s + replayPatterns.json).
+- Bench facts (commit f9fd3cf, 2026-09-20, removed p05–p10): four live
+  patterns, p01 (seed 30, 7 flasks), p02 (176, 22), p03 (21, 29), p04 (327,
+  33). Minimum clear gap between footprints: 82.5 / 56.9 / 42.3 / 36.8 mm.
+  The generator's 4 mm floor never occurs in the catalogue.
 - Skills per ticket: grilling + domain-modeling for `wayfinder:grilling`;
   prototype for `wayfinder:prototype`; superpowers:tdd where code is written.
 
@@ -62,7 +66,7 @@ change is made in place; this map carries execution, not only decisions.
   scripted run needs it.
 - Whether a moved flask returns to its original spot after the order, and what
   the bench map (`view_bench_map.json`) records meanwhile.
-- The 85 mm open gripper among flasks 4–60 mm apart: finger orientation along
+- The 85 mm open gripper among flasks 37–83 mm apart: finger orientation along
   the gap, or a smaller opening, before a neighbour counts as an obstacle.
 - Dense clusters where no look or grasp is geometrically possible with this
   camera and gripper, and one neighbour move cannot unlock them: what the
