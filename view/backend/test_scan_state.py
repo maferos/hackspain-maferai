@@ -323,10 +323,10 @@ class FetchExecutorTest(unittest.TestCase):
         def controller():
             while executor.thread.is_alive():
                 with self.world.lock:
-                    asked = [c for c in self.world.commands if c["cmd"] == "pick"]
+                    asked = list(self.world.commands)
                     self.world.commands.clear()
                 self.asked += asked
-                for command in asked:
+                for command in [c for c in asked if c["cmd"] == "pick"]:
                     t = next(t for t in self.tracks if t.id == command["track"])
                     for caption in (f"travelling to {t.sample}",
                                     f"lowering the hand over {t.sample}",
@@ -339,6 +339,11 @@ class FetchExecutorTest(unittest.TestCase):
         executor.start()
         threading.Thread(target=controller, daemon=True).start()
         executor.thread.join(10)
+        # Whatever the executor left behind as it finished: the delivery is
+        # appended on its way out, after the last pick the loop above saw.
+        with self.world.lock:
+            self.asked += list(self.world.commands)
+            self.world.commands.clear()
         self.wf.observe(self.tracks, "idle: watching the bench", False)
 
     def test_every_flask_is_visited_and_dosed_through_the_controller(self):
@@ -354,8 +359,21 @@ class FetchExecutorTest(unittest.TestCase):
         # Nothing is weighed: the pipetting is mimed, so what the formula asked
         # for is what the arm is sent for and what the balance reports.
         wanted = [i["grams"] for i in self.wf.state(True)["ingredients"]]
-        self.assertEqual([c["ml"] for c in self.asked], wanted)
+        self.assertEqual([c["ml"] for c in self.asked if c["cmd"] == "pick"], wanted)
         self.assertEqual([i["mass"] for i in self.wf.state(True)["ingredients"]], wanted)
+
+    def test_the_finished_mixture_is_asked_for_once_the_last_compound_is_dosed(self):
+        self.run_arm(FetchExecutor(self.wf, self.world))
+        # The arm is told one compound at a time and cannot tell the last from
+        # the next, so the executor is what says the mixture may leave.
+        self.assertEqual([c["cmd"] for c in self.asked],
+                         ["pick", "pick", "deliver"])
+
+    def test_a_stopped_order_never_delivers(self):
+        executor = FetchExecutor(self.wf, self.world)
+        executor.stop()
+        self.run_arm(executor)
+        self.assertNotIn("deliver", [c["cmd"] for c in self.asked])
 
     def test_a_flask_the_scan_lost_is_neither_visited_nor_dosed(self):
         self.tracks[0].state = "lost"

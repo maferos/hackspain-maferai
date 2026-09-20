@@ -29,14 +29,14 @@
       <geom name="pan" type="box" pos="-0.0050 0.0310 0.0720"
             size="0.0430 0.0430 0.0050" mass="0.05" group="3"
             rgba="0.75 0.76 0.78 1"/>
-      <geom name="shield_left" type="box" pos="-0.1000 0.0280 0.1290"
-            size="0.0030 0.0870 0.0710" rgba="0 0 0 0" mass="0" group="3"/>
-      <geom name="shield_right" type="box" pos="0.1000 0.0280 0.1290"
-            size="0.0030 0.0870 0.0710" rgba="0 0 0 0" mass="0" group="3"/>
-      <geom name="shield_back" type="box" pos="0.0000 0.1150 0.1290"
-            size="0.1000 0.0030 0.0710" rgba="0 0 0 0" mass="0" group="3"/>
-      <geom name="shield_front" type="box" pos="0.0000 -0.0590 0.1290"
-            size="0.1000 0.0030 0.0710" rgba="0 0 0 0" mass="0" group="3"/>
+      <geom name="shield_left" type="box" pos="-0.1000 0.0280 0.0765"
+            size="0.0030 0.0870 0.0185" rgba="0 0 0 0" mass="0" group="3"/>
+      <geom name="shield_right" type="box" pos="0.1000 0.0280 0.0765"
+            size="0.0030 0.0870 0.0185" rgba="0 0 0 0" mass="0" group="3"/>
+      <geom name="shield_back" type="box" pos="0.0000 0.1150 0.0765"
+            size="0.1000 0.0030 0.0185" rgba="0 0 0 0" mass="0" group="3"/>
+      <geom name="shield_front" type="box" pos="0.0000 -0.0590 0.0765"
+            size="0.1000 0.0030 0.0185" rgba="0 0 0 0" mass="0" group="3"/>
       <geom name="seg_0_a" type="box" pos="-0.02143 -0.09731 0.04120"
             size="0.00360 0.00065 0.0004" xyaxes="1.0000 0.0032 0.0014 -0.0035 0.9195 0.3931"
             rgba="0.09 0.11 0.13 1" contype="0" conaffinity="0" group="1"/>

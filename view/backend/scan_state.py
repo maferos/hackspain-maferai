@@ -109,13 +109,22 @@ class FetchExecutor:
         while self.world.scan is None and not self._stop.wait(0.5):
             pass
         self.workflow.start()
+        done = 0
         for item in order.active_items():
             if self._stop.is_set() or order.status != "running":
                 break
             self._fetch(item)
+            done += 1
         if self._stop.is_set():
             with self.world.lock:
                 self.world.commands[:] = [c for c in self.world.commands if c.get("cmd") != "pick"]
+            return
+        # The mixture is finished, so it leaves the balance. Only the executor
+        # knows the formula is over --- the arm is told one compound at a time
+        # and cannot tell the last from the next.
+        if done:
+            with self.world.lock:
+                self.world.commands.append({"cmd": "deliver"})
 
     def _fetch(self, item: dict) -> None:
         report = self.workflow.report

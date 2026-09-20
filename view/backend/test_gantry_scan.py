@@ -9,7 +9,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'simulation/scripts'))
 from gantry_motion import move_to, SITE
-from gantry_scan import path
+from gantry_scan import CAMERA_CLEAR, path
 from scene_patterns import pattern_scene
 from generate_gantry_scene import OUT
 
@@ -44,6 +44,22 @@ class GantryScanTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, 'blocked'):
             path(self.model, self.data, np.array([-.5, -.4, 1.3251]))
         np.testing.assert_array_equal(self.data.qpos, before)
+
+    def test_the_lens_is_what_stops_the_hand_going_lower(self):
+        """The cage could go around a flask; the camera under it could not.
+
+        The lens hangs further below the pinch site than the cage reaches, so
+        planting at the arm's grasp height would put it through the worktop and
+        the path check refuses the whole move. On this machine the hand stands
+        on the vessel instead, and this is the number that says how high.
+        """
+        import vision_pick as vp
+        camera = self.data.cam_xpos[self.model.camera('arm_eih').id]
+        drop = float(self.data.site(SITE).xpos[2] - camera[2])
+        floor = vp.rk.BENCH_TOP + drop + CAMERA_CLEAR
+        grasp = vp.rk.BENCH_TOP + vp.grasp_height(self.model, 0.14)
+        self.assertGreater(floor, grasp)                # the lens, not the cage, decides
+        self.assertGreater(floor - CAMERA_CLEAR, vp.rk.BENCH_TOP)
 
     def test_clear_path_raises_before_translating(self):
         move_to(self.model, self.data, np.array([-3, -.4, 1.3251]))
