@@ -9,12 +9,16 @@ callers that need a file --- the vision scan loads its scene by path:
 """
 import argparse
 import json
+import sys
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
 import mujoco
 
 SIM = Path(__file__).resolve().parents[2] / 'simulation'
+if str(SIM / 'scripts') not in sys.path:
+    sys.path.insert(0, str(SIM / 'scripts'))
+import generate_open_vessels as open_vessels  # noqa: E402
 PATTERNS = SIM / 'assets/minihannover_open/patterns'
 CATALOGUE = json.loads((PATTERNS / 'index.json').read_text())['patterns']
 
@@ -56,11 +60,17 @@ def pattern_scene(scene_path, name):
     origin = list(map(float, desk.get('pos').split()))
     containers = [item for item in population['containers']
                   if item['container_ml'] != 10]
+    # The open copy of each flask, not the catalogue's own. They are the same
+    # bottle with two things added: a liquid column the dosing draws down, and a
+    # site at the mouth to aim at. Without them a pattern bench holds no liquid
+    # at all --- every dose came out as 0 ml and nothing moved --- while the rail
+    # scene's own bench, which has always used these, dosed fine.
+    open_vessels.main_for([item['sample_id'] for item in containers])
     for item in containers:
         sample = item['sample_id']
         name = f'dyn_{sample}'
         ET.SubElement(asset, 'model', name=name,
-                      file=str(SIM / 'assets/labelled_bottles' / f'{sample}.xml'))
+                      file=str(SIM / 'assets/open_vessels' / f'{sample}.xml'))
         body = ET.SubElement(world, 'body', name=name,
                              pos=f"{item['x'] + origin[0]} {item['y'] + origin[1]} {0.9 + origin[2]}",
                              euler=f"0 0 {item['yaw']}")

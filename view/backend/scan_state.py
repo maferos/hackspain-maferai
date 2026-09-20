@@ -19,7 +19,7 @@ import sys
 import threading
 import time
 
-from catalogue import REPO, Catalogue, shelf_from_tracks
+from catalogue import G_PER_ML, REPO, Catalogue, shelf_from_tracks
 from live_scan import vp
 from gantry_motion import is_gantry
 from workflow import DONE, SCAN_STAGES, Workflow
@@ -80,11 +80,17 @@ def _anthropic():
 
 
 class FetchExecutor:
-    """Fetches each flask of the current order through the scan controller.
+    """Works each flask of the current order through the scan controller.
 
-    The arm carries the gripper, so this locates, picks and returns; it never
-    doses. The workflow crosses the steps off from what the arm is seen doing;
-    this reports what only it knows: a flask gone, a miss, a timeout.
+    One visit per ingredient: the hand stands over the flask, mimes the uncap
+    and the pipette without touching it, and carries the dose to the beaker on
+    the balance. Nothing is lifted and nothing is returned.
+
+    The dose is whatever the formula asked for. There is no force sensor to
+    read and no scale being loaded --- the pipetting is mimed, so the amount
+    delivered is the amount specified, and the balance is told so here. The
+    workflow crosses the steps off from what the arm is seen doing; this
+    reports what only it knows: a flask gone, a timeout, the mass.
     """
 
     def __init__(self, workflow: Workflow, world) -> None:
@@ -118,34 +124,38 @@ class FetchExecutor:
         if track is None:
             report(sample, "locate", "failed", note="the scan no longer sees it")
             report(sample, "pick", "skipped")
-            report(sample, "return", "skipped")
+            report(sample, "dose", "skipped")
             return
         picks = track.picks
+        # The catalogue keeps its levels in grams over G_PER_ML; the scene draws
+        # a column in millilitres. Converting here keeps the flask the viewer
+        # shows and the flask the next check reads at the same number.
         with self.world.lock:
-            self.world.commands.append({"cmd": "pick", "track": track.id})
+            self.world.commands.append({"cmd": "pick", "track": track.id,
+                                        "ml": float(item["grams"]) / G_PER_ML})
         began = time.monotonic()
         while not self._stop.wait(0.3):
             if track.picks > picks:
                 break
             if track.state in ("unreachable", "lost"):
                 report(sample, "pick", "failed", note=track.note)
-                report(sample, "return", "skipped")
+                report(sample, "dose", "skipped")
                 return
             if time.monotonic() - began > PICK_TIMEOUT_S:
                 with self.world.lock:
                     self.world.commands[:] = [c for c in self.world.commands if c.get("track") != track.id]
                 report(sample, "pick", "failed", note="the arm did not get to it")
-                report(sample, "return", "skipped")
+                report(sample, "dose", "skipped")
                 return
         if self._stop.is_set():
             return
         steps = item["steps"]
-        if track.state == "missed" and steps["pick"]["status"] not in DONE:
-            report(sample, "pick", "failed", note="the gripper closed on nothing")
-        elif steps["pick"]["status"] not in DONE:
-            report(sample, "pick", "completed", note="lifted on the gripper's force feedback")
-        if steps["return"]["status"] not in DONE:
-            report(sample, "return", "completed", note="put back where it stood")
+        if steps["pick"]["status"] not in DONE:
+            report(sample, "pick", "completed",
+                   note="the hand stood over it and drew the dose")
+        if steps["dose"]["status"] not in DONE:
+            report(sample, "dose", "completed", mass=float(item["grams"]),
+                   note="dosed into the beaker on " + BALANCE)
 
 
 class ScanState:

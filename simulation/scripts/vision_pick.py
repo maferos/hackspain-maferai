@@ -174,6 +174,7 @@ DOSE_ML = 2.0
 POUR_ABOVE = 0.06           # how far over the beaker's mouth the hand stands to dose
 POUR_SECONDS = 1.2          # how long the beaker's column takes to rise by the dose
 POUR_STEPS = 12
+PIPETTE_SECONDS = 1.5       # the hand stands over the flask this long, doing nothing
 MAX_LOOKS = 2               # bearings tried before a proposal is called empty
 GIVE_UP_AFTER = 2           # failed looks at one position before the scan leaves it
 # Bearings the camera can stand at, from the bottle. The rail side first while
@@ -1807,23 +1808,33 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         yield from drive(station, carry, open_hand, 1.5, f'clear of the beaker')
 
     def pick(track: Track, millilitres: float | None = None):
-        if grip_id is None:
-            world.log(data.time, f'{track.sample}: this arm carries no gripper')
-            return
+        """Stand the hand over one flask, mime the pipetting, dose the beaker.
+
+        Nothing is grasped and nothing is lifted. The hand comes straight down
+        until the cage is over the flask, waits there, and goes back up: on the
+        real tool that is where the cap comes off, the pipette goes in and the
+        dose is drawn, and none of that is simulated. The flask is left standing
+        exactly where the scan found it, which is why its ring position survives
+        the visit and the next formula does not have to read it again.
+
+        What is not mimed is the liquid. The dose comes off this flask's column
+        and goes into the beaker, so the two levels move together and the amount
+        is the one the formula asked for.
+        """
         if not track.confirmation.refined_xy:
-            # Put down since the ring last placed it: read it again first.
+            # Moved since the ring last placed it: read it again first.
             yield from look(track)
             if track.state != 'named':
                 return
         sample = track.sample
-        vessel =perception.rows[track.confirmation.marker_id]['vessel_class']
+        vessel = perception.rows[track.confirmation.marker_id]['vessel_class']
         mujoco.mj_copyData(scratch, model, data)
         found = plan_grasp(model, scratch, carry, track.xy, vessel_height(vessel))
         if found is None:
-            track.state, track.note = 'unreachable', 'named, but the gripper cannot reach'
+            track.state, track.note = 'unreachable', 'named, but the hand cannot reach'
             world.log(data.time, f'{sample}: {track.note}')
             return
-        station, q_above, q_on = found
+        station, q_above, q_over = found
         try:
             yield from travel(station, f'travelling to {sample}', track)
             yield from drive(station, q_above, open_hand, 1.5,
@@ -1831,42 +1842,25 @@ def controller(model: mujoco.MjModel, data: mujoco.MjData, world: World,
         except Retarget:
             yield from drive(here(), carry, open_hand, 1.5, f'{sample} is gone')
             return
-        yield from drive(station, q_on, open_hand, 2.0, f'reaching down for {sample}')
-        track.held = True
-        yield from drive(station, q_on,
-                         lambda i, n: gt.SHUT * min((i + 1) / (n * 0.5), 1.0),
-                         1.5, f'closing on {sample}', stop_on_grip=True)
-        settled = float(data.ctrl[grip_id])
-        keep = lambda *_, g=settled: g
-        yield from drive(station, q_above, keep, 1.5, f'lifting {sample}')
-        yield from drive(station, q_above, keep, 1.5, f'holding {sample}')
-        got = rk.read_grip(model, data).holding
-        track.state = 'picked' if got else 'missed'
-        track.note = ('gripper reported an object and lifted it' if got
-                      else 'gripper closed on nothing')
-        world.log(data.time, f'{sample}: {track.note}')
-        yield from drive(station, q_on, keep, 1.5, f'putting {sample} back')
-        yield from drive(station, q_on, open_hand, 0.8, f'releasing {sample}')
-        # Lifting it, holding it and setting it back is the pipetting, mimed:
-        # what the flask gave up comes off its column now, and goes into the
-        # beaker in pour(). A flask that was never lifted gives nothing.
+        yield from drive(station, q_over, open_hand, 2.0,
+                         f'lowering the hand over {sample}')
         drawn = 0.0
-        if got and sample in vessels:
+        if sample in vessels:
             drawn = min(DOSE_ML if millilitres is None else millilitres,
                         vessels[sample].volume)
+        yield from still(PIPETTE_SECONDS,
+                         f'standing over {sample}: uncapping and drawing '
+                         f'{drawn:.1f} ml')
+        if drawn > 0:
             vessels[sample].volume -= drawn
             pt.sync(model, vessels)
             world.log(data.time, f'{sample}: {drawn:.1f} ml drawn, '
                                  f'{vessels[sample].volume:.1f} ml left in the flask')
-        yield from drive(station, q_above, open_hand, 1.2, f'clear of {sample}')
+        yield from drive(station, q_above, open_hand, 1.5,
+                         f'lifting the hand off {sample}')
         yield from drive(station, carry, open_hand, 1.5, f'clear of {sample}')
         yield from pour(sample, drawn)
-        # A bottle let go of settles where it likes, up to 30 mm from where it
-        # was taken. The ring's position is spent; the fixed camera's stands in
-        # until the next pick reads the ring again.
-        track.confirmation.refined_xy = None
         track.picks += 1
-        track.held = False
 
     def prefixed(prefix, job):
         """Run a job with a prefix on its captions, and hand back what it returns."""

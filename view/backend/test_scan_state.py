@@ -306,40 +306,64 @@ class WorkflowTest(unittest.TestCase):
 
 
 class FetchExecutorTest(unittest.TestCase):
-    def test_each_flask_is_picked_through_the_controller(self):
-        catalogue = Catalogue()
-        tracks = [track(1, "named", "SMP-0014"), track(2, "named", "SMP-0039")]
-        w = world(tracks, scan={"scans": [{}]})
-        shelf = lambda: shelf_from_tracks(tracks, catalogue)
-        wf = Workflow(catalogue, shelf, executor="fetch", order_file=None)
+    def setUp(self):
+        self.catalogue = Catalogue()
+        self.tracks = [track(1, "named", "SMP-0014"), track(2, "named", "SMP-0039")]
+        self.world = world(self.tracks, scan={"scans": [{}]})
+        shelf = lambda: shelf_from_tracks(self.tracks, self.catalogue)
+        self.wf = Workflow(self.catalogue, shelf, executor="fetch", order_file=None)
         for sample in ("SMP-0014", "SMP-0039"):
-            catalogue.levels.set_ml(sample, catalogue.samples[sample]["containerMl"])
-        wf.submit(FormulaChat(catalogue, shelf).reply("1 g geraniol, 0.5 g nerol")["formula"], "chat")
-        executor = FetchExecutor(wf, w)
+            self.catalogue.levels.set_ml(sample, self.catalogue.samples[sample]["containerMl"])
+        self.wf.submit(FormulaChat(self.catalogue, shelf)
+                       .reply("1 g geraniol, 0.5 g nerol")["formula"], "chat")
 
+    def run_arm(self, executor):
+        """Take each pick command as the real controller does, with its captions."""
+        self.asked = []
         def controller():
-            # Takes each pick command as the real controller does, with its captions.
             while executor.thread.is_alive():
-                with w.lock:
-                    asked = [c for c in w.commands if c["cmd"] == "pick"]
-                    w.commands.clear()
+                with self.world.lock:
+                    asked = [c for c in self.world.commands if c["cmd"] == "pick"]
+                    self.world.commands.clear()
+                self.asked += asked
                 for command in asked:
-                    t = next(t for t in tracks if t.id == command["track"])
-                    for caption, holding in ((f"closing on {t.sample}", False), (f"holding {t.sample}", True),
-                                             (f"putting {t.sample} back", False), (f"clear of {t.sample}", False)):
-                        wf.observe(tracks, caption, holding)
-                    t.state, t.picks = "picked", t.picks + 1
+                    t = next(t for t in self.tracks if t.id == command["track"])
+                    for caption in (f"travelling to {t.sample}",
+                                    f"lowering the hand over {t.sample}",
+                                    f"lifting the hand off {t.sample}",
+                                    f"carrying {t.sample} to the balance",
+                                    f"over the beaker with {t.sample}"):
+                        self.wf.observe(self.tracks, caption, False)
+                    t.picks += 1
                 time.sleep(0.05)
-
         executor.start()
         threading.Thread(target=controller, daemon=True).start()
         executor.thread.join(10)
-        wf.observe(tracks, "idle: watching the bench", False)
-        state = wf.state(True)
+        self.wf.observe(self.tracks, "idle: watching the bench", False)
+
+    def test_every_flask_is_visited_and_dosed_through_the_controller(self):
+        self.run_arm(FetchExecutor(self.wf, self.world))
+        state = self.wf.state(True)
         self.assertEqual(state["status"], "completed")
         self.assertTrue(state["qc"]["passed"])
         self.assertEqual([[s["status"] for s in i["steps"]] for i in state["ingredients"]],
                          [["completed"] * 3, ["completed"] * 3])
+
+    def test_the_arm_is_told_the_dose_and_the_balance_is_told_it_landed(self):
+        self.run_arm(FetchExecutor(self.wf, self.world))
+        # Nothing is weighed: the pipetting is mimed, so what the formula asked
+        # for is what the arm is sent for and what the balance reports.
+        wanted = [i["grams"] for i in self.wf.state(True)["ingredients"]]
+        self.assertEqual([c["ml"] for c in self.asked], wanted)
+        self.assertEqual([i["mass"] for i in self.wf.state(True)["ingredients"]], wanted)
+
+    def test_a_flask_the_scan_lost_is_neither_visited_nor_dosed(self):
+        self.tracks[0].state = "lost"
+        self.run_arm(FetchExecutor(self.wf, self.world))
+        steps = [[s["status"] for s in i["steps"]]
+                 for i in self.wf.state(True)["ingredients"]]
+        self.assertEqual(steps[0], ["failed", "skipped", "skipped"])
+        self.assertEqual(steps[1], ["completed"] * 3)
 
 
 if __name__ == "__main__":

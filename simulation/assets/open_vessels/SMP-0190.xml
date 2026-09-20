@@ -134,8 +134,8 @@
       <geom name="base" type="cylinder" pos="0 0 0.00150"
             size="0.02391 0.00150"
             rgba="0 0 0 0" mass="0" group="3"/>
-      <geom name="liquid" type="cylinder" pos="0 0 0.01690"
-            size="0.02191 0.01390" rgba="0.72 0.38 0.04 0.95"
+      <geom name="liquid" type="cylinder" pos="0 0 0.01400"
+            size="0.02191 0.01100" rgba="0.72 0.38 0.04 0.95"
             contype="0" conaffinity="0" mass="0"/>
       <site name="mouth" pos="0 0 0.11423" size="0.01058 0.001" type="cylinder"
             rgba="0.2 0.7 0.9 0.25" group="4"/>

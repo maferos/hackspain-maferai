@@ -50,7 +50,7 @@ BALANCE = "balance_2"
 LOG_KEEP = 40
 
 STEPS = {
-    "fetch": ("locate", "pick", "return"),
+    "fetch": ("locate", "pick", "dose"),
     "external": ("locate", "pick", "carry", "dose", "verify", "return"),
 }
 STEP_LABELS = {
@@ -61,6 +61,18 @@ STEP_LABELS = {
     "verify": "Verify on " + BALANCE,
     "return": "Return {sample} to the bench",
 }
+# The fetch executor never takes hold of anything: it stands the hand over the
+# flask, mimes the uncap and the pipette, and carries the dose to the balance.
+# Nothing is lifted, so nothing is returned, and "pick" is not the word for what
+# it does there.
+FETCH_LABELS = {"pick": "Pipette {grams:.3f} g from {sample}"}
+
+
+def step_label(executor: str, step: str) -> str:
+    """The label for one step of one executor's sequence."""
+    if executor == "fetch" and step in FETCH_LABELS:
+        return FETCH_LABELS[step]
+    return STEP_LABELS[step]
 # A formula's stages. The bench scan is not among them: the scan is the lab's
 # own task, done once, and a formula that ran after it does not carry a copy.
 STAGES = {
@@ -74,10 +86,14 @@ DONE = ("completed", "failed", "skipped")
 # The controller's captions that name a sample, and the step each one is.
 CAPTION_STEPS = (
     (re.compile(r"^(travelling to|moving over|reaching down for|closing on) (SMP-\d{4})"), "pick", "active"),
+    (re.compile(r"^(lowering the hand over|standing over) (SMP-\d{4})"), "pick", "active"),
     (re.compile(r"^(lifting|holding) (SMP-\d{4})"), "pick", "completed"),
+    (re.compile(r"^(lifting the hand off) (SMP-\d{4})"), "pick", "completed"),
     (re.compile(r"^(putting) (SMP-\d{4}) back"), "return", "active"),
     (re.compile(r"^(releasing) (SMP-\d{4})"), "return", "active"),
     (re.compile(r"^(clear of) (SMP-\d{4})"), "return", "completed"),
+    (re.compile(r"^(carrying) (SMP-\d{4}) to the balance"), "dose", "active"),
+    (re.compile(r"^(over the beaker with|dosing .* of) (SMP-\d{4})"), "dose", "active"),
 )
 
 
@@ -580,8 +596,8 @@ class Workflow:
                 if steps[earlier]["started"] is None:
                     steps[earlier]["started"] = clock
         if status != "active":
-            label = STEP_LABELS[step].format(sample=item["sampleId"], compound=item["compound"],
-                                             grams=item["grams"])
+            label = step_label(self.order.executor, step).format(
+                sample=item["sampleId"], compound=item["compound"], grams=item["grams"])
             level = {"completed": "ok", "failed": "warn", "skipped": "info"}[status]
             mark = "✓" if status == "completed" else "✗" if status == "failed" else "–"
             self._log(f"{mark} {item['compound']}: {label[0].lower()}{label[1:]}"
@@ -727,8 +743,9 @@ class Workflow:
                     detail = [("", step["note"])] if step["note"] else []
                     out.append({
                         "id": f"{order.id}-{item['id']}-{sid}",
-                        "label": STEP_LABELS[sid].format(sample=item["sampleId"], compound=item["compound"],
-                                                         grams=item["grams"]),
+                        "label": step_label(order.executor, sid).format(
+                            sample=item["sampleId"], compound=item["compound"],
+                            grams=item["grams"]),
                         "ingredientId": item["id"], "status": step["status"], "attempt": 1,
                         "startedAt": step["started"], "completedAt": step["completed"],
                         "detail": [list(kv) for kv in detail],

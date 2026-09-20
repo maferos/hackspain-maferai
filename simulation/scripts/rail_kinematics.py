@@ -20,6 +20,7 @@ import numpy as np
 SIM = Path(__file__).resolve().parents[1]
 SCENE = SIM / 'models/minihannover_rail_scene.xml'
 
+FLANGE = 'arm_wrist_3_link'     # the body every tool is mounted on
 ARM_JOINTS = (
     'arm_shoulder_pan_joint', 'arm_shoulder_lift_joint', 'arm_elbow_joint',
     'arm_wrist_1_joint', 'arm_wrist_2_joint', 'arm_wrist_3_joint',
@@ -115,11 +116,25 @@ def pick_tcp(model: mujoco.MjModel) -> str:
     bench pattern — has to call this rather than assume a tool, or it names a
     site that is not there the moment the tool changes.
     """
-    global TCP_SITE
+    global TCP_SITE, ENVELOPE
     known = {mujoco.mj_id2name(model, mujoco.mjtObj.mjOBJ_SITE, i)
              for i in range(model.nsite)}
     TCP_SITE = next(name for name in TCP_SITES if name in known)
+    ENVELOPE = (ENVELOPE[0], ARM_REACH + tool_offset(model))
     return TCP_SITE
+
+
+def tool_offset(model: mujoco.MjModel) -> float:
+    """How far the fitted tool's centre point stands from the wrist flange.
+
+    Read off the compiled scene, with the arm wherever its qpos happens to put
+    it: the tool is rigid on the flange, so the distance is the same in every
+    pose and one forward pass is enough.
+    """
+    data = mujoco.MjData(model)
+    mujoco.mj_kinematics(model, data)
+    return float(np.linalg.norm(data.site(TCP_SITE).xpos
+                                - data.body(FLANGE).xpos))
 
 
 def rest(model: mujoco.MjModel, data: mujoco.MjData) -> None:
@@ -319,9 +334,17 @@ def solve_ik(model: mujoco.MjModel, data: mujoco.MjData, target: np.ndarray,
 
 
 # The UR10e's own envelope, measured from the base flange: 1.30 m of reach plus
-# the gripper's 145 mm pinch offset, and nothing closer than the shoulder can
-# fold. Cheap to check, and it skips the expensive solve for most targets.
-ENVELOPE = (0.22, 1.40)
+# whatever the fitted tool puts between the flange and its centre point, and
+# nothing closer than the shoulder can fold. Cheap to check, and it skips the
+# expensive solve for most targets.
+#
+# The offset is not a constant: the Robotiq's pinch sits 145 mm off the flange
+# and the cage hand's 585 mm, so a bound written for one rules out two thirds of
+# a metre the other can reach. It cost the demo the beaker on the open balance,
+# which sat 1.46 m out and was refused by this check alone --- the IK solved it
+# and nothing was in the way. pick_tcp() measures it off the scene instead.
+ARM_REACH = 1.30
+ENVELOPE = (0.22, ARM_REACH + 0.145)
 
 
 def solve_any(model: mujoco.MjModel, data: mujoco.MjData, target: np.ndarray,
