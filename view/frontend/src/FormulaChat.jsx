@@ -1,13 +1,17 @@
-// The formula chat. A message goes to the backend (formula_chat.py), which
-// answers and, for a formula, checks it against the flasks the live scan has
-// named by their rings and shows it as the JSON the robot will receive. A
-// formula can also be pasted or dropped as JSON. "Send to robot" makes it the
-// order (workflow.py); from then on the robot narrates here what it crosses
-// off, and the task panel follows it.
+// The brief chat. What the operator types is a brief — "something fresh and
+// citrusy for summer" — not a formula: the backend puts it on the queue and a
+// model writes it into a real fragrance on the compounds this bench holds
+// (backend/brief.py), when its turn comes. From then on the robot narrates
+// here what it crosses off, and the task panel follows it.
 import { useEffect, useRef, useState } from "react";
 import { Panel } from "./LabPanels";
 
-const SUGGESTIONS = ["What's on the bench?", "2 g of FRG-101", "40 % geraniol, 60 % nerol, total 2 g"];
+const SUGGESTIONS = [
+  "What's on the bench?",
+  "Something fresh and citrusy for summer, light",
+  "A warm spicy evening scent, long-lasting",
+  "A green floral, like cut stems after rain",
+];
 const HISTORY = 12;
 const clock = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 const JSON_EXAMPLE = '{"name": "My accord", "ingredients": [{"material": "Geraniol", "batch_g": 1.2}]}';
@@ -350,7 +354,7 @@ export default function FormulaChat({ backendUrl, lab, style, onAsked, onToast }
                 send(draft);
               }
             }}
-            placeholder={running ? "Type stop, or ask about the bench…" : "e.g. 1.2 g geraniol, 0.5 g nerol, or paste JSON"}
+            placeholder={running ? "Type stop, or ask about the bench…" : "Describe the fragrance you want…"}
             aria-label="Formula message"
           />
           <input

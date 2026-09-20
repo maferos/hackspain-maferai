@@ -166,6 +166,40 @@ scan still replay the scripted formulation of
   rejected at the check with the reason underneath. The chat scrolls away and
   this does not, which is the point of it.
 
+## The brief chat
+
+What the operator types is a **brief** — "something fresh and citrusy for
+summer, light" — not a formula. It joins the queue in those words and a model
+writes it into a real fragrance when its turn comes (`backend/brief.py`).
+
+**The model is asked for very little on purpose.** Only the creative part: a
+name, a family, a product strength, one sentence of description, and a list of
+`(compound, percent)`. It is never asked for the formula JSON.
+`harness/build_formulas.build_formula` — the same function that built the five
+fragrances in `harness/formulas/` — expands a spec that size into the harness
+format and refuses anything wrong with it: percentages that do not sum to 100,
+a compound outside the catalogue, an ingredient over its IFRA Category 4 limit.
+Asking a model for the fifteen fields it would otherwise have to get right is
+asking it to be wrong; asking for the two that need taste means a formula that
+reaches the queue is correct by construction.
+
+**The palette is the bench, not the catalogue.** The model only sees compounds
+the scan has named, with the grams left in the fullest flask of each and its
+IFRA ceiling. `brief.py` adds the two checks the builder cannot make, because
+they are facts about this bench rather than about perfumery: that the compound
+is standing here at all, and that the flask holds the dose. A brief is
+therefore composed **when its turn comes**, never when it is sent — while the
+scan is still reading the bench the palette is a fraction of it, and a
+fragrance written against that is written against ignorance.
+
+**A rejected build is a conversation.** The builder's complaint goes back to
+the model, which tries again, up to `brief.ATTEMPTS` times.
+
+`ANTHROPIC_API_KEY` in the gitignored `view/backend/.env` is required: there is
+no offline path for briefs. `VIEW_BRIEF_MODEL` picks the model, default
+`claude-sonnet-5`. Asking what is on the bench is still answered as a question
+rather than taken as a brief.
+
 ## Formula chat
 
 The **Formula** panel, which is the whole right-hand column, checks a formula

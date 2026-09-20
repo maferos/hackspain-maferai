@@ -19,6 +19,7 @@ from __future__ import annotations
 import asyncio
 import json
 import random
+import re
 import subprocess
 import os
 import sys
@@ -606,12 +607,41 @@ def formulation_info():
             "order": order.id if order else None, "status": order.status if order else None}
 
 
+# What the operator types is a brief, not a formula: "something fresh and
+# citrusy for summer". The two exceptions are asking what is on the bench, and
+# stopping a run — a question and a command, neither of them a brief.
+BENCH_QUESTION = re.compile(r"\b(bench|mesa|shelf|what.?s there|qu[eé] hay)\b", re.I)
+STOP_WORD = re.compile(r"^\s*(stop|para|detente|halt)\b", re.I)
+
+
 @app.post("/api/chat")
 def chat_message(payload: dict = Body(...)):
-    """One chat message: the reply, the formula it proposes (and its JSON), what was done."""
+    """One chat message. A brief goes on the queue; a question is answered."""
     message = str(payload.get("message") or "").strip()
     if not message:
         raise HTTPException(400, "Empty message")
+    if BENCH_QUESTION.search(message) and "?" in message:
+        return {"reply": chat.reply(message)["reply"], "formula": None, "action": None}
+    if not STOP_WORD.match(message):
+        lab = lab_state()
+        try:
+            order = lab.workflow.submit_brief(message, "chat")
+        except RuntimeError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        lab._pump()
+        if order.status == "rejected":
+            why = "; ".join(p["reason"] for p in order.check["problems"])
+            return {"reply": f"I could not compose that: {why}", "order": order.id,
+                    "rejected": True, "problems": order.check["problems"], "action": None}
+        if order.composed:
+            got = order.composed
+            return {"reply": f"{order.id}: {got['name']} — {got['family']}, "
+                             f"{len(got['ingredients'])} compounds, {got['product']}. "
+                             f"On the queue.",
+                    "order": order.id, "rejected": False, "json": order.doc, "action": None}
+        return {"reply": f"{order.id} is on the queue. It is composed on the bench "
+                         f"once the scan has finished reading it.",
+                "order": order.id, "rejected": False, "action": None}
     answer = chat.reply(message, payload.get("history") or [])
     if answer["action"] == "start":
         try:

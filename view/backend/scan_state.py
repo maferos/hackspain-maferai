@@ -13,6 +13,7 @@ pick command, one after the other.
 """
 from __future__ import annotations
 
+import os
 import re
 import sys
 import threading
@@ -60,6 +61,21 @@ def level_of(message: str) -> str:
     if any(k in text for k in ("ring reads", "lifted it", "scan done", "named")):
         return "ok"
     return "info"
+
+
+def _anthropic():
+    """The client briefs are composed with, or None without a key.
+
+    The key is read from the environment, which ``server.py`` loads from the
+    gitignored ``view/backend/.env``.
+    """
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        return None
+    try:
+        import anthropic
+        return anthropic.Anthropic()
+    except Exception:                                   # package missing or key refused
+        return None
 
 
 class FetchExecutor:
@@ -149,7 +165,7 @@ class ScanState:
         self.workflow = Workflow(catalogue, self.shelf, on_mass=self._mass,
                                  scene_model=lambda: (self.scene.model, self.scene.data),
                                  scene_name=self._scene_name(),
-                                 scan_done=self._scan_done, **kwargs)
+                                 scan_done=self._scan_done, client=_anthropic(), **kwargs)
         self.executor: FetchExecutor | None = None
         self._scan = None
         self._sent: list[str] = []

@@ -133,6 +133,8 @@ class Order:
         self.started: float | None = None
         self.finished: float | None = None
         self.status = "queued"
+        self.brief: str | None = None       # what was asked for, before a formula existed
+        self.composed: dict | None = None   # the fragrance a brief was written into
         self.check: dict | None = None
         self.heap: dict | None = None       # the harness's plan, see actions.py
         self.qc: dict | None = None
@@ -176,13 +178,14 @@ class Workflow:
 
     def __init__(self, catalogue: Catalogue, shelf, on_mass=None, executor: str = EXECUTOR,
                  order_file: Path | None = ORDER_FILE, scene_model=None,
-                 scene_name: str = "the bench", scan_done=None) -> None:
+                 scene_name: str = "the bench", scan_done=None, client=None) -> None:
         self.catalogue, self.shelf, self.on_mass = catalogue, shelf, on_mass
         self.executor = executor if executor in STEPS else "fetch"
         self.order_file = order_file
         self.scene_model = scene_model or (lambda: (None, None))
         self.scene_name = scene_name
         self.scan_done = scan_done or (lambda: True)
+        self.client = client            # anthropic.Anthropic, for briefs
         self.orders: list[Order] = []
         self.lock = threading.RLock()
         self._numbers = iter(range(1, 10_000))
@@ -285,6 +288,56 @@ class Workflow:
                 return order
             return self._admit(order)
 
+    def submit_brief(self, text: str, source: str) -> Order:
+        """Put a brief on the queue. It becomes a fragrance when its turn comes.
+
+        Not before: the palette a brief is composed on is the bench the scan has
+        named, and while the scan is still reading it that is a fraction of the
+        bench. A fragrance written against a fraction is written against
+        ignorance, so the brief waits in its own words.
+        """
+        with self.lock:
+            # An empty formula in the shape everything downstream expects, so a
+            # brief on the queue reads like any other order until it is written.
+            empty = {"id": "BRIEF", "name": text.strip()[:60], "ingredients": [],
+                     "targetMass": 0.0, "unknown": [], "runnable": False,
+                     "estimate": {"picks": 0, "seconds": 0}}
+            order = Order(f"ORD-{next(self._numbers):03d}", empty, source, self.executor)
+            order.brief = text.strip()
+            order.doc = self.formula_json(empty, source)
+            order.doc["order"] = {"id": order.id, "created": _now(), "executor": self.executor}
+            self.orders.append(order)
+            ahead = [o for o in self.orders[:-1] if o.status in ("queued", "running")]
+            self._log(f"{order.id} brief received from the {source}: \u201c{order.brief[:70]}\u201d"
+                      + (f", {len(ahead)} ahead of it" if ahead else ""), "info")
+            if not self.scan_done():
+                self._log(f"{order.id} waits for the bench scan", "info")
+                self._write()
+                return order
+            if ahead:
+                self._write()
+                return order
+            return self._admit(order)
+
+    def _compose(self, order: Order) -> None:
+        """Write the brief into a fragrance, on the bench as the scan left it.
+
+        Raises:
+            ValueError: The bench is too bare, or the model could not write
+                something ``build_formula`` would accept.
+        """
+        import brief as composer
+        if self.client is None:
+            raise ValueError("no ANTHROPIC_API_KEY on the backend: briefs need one")
+        composed = composer.compose(order.brief, self.shelf(), self.client, formula_id=order.id)
+        order.composed = composed
+        lines = [{"compound": i["cas"], "grams": i["batch_g"]} for i in composed["ingredients"]]
+        order.formula = cat_resolve(lines, self.shelf(), self.catalogue,
+                                    composed["id"], composed["name"])
+        self._log(f"{order.id} composed from the brief: {composed['name']} "
+                  f"\u2014 {composed['family']}, {len(composed['ingredients'])} compounds, "
+                  f"{composed['product']}", "info")
+
     def _admit(self, order: Order) -> Order:
         """Check a queued formula against the finished bench, and plan it.
 
@@ -294,6 +347,17 @@ class Workflow:
         with self.lock:
             if order.check is not None:
                 return order
+            if order.brief is not None and not order.formula["ingredients"]:
+                try:
+                    self._compose(order)
+                except Exception as exc:
+                    order.check = {"passed": False, "seconds": 0.0, "problems":
+                                   [{"compound": "\u2014", "reason": str(exc)}]}
+                    order.status = "rejected"
+                    order.finished = order.created
+                    self._log(f"{order.id} could not be composed: {exc}", "warn")
+                    self._write()
+                    return order
             self._reresolve(order)
             doc = order.doc
             total = sum(i["batch_g"] for i in doc["ingredients"] if not i["problem"])
@@ -596,7 +660,9 @@ class Workflow:
                 "stages": self._stages(order, scan_done), "qc": order.qc, "check": order.check,
                 "heap": order.heap,
                 "done": done, "total": len(items),
+                "brief": order.brief,
                 "queue": [{"id": o.id, "name": o.formula["name"], "status": o.status,
+                           "brief": o.brief, "composed": o.composed is not None,
                            "ingredients": len(o.items)} for o in self.waiting()],
                 "ingredients": [{
                     "id": i["id"], "compound": i["compound"], "cas": i["cas"], "grams": i["grams"],

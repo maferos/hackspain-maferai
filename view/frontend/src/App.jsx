@@ -449,25 +449,42 @@ export default function App() {
   const ASKED_OF = { queued: "queued", running: "sent", completed: "done",
                      aborted: "aborted", rejected: "rejected" };
   const order = lab.state?.order ?? null;
-  // One string per distinct lab verdict, so the effect only runs when one moves.
-  const verdicts = [order && `${order.id}:${order.status}`,
-                    ...(order?.queue ?? []).map((o) => `${o.id}:${o.status}`)]
-    .filter(Boolean).join("|");
+  // A brief is listed in the operator's own words until the model writes it
+  // into a fragrance, and then by the fragrance's name and compounds. Both the
+  // status and the naming come from the lab, keyed by order id.
+  const fromLab = {};
+  if (order) {
+    fromLab[order.id] = {
+      status: order.status,
+      name: order.formula?.name,
+      lines: (order.ingredients ?? []).map((i) => ({ compound: i.compound, grams: i.grams })),
+    };
+  }
+  for (const o of order?.queue ?? []) fromLab[o.id] = { status: o.status, name: o.composed ? o.name : null };
+  // One string per distinct verdict, so the effect only runs when one moves —
+  // and one for the list, because the lab's word for an order often arrives
+  // over the socket before the chat's answer has put the row there to correct.
+  const verdicts = Object.entries(fromLab)
+    .map(([id, v]) => `${id}:${v.status}:${v.name ?? ""}`).join("|");
+  const rows = asked.map((e) => `${e.order ?? ""}:${e.status}`).join("|");
   useEffect(() => {
     if (!verdicts) return;
-    const said = Object.fromEntries(verdicts.split("|").map((v) => v.split(":")));
     setAsked((list) => {
       let changed = false;
       const next = list.map((entry) => {
-        const status = ASKED_OF[said[entry.order]];
+        const said = fromLab[entry.order];
         // A rejection is the check's verdict and nothing later overrides it.
-        if (!status || entry.status === "rejected" || entry.status === status) return entry;
+        if (!said || entry.status === "rejected") return entry;
+        const status = ASKED_OF[said.status] ?? entry.status;
+        const name = said.name || entry.name;
+        const lines = said.lines?.length ? said.lines : entry.lines;
+        if (status === entry.status && name === entry.name && lines === entry.lines) return entry;
         changed = true;
-        return { ...entry, status };
+        return { ...entry, status, name, lines };
       });
       return changed ? next : list;
     });
-  }, [verdicts]);
+  }, [verdicts, rows]);
 
   // Start with the general camera when opening or switching viewport sources.
   useEffect(() => {
