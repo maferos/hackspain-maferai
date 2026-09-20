@@ -7,34 +7,38 @@ has been measured so far, what to present at the demo, and how to repeat the
 whole thing with frames rendered in Isaac Sim instead. It replaces
 `YOLO26_STUDY.md`, `YOLO26_PLAN.md` and `YOLO26_TRAINING_PIPELINE.md`.
 
-Written 2026-09-19. Every number is one of:
+Written 2026-09-19, updated 2026-09-20 with the full dataset and the trained
+models. Every number is one of:
 
 - **measured**: from a run that happened, with the script that produced it;
 - **decided**: by Martí;
 - **estimate** or **proposed**: not run, or not agreed.
 
-**Status in one paragraph.** The images exist: 9,400 rendered frames with exact
-labels (measured). The training set is chosen: 4,252 of them (measured). The
-detector in use, `rail`, has been scored on every new view, so it is known
-where it fails and what retraining has to fix (measured). **The retrained model
-does not exist yet: nothing has been trained on the new frames**, and nothing
-has been timed on the demo's Mac. Every script the training needs is written
-and was run here on what can run without a GPU.
+**Status in one paragraph.** The dataset is rendered: 10,300 MuJoCo frames with
+216,876 exactly labelled vials, from the wall camera, any angle, close up and
+low cameras, on benches laid out in rows, clusters and crowds of up to 75
+flasks, in a lab that changes around the bench (measured). 5,844 of them train
+the model. **The model is trained and scored: `yolo26n_full_1920_e100.pt`,
+threshold 0.52, backend `full`** (measured): it finds as many vials as the old
+detector from the robot's wall camera (recall 0.991 to 0.999, with fewer false
+boxes) and far more from everywhere else (0.447 to 0.998 under a metre). What
+has not been done: timing it on the demo's Mac, scoring it on a real
+photograph, and training on Isaac frames.
 
-**Where the code is.** The scripts named here that are not on `main` yet
-(`select_frames.py`, `pose_map.py`, `training_plots.py`, `train_pod.sh`,
-`bench_crop.py`, `viewpoint_study.py`, `limits_sweep.py`, `export_and_time.py`,
-`dataset_report.py`, `runs/orbit/train_yolo26_gpu.py`, and the orbit, close,
-low, dark and overhead splits of `fixedcam_dataset.py`) are on the branch
-`vision/orbit-dataset`, uncommitted in the worktree `../Hackspain-orbit`. The
-exact code that rendered the frames is archived in
-`docs/presentacion/dataset_viales/pod/codigo_render.tgz`.
+**Where things are.** The model to use and how to point each program at it:
+`computer-vision/weights/README.md`. The weights are not in git: team Drive,
+**General MAFER AI › hackathon › weights**. The dataset's record, its review
+page and how to regenerate it: `docs/presentacion/dataset_viales/README.md`
+(Spanish) and https://claude.ai/artifact/9sFAnHGXH6hzXr366sKU12 (private). The
+code of everything below is on the branch `vision/orbit-dataset`; `main` holds
+an earlier state of it (merged at `5c6925c`), without the bench patterns, the
+lab variation and the pod scripts of the full dataset.
 
 ## 1. The target (decided)
 
 | | |
 | --- | --- |
-| Model | **YOLO26n**, fine-tuned from the detector in use, `weights/yolo26n_rail_general.pt` (`rail`). Larger models are dropped: the nano scores 0.99 on the view the robot uses, and what it lacks is data (section 6) |
+| Model | **YOLO26n**, fine-tuned from the previous detector, `weights/yolo26n_rail_general.pt` (`rail`). Larger models were dropped: the nano scored 0.99 on the view the robot uses, and what it lacked was data (section 6) |
 | Input | **The part of the frame the bench occupies, at the frame's native 1920 px.** That is what the demo runs: the viewer on `main` crops rows 30 to 75 % of the frame at full width (1920 x 486, `view/backend/table_crop.py`) and predicts at native size. Training crops every frame the same way (section 4) and trains at `imgsz 1920`, so the model is trained on what it will see |
 | Demo machine | A teammate's Mac with a GPU and 128 GB. `vision_pick.py` already picks `mps` there. Not timed yet (section 8) |
 | Training data | MuJoCo renders only. Isaac is the second renderer this document prepares for (section 11) |
@@ -54,12 +58,14 @@ scene (MJCF, as committed, never written)
   -> gt.json: exact box, visible fraction, camera pose of every frame
   -> optional degradation (blur, noise, JPEG, gamma)
   -> check the render                              dataset_report.py
+     (the two steps above on a pod:                pod_run_dataset.sh)
   -> select the training set, even over poses      select_frames.py
   -> draw where the camera stood                   pose_map.py
   -> crop to the bench, YOLO labels                fixedcam_to_yolo.py --crop
   -> fine-tune YOLO26n at 1920 px on a GPU pod     runs/orbit/train_yolo26_gpu.py
   -> score old and new on every test set           viewpoint_study.py --crop
   -> find where each breaks                        limits_sweep.py
+  -> the ten demo benches as the viewer frames them  demo_patterns_check.py
   -> figures for the presentation                  training_plots.py
   -> time it on the demo machine                   export_and_time.py
 ```
@@ -80,19 +86,32 @@ Script: `scripts/fixedcam_dataset.py`. The scene is loaded through
 (`EXTRA_PER_SIZE = 3` of every bottle size of both kits, on top of the scene's
 own). Each frame draws the steps below, in this order, from its own seed.
 
-### 3.1 Bottle layout (`lay_out`)
+### 3.1 The bench: `lay_out`, and the seeded patterns
 
-- All movable bottles are parked, then 8 to 34 are stood on free worktop
-  (`max_bottles = 34` for the rail splits). A spot is free when a ray cast down
-  meets the worktop at the right height and nothing within the bottle's radius.
-- 35 % of layouts are a **cluster**: 75 % of the bottles fall within a
-  Gaussian of 15 x 12 cm around one point, so they hide each other, as on a
-  working bench.
-- 10 % of training frames (20 % of test frames) keep the scene's **as-built**
-  layout, the one the robot will actually meet.
-- Every sample bottle in view is labelled, wherever it stands (bench, shelf,
-  room), and tagged with `where`, so the benchmark can score the bench alone
-  without the model being taught that a bottle elsewhere is background.
+All movable bottles are parked, then the bench is laid out one of three ways:
+
+- **as built** (10 % of training frames, 20 % of test frames): the scene's own
+  vessels where the scene file puts them, the bench the robot actually meets;
+- **a seeded pattern** (half of the rest): `simulation/scripts/bottle_patterns.py`
+  draws a whole worktop from one integer, 10 to 75 flasks, 4 to 60 mm apart,
+  scattered, in several clusters, **in rack-like rows** or **crowded into one
+  stretch**. `lay_out_pattern` stands a movable vial of the same radius (or the
+  next smaller one left) on each of its spots, and leaves a spot out when
+  something else stands there. Training draws pattern seeds between 1,000 and
+  1,000,000 and **never one of the ten catalogued seeds** (p01 to p10: 30, 176,
+  21, 327, 1, 31, 70, 4, 2, 15), which are what the viewer shows and what
+  `pattern_test` and `pattern_orbit_test` keep for themselves;
+- **the renderer's own layout** (the other half): 8 to 34 vials on free worktop
+  by ray casts, 35 % of them a cluster of 15 x 12 cm round one point.
+
+`EXTRA_PER_SIZE = 15` extra labelled vials of each of the five sizes are added
+in memory, 94 movable vials in all, so that 75 fit. Every sample vial in view is
+labelled wherever it stands, and tagged with `where`. What was drawn goes into
+the frame's `randomisation.layout` (style, pattern seed, count, spacing).
+
+Measured over the 10,300 frames: renderer's scatter 4,090, its cluster 1,610,
+as built 1,146, pattern rows 1,172, pattern clusters 1,154, pattern crowd
+1,128; up to 75 vials a frame.
 
 ### 3.2 Arm pose (`pose_arm`)
 
@@ -101,24 +120,39 @@ own). Each frame draws the steps below, in this order, from its own seed.
   over the bench and hides bottles the way it will when working.
 - Otherwise the carriage is parked at a random x along the rail.
 
-### 3.3 Light and materials (`Randomiser.draw`)
+### 3.3 Light, materials, and the lab around the bench
 
 | Knob | Training draw |
 | --- | --- |
 | Light intensity | x U(0.55, 1.45) on every light |
 | Light colour | per channel x N(1, 0.035), clipped to 0.9 to 1.1 |
 | Headlight | diffuse and ambient each x U(0.55, 1.45) |
-| Dark frames | 20 % of wall-mount and 25 % of orbit and close training and validation frames keep only 8 to 50 % of the light |
 | Worktop tint | 50 % of frames: the worktop's colour x U(0.78, 1.0), hue within 2 % |
+| Dark frames | none in training (decided): 8 to 50 % of the light only in `dark_test` and `orbit_dark_test` |
 
-Test splits keep the light nominal, except the dedicated `*_shift` and
-`*dark_test` splits. Light is drawn per frame, so varying it adds no frames:
-the number of images is set by how well the camera poses are covered, not by
-the light (section 7).
+**A varied lab** (`Randomiser.vary_lab`) in 70 % of training and validation
+frames; the other 30 % keep the lab as it is, the one the robot works in. The
+bench, the rail, the arm and the vials are never touched:
 
-### 3.4 The camera: three families of viewpoints
+- **appearance**: about half the room's materials, and its bare-coloured walls
+  and floor, are tinted, brightness x U(0.55, 1.08) and hue off by N(0, 9 %);
+  the ceiling lights move by N(0, 0.4 m) and up to a third are switched off;
+- **arrangement**: whole families of furniture and clutter are taken away, each
+  with 35 % chance (chairs, stools, cartons and their tape and labels, drums,
+  coats, bins, the carboy); and, unless the frame keeps the as-built bench, each
+  of four balances, the GC-MS and the UV-Vis is slid along the bench by up to
+  0.5 m (50 %), taken away (20 %) or left (30 %). The sink and the open balance
+  the beaker stands on stay. This happens before the bench is laid out, so the
+  vials avoid the instruments where they now stand.
 
-All three render at 1920 x 1080.
+Textures are not swapped and no new objects are added. What changed is recorded
+in `randomisation.lab`. `lab_test` and `lab_rail_test` are varied labs from
+seeds of their own. Light and lab are drawn per frame, so their variety costs
+no frames: the image count is set by the camera poses to cover (section 7).
+
+### 3.4 The camera: four families of viewpoints
+
+All four render at 1920 x 1080.
 
 **Wall mount (`rail_*`)**: the `general` camera where it is mounted, jittered in
 training by N(0, 7 cm) per axis, clipped to 15 cm, and turned by N(0, 2) degrees
@@ -159,7 +193,14 @@ Those cells of the grid in section 7 are empty for that reason (measured).
 first 4 preview frames showed no vial, because the frame is only about half a
 metre wide this close (measured, then fixed).
 
-Bottle heights in the dataset preview (measured, sampled frames):
+**Low (`low_*`)**: the same sampler 15 to 30 degrees above the bench, 0.5 to
+3.5 m away: a camera at eye height across the bench. The previous detector lost
+4 to 11 points of recall there (section 6.2).
+
+An orbit, close or low pose that shows no vial at least 30 % visible is drawn
+again, twice at most: the first render had 188 such frames, this one has 4.
+
+Bottle heights in the first render's preview (measured, sampled frames):
 
 | Family | Frames sampled | Boxes | Height p5 / p50 / p95 / max |
 | --- | ---: | ---: | --- |
@@ -199,55 +240,55 @@ or an id past the last one. Segmentation now has its own renderer with
 ### 3.7 Splits and seeds
 
 Frame `k` of a split uses seed `split.seed + k`, and every split has its own
-range of seeds, so no layout, light or pose is shared between train, val and
-test. Tests keep the light nominal and the frames clean unless their name says
-otherwise.
+range of seeds. Checked on the labels of the render (measured): **no frame seed
+is shared** between training, validation and test, and no catalogued pattern
+appears in training. Two things are not perfectly apart, and neither matters:
+pattern seeds are drawn from a million values, so 3 benches of about 2,500
+coincide by chance between training and validation or test (same vials, other
+camera, light, arm and room); and the as-built bench is the same bench in every
+split on purpose. Tests keep the light nominal, the frames clean and the lab
+unvaried unless their name says otherwise.
 
 | Split | Camera | Frames | Role |
 | --- | --- | ---: | --- |
-| `rail_train` / `rail_val` | wall mount, jittered | 3,000 / 300 | training (the `rail` model used 1,500 / 150) |
-| `rail_test` | wall mount, nominal | 150 | the camera the robot uses; no run may lose here |
-| `rail_test_shift` | wall mount, strong light, degraded | 100 | proxy for another renderer or a real GoPro |
-| `orbit_train` / `orbit_val` / `orbit_test` | orbit, 1 to 3.5 m | 3,000 / 300 / 300 | any angle over 30 degrees |
-| `close_train` / `close_val` / `close_test` | orbit, 0.35 to 1 m | 1,500 / 150 / 150 | near views |
-| `dark_test`, `orbit_dark_test` | wall mount / orbit, 8 to 50 % light | 150 each | dim room |
-| `overhead_test` | orbit, 70 to 88 degrees | 150 | looking straight down |
-| `low_train` / `low_val` / `low_test` | orbit, 15 to 30 degrees, 0.5 to 3.5 m | 600 / 100 / 100 | cameras at bench height; in code, not in the render yet (10.5) |
-| `test_open` | wall mount, the open scene (another lab) | 100 | never trained on; not in the render yet |
+| `rail_train` / `rail_val` | wall mount, jittered | 2,500 / 250 | training and validation |
+| `orbit_train` / `orbit_val` | orbit, 1 to 3.5 m, 30 to 88 degrees | 3,000 / 300 | |
+| `close_train` / `close_val` | orbit, 0.35 to 1 m | 1,500 / 150 | |
+| `low_train` / `low_val` | orbit, 15 to 30 degrees | 800 / 100 | |
+| `rail_test` | wall mount, nominal | 150 | the camera the robot uses; no model may lose here |
+| `pattern_test` / `pattern_orbit_test` | wall mount / orbit | 100 / 100 | the ten catalogued benches of the demo, 10 frames each, never trained on |
+| `lab_rail_test` / `lab_test` | wall mount / orbit | 100 / 150 | varied labs |
+| `orbit_test`, `close_test`, `low_test`, `overhead_test` | as named | 300 / 150 / 100 / 150 | each view on its own |
+| `rail_test_shift` | wall mount, strong light, every frame degraded | 100 | proxy for another renderer or a real GoPro |
+| `dark_test`, `orbit_dark_test` | 8 to 50 % of the light | 150 each | reported, not trained for |
+| `test_open` | wall mount, the open scene | 100 | another lab entirely; not rendered |
 
 ### 3.8 The render that exists (measured)
 
-Every split of the table except `test_open`: **9,400 frames** (7,500 train,
-750 val, 1,150 test), **123,657 labelled vials**. Rendered in 18 min on an RTX
-4090 pod in RunPod's EU-RO-1 (32 CPUs, 24 parallel parts, about $0.32; pod
-deleted since). Every elevation x bearing cell (6 bands x 12 bearings) holds at
-least 35 training frames. Flagged by `dataset_report.py`: 188 frames with no
-vial (close views of free worktop, kept as negatives) and 153 with low
-contrast (141 dark by design, 12 close views of the white worktop); none with
-the camera inside geometry, and no vial lost to the crop.
+**10,300 frames** (7,800 training, 800 validation, 1,700 test), **216,876
+labelled vials**, 8.1 GB: wall mount 3,350 frames and 99,235 vials, orbit 4,150
+and 77,157, close 1,800 and 19,797, low 1,000 and 20,687. Rendered in **10.5
+minutes** on an RTX 4090 pod in RunPod's EU-RO-1 (112 CPUs, 24 parallel MuJoCo
+EGL processes, about 0.15 USD). `dataset_report.py` flags 4 frames with no vial
+and 14 with low contrast (9 close views of bare worktop with one vial, 5 dark
+by design), none with the camera inside geometry, and no bench vial lost to the
+crop. 68 frames rendered again on a Windows laptop from the same seeds carry
+exactly the pod's boxes: the seeds do regenerate the dataset.
 
 ```bash
-export MUJOCO_GL=egl
-for i in $(seq 0 23); do
-  python computer-vision/scripts/fixedcam_dataset.py --splits rail_train --part $i/24 &
-done; wait
-python computer-vision/scripts/fixedcam_dataset.py --splits rail_train --merge
+bash computer-vision/scripts/pod_run_dataset.sh    # on the pod, as /root/repo/pod_run.sh
 ```
 
-`--part i/n` renders every n-th frame from the i-th into
-`gt.part<i>of<n>.json`; `--merge` joins them into `gt.json`. For scale: 1,900
-frames took 2.5 min with 8 processes on an A40, and the laptop's CPU takes
-about 2 s a frame. The render was driven by
-`docs/presentacion/dataset_viales/pod/pod_run.sh`, which renders every split in
-parallel parts, repeats the parts that fail, merges, checks the counts and runs
-`dataset_report.py`; the README beside it has the commands.
+renders every split in parallel parts (`--part i/n`, then `--merge`), repeats
+the parts that fail, checks the counts, runs `dataset_report.py` and hands over
+to `train_pod.sh`. It skips the splits whose `gt.json` is already complete, so
+a new pod on the same volume goes straight to training.
 
-Where it is: RunPod network volume `hackspain-orbit-dataset` (id
-`mwd17cd5k8`, 25 GB, EU-RO-1), frames at `/workspace/fixedcam` (7.4 GB), and
-the exact code that rendered them at `/workspace/code`. A training pod created
-in EU-RO-1 with that `networkVolumeId` mounts it with no upload. The A40's data
-centre (CA-MTL-1) offers no network volumes. Martí validates the frames in a
-private artifact (section 7) built from `dataset_report.py`'s output.
+Where it is: RunPod network volume `hackspain-orbit-dataset` (id `mwd17cd5k8`,
+25 GB, EU-RO-1), frames at `/workspace/fixedcam_v2`, the code that rendered them
+at `/workspace/code_v2`. The first render (9,400 frames, one bench style, one
+lab) is still at `/workspace/fixedcam`; this one replaces it. A pod created in
+EU-RO-1 with that `networkVolumeId` mounts the frames with no upload.
 
 ## 4. Cropping
 
@@ -283,186 +324,231 @@ Training on 640 px tiles of the crop was considered and dropped: it buys
 training time, which at about an hour is not the constraint, and a model
 trained on tiles is unproven on the whole band it has to run on.
 
-## 5. Training (written and checked; not run yet)
+## 5. Training (measured)
 
-One run, `n_sel_1920`. Everything not listed is the default of Ultralytics
-8.4.155; the run folder's `args.yaml` records every value used, and is saved.
+The same run twice, 25 epochs and 100 epochs, everything else equal. Everything
+not listed is the default of Ultralytics 8.4.155; the run folder's `args.yaml`
+records every value used, and is saved.
 
 | | |
 | --- | --- |
-| Script | `runs/orbit/train_yolo26_gpu.py DATA --size n --imgsz 1920 --weights weights/yolo26n_rail_general.pt --name n_sel_1920` |
-| Start | `rail`'s weights, not COCO: it already scores 0.99 on the wall mount, and `rail` itself came from `yolo26n.pt` (COCO) |
+| Script | `runs/orbit/train_yolo26_gpu.py DATA --size n --imgsz 1920 --weights weights/yolo26n_rail_general.pt --name n_full_1920 --epochs 100 --patience 20` |
+| Start | `rail`'s weights, not COCO: it already scored 0.99 on the wall mount, and `rail` itself came from `yolo26n.pt` (COCO) |
 | Data | `sel_train` and `sel_val` (section 7), every frame cropped to the bench, one class |
 | Input | `imgsz 1920`. Ultralytics resizes each image's long side to 1920 and builds square mosaics, so a wall-mount band (1920 wide) keeps its native pixels |
-| Epochs | up to 50, `patience 12` (stops 12 epochs after the best) |
-| Batch | 8 (fits 24 GB at 1920 px for the nano) |
-| Random scale | `scale 0.5`, +-50 %: vial heights span 10 to 250 px. (`rail` used 0.25, when they spanned 9 to 36) |
+| Epochs | 25 with `patience 8`, and 100 with `patience 20`. Neither stopped early |
+| Batch | 8; 15 to 16.5 GB of the 24 GB |
+| Random scale | `scale 0.5`, +-50 %: vial heights span 10 to 300 px. (`rail` used 0.25, when they spanned 9 to 36) |
 | Other augmentation, defaults | mosaic 1.0, off for the last 10 epochs; horizontal flip 0.5, no vertical flip; HSV 0.015 / 0.7 / 0.4; translate 0.1; random erasing 0.4; no rotation, shear, perspective, mixup or copy-paste |
-| Optimiser, defaults | `optimizer auto`, `lr0 0.01` to `lrf 0.01` linear, momentum 0.937, weight decay 0.0005, 3 warm-up epochs, AMP on, loss gains box 7.5 / cls 0.5 / dfl 1.5 |
-| Seed | 0, deterministic |
+| Optimiser | `optimizer auto`, which chose AdamW at lr 0.002, momentum 0.9; linear decay to `lrf 0.01` over the run's epochs; weight decay 0.0005; 3 warm-up epochs; AMP on; loss gains box 7.5 / cls 0.5 / dfl 1.5 |
+| Frames read | from the pod's own disk, uncached, 12 loader workers. `cache="ram"` wants 28 GB for this set and got the process killed |
+| Seed | 0 |
 | Checkpoint kept | `best.pt`, the epoch with the best validation fitness (0.1 x AP50 + 0.9 x AP50-95) |
+| Machine | RunPod, RTX 4090 24 GB, 83 GB RAM, 0.74 USD an hour |
 
-Time and cost (estimate): 48 s an epoch was measured for 1,500 whole frames at
-1920 on an A40 (`runs/rail`); 4,252 frames is about 2.3 min an epoch, 20 to 30
-epochs from `rail`'s weights: **45 to 70 minutes, about 1 USD**. The first
-epoch on the pod gives the real figure.
+| run | time | an epoch | best validation (750 frames, 15,253 vials) |
+| --- | --- | --- | --- |
+| 25 epochs | 53 min | 2.1 min | epoch 25: recall 0.985, precision 0.992, AP50 0.995, AP50-95 0.899 |
+| 100 epochs | 4 h 10 min | 2.5 min | epoch 85: recall 0.988, precision 0.995, AP50 0.995, AP50-95 0.907 |
 
-**What the run leaves behind** (`train_pod.sh` copies it all to `$OUT`, which
-is on the volume and outlives the pod):
+At epoch 8 the two runs stood at the same 0.881 AP50-95, as they should: same
+data, same seed. They part afterwards because the learning rate decays over the
+whole run, so the 100-epoch run is still learning fast when the 25-epoch one
+has wound down. Validation was still creeping up at epoch 90 (about 0.003
+AP50-95 every ten epochs); nothing suggests overfitting.
+
+![Training curves of the 100-epoch run](img/yolo26_training_curves.png)
+
+**What a run leaves behind** (`train_pod.sh` copies it all to `$OUT`; both
+runs' folders are kept in `docs/presentacion/dataset_viales/entrenamiento_e25`
+and `entrenamiento_e100` of the main checkout):
 
 | file | what it is | show it? |
 | --- | --- | --- |
-| `weights/n_sel_1920.pt` | the model | |
+| `weights/<name>.pt` | the model | |
 | `run/results.csv`, `run/args.yaml` | every epoch's losses and scores; every hyperparameter | |
 | `run/results.png`, `BoxPR_curve.png`, `BoxF1_curve.png`, `confusion_matrix.png` | Ultralytics' own plots | backup slides |
 | `run/train_batch*.jpg`, `val_batch*_pred.jpg` | mosaics as the model saw them; its boxes on validation frames | yes: the quickest proof it works |
 | `plots/pose_map_train.png` | where the camera stood in every training frame (section 7) | **yes** |
 | `plots/training_curves.png` | losses and validation scores by epoch, best epoch marked | **yes** |
 | `plots/before_after.png` | `rail` against the new model on every test set | **yes** |
-| `score_*.md`, `viewpoint/` | the numbers behind it, by elevation, distance and vial size | |
+| `score_*.md`, `viewpoint/` | the numbers behind it, by elevation, distance and vial size, and every box of both models on every test frame | |
 
-The two figures of `training_plots.py`, drawn here from the one training log
-that exists, `rail`'s own (measured: 20 epochs on the 1,500 wall-mount frames,
-stopped by hand with validation flat):
+The whole night cost about 6 USD of pod time, three failed starts included
+(section 8.3).
 
-![Training curves of rail](img/yolo26_training_curves_rail.png)
-
-## 6. Scoring, and what has been measured
+## 6. Scoring, and the results
 
 - `scripts/viewpoint_study.py WEIGHTS --crop --pick-on sel_val --splits ...`:
   recall, false boxes a frame and AP50 per test set, broken down by camera
   elevation, distance, vial height in pixels and place in the frame. `--crop`
   predicts on the bench crop, as the model is trained and run. The threshold
-  is the best-F1 threshold on the validation set, never on a test.
+  is the best-F1 threshold on the validation set, never on a test. A box is
+  right at IoU 0.5 with a vial no other box has taken. YOLO26 predicts end to
+  end, so there is no NMS threshold beside it.
 - `scripts/limits_sweep.py WEIGHTS`: renders the same 12 bench layouts while
-  one condition moves, and reports where recall breaks. Its frames are
-  rendered once and reused, so a second detector costs only its inference.
-- `scripts/fixedcam_bench.py`: the older per-split benchmark, with the worktop
-  filter.
+  one condition moves, and reports where recall breaks.
+- `scripts/demo_patterns_check.py WEIGHTS`: the ten demo benches exactly as the
+  viewer shows them (section 6.3).
+- `scripts/fixedcam_bench.py`: the older per-split benchmark.
 
-### 6.1 The detector in use, on every view (measured)
+### 6.1 Every test, three models (measured)
 
-`rail` at its backend threshold, 0.10, IoU 0.5; test sets of 40 to 80 frames
-rendered locally from the same seeds as the full ones on the volume.
+The full test splits of the render, 37,261 vials in 1,700 frames that no model
+trained on. Recall and false boxes a frame, each model at its own validation
+threshold: `rail` 0.56, the 25-epoch run 0.41, the 100-epoch run 0.52.
 
-| test set | what it shows | vials | recall | false boxes a frame | AP50 |
-| --- | --- | ---: | ---: | ---: | ---: |
-| `rail_test` | the wall mount, as trained | 1,221 | 0.993 | 1.5 | 0.990 |
-| `rail_test`, bench crop | the same, as the viewer runs it | 1,221 | 0.993 | 1.2 | 0.990 |
-| `orbit_test` | any bearing, 1 to 3.5 m, 30 to 85 degrees | 794 | 0.970 | 5.0 | 0.964 |
-| `overhead_test` | 70 to 88 degrees | 314 | 0.962 | 7.3 | 0.926 |
-| `close_test` | any bearing, 0.35 to 1 m | 137 | **0.635** | 4.3 | 0.543 |
-| `dark_test` | wall mount, 8 to 50 % of the light | 721 | 0.935 | 0.6 | 0.948 |
-| `orbit_dark_test` | any bearing, 8 to 50 % of the light | 387 | 0.938 | 3.2 | 0.942 |
+| test | what it asks | `rail`, before | 25 epochs | **100 epochs** |
+| --- | --- | --- | --- | --- |
+| `rail_test` | the robot's wall camera | 0.991 · 0.11 | 0.998 · 0.14 | **0.999 · 0.05** |
+| `pattern_test` | the ten demo benches, wall camera | 0.993 · 0.10 | 0.998 · 0.08 | **0.998 · 0.00** |
+| `lab_rail_test` | a varied lab, wall camera | 0.985 · 0.08 | 0.998 · 0.14 | 0.998 · 0.06 |
+| `rail_test_shift` | degraded camera, strong light | 0.980 · 0.05 | 0.993 · 0.16 | 0.995 · 0.02 |
+| `orbit_test` | any angle, 1 to 3.5 m | 0.948 · 0.68 | 0.995 · 0.05 | 0.998 · 0.04 |
+| `close_test` | under a metre | **0.447** · 0.81 | 0.999 · 0.05 | **0.998** · 0.01 |
+| `overhead_test` | straight down | 0.853 · 1.13 | 0.999 · 0.02 | 0.998 · 0.00 |
+| `low_test` | 15 to 30 degrees | 0.770 · 0.90 | 0.978 · 0.35 | 0.975 · 0.10 |
+| `pattern_orbit_test` | the ten demo benches, any angle | 0.909 · 1.39 | 0.999 · 0.04 | 0.999 · 0.01 |
+| `lab_test` | a varied lab, any angle | 0.921 · 0.82 | 0.999 · 0.09 | 0.998 · 0.03 |
+| `dark_test` | dim room, wall camera | 0.845 · 0.05 | 0.908 · 0.11 | 0.891 · 0.01 |
+| `orbit_dark_test` | dim room, any angle | 0.828 · 0.37 | 0.914 · 0.07 | 0.929 · 0.02 |
 
-On the as-built bench `rail` boxes 247 of 247 vials. For comparison on
-`rail_test`: the earlier fixed-camera model AP50 0.796, the model trained on
-Isaac's `lab_dataset_v2` 0.574, YOLO-World L with prompts 0.672.
+![rail against the 100-epoch model on every test set](img/yolo26_before_after.png)
 
-![rail on every test set](img/yolo26_before.png)
+- **It does not lose where the robot looks from**, and it fixes everything that
+  failed: near views, low cameras, overhead, the demo benches from any angle.
+- **`rail` was already good from the wall mount**, rows of 71 flasks and varied
+  labs included (0.993 and 0.985): the bench patterns and the lab variation
+  were never its problem there. Its problem was the camera leaving the wall.
+- **100 epochs against 25.** At their own thresholds they find the same and the
+  longer run draws fewer false boxes. At one threshold, 0.47, over all twelve
+  tests: 714 vials missed and 74 false boxes against 804 and 106; the order is
+  the same at 0.41 and at 0.52. A real but small gain for four hours of GPU.
+- **The threshold hardly matters to the new models.** For the 25-epoch run on
+  `rail_test`, recall is 0.999 at 0.10 and 0.997 at 0.56 while false boxes go
+  from 0.58 to 0.06 a frame. `rail` needed its threshold: at 0.10 it drew 1.6
+  false boxes a frame from the wall and 6.9 from close.
+- Still the weakest: low cameras (0.975) and a dim room (0.89 to 0.93).
 
-**The failure is the size of the vial in the picture, not the angle.** `rail`
-never saw a vial over 36 px. Over `orbit_test` and `close_test`:
+All of it is MuJoCo, from the generator the training frames came from, on
+benches, cameras, lights and rooms it had not seen. It is not a promise about a
+real camera.
 
-| vial height | vials | recall | fragment boxes per vial |
-| --- | ---: | ---: | ---: |
-| under 32 px | 365 | 0.98 | 0.1 |
-| 32 to 64 px | 407 | 0.97 | 0.3 |
-| 64 to 96 px | 102 | 0.91 | 1.8 |
-| 96 to 160 px | 49 | 0.22 | 1.4 |
-| over 160 px | 8 | 0.00 | 0.0 |
+### 6.2 How far it goes, before and after (measured)
 
-A large vial is missed, or broken into cap, label and body, each boxed as a
-small vial (a fragment is a false box at least 70 % inside a vial): 266 of the
-396 false boxes on `orbit_test` and 206 of the 291 on `overhead_test`. The
-rest are things the wall mount never shows close: cardboard boxes, the brown
-drums under the bench, the shelf rack.
-
-![Truth in green, rail's boxes in red: dim wall mount, dim orbit, overhead, close](img/yolo26_study_demo_cases.jpg)
-
-### 6.2 How far it goes (measured)
-
-`limits_sweep.py rail`: 12 layouts of 24 vials a level. Light from the wall
-mount; distance at 30 degrees of elevation; elevation at 1.5 m.
-
-| light left | 100 % | 50 % | 30 % | 20 % | 15 % | 10 % | 6 % | 3 % |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| recall | 0.996 | 0.996 | 0.996 | 0.978 | 0.951 | 0.511 | 0.000 | 0.000 |
+`limits_sweep.py`: 12 layouts of 24 vials a level, whole frames at 1920 px.
+Light from the wall mount; distance at 30 degrees of elevation; elevation at
+1.5 m. `rail` at its backend threshold 0.10, the new model at 0.52; recall,
+with false boxes a frame in brackets.
 
 | distance | 0.25 m | 0.35 m | 0.5 m | 0.75 m | 1 m | 1.5 m | 2.5 m | 3.5 m |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 | median vial height | 160 px | 136 px | 107 px | 82 px | 63 px | 43 px | 29 px | 21 px |
-| recall | 0.310 | 0.325 | 0.465 | 0.687 | 0.852 | 0.981 | 0.957 | 0.964 |
-| false boxes a frame | 3.1 | 3.8 | 5.6 | 11.8 | 11.1 | 8.4 | 6.0 | 7.6 |
+| `rail` | 0.31 (3.1) | 0.33 (3.8) | 0.47 (5.6) | 0.69 (11.8) | 0.85 (11.1) | 0.98 (8.4) | 0.96 (6.0) | 0.96 (7.6) |
+| new | **1.00** (0.1) | 0.99 (0.0) | **1.00** (0.1) | 0.99 (0.1) | 1.00 (0.0) | 0.99 (0.1) | 0.96 (0.0) | 0.97 (0.0) |
 
 | elevation | 10 | 20 | 30 | 45 | 60 | 75 | 88 degrees |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| recall | 0.885 | 0.939 | 0.981 | 1.000 | 0.992 | 0.972 | 0.945 |
-| false boxes a frame | 10.9 | 13.6 | 8.4 | 5.0 | 3.1 | 4.2 | 4.8 |
+| `rail` | 0.89 (10.9) | 0.94 (13.6) | 0.98 (8.4) | 1.00 (5.0) | 0.99 (3.1) | 0.97 (4.2) | 0.95 (4.8) |
+| new | 0.99 (0.1) | 0.98 (0.0) | 0.99 (0.1) | 1.00 (0.1) | 1.00 (0.1) | 1.00 (0.0) | 1.00 (0.0) |
 
-- Light is a cliff, not a slope: nothing lost to 30 %, half the vials at 10 %,
-  all at 6 %, and no false boxes appear in the dark. Not worth training frames.
-- Near is the long slope, and the target of the retraining.
-- Far is not a limit inside the room.
-- Under 30 degrees recall drops 4 to 11 points and false boxes double: the
-  reason for the `low_*` splits (section 10.5).
+| light left | 100 % | 50 % | 30 % | 20 % | 15 % | 10 % | 6 % | 3 % |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| `rail`, at 0.10 | 0.996 | 0.996 | 0.996 | 0.978 | 0.951 | 0.511 | 0.000 | 0.000 |
+| new, at 0.10 | 0.993 | 0.985 | 0.981 | 0.981 | 0.963 | 0.552 | 0.007 | 0.000 |
+| new, at 0.52 | 0.993 | 0.985 | 0.981 | 0.974 | 0.910 | 0.284 | 0.000 | 0.000 |
 
-### 6.3 Latency (measured on the i5 laptop only)
+- **Near is fixed**: from 0.31 to 1.00 at 0.25 m, where a vial is 160 px tall,
+  and the fragment boxes that came with it are gone.
+- **The angle no longer matters**, down to 10 degrees, below what was trained.
+- **Far is unchanged**: 0.96 to 0.97 at 2.5 to 3.5 m, 21 to 29 px vials.
+- **The dark is unchanged, as decided**: no dark frame was trained on, and at
+  one threshold the two models fall off the same cliff between 15 % and 10 %
+  of the light. At its own higher threshold the new model goes blind a little
+  earlier (0.91 at 15 %); neither invents boxes in the dark. If the demo dims
+  the lights, lower the threshold with them or train on dark frames.
+
+Why `rail` failed near, measured before retraining: it never saw a vial over
+36 px, and broke a larger one into cap, label and body, each boxed as a small
+vial: 266 of its 396 false boxes on the first `orbit_test`, recall 0.22 for
+vials of 96 to 160 px and 0.00 above.
+
+### 6.3 The ten demo benches as the viewer shows them (measured)
+
+`demo_patterns_check.py` builds each catalogued pattern with the viewer's own
+scene builder (`view/backend/scene_patterns.py`), renders the `general` camera
+at 1920 x 1080 with the arm in its starting pose, crops the table band as the
+viewer does (`table_crop.py`) and predicts at native size. Truth is a
+segmentation render of the same frame; a flask counts when 30 % of it shows.
+
+| model | flasks found | false boxes | benches with everything found |
+| --- | ---: | ---: | ---: |
+| `rail`, at the viewer's 0.47 | 428 / 435 | 3 | 6 of 10 |
+| 25 epochs, at 0.41 | 430 / 435 | 0 | 7 of 10 |
+| 100 epochs, at 0.52 | 430 / 435 | 0 | 7 of 10 |
+
+The five flasks the new models miss (one in p02, one in p06, three in p09) are
+all the same case: a small flask right behind a large one, with only the cap
+showing. No flask in plain view is missed. That is the wrist camera's job, not
+the fixed detector's.
+
+![p10, 71 flasks in rows: the viewer's frame, the detector's band, every flask found](img/yolo26_demo_bench_p10.jpg)
+
+The viewer's **Replay** mode does not show MuJoCo: its `rail_global.mp4` videos
+are rendered by IsaacLab (`render_rail_isaaclab.py`), 960 x 540, same framing.
+On the first frame of each, cropped and sized as the replay does (1280 px,
+0.47), the MuJoCo-trained 25-epoch model drew 424 boxes for 436 flasks and
+`rail` 410. Those are counts, not matches: there is no truth for those frames.
+
+### 6.4 Latency (measured on the i5 laptop only)
 
 Whole `predict` calls, nano, one frame. PyTorch on the idle CPU: 233 ms whole
 frame at 1920, about 93 ms on the 1920 x 448 band. OpenVINO fp16 with a fixed
-input shape is 3 to 4 times faster with identical boxes (recall 0.975 and AP50
-0.977 at 1280 px, both runtimes): 80 ms median on the band, p90 103 ms. A
-dynamic shape recompiles every call and runs about 5 times slower. This is the
-fallback machine; the Mac is the target and has not been timed (section 8).
-
-### 6.4 When the new model is accepted
-
-1. It does not lose on `rail_test` against `rail` (AP50 0.990, recall 0.993):
-   that is the camera the robot uses.
-2. It gains on `close_test` (0.543 AP50) and `orbit_test` (0.964), and cuts
-   the fragment boxes from above.
-3. It runs inside 100 ms on the demo machine.
-4. Data check (proposed, 25 minutes): the same run on a third of the training
-   set. If the full set wins by more than a point, add frames before variety.
+input shape is 3 to 4 times faster with identical boxes: 80 ms median on the
+band, p90 103 ms. A dynamic shape recompiles every call and runs about 5 times
+slower. The detector process holds 0.5 to 0.75 GB. This is the fallback
+machine; the demo's Mac has not been timed (section 8.2).
 
 ## 7. The training set (measured)
 
 Priorities (decided): many elevations and distances, little weight on light,
-and few enough images to train in about an hour. Light, tint and degradation
-are drawn per frame and cost no frames; the count is set by how many camera
-poses have to be covered. So the set is **selected** from the render, evenly
-over poses, by `scripts/select_frames.py`:
+and few enough images to train in hours, not days. Light, tint, degradation and
+the varied lab are drawn per frame and cost no frames; the count is set by how
+many camera poses have to be covered. So the set is **selected** from the
+render, evenly over poses, by `scripts/select_frames.py`:
 
-- **no dark frames**: they stay in `dark_test` and `orbit_dark_test`;
-- **wall mount**: the first 1,500 lit frames of `rail_train` by seed, and the
-  first 150 of `rail_val`;
-- **orbit and close together**, on a grid of 4 elevation bands by 5 distance
-  bands: at most 200 frames a cell, taken round-robin over twelve 30-degree
-  bearings, so a capped cell still looks at the bench from all round;
-- **validation**: every lit frame of `orbit_val` and `close_val`.
+- **wall mount**: the first 2,000 frames of `rail_train` by seed, and the first
+  200 of `rail_val`;
+- **orbit, close and low together**, on a grid of 5 elevation bands by 5
+  distance bands: at most 200 frames a cell, taken round-robin over twelve
+  30-degree bearings, so a capped cell still looks at the bench from all round;
+- **validation**: every frame of `orbit_val`, `close_val` and `low_val`;
+- no dark frames: none are rendered into training now, and the script still
+  leaves any out.
 
-Lit `orbit_train` + `close_train` frames kept / rendered, per cell (measured,
-`select_frames.py` on the labels of the 9,400 frames; the same render always
-gives the same selection):
+Frames kept / rendered, per cell (measured; the same render always gives the
+same selection, and the pod and a laptop gave the same one):
 
-| elevation \ distance | 0.35–0.6 m | 0.6–1 m | 1–1.75 m | 1.75–2.5 m | 2.5–3.5 m |
+| elevation \ distance | 0.35-0.6 m | 0.6-1 m | 1-1.75 m | 1.75-2.5 m | 2.5-3.5 m |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| 30–45 degrees | 116 / 116 | 141 / 141 | 200 / 283 | 200 / 278 | 200 / 223 |
-| 45–60 degrees | 103 / 103 | 158 / 158 | 200 / 310 | 200 / 228 | 13 / 13 |
-| 60–75 degrees | 129 / 129 | 163 / 163 | 200 / 354 | 128 / 128 | 0 / 0 |
-| 75–88 degrees | 113 / 113 | 200 / 211 | 200 / 387 | 88 / 88 | 0 / 0 |
+| 15-30 degrees | 22 / 22 | 131 / 131 | 200 / 225 | 200 / 200 | 200 / 221 |
+| 30-45 degrees | 134 / 134 | 200 / 216 | 200 / 370 | 200 / 350 | 200 / 276 |
+| 45-60 degrees | 120 / 120 | 200 / 204 | 200 / 381 | 200 / 294 | 11 / 11 |
+| 60-75 degrees | 161 / 161 | 200 / 241 | 200 / 519 | 177 / 177 | 0 / 0 |
+| 75-88 degrees | 167 / 167 | 200 / 257 | 200 / 502 | 121 / 121 | 0 / 0 |
 
 The empty cells are the ceiling: with the worktop at 0.90 m and the camera
 capped at 2.85 m, a view from 2.5 m or more cannot be steeper than about 50
-degrees. They do not exist in this room and are not a gap to fill.
+degrees. They do not exist in this room and are not a gap to fill. The low,
+very close cell is thin (22) because the low splits start at 0.5 m.
 
-| | train | val | test |
-| --- | ---: | ---: | --- |
-| wall mount | 1,500 | 150 | 150 `rail_test` + 100 `rail_test_shift` |
-| orbit + close, the grid | 2,752 | 322 | 300 `orbit_test` + 150 `close_test` + 150 `overhead_test` |
-| reported, not decisive | | | 150 `dark_test` + 150 `orbit_dark_test` |
-| **total** | **4,252** | **472** | **850 + 300** |
+| | train | val |
+| --- | ---: | ---: |
+| wall mount | 2,000 | 200 |
+| orbit, 1 to 3.5 m | 1,709 | 300 |
+| close, under 1 m | 1,382 | 150 |
+| low, 15 to 30 degrees | 753 | 100 |
+| **total** | **5,844** | **750** |
 
 **The pose map.** `scripts/pose_map.py sel_train` draws where the camera stood
 in every training frame: the bench from above, overhead views at the centre,
@@ -471,11 +557,12 @@ for "what did the model train on", and the check to run on any training set
 before paying for its training: a missing bearing or an empty cell shows at
 once. It reads only `gt.json`, so it draws an Isaac dataset the same way.
 
-![Where the camera stood in the 4,252 training frames](img/yolo26_pose_map_train.png)
+![Where the camera stood in the 5,844 training frames](img/yolo26_pose_map_train.png)
 
-The interactive version, with every thumbnail, is the review page of the full
-9,400 frames: https://claude.ai/artifact/3anS7TBxGczCNA2Rtf1TK8 (private;
-offline in `docs/presentacion/dataset_viales/pagina/index.html`).
+The interactive version, with every thumbnail, filters by camera, use, bench
+style and lab, examples of every split and the results of section 6:
+https://claude.ai/artifact/9sFAnHGXH6hzXr366sKU12 (private; offline in
+`docs/presentacion/dataset_viales/pagina_v3/index.html` of the main checkout).
 
 ## 8. State and next steps
 
@@ -483,45 +570,54 @@ offline in `docs/presentacion/dataset_viales/pagina/index.html`).
 
 | what | where |
 | --- | --- |
-| Frames (9,400, 7.4 GB) | RunPod network volume `hackspain-orbit-dataset` (`mwd17cd5k8`, 25 GB, EU-RO-1), `/workspace/fixedcam`; the code that rendered them at `/workspace/code` |
-| Labels of every frame, locally | `docs/presentacion/dataset_viales/fuentes/etiquetas_gt.tgz` (a `gt.json` per split) |
-| Record of the render and how to redo it | `docs/presentacion/dataset_viales/README.md` (Spanish) |
-| Code | branch `vision/orbit-dataset`, worktree `../Hackspain-orbit`, **uncommitted**; snapshot of what rendered the frames in `dataset_viales/pod/codigo_render.tgz` |
-| Weights in use | `computer-vision/weights/yolo26n_rail_general.pt` (backend `rail`), not in git |
-| RunPod access | key in `~/.runpod-render/api_key` on Martí's laptop (never print it); pods `isaac-render-*` are Eloi's |
+| The model to use | `yolo26n_full_1920_e100.pt`, threshold 0.52, backend `full`: `computer-vision/weights/README.md`. Team Drive, General MAFER AI > hackathon > weights (upload pending: the folders are ready in `docs/presentacion/dataset_viales/para_drive/` of the main checkout) |
+| Frames (10,300, 8.1 GB) | RunPod network volume `hackspain-orbit-dataset` (`mwd17cd5k8`, 25 GB, EU-RO-1), `/workspace/fixedcam_v2`; the code that rendered them at `/workspace/code_v2`; both runs' outputs at `/workspace/out_v2` and `/workspace/out_v2_e100` |
+| Labels of every frame, the report, both runs' plots and scores | `docs/presentacion/dataset_viales/` of the main checkout, with a README (Spanish) |
+| Review page | https://claude.ai/artifact/9sFAnHGXH6hzXr366sKU12, built by `dataset_viales/fuentes/build_page3.py` |
+| Code | branch `vision/orbit-dataset`, committed; `main` has an earlier state of it |
+| RunPod access | key in `~/.runpod-render/api_key` on Marti's laptop (never print it); pods `isaac-*` are not part of this work |
 
-### 8.2 Next steps, in order
+### 8.2 What is left, in order of value
 
-1. Commit the branch's code and bring it to `main`, fetching first: `main`
-   moves fast. Until then the pod needs the code uploaded by hand.
-2. Time `rail` on the Mac, five minutes, before any training, since the
-   architecture is the new model's. With the viewer running, because the
+1. **Time the model on the demo's Mac**, with the viewer running, since the
    detector shares the GPU with the MuJoCo render:
    ```bash
-   python scripts/export_and_time.py rail --format torch --device mps --band 512
-   python scripts/export_and_time.py rail --format coreml --band 512
+   python scripts/export_and_time.py full --format torch --device mps --band 512
+   python scripts/export_and_time.py full --format coreml --band 512
    ```
-   The first is what the viewer does today; the second is the faster path if
-   it is not enough. Neither path of the script has run on a Mac yet.
-3. Pod with a 24 GB GPU in EU-RO-1 mounting the volume, then:
-   ```bash
-   R=/workspace/code SRC=/workspace/fixedcam OUT=/workspace/out \
-     bash computer-vision/scripts/train_pod.sh
-   ```
-   It selects, draws the pose map, crops, trains, scores `rail` and the new
-   model the same way, and draws the figures; it resumes if the pod drops.
-4. Apply section 6.4. Run `limits_sweep.py` on the new weights for the after
-   of section 6.2.
-5. Register the weights as a backend in `labvision/detector.py` with the
-   threshold the score file names, make `labvision` crop with `bench_crop`
-   (today only the viewer crops, with fixed fractions), and set the viewer's
-   threshold.
-6. Delete the pod. Keep the volume until Martí says otherwise (about 1.75 USD
-   a month).
-
-Then section 10: bench patterns, lab layouts and low cameras.
+   Neither path of the script has run on a Mac yet.
+2. **Make the programs default to it.** `vision_pick.py`'s `DETECTORS`, the
+   viewer's `VIEW_DETECTOR` and `live_scan.py` still name `rail`; until they
+   change, use the flags in `weights/README.md`. Prefer the new file when it is
+   on disk and fall back to the old one, or a checkout without it breaks.
+3. **Crop in `labvision`.** Today only the viewer crops to the bench, with
+   fixed fractions; `labvision/detector.py` should crop with `bench_crop` so
+   every caller runs the model as it was trained.
+4. **Merge the branch into `main`.**
+5. **Score a real photograph.** Everything here is MuJoCo (section 10).
+6. **Isaac frames** (section 11).
+7. Delete the first render from the volume (`/workspace/fixedcam`, 7.4 GB) once
+   nobody needs it; the volume costs about 1.75 USD a month.
 
 ### 8.3 Gotchas met on the way
+
+- **The pod takes one bundle and no commands.** Its boot script waits for an
+  upload over HTTPS, unpacks it and runs `pod_run.sh`; there is no shell
+  afterwards. A fix means a new pod, so every stage of the pod scripts skips
+  what is already on the volume. Three starts were lost this way:
+  - **the volume has a quota and no hard links**: `select_frames.py` fell back
+    to copying 6,600 frames onto it and the run died at the quota. It now links
+    symbolically, and the selection and the cropped dataset live on the pod's
+    own disk;
+  - **`cache="ram"`** asked for 28 GB with 16 loader workers and the trainer was
+    killed for memory: the container's limit is far under the host's RAM;
+  - **an inherited variable**: `train_pod.sh` used `DATA` for its YOLO export
+    and the render script had exported `DATA` for the frames, so the crops went
+    onto the volume. Do not share generic names between scripts.
+- **A laptop that loses the network** leaves a pod idle at full price: the
+  upload failed silently once and the pod waited 44 minutes for it.
+- **`viewpoint_study.py` overwrites its result file** per detector name, so a
+  second run with another threshold silently changes what a figure reads.
 
 - **Laptop network:** only ports 80 and 443 get out, so no SSH to pods. Drive
   them through a small upload server behind RunPod's HTTPS proxy
@@ -594,23 +690,23 @@ the open scene dropped the fine-tuned nano from AP50 0.864 to 0.675
 
 | Case | Covered by the render? | What is known |
 | --- | --- | --- |
-| Camera at another bearing or height, 30 to 88 degrees above the bench | yes | `rail` already holds 0.97 recall on `orbit_test` |
-| Camera below 30 degrees (eye height, across the bench) | not yet: `low_*` splits in code, unrendered (10.5) | `rail` recall 0.94 at 20 degrees and 0.89 at 10, with 11 to 14 false boxes a frame |
-| Camera much nearer, so bottles are large (60 to 300 px) | yes, `close_*` | `rail` fell to 0.22 recall at 96 to 160 px and 0 above 160 px |
-| Looking straight down | yes, overhead poses + `overhead_test` | `rail` recall 0.96, but 7.3 false boxes a frame, most of them fragments of vials |
-| Bottles in the frame's corners | partly | `rail` recall 0.83 there |
+| Camera at another bearing or height, 30 to 88 degrees above the bench | yes | 0.948 before, 0.998 now |
+| Camera below 30 degrees (eye height, across the bench) | yes, `low_*`, 15 to 30 degrees | 0.770 before, 0.975 now; 0.99 at 10 degrees in the sweep |
+| Camera much nearer, so bottles are large (60 to 300 px) | yes, `close_*` | 0.447 before, 0.998 now; 1.00 at 0.25 m in the sweep |
+| Looking straight down | yes, overhead poses + `overhead_test` | 0.853 and 1.1 false boxes a frame before, 0.998 and none now |
+| Bottles in the frame's corners | yes | not broken out for the new model |
 | Another lens: wide or fisheye, distortion, other resolution | fovy 48 to 72 only, no distortion, always 1920 x 1080 | undistort from calibration first |
-| Another room: walls, floor, bench material, clutter | no (worktop tint only) | a new scene cost 0.19 AP50 with the camera fixed |
-| Look-alike objects: brown boxes, drums, amber reagent bottles | only what the scene holds | 1.6 false boxes a frame on boxes, drums and the shelf rack from orbit views |
+| Another room: walls, floor, bench material, clutter | partly: the same room with its colours, lights, instruments and furniture varied (section 3.3) | 0.998 on varied labs; another room entirely (`test_open`) is not rendered, and an earlier model lost 0.19 AP50 to a change of scene |
+| Look-alike objects: brown boxes, drums, amber reagent bottles | only what the scene holds; none added | `rail` drew 1.6 false boxes a frame on boxes, drums and the shelf rack from orbit views; the new model 0.04 in all |
 | Other containers: clear glass, white HDPE, vials in racks, other caps | no, amber vials only | the model will miss them or box them unpredictably |
-| Dense packing and occlusion by the arm | yes: 35 % clusters, arm in every frame | a bottle under 30 % visible is not labelled, so it will not be found either |
-| Dim room | rendered, left out of the training set on purpose | `rail` holds to 15 % of the light (0.95 recall), falls to 0.51 at 10 % and finds nothing at 6 %, without inventing boxes |
+| Dense packing and occlusion by the arm | yes: rows and crowds of up to 75 flasks 4 to 60 mm apart, arm in every frame | 430 of 435 on the ten demo benches; a vial under 30 % visible is not labelled, so it is not found either |
+| Dim room | tests only, by decision | unchanged: holds to about 15 % of the light, fails at 10 %, never invents boxes (section 6.2) |
 | Windows, backlight, glare and reflections on glass | no | never rendered |
 | Real sensor: noise, blur, JPEG, exposure | 30 % of training frames degraded | a degraded camera cost the earlier nano 0.10 AP50 |
 | Motion blur | no | |
 | Simulation to reality: real glass, real textures | no | the largest unknown: no real photograph has been scored yet |
-| Operating threshold | set per view on validation | 0.47 on the wall mount, 0.62 on orbit views |
-| Latency on the lab's computer | 100 ms only with the nano, the crop and OpenVINO on a CPU | a GPU takes any size in a few ms |
+| Operating threshold | set on validation | 0.52 for the current model, and it matters little to it (section 6.1) |
+| Latency on the lab's computer | not measured on the demo's Mac | on the i5 laptop's CPU, 80 ms with the bench crop and OpenVINO |
 
 ### 10.2 How the robot adapts to a new lab (proposed)
 
@@ -630,91 +726,28 @@ the open scene dropped the fine-tuned nano from AP50 0.864 to 0.675
 5. **For a lab that is different in kind**, build its twin (MuJoCo or Isaac)
    and run this pipeline on it.
 
-### 10.3 Lab randomisation, a possible second phase (proposed)
+### 10.3 What the full dataset added, and what it did not
 
-No new lab has to be modelled: the rail scene already holds enough to rearrange
-into many. Measured inventory of `minihannover_rail_scene.xml`:
+Three things the first render lacked are now in the data (section 3): the
+seeded bench patterns, a varied lab, and cameras under 30 degrees. What the
+results say about each:
 
-- 7 instruments as bodies of their own (the sink, 5 balances, the GC-MS and
-  the UV-Vis-NIR), so they can be moved without editing the XML;
-- the rest of the room as one static body of 1,409 geoms: chairs, cartons,
-  drums, racks, office desks, people, fume extraction arms, the drying rack;
-  grouped by object, they can be moved or hidden per frame through the model's
-  geom poses;
-- 213 textures, 398 materials and 11 lights.
+- **Bench patterns.** `rail` already found 0.993 of the vials on the ten demo
+  benches from the wall camera, so rows and crowds were not a gap there. From
+  any angle it found 0.909 and the new model 0.999, but that gain is the
+  camera's, not the pattern's: the new model does as well on its own layouts.
+- **A varied lab.** The same story: 0.985 before from the wall camera, 0.998
+  after. The variation is colours, lights, moved instruments and missing
+  furniture of the same room; it is not another room. `test_open`, the open
+  scene, would say more and has not been rendered.
+- **Low cameras.** A real gap, closed: 0.770 to 0.975, and down to 10 degrees in
+  the sweep.
 
-Per frame, keeping the bench, the rail and the arm where they are (the robot's
-workspace):
-
-1. **appearance**, the cheapest and the one aimed at the gap measured in
-   section 9: textures and colours of walls, floor, worktop and furniture from
-   the existing textures, lights moved, dimmed or switched off;
-2. **arrangement**: instruments and furniture moved, removed or repeated, plus
-   look-alike distractors (brown boxes, clear bottles, amber reagent bottles)
-   as negatives;
-3. **scenes**: train on the gantry and rail scenes and keep the open scene out
-   as the unseen lab.
-
-Randomising the lab in the same frames as the camera costs no extra frames;
-a separate `lab_*` set of 3,000 / 300 / 300 was the other option. Measure it
-on `test_open` and on held-out seeds. Swapping textures at run time has to be
-checked on about 20 frames first. Estimated effort: half a day to a day of
-work, minutes of rendering.
-
-Other ways to improve the model, by expected gain for cost: hard negatives
-(run `rail` over the training frames and repeat the ones where it fires on
-boxes, drums or shelving); a threshold per view; OpenVINO for headroom within 100 ms (80 ms measured on the
-crop), which could make room for a larger input or `s`; confirming a vial over
-2 or 3 frames of the still fixed camera (`vision_pick` already tracks
-detections); Isaac frames and real photographs for the step to reality.
-
-### 10.4 The bench patterns the demo already shows (proposed, first in line)
-
-`simulation/scripts/bottle_patterns.py` (Nacho, `f3a0f46`) draws a whole
-worktop from one integer: 10 to 75 flasks, spacing 4 to 60 mm, scattered,
-clustered, in rack-like rows or crowded into one stretch, from five flask
-sizes. Ten are catalogued, `p01` (16 flasks, spread) to `p10` (71 in rows), and
-since `f0f2505` the viewer builds the rail scene with one of the ten, at
-random, on every page load (`view/backend/scene_patterns.py`). **The demo
-already shows benches the detector was never trained on**: the dataset's
-`lay_out` stands 8 to 34 vials, scattered or in one cluster, never in rows.
-
-Measure first (minutes): `pattern_test`, the ten catalogued patterns, each
-from the wall mount, 10 orbit poses and 5 close poses, 160 frames; score `rail`
-and the retrained model by pattern style and spacing. Only if rows at 4 mm
-score worse than the rest, render `pattern_train` (1,500 frames from seeds
-that exclude the catalogued ten: 500 wall mount, 700 orbit, 300 close) and
-`pattern_val` (150), and keep `pattern_test` as the demo's own benches.
-
-How: either load the pattern's model as the viewer does and teach
-`render_perfumery.Lab` to find its flasks, or give `lay_out` a mode that takes
-positions and sizes from `bottle_patterns` and stands `Lab`'s own vials there.
-75 flasks need more than today's 34 movable vials, and raising
-`EXTRA_PER_SIZE` changes every existing frame, so it must be a per-split
-setting, checked by rendering the first 16 frames of `rail_train` and
-comparing them with the volume's.
-
-The lab layouts of 10.3 are drawn in the same frames, so they cost no extra
-frames: a `pattern_train` frame has its own bench, its own room and its own
-camera. Every draw goes into the frame's `randomisation`, as the camera pose
-does today, so scoring and the pose map can group by it.
-
-### 10.5 Low cameras (in code, not rendered)
-
-`low_train` / `low_val` / `low_test`: 15 to 30 degrees above the bench, 0.5 to
-3.5 m, 600 / 100 / 100 frames, from seeds of their own. Measured need: `rail`
-loses 4 to 11 points of recall there and draws 11 to 14 false boxes a frame
-(section 6.2).
-
-### 10.6 The second render and run (estimate)
-
-About 2,900 frames (`pattern_*` 1,810, `low_*` 800, `lab_test` 150,
-`test_open` 100). At the measured 9,400 frames in 17 minutes: about 6 minutes,
-under 0.20 USD. Training set 4,252 + 2,100, fine-tuned from the first model:
-about 1.5 hours, 1.50 USD. The review page then gains a bench-style and a
-lab-variant filter on the pose map, a coverage grid of bench style by camera
-family, and histograms of vials a frame and tightest spacing; `pose_map.py`
-gains the same grouping.
+Not covered by anything here: other containers (clear glass, HDPE), a hand in
+the frame, windows and glare, motion blur, another room, and real photographs.
+Swapping textures and adding look-alike objects (amber reagent bottles, brown
+boxes next to the vials) are the next steps of lab variation if a real lab
+turns out to need them; both are untried.
 
 ## 11. Replicating it in Isaac Sim
 
@@ -820,7 +853,7 @@ Steps:
    fall under the 30 % visibility floor and turn into unlabelled positives.
 
 For the reduced plan of section 7, replay only the selected frames: about
-4,252 training and 472 validation frames, plus the test splits.
+5,844 training and 750 validation frames, plus the test splits.
 
 ### 11.3 If the Isaac scene stops being the MuJoCo export
 
@@ -860,11 +893,11 @@ more than any of these: they are the only test of the step to the real camera.
 
 | Step | Where | Time | Cost |
 | --- | --- | --- | --- |
-| MuJoCo render, 9,400 frames | RTX 4090, EU-RO-1, 24 parts | 18 min (measured) | about $0.32 |
+| MuJoCo render, 10,300 frames | RTX 4090, EU-RO-1, 24 parts | 10.5 min (measured) | about $0.15 |
 | Isaac pod start | A5000 or A40 | about 6 min image pull + 4.5 min first boot (measured) | about $0.10 |
 | Isaac render | A40 | unknown: measure on the first 50 frames | |
 | Training, nano, 1,500 frames | A40 | 48 s an epoch (measured) | |
-| Training, nano, the selected set | RTX 4090 or A40 | 45 to 70 min at 1920 (estimate) | about $1 |
+| Training, nano, 5,844 frames at 1920 | RTX 4090 | 53 min for 25 epochs, 4 h 10 min for 100 (measured) | $0.65 and $3.10 |
 
 ### 11.6 Selecting, training and presenting on Isaac frames
 
@@ -873,9 +906,9 @@ for replayed frames, the MuJoCo frame's `randomisation` copied across, nothing
 downstream knows which renderer made the frames:
 
 ```bash
-python scripts/select_frames.py --src ISAAC_DIR           # the same 4,252 frames
+python scripts/select_frames.py --src ISAAC_DIR           # the same 5,844 frames
 python scripts/pose_map.py sel_train --src ISAAC_DIR --out pose_map_isaac.png
-R=... SRC=ISAAC_DIR OUT=... bash scripts/train_pod.sh n_sel_1920_isaac
+R=... SRC=ISAAC_DIR OUT=... bash scripts/train_pod.sh n_full_1920_isaac
 ```
 
 - `select_frames.py` needs `randomisation.orbit` (elevation, bearing,
@@ -885,7 +918,12 @@ R=... SRC=ISAAC_DIR OUT=... bash scripts/train_pod.sh n_sel_1920_isaac
 - `bench_crop` needs `cam_pos`, `cam_xmat` and `fovy_deg`, in MuJoCo's camera
   convention (looking down -Z, +Y up).
 - Train with exactly section 5's settings, from the same `rail` weights, so
-  the only difference between the two models is the renderer. For the mix of
+  the only difference between the two models is the renderer. `select_frames.py`
+  also needs `randomisation.layout` and `randomisation.lab` only for the review
+  page, not for the selection.
+- A first sign that the gap is smaller than `lab_dataset_v2` suggested: on the
+  IsaacLab videos the viewer replays, same scene and framing, the MuJoCo-trained
+  model already boxes 424 of 436 flasks (section 6.3). For the mix of
   11.4, point `fixedcam_to_yolo.py` at both folders' `sel_train`.
 - `train_pod.sh` scores on whatever test splits `SRC` holds; pass
   `TESTS=isaac_rail_test,isaac_orbit_test` to score on Isaac's and run it again
@@ -895,51 +933,51 @@ R=... SRC=ISAAC_DIR OUT=... bash scripts/train_pod.sh n_sel_1920_isaac
 
 ## 12. What to present at the demo
 
-Figures (all regenerated by `train_pod.sh`; the first exists now):
+Figures, all in `docs/presentacion/dataset_viales/` of the main checkout and in
+the review page:
 
-1. **The pose map** (section 7): 4,252 training images, every one from its own
-   camera pose, all round the bench and from 30 degrees to straight down.
-2. **Training curves**: losses falling, validation scores rising, the epoch
-   kept.
-3. **Before and after** on every test set: the near views are the headline,
-   0.64 recall today.
-4. `val_batch*_pred.jpg`: the model's boxes on frames it never trained on.
-5. The review page, live, for anyone who asks what the data looks like.
+1. **The pose map** (section 7): 5,844 training images, every one from its own
+   camera pose, all round the bench and from 15 degrees to straight down.
+2. **Training curves** (section 5).
+3. **Before and after** on every test set (section 6.1): near views are the
+   headline, 0.45 to 0.998.
+4. **The ten demo benches**, with every box (section 6.3).
+5. `val_batch*_pred.jpg`: the model's boxes on frames it never trained on.
+6. The review page, live, for anyone who asks what the data looks like.
 
-Live, in the viewer, what the measurements say will work and what will not:
+Live, in the viewer:
 
-| show | today, with `rail` | expected after retraining |
-| --- | --- | --- |
-| Walk a camera round the bench | works, 0.97 recall | works |
-| Bring it close, under 1 m | breaks: 0.64, vials cut into pieces | the clearest before and after |
-| Look straight down | finds them, 7 false boxes a frame | fewer false boxes |
-| Turn the lights down | holds to 15 % of the light, goes quiet below 10 % | the same: not trained for |
-| A cardboard box or a beaker by the vials | sometimes boxed from close | not boxed |
-| Reload the page for another bench pattern | never measured | measure with `pattern_test` first (10.4) |
-| A camera at bench height | 0.89 to 0.94, many false boxes | needs the `low_*` render (10.5) |
-
-Not covered by anything here: other containers (clear glass, HDPE), a hand in
-the frame, windows and glare, and real photographs. The step from simulation
-to a real camera is the largest unknown, and no real photograph has been
-scored.
+| show | what the measurements say |
+| --- | --- |
+| Reload the page for another bench pattern | works: 430 of 435 flasks over the ten, no false box; p09 is the hard one (3 hidden flasks) |
+| Walk a camera round the bench | works: 0.998 |
+| Bring it close, under 1 m | works: 0.998, the clearest before and after (0.45) |
+| Look straight down | works: 0.998, no false boxes |
+| A camera at bench height | works: 0.975 |
+| Another lab around the bench | works in simulation: 0.998 |
+| Turn the lights down | holds to about 15 % of the light, goes quiet below 10 %; lower the threshold if you try it |
+| The arm crossing the view | bottles behind it drop out and come back; not scored on its own |
 
 ## 13. Files
 
 | File | What it does |
 | --- | --- |
-| `scripts/fixedcam_dataset.py` | renders the splits: layout, arm, light, camera, degradation, truth |
+| `scripts/fixedcam_dataset.py` | renders the splits: bench (own layout or seeded pattern), arm, light, varied lab, camera, degradation, truth |
 | `scripts/render_perfumery.py` | `Lab`: scene, extra bottles, segmentation truth |
+| `simulation/scripts/bottle_patterns.py`, `view/backend/scene_patterns.py` | the seeded bench patterns, and how the viewer loads the ten catalogued ones |
 | `simulation/scripts/rail_kinematics.py` | the arm's IK used to pose it |
-| `scripts/dataset_report.py` | statistics, flags and thumbnails of a render, for its review page |
-| `scripts/select_frames.py` | the training set: no dark frames, capped evenly over camera poses |
+| `scripts/pod_run_dataset.sh` | on a pod: render every split, check it, hand over to `train_pod.sh`; resumes |
+| `scripts/dataset_report.py` | statistics, flags, thumbnails and samples of a render, for its review page |
+| `scripts/select_frames.py` | the training set: capped evenly over camera poses |
 | `scripts/pose_map.py` | the figure of where the camera stood in every frame of a set |
 | `scripts/bench_crop.py` | the part of a frame the bench occupies, from the camera's pose and field of view |
 | `scripts/fixedcam_to_yolo.py` | `gt.json` to a YOLO dataset, one class, `--crop` to the bench |
-| `runs/orbit/train_yolo26_gpu.py` | the training run (`--weights` to fine-tune) |
+| `runs/orbit/train_yolo26_gpu.py` | the training run (`--weights` to fine-tune, `--epochs`, `--patience`, `--cache`) |
 | `runs/rail/train_yolo26n_gpu.py` | how `rail` was trained |
-| `scripts/train_pod.sh` | select, crop, train, score and draw, unattended on a pod |
+| `scripts/train_pod.sh` | select, crop, train, score both models and draw, unattended on a pod |
 | `scripts/viewpoint_study.py` | scores by elevation, distance, vial size and place in the frame; `--crop` as the model runs |
 | `scripts/limits_sweep.py` | where a detector breaks as light, distance or elevation moves |
+| `scripts/demo_patterns_check.py` | a detector on the ten demo benches exactly as the viewer shows them |
 | `scripts/training_plots.py` | training curves and before/after figures from the run's files |
 | `scripts/export_and_time.py` | exports to CoreML or OpenVINO, or keeps PyTorch, and times whole `predict` calls on this machine |
 | `scripts/fixedcam_bench.py` | the older benchmark by split |
@@ -947,4 +985,4 @@ scored.
 | `scripts/isaac_dataset_to_yolo.py` | Isaac COCO datasets (v1 to v3) to YOLO, merging mesh parts |
 | `simulation/scripts/export_usd.py` | MuJoCo scene to USD for Isaac |
 | `simulation/scripts/dataset_gen_v3.py` | Isaac Replicator generator with per-state reshuffle |
-| `simulation/scripts/bottle_patterns.py`, `view/backend/scene_patterns.py` | the seeded bench patterns, and how the viewer loads them |
+
