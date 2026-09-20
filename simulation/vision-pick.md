@@ -148,9 +148,9 @@ integrated-graphics laptop, 2026-09-20:
 | --- | --- | --- |
 | bottles on the bench (truth) | 19 | 19 |
 | named from the air | --- | **16, none wrongly** |
-| named at all | **19, none wrongly** | 19: the three the air missed are looked at |
+| named at all | **19, none wrongly** | the three the air missed are looked at afterwards; that step is not in the run above |
 | the arm's lowest point over the flask tops, while it reads from the air | −3 cm | **+12 cm, whatever the pass** |
-| trips to a bottle | 19 | **3** |
+| trips to a bottle | 19 | **3**, and only after the passes |
 | position error of the named, median / max | 0.4 mm / 2.6 mm | **0.5 mm / 2.3 mm** |
 | first round of three passes | 181 s of simulated time | 254 s |
 
@@ -160,6 +160,12 @@ only the highest pass reaches, and the fixed camera had boxed neither. The run
 above was stopped at its 500 s limit, in the second round, with every pass still
 reading; the three left for a look are a 10 ml flask at the aisle edge, a 30 ml
 flask directly under the arm, and one more on the edge.
+
+Two things went in after that run and have not been flown end to end yet: the
+per-pass preferred height, and the looks that pick up what the air missed. The
+looks are the same `look` the scan used to use for everything, which names 19 of
+19 on this bench, so the expectation is 19 of 19 with three trips instead of
+nineteen --- but it is an expectation, not a measurement.
 
 What a pass can read was measured pose by pose before it was flown: the arm
 posed at each pass's height, the rail stepped by hand, every ring in the frame
