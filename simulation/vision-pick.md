@@ -367,10 +367,21 @@ it outward because a link whose centre clears the edge still sweeps in. Outside
 the hull the arm may come as low as it likes, which is how it reads a rim flask
 from the side.
 
-Seed 1 (35 flasks in rows, 106 mm apart), with the hull bearings, before and
-after the keep-out: 35 of 35 in 56 s against 34 of 36 in 41 s, neither felling
-anything. The keep-out costs nothing measurable here; what it buys is that the
-paths which were never checked are checked.
+Seed 1 (35 flasks in rows, 106 mm apart), with the hull bearings: 35 named in
+71 s, and the keep-out costs nothing measurable. What it buys is that the paths
+which were never checked are checked.
+
+**It is not yet a bench nothing touches.** On that run the arm still moved one
+flask — SMP-0040 went 1.3 cm, was lost where it had stood, came back as a new
+track and was named from a later look. That is the difference the keep-out
+makes: a nudged flask is re-found and named, where a felled one used to stay
+down and be counted "not a sample" for the rest of the run. The run's own tally
+says as much: 35 named, 1 not a sample, and the 1 is the ghost of the position
+SMP-0040 left.
+
+So the arm no longer fells flasks; it still brushes them. What is left is
+probably the sweep of the links rather than the hand, since the keep-out
+measures every arm geom but only where its centre falls inside the hull.
 
 ### The flyover, tried and set aside
 
