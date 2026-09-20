@@ -55,7 +55,9 @@ Replay retains its existing table crop and detection settings.
 The default scene (`VIEW_SCENE=minihannover_rail_scene.xml`) uses a generated
 gripper copy of the rail bench. Each frontend page load requests
 a random bench layout from the ten shared `minihannover_open/patterns` seeds.
-The next choice excludes the current pattern. The backend replaces the rail
+The next choice excludes the current pattern. To choose a specific scene, open
+`http://localhost:5173/?replay=0&scene=3`: `scene=1` through `scene=10` select
+`p01` through `p10`. The scene number is independent of its internal random seed. The backend replaces the rail
 scene's loose and dynamic bench samples with that catalogue population in
 memory, excluding the 10 ml flasks; the reported sample count includes only
 the remaining flasks. It never rewrites generated scene files. All connected tabs share the

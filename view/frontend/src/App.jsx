@@ -333,8 +333,8 @@ export default function App() {
   useEffect(() => {
     let cancelled = false;
     let retry;
-    const seed = new URLSearchParams(window.location.search).get("seed");
-    const select = () => chooseScene(BACKEND_URL, seed).then((pattern) => {
+    const sceneNumber = new URLSearchParams(window.location.search).get("scene");
+    const select = () => chooseScene(BACKEND_URL, sceneNumber).then((pattern) => {
       if (!cancelled) setScenePattern(pattern);
     }).catch(() => {
       if (!cancelled) retry = setTimeout(select, 5000);
