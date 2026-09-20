@@ -39,3 +39,32 @@ Each part has its own README:
 - The trained YOLO weights, which are not in git: copy them from the team Drive into `computer-vision/weights/` (see its README).
 - A GPU is optional. CPU is enough for the simulation and the panels; detection and rendering are real time only with CUDA or MPS. The Isaac Sim replay videos were rendered on an NVIDIA L4 and are checked in.
 - `ANTHROPIC_API_KEY` in `view/backend/.env` for the brief and formula chat; without it the chat falls back to an offline parser.
+
+## Run locally
+
+All from the repo root. The backend runs in `simulation/.venv`, which also
+serves the MuJoCo scene.
+
+```sh
+# 1. Meshes for the UR10e and the gripper
+git submodule update --init simulation/third_party/mujoco_menagerie
+
+# 2. Python venv with the simulation and the viewer backend
+(cd simulation && ./install.sh)
+uv pip install --python simulation/.venv/bin/python -r view/backend/requirements.txt
+
+# 3. Detector weights, from the team Drive (hackathon/weights) into computer-vision/weights/:
+#    yolo26n_full_1920_e25.pt for Real time, yolo26n_isaac_1920_e25.pt for Replay
+
+# 4. Backend on :8000 (cameras, scan, lab state on :8765)
+simulation/.venv/bin/python view/backend/server.py
+
+# 5. Frontend on :5173, in another terminal
+cd view/frontend && npm install && npm run dev
+```
+
+Open http://localhost:5173. Real time shows the live MuJoCo scan; the Replay
+switch in the header plays the Isaac Sim recordings for the same bench layout.
+Without the weights the scan reports the error in the viewport, and without a
+backend the panels play the recorded run in `view/frontend/public/scripted-run.json`.
+`view/README.md` has the environment variables and the scene selection.
