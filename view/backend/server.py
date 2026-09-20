@@ -756,8 +756,7 @@ async def ws_replay_detections(websocket: WebSocket, pattern: str | None = None)
     await websocket.accept()
     worker = None
     try:
-        # Replay plays Isaac renders, which the newer `full` model has not been
-        # scored on, so this stays on the model measured against these videos.
+        # Replay uses the pinned model trained on Isaac renders (PWD and SMP).
         weights = REPLAY_WEIGHTS
         renders = REPO_ROOT / "view/frontend/public/renders"
         if pattern is None:

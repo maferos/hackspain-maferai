@@ -131,8 +131,8 @@ angle, which the backend finds as
 team Drive, `hackathon/weights/yolo26n_full_1920_e25`, and see
 `computer-vision/weights/README.md`). The boxes use that backend's own best-F1
 threshold, 0.41, pinned in `backend/detector_config.py`. Without the weights the
-button is greyed out and says why. Replay stays on
-`yolo26n_rail_general.pt`, the model scored against those Isaac videos. On the rail scene's test frames the model finds 99 %
+button is greyed out and says why. Replay uses
+`yolo26n_isaac_v2.pt`, trained on Isaac renders with PWD and SMP classes. On the rail scene's test frames the model finds 99 %
 of the bottles on the bench at 99.6 % precision
 (`computer-vision/scripts/fixedcam_bench.py`, splits `rail_*`).
 
@@ -340,14 +340,13 @@ older than 500 ms disappear. Loops and seeking invalidate obsolete results.
 The viewport label shows measured inference and round-trip times; the side
 panels continue to read live lab state.
 
-Copy the Drive `General MAFER AI/hackathon/yolo26n_rail_general/yolo26n_rail_general.pt` weights to
-`computer-vision/weights/yolo26n_rail_general.pt` (pinned in `backend/detector_config.py`).
-Replay detection uses rail weights at 1280 px and confidence 0.47, and requires
-Ultralytics in the backend environment. It crops the fixed general camera to
-the table band (30–75% of frame height, full width) before inference, removing
-background while preserving the samples. Boxes are translated back to full-video
-coordinates; playback stays at its original resolution. Recheck this crop if
-the camera framing changes. The backend and frontend must use the
+Copy the Drive `General MAFER AI/hackathon/yolo26n_isaac_v2/best.pt` weights to
+`computer-vision/weights/yolo26n_isaac_v2.pt` (pinned in `backend/detector_config.py`).
+Replay detection uses Isaac v2 weights on full frames at 1600 px, with an
+initial confidence cutoff of 0.25 (not a calibrated best-F1 threshold for these
+videos). It requires Ultralytics in the backend environment. Box coordinates
+remain in the original video's pixels; playback retains its original resolution.
+The backend and frontend must use the
 same `view/frontend/public/renders/seeds/<pattern>/rail_global.mp4`. Videos
 continue playing without detection once the seed has been selected. Restart
 the backend after upgrading from the single-video replay so it can acknowledge

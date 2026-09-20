@@ -5,7 +5,7 @@ import math
 import sys
 import time
 
-from table_crop import table_region
+from detector_config import REPLAY_INPUT_PX, REPLAY_CONF
 
 
 def main():
@@ -24,7 +24,9 @@ def main():
         count = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
         if not video.isOpened() or fps <= 0 or count <= 0:
             raise RuntimeError("Replay video unavailable")
-        output.write(json.dumps({"ready": True, "duration": count / fps}) + "\n")
+        output.write(json.dumps({"ready": True, "duration": count / fps,
+                                 "weights": model.ckpt_path, "conf": REPLAY_CONF,
+                                 "input_px": REPLAY_INPUT_PX}) + "\n")
         output.flush()
         for line in sys.stdin:
             request = json.loads(line)
@@ -37,12 +39,9 @@ def main():
             ok, frame = video.read()
             if not ok:
                 raise RuntimeError("Cannot decode replay frame")
-            cropped, top = table_region(frame)
-            result = model.predict(cropped, imgsz=1280, conf=0.47, verbose=False)[0]
-            # Ultralytics returns coordinates in the original crop's pixels;
-            # only the crop offset is needed, not an inference-size rescale.
-            coordinates = result.boxes.xyxy.cpu().numpy().copy()
-            coordinates[:, [1, 3]] += top
+            # Isaac v2 was trained on full camera frames at 1600 px.
+            result = model.predict(frame, imgsz=REPLAY_INPUT_PX, conf=REPLAY_CONF, verbose=False)[0]
+            coordinates = result.boxes.xyxy.cpu().numpy()
             boxes = [[round(float(v), 1) for v in xyxy] + [round(float(score), 3)]
                      for xyxy, score in zip(coordinates,
                                            result.boxes.conf.cpu().numpy(), strict=True)]
