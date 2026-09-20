@@ -24,7 +24,14 @@ change is made in place; this map carries execution, not only decisions.
   `simulation/vision-pick.md` (sections "Looks come from outside the bench" and
   "The flyover, tried and set aside") and the lessons in `simulation/README.md`
   before any ticket. The flyover of commit 0f771d0 was reverted for the poses
-  it flew, not for its clearance; do not rediscover it.
+  it flew, not for its clearance; do not rediscover it. Commit a019202
+  (2026-09-20, Nacho) landed during charting: `path_clear` now takes a bench
+  keepout `(hull, margin, height)` and `plan`, `carry_pose`, `hover_pose`
+  pass it. Ticket bodies assume that code.
+- MuJoCo traps (from a gpt-6-astra review of this map, 2026-09-20): geoms
+  belong to `MjModel`, not `MjData`, so obstacles cannot be injected into the
+  scratch state; `drive()` ramps controls, not measured joints, so the executed
+  path lags the checked one; `path_clear` samples at 100 mm / 0.08 rad.
 - Tickets are worked by Eloi on macOS (`mjpython` for viewers, plain `python`
   headless). Eki owns MuJoCo and reviews.
 - Standing decisions from charting (2026-09-20):
@@ -57,8 +64,9 @@ change is made in place; this map carries execution, not only decisions.
   the bench map (`view_bench_map.json`) records meanwhile.
 - The 85 mm open gripper among flasks 4–60 mm apart: finger orientation along
   the gap, or a smaller opening, before a neighbour counts as an obstacle.
-- Whether the perception error budget (≈8 mm from the box, <1 mm from the ring)
-  should set the inflation margin per track rather than one global value.
+- Dense clusters where no look or grasp is geometrically possible with this
+  camera and gripper, and one neighbour move cannot unlock them: what the
+  demo does with such a pattern (drop it, or accept skipped flasks there).
 
 ## Out of scope
 

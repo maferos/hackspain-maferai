@@ -16,11 +16,19 @@ tags: [wayfinder:task]
 
 The acceptance criterion is zero felled flasks on p01–p10, but the planner only
 reads truth for position error; "flasks knocked over" in `vision-pick.md` was
-counted by hand. Build the metric: from `truth()` poses at the end of a run
-(and at every event), a flask counts as felled when its body z-axis tilts past
-a threshold (propose 30°) or its base leaves the bench plane. Add it to the
-scan report and to a headless driver that runs the ten patterns of
-`scene_patterns.py` in sequence and prints one table: pattern, flasks, named,
-felled, seconds. This table is what the acceptance run reads.
+counted by hand. Build the metric from `truth()` poses:
 
-AFK. Record the baseline table for the current code as the answer.
+- A flask is felled when its body z-axis tilts past a threshold (propose 30°)
+  or it leaves the bench top **while no track holds it** (a commanded lift is
+  not a fall; a drop after release is).
+- Latch the failure through the whole run, not only at the end: a flask that
+  falls and is later set upright still counts.
+- Report attempted / completed / skipped work per phase (looks, picks,
+  move-asides) alongside felled, so "skip everything" cannot read as success.
+
+Add it to the scan report and to a headless driver that runs the ten patterns
+of `scene_patterns.py` in sequence, scan and fetch orders both, and prints one
+table: pattern, flasks, named, picked, skipped, felled, seconds.
+
+AFK. Record the baseline table for the current code (after a019202) as the
+answer.
