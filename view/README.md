@@ -95,10 +95,10 @@ By default the viewport shows the live MuJoCo cameras. Select **Replay** in
 the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
 the selected seed; Replay waits for that selection instead of showing a
-different layout. Pattern `p01` plays the double-rail XYZ gantry with Eki's
-vertical hand, without the overhead extractors. Its corrected marker reader
-identified all seven vessels; the scan travels left to right at constant height.
-Patterns `p02`–`p04` retain their hanging-arm recordings. All four play at
+different layout. Patterns `p01` and `p02` play the double-rail XYZ gantry with Eki's
+vertical hand, without the overhead extractors. The corrected marker reader
+identified all 7 and 22 vessels respectively; each scan travels left to right
+at constant height. Patterns `p03`–`p04` retain their hanging-arm recordings. All four play at
 1920×1080, 10 fps, with normal lighting and three render updates per frame.
 Their compiled sample models and exported USDs were checked: no 10 ml sample
 flasks remain on the scan bench. Replay keeps the current seed when switching
@@ -107,7 +107,7 @@ from Real time.
 | Pattern | Seed | Flasks | Identified | Video duration | Both views rendered in |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | p01 | 30 | 7 | 7 | 46.2 s | 138 s |
-| p02 | 176 | 22 | 19 | 62.8 s | 190 s |
+| p02 | 176 | 22 | 22 | 80.3 s | 235 s |
 | p03 | 21 | 29 | 29 | 129.8 s | 381 s |
 | p04 | 327 | 33 | 31 | 240 s | 716 s |
 
