@@ -48,3 +48,8 @@ and each teammate ends up showing something different.
 - When the scene's samples or the scripted run change, update `RECIPE` in
   `dashboard/bridge/labbridge/mock_run.py` and regenerate the recording with
   `python -m labbridge.record_run` from `dashboard/bridge`.
+
+## Tickets
+
+Tasks are tracked with `tk` in `.tickets/` (not beads). Wayfinder maps live
+there too: `tk ready` shows the frontier, `tk start <id>` claims a ticket.
