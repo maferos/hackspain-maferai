@@ -77,8 +77,8 @@
       "seed": 327,
       "pattern": "p04",
       "style": "rows",
-      "count": 35,
-      "gap_m": 0.01659,
+      "count": 33,
+      "gap_m": 0.0368,
       "gap_requested_m": 0.01659,
       "span": 0.8132,
       "x_window": [
