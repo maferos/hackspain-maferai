@@ -30,9 +30,9 @@ and `hover_pose` now pass it. So the question is what is *still* unchecked:
   in `pick()` are likewise unchecked. List every `drive()` whose segment was
   not validated.
 - `path_clear` samples every 100 mm of rail / 0.08 rad of joint; is that fine
-  enough for 4–60 mm gaps? And `drive()` ramps *controls*, not measured joint
+  enough for 37–83 mm gaps? And `drive()` ramps *controls*, not measured joint
   positions: measure how far the executed path lags the checked one.
 
 Answer with the call sites, a per-look table of local clearance on p01 (seed
-30) and p05, and the observed servo lag. AFK. Write findings to
+30) and p04, and the observed servo lag. AFK. Write findings to
 `simulation/notes/scan-floor.md` and link it here.
