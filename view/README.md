@@ -95,17 +95,24 @@ By default the viewport shows the live MuJoCo cameras. Select **Replay** in
 the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
 the selected seed; Replay waits for that selection instead of showing a
-different layout. The provisional camera pairs loop at 10 fps with normal lighting and three
-render updates per frame. Patterns `p01`–`p03` use 1920×1080; p04 uses 960×540. The refreshed patterns use the current hanging-arm
-scene with no 10 ml sample flasks on the bench: p01 has 7 flasks, all identified,
-in a 67.4-second scan; p02 has 22 flasks, 19 identified, in a 62.8-second scan.
-Their fresh USD exports took 104 and 105 seconds respectively; rendering both
-views took 203 and 190 seconds on an NVIDIA L4, including Isaac startup and
-MP4 encoding. Pattern p03 has 29 flasks, all identified, in 129.8 seconds; its render took
-381 seconds. Pattern p04 retains its earlier recording.
-All four patterns (`p01`–`p04`) play recorded initial scans capped at 240 seconds;
-p04 reaches that limit. A capped recording may end before the scan completes;
-the replay manifest records this as `scan_complete: false`.
+different layout. All four patterns (`p01`–`p04`) play the hanging-arm scene
+at 1920×1080, 10 fps, with normal lighting and three render updates per frame.
+Their compiled sample models and exported USDs were checked: no 10 ml sample
+flasks remain on the scan bench. Replay keeps the current seed when switching
+from Real time.
+
+| Pattern | Seed | Flasks | Identified | Video duration | Both views rendered in |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| p01 | 30 | 7 | 7 | 67.4 s | 203 s |
+| p02 | 176 | 22 | 19 | 62.8 s | 190 s |
+| p03 | 21 | 29 | 29 | 129.8 s | 381 s |
+| p04 | 327 | 33 | 31 | 240 s | 716 s |
+
+Render times were measured on an NVIDIA L4 and include Isaac startup and
+MP4 encoding, excluding scan recording, USD export and transfer. The p04
+recording stops at the 240-second limit before its scan completes, recorded
+as `scan_complete: false` in the replay manifest.
+
 The worktop is one white satin mesh within the USD Table component. Click the small view to swap cameras
 without restarting playback. Files live in `frontend/public/renders/seeds/p01/`
 through `p04/`; `src/replayPatterns.json` maps seeds to the videos. Replay's
