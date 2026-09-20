@@ -1,0 +1,128 @@
+{
+  "id": "ORD-001",
+  "name": "Citrus Bois",
+  "family": "Citrus Woody",
+  "description": "A sparkling citrus opening of lime and spearmint settles into a warm woody-floral heart of fir balsam, violet-orris, and rose, anchored by a soft musky-woody base.",
+  "product": "Eau de Cologne",
+  "concentrate_pct_in_product": 5.0,
+  "solvent": {
+    "material": "Ethanol 96 % (perfumer's alcohol)",
+    "pct_in_product": 95.0
+  },
+  "batch": {
+    "concentrate_g": 10.0,
+    "ethanol_g_for_product": 190.0
+  },
+  "ifra": "IFRA Standards, 51st Amendment (2023), Category 4, max % in finished product",
+  "catalogue": "computer-vision/barcodes/lookup_table.json",
+  "ingredients": [
+    {
+      "material": "gamma-Terpinene",
+      "cas": "99-85-4",
+      "note": "top",
+      "role": "citrus",
+      "concentrate_pct": 25.0,
+      "batch_g": 2.5,
+      "finished_pct": 1.25,
+      "ifra_cat4_max_pct": null,
+      "ifra_note": null,
+      "samples": [
+        "SMP-0136",
+        "SMP-0137",
+        "SMP-0138",
+        "SMP-0139",
+        "SMP-0140"
+      ]
+    },
+    {
+      "material": "Carvone",
+      "cas": "99-49-0",
+      "note": "top",
+      "role": "aromatic",
+      "concentrate_pct": 8.0,
+      "batch_g": 0.8,
+      "finished_pct": 0.4,
+      "ifra_cat4_max_pct": 0.59,
+      "ifra_note": null,
+      "samples": [
+        "SMP-0051",
+        "SMP-0052",
+        "SMP-0053",
+        "SMP-0054",
+        "SMP-0055"
+      ]
+    },
+    {
+      "material": "Isobornyl acetate",
+      "cas": "125-12-2",
+      "note": "top-heart",
+      "role": "coniferous",
+      "concentrate_pct": 30.0,
+      "batch_g": 3.0,
+      "finished_pct": 1.5,
+      "ifra_cat4_max_pct": null,
+      "ifra_note": null,
+      "samples": [
+        "SMP-0171",
+        "SMP-0172",
+        "SMP-0173",
+        "SMP-0174",
+        "SMP-0175"
+      ]
+    },
+    {
+      "material": "Geraniol",
+      "cas": "106-24-1",
+      "note": "heart",
+      "role": "rose",
+      "concentrate_pct": 10.0,
+      "batch_g": 1.0,
+      "finished_pct": 0.5,
+      "ifra_cat4_max_pct": 4.7,
+      "ifra_note": null,
+      "samples": [
+        "SMP-0011",
+        "SMP-0012",
+        "SMP-0013",
+        "SMP-0014",
+        "SMP-0015"
+      ]
+    },
+    {
+      "material": "beta-Ionone",
+      "cas": "14901-07-6",
+      "note": "heart-base",
+      "role": "powdery",
+      "concentrate_pct": 15.0,
+      "batch_g": 1.5,
+      "finished_pct": 0.75,
+      "ifra_cat4_max_pct": null,
+      "ifra_note": null,
+      "samples": [
+        "SMP-0176",
+        "SMP-0177",
+        "SMP-0178",
+        "SMP-0179",
+        "SMP-0180"
+      ]
+    },
+    {
+      "material": "Farnesol",
+      "cas": "4602-84-0",
+      "note": "base",
+      "role": "floral",
+      "concentrate_pct": 12.0,
+      "batch_g": 1.2,
+      "finished_pct": 0.6,
+      "ifra_cat4_max_pct": 1.2,
+      "ifra_note": null,
+      "samples": [
+        "SMP-0066",
+        "SMP-0067",
+        "SMP-0068",
+        "SMP-0069",
+        "SMP-0070"
+      ]
+    }
+  ]
+}

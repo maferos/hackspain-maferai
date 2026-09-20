@@ -4,21 +4,23 @@
     "seed": 30,
     "count": 7,
     "fps": 10,
-    "frames": 462,
+    "frames": 2309,
     "resolution": [
       1920,
       1080
     ],
     "global_video": "p01/rail_global.mp4",
     "robot_video": "p01/rail_robot.mp4",
-    "revision": "scan-p01-gantry-capfix-1080p-v1",
+    "revision": "p01-citrus-woody-1080p-v1",
     "render_updates_per_frame": 3,
-    "duration_seconds": 46.2,
-    "mode": "scan",
-    "render_total_seconds": 137.97,
+    "duration_seconds": 230.9,
+    "mode": "brief",
+    "render_total_seconds": 658.157,
     "scan_complete": true,
     "machine": "xyz_gantry",
-    "identified": 7
+    "identified": 7,
+    "brief": "Fragancia citrica con notas woody",
+    "formula_name": "Citrus Bois"
   },
   {
     "pattern": "p02",

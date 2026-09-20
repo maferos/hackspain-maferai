@@ -106,10 +106,12 @@ from Real time.
 
 | Pattern | Seed | Flasks | Identified | Video duration | Both views rendered in |
 | --- | ---: | ---: | ---: | ---: | ---: |
-| p01 | 30 | 7 | 7 | 46.2 s | 138 s |
+| p01 | 30 | 7 | 7 | 230.9 s | 658 s |
 | p02 | 176 | 22 | 22 | 80.3 s | 235 s |
 | p03 | 21 | 29 | 28 | 83.5 s | 254 s |
 | p04 | 327 | 33 | 32 | 91.6 s | 276 s |
+
+P01 includes the complete run requested with `Fragancia citrica con notas woody`: the scan, Claude's **Citrus Bois** formula (six compounds), the simulated pipetting sequence and the final retreat. Its [formula](frontend/public/renders/seeds/p01/formula.json) is saved beside the videos. Liquid levels change during the run; uncapping and pipetting are mimed by the controller. The wrist camera sits close to the worktop during dosing and can show only the surface; the global camera covers the full run. The other patterns contain the scan only. The side panels continue to read live lab state.
 
 Render times were measured on an NVIDIA L4 and include Isaac startup and
 MP4 encoding, excluding scan recording, USD export and transfer. All four
