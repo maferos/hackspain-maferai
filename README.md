@@ -1,6 +1,17 @@
 # Mafer.ai at HackSpain 2026
 
-Our entry for the Theker track. Two components:
+Our entry for the Theker track: a robot that prepares fragrance formulas from
+a bench of flasks. The operator types a formula into the viewer's chat, or a
+brief such as "something fresh and citrusy for summer, light" that a model turns
+into one. The robot scans the bench with a fixed camera, drives its wrist camera
+over each flask to read the ArUco ring that names the sample, and checks the
+formula against what it found: every compound has to be on the bench, in a
+flask with enough left for the dose. It then picks each flask in turn while the
+panels follow the order step by step, down to the mass on the balance pan. The
+lab is a UR10e on a rail, simulated in MuJoCo; the demo also replays the same
+scan rendered in Isaac Sim.
+
+Each part has its own README:
 
 - [`simulation/`](simulation/) — robotic lab-automation simulation with MuJoCo + AutoBio. See [`simulation/README.md`](simulation/README.md).
 - [`computer-vision/`](computer-vision/) — computer-vision pipeline: barcode identity, single-camera placement and the vessel detector. See [`computer-vision/README.md`](computer-vision/README.md); the detector choice and its benchmark are in [`computer-vision/docs/BENCHMARK.md`](computer-vision/docs/BENCHMARK.md).
