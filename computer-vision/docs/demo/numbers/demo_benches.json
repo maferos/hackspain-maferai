@@ -1,0 +1,830 @@
+{
+ "as_the_viewer_frames_them": {
+  "100_epochs": {
+   "weights": "yolo26n_full_1920_e100.pt",
+   "threshold": 0.52,
+   "patterns": [
+    {
+     "pattern": "p01",
+     "seed": 30,
+     "count": 16,
+     "style": "scatter",
+     "flasks_in_band": 15,
+     "found": 15,
+     "missed": [],
+     "false": 0,
+     "boxes": 15
+    },
+    {
+     "pattern": "p02",
+     "seed": 176,
+     "count": 24,
+     "style": "crowd",
+     "flasks_in_band": 24,
+     "found": 23,
+     "missed": [
+      "dyn_SMP-0183"
+     ],
+     "false": 0,
+     "boxes": 23
+    },
+    {
+     "pattern": "p03",
+     "seed": 21,
+     "count": 29,
+     "style": "crowd",
+     "flasks_in_band": 29,
+     "found": 29,
+     "missed": [],
+     "false": 0,
+     "boxes": 29
+    },
+    {
+     "pattern": "p04",
+     "seed": 327,
+     "count": 35,
+     "style": "rows",
+     "flasks_in_band": 35,
+     "found": 35,
+     "missed": [],
+     "false": 0,
+     "boxes": 35
+    },
+    {
+     "pattern": "p05",
+     "seed": 1,
+     "count": 41,
+     "style": "rows",
+     "flasks_in_band": 41,
+     "found": 41,
+     "missed": [],
+     "false": 0,
+     "boxes": 41
+    },
+    {
+     "pattern": "p06",
+     "seed": 31,
+     "count": 46,
+     "style": "crowd",
+     "flasks_in_band": 46,
+     "found": 45,
+     "missed": [
+      "dyn_SMP-0014"
+     ],
+     "false": 0,
+     "boxes": 45
+    },
+    {
+     "pattern": "p07",
+     "seed": 70,
+     "count": 52,
+     "style": "clusters",
+     "flasks_in_band": 52,
+     "found": 52,
+     "missed": [],
+     "false": 0,
+     "boxes": 52
+    },
+    {
+     "pattern": "p08",
+     "seed": 4,
+     "count": 57,
+     "style": "crowd",
+     "flasks_in_band": 57,
+     "found": 57,
+     "missed": [],
+     "false": 0,
+     "boxes": 57
+    },
+    {
+     "pattern": "p09",
+     "seed": 2,
+     "count": 65,
+     "style": "clusters",
+     "flasks_in_band": 65,
+     "found": 62,
+     "missed": [
+      "dyn_SMP-0148",
+      "dyn_SMP-0171",
+      "dyn_SMP-0121"
+     ],
+     "false": 0,
+     "boxes": 62
+    },
+    {
+     "pattern": "p10",
+     "seed": 15,
+     "count": 71,
+     "style": "rows",
+     "flasks_in_band": 71,
+     "found": 71,
+     "missed": [],
+     "false": 0,
+     "boxes": 71
+    }
+   ]
+  },
+  "25_epochs": {
+   "weights": "yolo26n_full_1920_e25.pt",
+   "threshold": 0.41,
+   "patterns": [
+    {
+     "pattern": "p01",
+     "seed": 30,
+     "count": 16,
+     "style": "scatter",
+     "flasks_in_band": 15,
+     "found": 15,
+     "missed": [],
+     "false": 0,
+     "boxes": 15
+    },
+    {
+     "pattern": "p02",
+     "seed": 176,
+     "count": 24,
+     "style": "crowd",
+     "flasks_in_band": 24,
+     "found": 23,
+     "missed": [
+      "dyn_SMP-0183"
+     ],
+     "false": 0,
+     "boxes": 23
+    },
+    {
+     "pattern": "p03",
+     "seed": 21,
+     "count": 29,
+     "style": "crowd",
+     "flasks_in_band": 29,
+     "found": 29,
+     "missed": [],
+     "false": 0,
+     "boxes": 29
+    },
+    {
+     "pattern": "p04",
+     "seed": 327,
+     "count": 35,
+     "style": "rows",
+     "flasks_in_band": 35,
+     "found": 35,
+     "missed": [],
+     "false": 0,
+     "boxes": 35
+    },
+    {
+     "pattern": "p05",
+     "seed": 1,
+     "count": 41,
+     "style": "rows",
+     "flasks_in_band": 41,
+     "found": 41,
+     "missed": [],
+     "false": 0,
+     "boxes": 41
+    },
+    {
+     "pattern": "p06",
+     "seed": 31,
+     "count": 46,
+     "style": "crowd",
+     "flasks_in_band": 46,
+     "found": 45,
+     "missed": [
+      "dyn_SMP-0014"
+     ],
+     "false": 0,
+     "boxes": 45
+    },
+    {
+     "pattern": "p07",
+     "seed": 70,
+     "count": 52,
+     "style": "clusters",
+     "flasks_in_band": 52,
+     "found": 52,
+     "missed": [],
+     "false": 0,
+     "boxes": 52
+    },
+    {
+     "pattern": "p08",
+     "seed": 4,
+     "count": 57,
+     "style": "crowd",
+     "flasks_in_band": 57,
+     "found": 57,
+     "missed": [],
+     "false": 0,
+     "boxes": 57
+    },
+    {
+     "pattern": "p09",
+     "seed": 2,
+     "count": 65,
+     "style": "clusters",
+     "flasks_in_band": 65,
+     "found": 62,
+     "missed": [
+      "dyn_SMP-0148",
+      "dyn_SMP-0171",
+      "dyn_SMP-0121"
+     ],
+     "false": 0,
+     "boxes": 62
+    },
+    {
+     "pattern": "p10",
+     "seed": 15,
+     "count": 71,
+     "style": "rows",
+     "flasks_in_band": 71,
+     "found": 71,
+     "missed": [],
+     "false": 0,
+     "boxes": 71
+    }
+   ]
+  },
+  "rail_at_0.47": {
+   "weights": "yolo26n_rail_general.pt",
+   "threshold": 0.47,
+   "patterns": [
+    {
+     "pattern": "p01",
+     "seed": 30,
+     "count": 16,
+     "style": "scatter",
+     "flasks_in_band": 15,
+     "found": 15,
+     "missed": [],
+     "false": 0,
+     "boxes": 15
+    },
+    {
+     "pattern": "p02",
+     "seed": 176,
+     "count": 24,
+     "style": "crowd",
+     "flasks_in_band": 24,
+     "found": 23,
+     "missed": [
+      "dyn_SMP-0183"
+     ],
+     "false": 0,
+     "boxes": 23
+    },
+    {
+     "pattern": "p03",
+     "seed": 21,
+     "count": 29,
+     "style": "crowd",
+     "flasks_in_band": 29,
+     "found": 29,
+     "missed": [],
+     "false": 0,
+     "boxes": 29
+    },
+    {
+     "pattern": "p04",
+     "seed": 327,
+     "count": 35,
+     "style": "rows",
+     "flasks_in_band": 35,
+     "found": 35,
+     "missed": [],
+     "false": 0,
+     "boxes": 35
+    },
+    {
+     "pattern": "p05",
+     "seed": 1,
+     "count": 41,
+     "style": "rows",
+     "flasks_in_band": 41,
+     "found": 41,
+     "missed": [],
+     "false": 0,
+     "boxes": 41
+    },
+    {
+     "pattern": "p06",
+     "seed": 31,
+     "count": 46,
+     "style": "crowd",
+     "flasks_in_band": 46,
+     "found": 44,
+     "missed": [
+      "dyn_SMP-0184",
+      "dyn_SMP-0014"
+     ],
+     "false": 1,
+     "boxes": 45
+    },
+    {
+     "pattern": "p07",
+     "seed": 70,
+     "count": 52,
+     "style": "clusters",
+     "flasks_in_band": 52,
+     "found": 52,
+     "missed": [],
+     "false": 0,
+     "boxes": 52
+    },
+    {
+     "pattern": "p08",
+     "seed": 4,
+     "count": 57,
+     "style": "crowd",
+     "flasks_in_band": 57,
+     "found": 57,
+     "missed": [],
+     "false": 1,
+     "boxes": 58
+    },
+    {
+     "pattern": "p09",
+     "seed": 2,
+     "count": 65,
+     "style": "clusters",
+     "flasks_in_band": 65,
+     "found": 61,
+     "missed": [
+      "dyn_SMP-0148",
+      "dyn_SMP-0006",
+      "dyn_SMP-0171",
+      "dyn_SMP-0121"
+     ],
+     "false": 1,
+     "boxes": 62
+    },
+    {
+     "pattern": "p10",
+     "seed": 15,
+     "count": 71,
+     "style": "rows",
+     "flasks_in_band": 71,
+     "found": 71,
+     "missed": [],
+     "false": 0,
+     "boxes": 71
+    }
+   ]
+  }
+ },
+ "per_pattern_tests": [
+  {
+   "pattern": "p01",
+   "seed": 30,
+   "style": "scatter",
+   "count": 16,
+   "gap_mm": 28,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 146
+     },
+     "any_angle": {
+      "recall": 0.9158,
+      "false_per_frame": 0.6,
+      "vials": 95
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 146
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 95
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 146
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 95
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p02",
+   "seed": 176,
+   "style": "crowd",
+   "count": 24,
+   "gap_mm": 12,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 230
+     },
+     "any_angle": {
+      "recall": 0.848,
+      "false_per_frame": 0.4,
+      "vials": 171
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 230
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 171
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 230
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 171
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p03",
+   "seed": 21,
+   "style": "crowd",
+   "count": 29,
+   "gap_mm": 38,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 280
+     },
+     "any_angle": {
+      "recall": 0.9438,
+      "false_per_frame": 1.1,
+      "vials": 267
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 280
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 267
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 280
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 267
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p04",
+   "seed": 327,
+   "style": "rows",
+   "count": 35,
+   "gap_mm": 17,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 348
+     },
+     "any_angle": {
+      "recall": 0.9476,
+      "false_per_frame": 1.1,
+      "vials": 210
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 348
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 210
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 348
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 210
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p05",
+   "seed": 1,
+   "style": "rows",
+   "count": 41,
+   "gap_mm": 57,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 410
+     },
+     "any_angle": {
+      "recall": 0.8864,
+      "false_per_frame": 1.5,
+      "vials": 273
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 410
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 273
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 410
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 273
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p06",
+   "seed": 31,
+   "style": "crowd",
+   "count": 46,
+   "gap_mm": 8,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 450
+     },
+     "any_angle": {
+      "recall": 0.896,
+      "false_per_frame": 2.4,
+      "vials": 375
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 450
+     },
+     "any_angle": {
+      "recall": 0.9947,
+      "false_per_frame": 0.1,
+      "vials": 375
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 450
+     },
+     "any_angle": {
+      "recall": 0.9973,
+      "false_per_frame": 0.0,
+      "vials": 375
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p07",
+   "seed": 70,
+   "style": "clusters",
+   "count": 52,
+   "gap_mm": 44,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 519
+     },
+     "any_angle": {
+      "recall": 0.8684,
+      "false_per_frame": 0.9,
+      "vials": 395
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 519
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 395
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 519
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 395
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p08",
+   "seed": 4,
+   "style": "crowd",
+   "count": 57,
+   "gap_mm": 33,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 0.9805,
+      "false_per_frame": 0.0,
+      "vials": 565
+     },
+     "any_angle": {
+      "recall": 0.9676,
+      "false_per_frame": 2.3,
+      "vials": 401
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 565
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 401
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 565
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 401
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p09",
+   "seed": 2,
+   "style": "clusters",
+   "count": 65,
+   "gap_mm": 21,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 0.9719,
+      "false_per_frame": 1.0,
+      "vials": 498
+     },
+     "any_angle": {
+      "recall": 0.8824,
+      "false_per_frame": 2.5,
+      "vials": 374
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 0.9799,
+      "false_per_frame": 0.8,
+      "vials": 498
+     },
+     "any_angle": {
+      "recall": 0.9947,
+      "false_per_frame": 0.2,
+      "vials": 374
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 0.9799,
+      "false_per_frame": 0.0,
+      "vials": 498
+     },
+     "any_angle": {
+      "recall": 0.9947,
+      "false_per_frame": 0.1,
+      "vials": 374
+     }
+    }
+   }
+  },
+  {
+   "pattern": "p10",
+   "seed": 15,
+   "style": "rows",
+   "count": 71,
+   "gap_mm": 50,
+   "scores": {
+    "rail": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 680
+     },
+     "any_angle": {
+      "recall": 0.9276,
+      "false_per_frame": 1.1,
+      "vials": 387
+     }
+    },
+    "25_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 680
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.1,
+      "vials": 387
+     }
+    },
+    "100_epochs": {
+     "wall": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 680
+     },
+     "any_angle": {
+      "recall": 1.0,
+      "false_per_frame": 0.0,
+      "vials": 387
+     }
+    }
+   }
+  }
+ ]
+}

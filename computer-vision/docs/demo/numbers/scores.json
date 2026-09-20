@@ -1,0 +1,249 @@
+{
+ "thresholds": {
+  "rail": 0.562,
+  "25_epochs": 0.406,
+  "100_epochs": 0.523
+ },
+ "tests": {
+  "close_test": {
+   "rail": {
+    "bottles": 1299,
+    "recall": 0.4473,
+    "false_per_frame": 0.8133,
+    "ap50": 0.5725
+   },
+   "25_epochs": {
+    "bottles": 1299,
+    "recall": 0.9992,
+    "false_per_frame": 0.0467,
+    "ap50": 0.9901
+   },
+   "100_epochs": {
+    "bottles": 1299,
+    "recall": 0.9985,
+    "false_per_frame": 0.0067,
+    "ap50": 0.9901
+   }
+  },
+  "dark_test": {
+   "rail": {
+    "bottles": 4272,
+    "recall": 0.8453,
+    "false_per_frame": 0.0467,
+    "ap50": 0.9465
+   },
+   "25_epochs": {
+    "bottles": 4272,
+    "recall": 0.9078,
+    "false_per_frame": 0.1133,
+    "ap50": 0.9485
+   },
+   "100_epochs": {
+    "bottles": 4272,
+    "recall": 0.8907,
+    "false_per_frame": 0.0133,
+    "ap50": 0.9488
+   }
+  },
+  "lab_rail_test": {
+   "rail": {
+    "bottles": 2922,
+    "recall": 0.9849,
+    "false_per_frame": 0.08,
+    "ap50": 0.99
+   },
+   "25_epochs": {
+    "bottles": 2922,
+    "recall": 0.9976,
+    "false_per_frame": 0.14,
+    "ap50": 0.9901
+   },
+   "100_epochs": {
+    "bottles": 2922,
+    "recall": 0.9983,
+    "false_per_frame": 0.06,
+    "ap50": 0.9901
+   }
+  },
+  "lab_test": {
+   "rail": {
+    "bottles": 2698,
+    "recall": 0.9211,
+    "false_per_frame": 0.82,
+    "ap50": 0.9602
+   },
+   "25_epochs": {
+    "bottles": 2698,
+    "recall": 0.9985,
+    "false_per_frame": 0.0867,
+    "ap50": 0.9901
+   },
+   "100_epochs": {
+    "bottles": 2698,
+    "recall": 0.9978,
+    "false_per_frame": 0.0333,
+    "ap50": 0.9898
+   }
+  },
+  "low_test": {
+   "rail": {
+    "bottles": 1781,
+    "recall": 0.7698,
+    "false_per_frame": 0.9,
+    "ap50": 0.8555
+   },
+   "25_epochs": {
+    "bottles": 1781,
+    "recall": 0.9781,
+    "false_per_frame": 0.35,
+    "ap50": 0.9798
+   },
+   "100_epochs": {
+    "bottles": 1781,
+    "recall": 0.9753,
+    "false_per_frame": 0.1,
+    "ap50": 0.9891
+   }
+  },
+  "orbit_dark_test": {
+   "rail": {
+    "bottles": 2617,
+    "recall": 0.8284,
+    "false_per_frame": 0.3733,
+    "ap50": 0.9231
+   },
+   "25_epochs": {
+    "bottles": 2617,
+    "recall": 0.9144,
+    "false_per_frame": 0.0733,
+    "ap50": 0.9395
+   },
+   "100_epochs": {
+    "bottles": 2617,
+    "recall": 0.9293,
+    "false_per_frame": 0.02,
+    "ap50": 0.9597
+   }
+  },
+  "orbit_test": {
+   "rail": {
+    "bottles": 5044,
+    "recall": 0.9477,
+    "false_per_frame": 0.6833,
+    "ap50": 0.975
+   },
+   "25_epochs": {
+    "bottles": 5044,
+    "recall": 0.995,
+    "false_per_frame": 0.0533,
+    "ap50": 0.9901
+   },
+   "100_epochs": {
+    "bottles": 5044,
+    "recall": 0.9978,
+    "false_per_frame": 0.0367,
+    "ap50": 0.9901
+   }
+  },
+  "overhead_test": {
+   "rail": {
+    "bottles": 2238,
+    "recall": 0.853,
+    "false_per_frame": 1.1333,
+    "ap50": 0.9286
+   },
+   "25_epochs": {
+    "bottles": 2238,
+    "recall": 0.9991,
+    "false_per_frame": 0.02,
+    "ap50": 0.9901
+   },
+   "100_epochs": {
+    "bottles": 2238,
+    "recall": 0.9978,
+    "false_per_frame": 0.0,
+    "ap50": 0.9901
+   }
+  },
+  "pattern_orbit_test": {
+   "rail": {
+    "bottles": 2948,
+    "recall": 0.9091,
+    "false_per_frame": 1.39,
+    "ap50": 0.9635
+   },
+   "25_epochs": {
+    "bottles": 2948,
+    "recall": 0.9986,
+    "false_per_frame": 0.04,
+    "ap50": 0.9999
+   },
+   "100_epochs": {
+    "bottles": 2948,
+    "recall": 0.999,
+    "false_per_frame": 0.01,
+    "ap50": 1.0
+   }
+  },
+  "pattern_test": {
+   "rail": {
+    "bottles": 4126,
+    "recall": 0.9932,
+    "false_per_frame": 0.1,
+    "ap50": 0.9901
+   },
+   "25_epochs": {
+    "bottles": 4126,
+    "recall": 0.9976,
+    "false_per_frame": 0.08,
+    "ap50": 0.9996
+   },
+   "100_epochs": {
+    "bottles": 4126,
+    "recall": 0.9976,
+    "false_per_frame": 0.0,
+    "ap50": 0.9901
+   }
+  },
+  "rail_test": {
+   "rail": {
+    "bottles": 4273,
+    "recall": 0.9913,
+    "false_per_frame": 0.1067,
+    "ap50": 0.9901
+   },
+   "25_epochs": {
+    "bottles": 4273,
+    "recall": 0.9977,
+    "false_per_frame": 0.14,
+    "ap50": 0.9901
+   },
+   "100_epochs": {
+    "bottles": 4273,
+    "recall": 0.9986,
+    "false_per_frame": 0.0467,
+    "ap50": 0.9997
+   }
+  },
+  "rail_test_shift": {
+   "rail": {
+    "bottles": 3043,
+    "recall": 0.98,
+    "false_per_frame": 0.05,
+    "ap50": 0.99
+   },
+   "25_epochs": {
+    "bottles": 3043,
+    "recall": 0.9934,
+    "false_per_frame": 0.16,
+    "ap50": 0.9901
+   },
+   "100_epochs": {
+    "bottles": 3043,
+    "recall": 0.9947,
+    "false_per_frame": 0.02,
+    "ap50": 0.9901
+   }
+  }
+ }
+}

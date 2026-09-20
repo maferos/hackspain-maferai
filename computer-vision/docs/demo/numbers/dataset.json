@@ -1,0 +1,36 @@
+{
+ "frames": 10300,
+ "vials": 216876,
+ "by_camera_and_use": {
+  "close/test": 150,
+  "close/train": 1500,
+  "close/val": 150,
+  "low/test": 100,
+  "low/train": 800,
+  "low/val": 100,
+  "orbit/test": 850,
+  "orbit/train": 3000,
+  "orbit/val": 300,
+  "rail/test": 600,
+  "rail/train": 2500,
+  "rail/val": 250
+ },
+ "by_bench_style": {
+  "as built": 1146,
+  "cluster": 1610,
+  "scatter": 4090,
+  "crowd": 1128,
+  "clusters": 1154,
+  "rows": 1172
+ },
+ "lab": {
+  "as it is": 3984,
+  "varied": 6316
+ },
+ "selected_for_training_by_camera": {
+  "rail": 2000,
+  "orbit": 1709,
+  "close": 1382,
+  "low": 753
+ }
+}
