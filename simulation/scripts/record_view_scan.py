@@ -43,7 +43,12 @@ def main():
     scan = LiveScan(model, data, physics, 0)
     if scan.controller is not None:
         scan.controller.close()
-        scan.controller = vp.controller(model, data, scan.world, scan.perception, args.out / 'bench_map.json')
+        from gantry_motion import is_gantry
+        if is_gantry(model):
+            from gantry_scan import controller
+        else:
+            controller = vp.controller
+        scan.controller = controller(model, data, scan.world, scan.perception, args.out / 'bench_map.json')
     states, captions = [], []
     started, last_log, next_sample = time.monotonic(), -1, 0.0
     try:

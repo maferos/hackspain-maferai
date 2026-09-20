@@ -19,10 +19,17 @@ def move_to(model, data, target):
     joints = [model.joint(name) for name in JOINTS]
     indices = np.array([joint.qposadr[0] for joint in joints])
     values = data.qpos[indices] + target - data.site(SITE).xpos
-    if any(not joint.range[0] <= value <= joint.range[1]
+    if any(not joint.range[0] - 1e-8 <= value <= joint.range[1] + 1e-8
            for joint, value in zip(joints, values)):
         raise ValueError('Target is outside the gantry travel')
+    values = np.array([np.clip(value, *joint.range) for joint, value in zip(joints, values)])
     data.qpos[indices] = values
     for name, value in zip(JOINTS, values):
         data.ctrl[model.actuator(name).id] = value
     mujoco.mj_forward(model, data)
+
+
+def is_gantry(model):
+    """Whether the compiled model has the three Cartesian gantry joints."""
+    return all(mujoco.mj_name2id(model, mujoco.mjtObj.mjOBJ_JOINT, name) >= 0
+               for name in JOINTS)

@@ -114,7 +114,7 @@
       <freejoint />
       <attach model="smp_0017" body="SMP-0017" prefix="loose_7_" />
     </body>
-    <camera name="general" pos="-1.5 -2.9 3" xyaxes="1 0 0 0 0.6341 0.7733" fovy="60.44" resolution="1920 1080" />
+    <camera name="general" pos="-1.5 -2.9 1.95" fovy="80" resolution="1920 1080" quat="0.82806723 0.56062881 0 0" />
     <body name="wrist_camera_mount" mocap="true" pos="-3.959 -1.4139 0.99">
       <camera name="wrist" xyaxes="0.9205 -0.3907 0 0.0412 0.0970 0.9944" fovy="60.44" resolution="1920 1080" />
     </body>
@@ -185,7 +185,11 @@
           <frame pos=".106 0 -.532">
             <attach model="gantry_hand" body="vertical_hand" prefix="arm_grip_" />
           </frame>
-          <camera name="arm_eih" pos=".24 -.20 -.30" xyaxes="1 0 0 0 .70710678 .70710678" fovy="60.44" />
+          <geom name="gantry_camera_crossbar" type="box" pos=".15 -.25 -.01" size=".15 .012 .012" material="carriage" mass=".1" />
+          <geom name="gantry_camera_bracket" type="box" pos="0 -.125 -.01" size=".012 .125 .012" material="carriage" mass=".1" />
+          <geom name="gantry_camera_drop" type="box" pos=".30 -.25 -.295" size=".012 .012 .295" material="carriage" mass=".1" />
+          <geom name="gantry_camera_housing" type="box" pos=".30 -.275 -.575" size=".025 .015 .015" material="carriage" mass=".05" />
+          <camera name="arm_eih" pos=".30 -.25 -.60" xyaxes="1 0 0 0 .70710678 .70710678" fovy="60.44" resolution="1920 1080" />
         </body>
       </body>
     </body>

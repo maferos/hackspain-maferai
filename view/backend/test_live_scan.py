@@ -16,6 +16,7 @@ class LiveScanTest(unittest.TestCase):
              patch('live_scan.DETECTOR_WEIGHTS', weights), \
              patch('live_scan.ScanDetector') as detector, \
              patch('live_scan.ScanPerception'), patch.object(vp, 'controller'), \
+             patch('gantry_motion.is_gantry', return_value=False), \
              patch.object(vp.rk, 'pick_tcp', return_value='arm_grip_pinch'):
             # pick_tcp reads the compiled model's sites; this one is a Mock, and
             # which tool is on it is not what this test is about.

@@ -66,6 +66,7 @@ if not SCENE_PATH.is_absolute():
 
 SCAN_ENABLED = SCENE_PATH.name in {
     "minihannover_rail_scene.xml", "minihannover_rail_gripper_scene.xml",
+    "minihannover_gantry_scene.xml",
 }
 if SCAN_ENABLED:
     from live_scan import LiveScan, scan_scene

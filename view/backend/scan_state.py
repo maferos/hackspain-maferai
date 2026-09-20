@@ -21,6 +21,7 @@ import time
 
 from catalogue import REPO, Catalogue, shelf_from_tracks
 from live_scan import vp
+from gantry_motion import is_gantry
 from workflow import DONE, SCAN_STAGES, Workflow
 
 sys.path.insert(0, str(REPO / "dashboard" / "bridge"))
@@ -255,7 +256,8 @@ class ScanState:
         tracks = world.snapshot()
         with self.scene._data_lock:
             clock = float(self.scene.data.time)
-            carriage = self.scene.data.body("rail_carriage").xpos.copy()
+            body = "gantry_bridge" if is_gantry(self.scene.model) else "rail_carriage"
+            carriage = self.scene.data.body(body).xpos.copy()
             tip = self.scene.data.site(rk.TCP_SITE).xpos.copy()
             holding = rk.read_grip(self.scene.model, self.scene.data).holding
         self.workflow.observe(tracks, world.caption or "", holding)
@@ -270,7 +272,10 @@ class ScanState:
 
     def _rail(self) -> dict:
         model = self.scene.model
-        joint, home = model.joint(rk.RAIL_JOINT), model.body("rail_carriage").pos
+        if is_gantry(model):
+            joint, home = model.joint("gantry_x"), model.body("gantry_bridge").pos
+        else:
+            joint, home = model.joint(rk.RAIL_JOINT), model.body("rail_carriage").pos
         return {"x0": float(home[0] + joint.range[0]), "x1": float(home[0] + joint.range[1]),
                 "y": float(home[1])}
 

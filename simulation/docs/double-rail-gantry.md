@@ -25,10 +25,31 @@ limit rejection, unwanted guide contacts at home, and finite state over 250
 physics steps. Joint-constrained mating guide surfaces are excluded from mutual
 collision. Other objects still collide.
 
-This is a mechanical prototype. The existing UR10e scan planner, which assumes
-six rotary joints and an orientable wrist camera, does not drive this model.
-The hand camera has fixed orientation. Automated scanning needs a Cartesian
-path planner and a compatible camera strategy. XYZ positioning alone is not
-an obstacle-avoidance planner; the full work envelope has not been collision
-validated against room equipment. Current View and recorded Replay videos
-continue using their existing scenes.
+View now uses this MuJoCo machine by default. `VIEW_MACHINE=arm` selects the
+previous UR10e scene. Both global and hand camera streams use the same gantry
+state. The hand camera is mounted on a physical bracket and looks down at 45
+degrees, at 1920 × 1080, to read the vessels' lateral marker rings. The global
+camera sits below the front rail to retain a clear survey of the bench.
+
+For native MuJoCo inspection and manual joint controls on macOS:
+
+```sh
+simulation/.venv/bin/mjpython simulation/scripts/view_gantry.py --pattern p01
+```
+
+Use the viewer's Control panel for `gantry_x`, `gantry_y`, `gantry_z` and the
+hand's finger actuator. Native manual controls are direct joint controls and
+do not run the automated path checker.
+
+`view/backend/gantry_scan.py` drives the XYZ position servos from YOLO proposals
+and reads identities through the existing marker reader. It raises the hand,
+translates, then lowers, checking each path at 1 cm intervals against MuJoCo
+contacts before execution. Unexpected external contacts stop the controller.
+The p01 integration run detected seven vessels and reported seven identities
+in 36.7 simulated seconds. This is a scan result, not validation of every seed
+or of marker localization accuracy.
+
+Automated manipulation and dispensing are not configured for the gantry.
+The whole work envelope has not been validated against every room obstacle;
+unreachable or blocked scan views are reported instead of forcing a move.
+Recorded Replay videos still show their previously rendered machines.

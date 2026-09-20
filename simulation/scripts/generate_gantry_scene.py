@@ -20,6 +20,13 @@ def build_scene() -> Path:
     assets.remove(assets.find('model[@name="ur10e_2f85"]'))
     ET.SubElement(assets, 'model', name='gantry_hand',
                   file='../assets/vertical_hand_minimal/vertical_hand_minimal.xml')
+    # Look below the front rail so it cannot mask the sample survey.
+    camera = world.find("camera[@name='general']")
+    camera.set('pos', '-1.5 -2.9 1.95')
+    camera.attrib.pop('xyaxes', None)
+    camera.attrib.pop('euler', None)
+    camera.set('quat', '0.82806723 0.56062881 0 0')
+    camera.set('fovy', '80')
     for name in ('rail', 'rail_carriage'):
         world.remove(world.find(f'body[@name="{name}"]'))
     for tag in ('actuator', 'keyframe'):
@@ -55,8 +62,12 @@ def build_scene() -> Path:
     box(lift, 'gantry_hand_mount', '0 0 .01', '.09 .085 .01', 'carriage', mass='1')
     frame = ET.SubElement(lift, 'frame', pos='.106 0 -.532')
     ET.SubElement(frame, 'attach', model='gantry_hand', body='vertical_hand', prefix='arm_grip_')
-    ET.SubElement(lift, 'camera', name='arm_eih', pos='.24 -.20 -.30',
-                  xyaxes='1 0 0 0 .70710678 .70710678', fovy='60.44')
+    box(lift, 'gantry_camera_crossbar', '.15 -.25 -.01', '.15 .012 .012', 'carriage', mass='.1')
+    box(lift, 'gantry_camera_bracket', '0 -.125 -.01', '.012 .125 .012', 'carriage', mass='.1')
+    box(lift, 'gantry_camera_drop', '.30 -.25 -.295', '.012 .012 .295', 'carriage', mass='.1')
+    box(lift, 'gantry_camera_housing', '.30 -.275 -.575', '.025 .015 .015', 'carriage', mass='.05')
+    ET.SubElement(lift, 'camera', name='arm_eih', pos='.30 -.25 -.60',
+                  xyaxes='1 0 0 0 .70710678 .70710678', fovy='60.44', resolution='1920 1080')
     ET.SubElement(world, 'camera', name='gantry_overview', pos='-4.4 -2.7 2.7',
                   xyaxes='.621 -.784 0 .283 .224 .932', fovy='60')
     # Sliding guide surfaces constrain motion through joints, not friction contacts.

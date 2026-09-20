@@ -5,6 +5,7 @@ state and the original controller drives its physics. The lab panels retain
 their independent state publisher.
 """
 import json
+import os
 from pathlib import Path
 import subprocess
 import sys
@@ -19,6 +20,9 @@ from detector_config import DETECTOR_WEIGHTS, DETECTOR_CONF
 
 
 def scan_scene():
+    if os.environ.get('VIEW_MACHINE', 'gantry') == 'gantry':
+        from generate_gantry_scene import build_scene
+        return build_scene()
     return vp.gripper_scene()
 
 
@@ -88,7 +92,13 @@ class LiveScan:
             self.detector = ScanDetector(self.weights, self.conf)
             self.perception = ScanPerception(model, data, physics, self.world,
                                              self.detector, vp.Show(), None)
-            self.controller = vp.controller(
+            from gantry_motion import is_gantry
+            if is_gantry(model):
+                from gantry_scan import controller
+                self.world.scene = 'simulation/models/minihannover_gantry_scene.xml'
+            else:
+                controller = vp.controller
+            self.controller = controller(
                 model, data, self.world, self.perception,
                 REPO / 'simulation/out/view_bench_map.json',
             )
