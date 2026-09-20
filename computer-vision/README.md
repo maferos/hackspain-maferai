@@ -5,8 +5,6 @@ EAN-13 label; the barcode holds nothing but an identifier, and everything the
 robot needs to know about the sample is looked up from that identifier in a
 table.
 
-Owners: Nacho, Martí (see `AGENTS.md`).
-
 > **What the bottles carry now.** The sample bottles in `assets/*/labelled` and in
 > the MuJoCo scenes no longer wear the one-sided EAN-13 label: they wear a **ring of
 > eight ArUco markers** (`DICT_4X4_250`), which a camera reads from any side and
