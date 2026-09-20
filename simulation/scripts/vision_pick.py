@@ -169,8 +169,12 @@ ARM_MASK_PX = 45
 # costs the arm two looks before it reads no ring. Where a box stands on the
 # bench says how big a flask would look there, so size tells them apart: the
 # tallest sample is the 100 ml flask at 115 mm, and measured in the scene every
-# real bottle's box is under 1.36 of that high and 0.56 of it wide, the wash
-# station's 1.6 to 2.7 wide.
+# real bottle's box is under 1.36 of that high and, over the ten seeded benches,
+# 0.72 of it wide. The wash station measured 1.6 to 2.7 wide against the upright
+# reference, which the width's own reference reads about three quarters of, so
+# the limit still tells them apart. Each side is measured against 115 mm laid
+# the way that side runs; measuring the width against the upright one is what
+# the seeded benches broke, see flask_across.
 FLASK_HEIGHT = 0.115
 MAX_BOX = (1.5, 0.8)        # a box's height and width, in flask heights at its place
 SURE = 0.5                  # tracks scoring this or better are looked at first
@@ -522,12 +526,38 @@ def flask_pixels(xy: tuple[float, float], camera: Camera) -> float:
     return float(np.linalg.norm(ends[1] - ends[0]))
 
 
+def flask_across(xy: tuple[float, float], camera: Camera) -> float:
+    """How many pixels wide a flask's own height looks, laid across the sight line.
+
+    The width test needs a reference stretched the way a box's width is. The
+    scene camera is 92 degrees wide (60.44 vertical at 16:9), and off its axis
+    it pulls a box sideways far more than it stretches an upright segment: over
+    the ten seeded benches the same 100 ml flask measures 0.58 of
+    :func:`flask_pixels` in the middle of the frame and 0.90 at its left edge,
+    so ``MAX_BOX`` threw away every 100 ml flask standing at that end --- 19 of
+    the 71 boxes on seed 15, and the detector had found all 71. A segment of
+    the same length lying on the bench square to the sight line is pulled
+    alike, and against it the widest flask of the ten measures 0.72.
+
+    Args:
+        xy: Where the flask stands on the bench.
+        camera: The fixed camera, calibrated.
+
+    Returns:
+        The segment's length in pixels.
+    """
+    foot = np.array([*xy, rk.BENCH_TOP])
+    across = np.cross((0.0, 0.0, 1.0), foot - camera.position)
+    across *= FLASK_HEIGHT / 2 / np.linalg.norm(across)
+    ends = camera.project(np.array([foot - across, foot + across]))
+    return float(np.linalg.norm(ends[1] - ends[0]))
+
+
 def flask_sized(proposal: Proposal, camera: Camera) -> bool:
     """Whether a box is no bigger than a sample flask would look where it stands."""
-    flask = flask_pixels(proposal.xy, camera)
     box = proposal.bbox
-    return (box.v_max - box.v_min <= MAX_BOX[0] * flask
-            and box.u_max - box.u_min <= MAX_BOX[1] * flask)
+    return (box.v_max - box.v_min <= MAX_BOX[0] * flask_pixels(proposal.xy, camera)
+            and box.u_max - box.u_min <= MAX_BOX[1] * flask_across(proposal.xy, camera))
 
 
 def box_height(track: Track, camera: Camera) -> float:
