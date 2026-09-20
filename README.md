@@ -7,8 +7,6 @@ Hackathon project. Two components:
 - [`view/`](view/) — robot viewer for the live demo: Isaac Sim renders or live MuJoCo streams, plus task, robot and balance panels. See [`view/README.md`](view/README.md).
 - [`dashboard/bridge/`](dashboard/bridge/) — `labbridge`, which publishes the lab state the viewer reads over WebSocket. See [`dashboard/bridge/README.md`](dashboard/bridge/README.md).
 
-[`SCANNING_PLAN.md`](SCANNING_PLAN.md) is the plan for the first scanning pass: the general camera finds the vessels, the arm drives its wrist camera over each one, and the bench memory that comes out maps every sample to its compound and its 3D position.
-
 ## Team
 
 - Eki Gonzalez
@@ -16,4 +14,11 @@ Hackathon project. Two components:
 - Martí Martinez
 - Eloi Torrents
 
-See [`AGENTS.md`](AGENTS.md) for who owns which component, and the conventions.
+## Requirements
+
+- Python 3.10+ with [`uv`](https://docs.astral.sh/uv/); `simulation/install.sh` creates the venv the viewer backend also uses. The `mujoco` wheel ships the engine and viewer, but AutoBio needs its own MuJoCo 3.3.0 venv and only runs on Linux.
+- Node for the viewer frontend (`npm install` in `view/frontend`).
+- The MuJoCo Menagerie submodule for the UR10e and gripper meshes: `git submodule update --init third_party/mujoco_menagerie` from `simulation/`.
+- The trained YOLO weights, which are not in git: copy them from the team Drive into `computer-vision/weights/` (see its README).
+- A GPU is optional. CPU is enough for the simulation and the panels; detection and rendering are real time only with CUDA or MPS. The Isaac Sim replay videos were rendered on an NVIDIA L4 and are checked in.
+- `ANTHROPIC_API_KEY` in `view/backend/.env` for the brief and formula chat; without it the chat falls back to an offline parser.
