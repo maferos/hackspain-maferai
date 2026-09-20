@@ -96,15 +96,16 @@ the header, or open http://localhost:5173/?replay=1, to play the Isaac Lab
 3.0 EA / Isaac Sim 6.1 rail videos for the current seed. The backend supplies
 the selected seed; Replay waits for that selection instead of showing a
 different layout. The provisional camera pairs loop at 10 fps with normal lighting and three
-render updates per frame. Pattern `p01` uses 1920×1080; the other patterns use
-960×540. Pattern `p01` uses the current hanging-arm scene with all 10 ml
-flasks excluded: 7 flasks, all identified, in a 67.4-second scan. Its fresh USD
-export took 104 seconds; rendering both views took 203 seconds on an NVIDIA
-L4, including Isaac startup and MP4 encoding. Other patterns retain their
-earlier recordings. All four patterns (`p01`–`p04`)
-play recorded initial scans, capped at 240 seconds. Patterns `p01` and `p03` finish before that limit; `p02` and `p04` stop at 240 seconds. A capped
-recording may end before the scan completes; the replay manifest records this
-as `scan_complete: false`.
+render updates per frame. Patterns `p01` and `p02` use 1920×1080; the other
+patterns use 960×540. Both refreshed patterns use the current hanging-arm
+scene with no 10 ml sample flasks on the bench: p01 has 7 flasks, all identified,
+in a 67.4-second scan; p02 has 22 flasks, 19 identified, in a 62.8-second scan.
+Their fresh USD exports took 104 and 105 seconds respectively; rendering both
+views took 203 and 190 seconds on an NVIDIA L4, including Isaac startup and
+MP4 encoding. Patterns p03 and p04 retain their earlier recordings.
+All four patterns (`p01`–`p04`) play recorded initial scans capped at 240 seconds;
+p04 reaches that limit. A capped recording may end before the scan completes;
+the replay manifest records this as `scan_complete: false`.
 The worktop is one white satin mesh within the USD Table component. Click the small view to swap cameras
 without restarting playback. Files live in `frontend/public/renders/seeds/p01/`
 through `p04/`; `src/replayPatterns.json` maps seeds to the videos. Replay's
