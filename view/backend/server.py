@@ -505,10 +505,10 @@ pattern_requests = {}
 
 @app.post("/api/scene/randomize")
 async def randomize_scene(session: str = Query(min_length=1, max_length=100),
-                          scene_number: int | None = Query(default=None, alias="scene", ge=1, le=10)):
+                          scene_number: int | None = Query(default=None, alias="scene", ge=1, le=len(CATALOGUE))):
     """Choose once per page load, including React StrictMode and HTTP retries.
 
-    With ?scene=N, load catalogue scene p01 through p10 by number
+    With ?scene=N, load catalogue scene p01 through p04 by number
     instead of a random one."""
     if not SCAN_ENABLED:
         raise HTTPException(409, "Seeded layouts require the rail scene")

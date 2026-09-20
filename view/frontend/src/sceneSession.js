@@ -2,7 +2,7 @@
 const session = crypto.randomUUID();
 let request;
 
-// With ?scene=N, select catalogue scene p01 through p10 by number.
+// With ?scene=N, select catalogue scene p01 through p04 by number.
 export function chooseScene(backendUrl, sceneNumber) {
   if (!request) {
     const sceneParam = sceneNumber != null && sceneNumber !== "" ? `&scene=${encodeURIComponent(sceneNumber)}` : "";

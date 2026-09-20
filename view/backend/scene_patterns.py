@@ -1,11 +1,11 @@
-"""Build the rail viewport from the shared ten-pattern catalogue in memory.
+"""Build the rail viewport from the shared four-pattern catalogue in memory.
 
 ``build_pattern`` is what the viewer and the USD export call: the rail scene
 with one catalogue layout on its bench, compiled without touching the disk.
 ``pattern_scene`` is the same composition one step earlier, as XML, for the
 callers that need a file --- the vision scan loads its scene by path:
 
-    python view/backend/scene_patterns.py --pattern p05 --out out/p05_scene.xml
+    python view/backend/scene_patterns.py --pattern p04 --out out/p04_scene.xml
 """
 import argparse
 import json
@@ -27,7 +27,7 @@ def pattern_scene(scene_path, name):
 
     Args:
         scene_path: The rail scene to start from.
-        name: A catalogue pattern, ``p01`` through ``p10``.
+        name: A catalogue pattern, ``p01`` through ``p04``.
 
     Returns:
         The composed XML root and the layout's ``pattern``, ``seed``, ``count``
@@ -86,7 +86,7 @@ def main():
     ``simulation/out/``, which is gitignored.
     """
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--pattern', required=True, help='p01 through p10')
+    parser.add_argument('--pattern', required=True, help='p01 through p04')
     parser.add_argument('--scene', type=Path,
                         default=SIM / 'models/minihannover_rail_scene.xml')
     parser.add_argument('--out', type=Path, required=True)

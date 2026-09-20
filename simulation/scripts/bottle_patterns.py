@@ -14,9 +14,8 @@ sizes the crowd is made of. Same seed, same bench, down to the millimetre.
 
 Everything a pattern needs is drawn from the seed in a fixed order, so a seed
 is the whole definition; nothing else has to be stored or passed around.
-``CATALOGUE`` names the ten seeds picked for the demo --- chosen by walking
-seeds 1.. and keeping ten whose counts spread over the 10..75 range and whose
-styles cover all four. See ``--search`` for how that list was produced.
+``CATALOGUE`` retains the first four seeds of the original demo catalogue.
+See ``--search`` for how the original candidate list was produced.
 
 Coordinates are the desk's local frame, the one population.json is written in:
 x along the 6 m worktop, y across it, origin at its centre on the floor.
@@ -47,11 +46,8 @@ YAW_RANGE = (-180.0, 180.0)
 
 SIZES = ('flask_10ml', 'flask_20ml', 'flask_30ml', 'flask_50ml', 'flask_100ml')
 
-# The ten demo patterns, in growing order of crowd: 16 to 71 flasks, spacing
-# from 8 mm (shoulder to shoulder) to 57 mm (an arm's width of bench between
-# neighbours), every style represented. Seeds, not names, are the identity ---
-# p01 is nothing but a readable handle for seed 30. Produced by ``--search``.
-CATALOGUE = (30, 176, 21, 327, 1, 31, 70, 4, 2, 15)
+# Retained demo scenes p01 through p04; removed scenes must not regenerate.
+CATALOGUE = (30, 176, 21, 327)
 
 PLACE_ATTEMPTS = 40000      # rejection draws before a pattern gives up on a flask
 RELAX = 0.82                # and how much of the gap it keeps when it retries
@@ -150,7 +146,7 @@ def by_name(handle: str) -> Pattern:
 
 
 def catalogue() -> list[Pattern]:
-    """The ten demo patterns, in catalogue order."""
+    """The four demo patterns, in catalogue order."""
     return [pattern_for(seed) for seed in CATALOGUE]
 
 
@@ -345,7 +341,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('--list', action='store_true',
-                        help='print the ten catalogue patterns')
+                        help='print the four catalogue patterns')
     parser.add_argument('--seed', type=int, help='describe one seed instead')
     parser.add_argument('--search', action='store_true',
                         help='re-run the walk that picked the catalogue seeds')

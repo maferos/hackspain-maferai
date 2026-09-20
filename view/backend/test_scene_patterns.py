@@ -12,7 +12,7 @@ class ScenePatternsTest(unittest.TestCase):
     def test_catalogue_counts_and_world_poses(self):
         scene = SIM / 'models/minihannover_rail_scene.xml'
         original = scene.read_bytes()
-        self.assertEqual(len(CATALOGUE), 10)
+        self.assertEqual([p['pattern'] for p in CATALOGUE], ['p01', 'p02', 'p03', 'p04'])
         for entry in CATALOGUE:
             with self.subTest(pattern=entry['pattern']):
                 model, info = build_pattern(scene, entry['pattern'])

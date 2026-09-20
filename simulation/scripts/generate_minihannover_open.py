@@ -301,7 +301,7 @@ def build_scene(pattern=None):
 
 
 def write_index():
-    """Write the catalogue index: what each of the ten seeded patterns holds."""
+    """Write the catalogue index: what each of the four seeded patterns holds."""
     PATTERNS.mkdir(parents=True, exist_ok=True)
     rows = []
     for pattern in patterns.catalogue():
@@ -320,9 +320,9 @@ def main():
     parser.add_argument('--pattern', metavar='NAME',
                         help='build the scene for one seeded pattern: p03, s42 or a raw seed')
     parser.add_argument('--all-patterns', action='store_true',
-                        help='write the ten catalogue population files (no scene XML)')
+                        help='write the four catalogue population files (no scene XML)')
     parser.add_argument('--list', action='store_true',
-                        help='print the ten catalogue patterns and exit')
+                        help='print the four catalogue patterns and exit')
     args = parser.parse_args()
 
     if args.list:
