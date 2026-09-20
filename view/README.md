@@ -178,39 +178,36 @@ scan still replay the scripted formulation of
 - **Balance**, the narrow panel at the left of the dock: `balance_2` and the
   mass on its pan, nothing else; 0.000 g when nothing is being dosed.
 - **Formulas asked**, the third panel in the dock: one line per formula the
-  operator has put to the chat, newest last — its name, its compounds and
-  grams, and what became of it: proposed and not sent, sent as `ORD-00n`, or
-  rejected at the check with the reason underneath. The chat scrolls away and
-  this does not, which is the point of it.
+  operator has put to the chat, newest last: its name, its compounds and
+  grams, and what became of it (proposed and not sent, sent as `ORD-00n`, or
+  rejected at the check with the reason underneath). The chat scrolls away;
+  this list does not.
 
 ## The brief chat
 
-What the operator types is a **brief** — "something fresh and citrusy for
-summer, light" — not a formula. It joins the queue in those words and a model
-writes it into a real fragrance when its turn comes (`backend/brief.py`).
+What the operator types is a brief, such as "something fresh and citrusy for
+summer, light". It joins the queue in those words and a model writes it into a
+fragrance when its turn comes (`backend/brief.py`).
 
-**The model is asked for very little on purpose.** Only the creative part: a
-name, a family, a product strength, one sentence of description, and a list of
-`(compound, percent)`. It is never asked for the formula JSON.
-`harness/build_formulas.build_formula` — the same function that built the five
-fragrances in `harness/formulas/` — expands a spec that size into the harness
-format and refuses anything wrong with it: percentages that do not sum to 100,
-a compound outside the catalogue, an ingredient over its IFRA Category 4 limit.
-Asking a model for the fifteen fields it would otherwise have to get right is
-asking it to be wrong; asking for the two that need taste means a formula that
-reaches the queue is correct by construction.
+The model is asked only for the creative part: a name, a family, a product
+strength, one sentence of description, and a list of `(compound, percent)`. It
+is never asked for the formula JSON. `harness/build_formulas.build_formula`,
+the same function that built the five fragrances in `harness/formulas/`,
+expands a spec that size into the harness format and refuses anything wrong
+with it: percentages that do not sum to 100, a compound outside the catalogue,
+an ingredient over its IFRA Category 4 limit. A formula that reaches the queue
+is therefore correct by construction.
 
-**The palette is the bench, not the catalogue.** The model only sees compounds
-the scan has named, with the grams left in the fullest flask of each and its
-IFRA ceiling. `brief.py` adds the two checks the builder cannot make, because
-they are facts about this bench rather than about perfumery: that the compound
-is standing here at all, and that the flask holds the dose. A brief is
-therefore composed **when its turn comes**, never when it is sent — while the
-scan is still reading the bench the palette is a fraction of it, and a
-fragrance written against that is written against ignorance.
+The model only sees compounds the scan has named, with the grams left in the
+fullest flask of each and its IFRA ceiling. `brief.py` adds the two checks the
+builder cannot make, because they are facts about this bench rather than about
+perfumery: that the compound is standing here at all, and that the flask holds
+the dose. A brief is composed when its turn comes, not when it is sent: while
+the scan is still reading the bench, the model would only see part of the
+palette.
 
-**A rejected build is a conversation.** The builder's complaint goes back to
-the model, which tries again, up to `brief.ATTEMPTS` times.
+If the builder rejects the spec, its complaint goes back to the model, which
+tries again, up to `brief.ATTEMPTS` times.
 
 `ANTHROPIC_API_KEY` in the gitignored `view/backend/.env` is required: there is
 no offline path for briefs. `VIEW_BRIEF_MODEL` picks the model, default
@@ -243,30 +240,25 @@ off, with the order's clock.
 
 ## Tasks: the scan first, then the queue
 
-The lab does one task at a time, and a task is one of two things: **the bench
-scan** or **a formula**. They are not the same shape and do not share a bar.
+The lab does one task at a time. A task is either the bench scan or a
+formula, and each has its own stage bar.
 
     scan task:     Scan
     formula task:  Formula → Check → Fetch → Done
 
-The scan is always the first task and its only step is the scan itself. A
-formula carries no scan stage: the bench is read once, by the lab, and a
-formula that runs afterwards does not repeat it.
+The scan is always the first task and has a single step. A formula has no
+scan stage: the bench is read once, and a formula that runs afterwards does not
+repeat it.
 
-Nothing else starts beside the scan. A formula sent while the bench is being
-read is accepted onto the queue and waits — it is not part of the scan's task,
-so it appears in **Formulas asked** as `QUEUED` with its order id, and the
-Current task panel stays wholly the scan: its run id, its single-step bar and
-its own plan, with no trace of a formula in it. The chat's button says **Add to
-queue** while the scan runs.
+A formula sent while the bench is being read is queued. It appears in
+**Formulas asked** as `QUEUED` with its order id, and the Current task panel
+keeps showing only the scan: its run id, its single-step bar and its plan. The
+chat's button says **Add to queue** while the scan runs.
 
-Waiting is not the same as being deferred. A queued formula is **not checked**
-while the scan runs, because which flasks are on the bench is not known yet and
-a formula refused for a flask nobody has looked at is a wrong answer given
-early. When the scan finishes, the formula at the front of the queue is matched
-to the bench **again** — the bench it is judged against is the whole bench, not
-the fraction that had been read when it was sent — then checked, planned, and
-handed to the arm. The next one waits for that to finish.
+A queued formula is not checked while the scan runs, because the flasks on the
+bench are not known yet. When the scan finishes, the formula at the front of
+the queue is matched against the whole bench, then checked, planned and handed
+to the arm. The next one waits for that to finish.
 
 `Workflow.pump()` admits one order per call and `ScanState._pump()` calls it
 every tick, so a formula sent mid-scan starts by itself when the bench is
@@ -287,9 +279,9 @@ plan with the done steps struck through; the header's status line (`ORD-001 ·
 Fetch 2/3 · 01:23`); the Balance panel with the mass on the pan; and the chat's
 narration.
 
-**Every failure shows on the stage that failed**, never at the end: a rejected
-formula stops at Check with the rest of the bar skipped, a dose that failed
-marks Fetch, and Done never fails on someone else's behalf.
+A failure shows on the stage that failed: a rejected formula stops at Check
+with the rest of the bar skipped, and a failed dose marks Fetch. Done itself
+never fails.
 
 ### The plan under each ingredient
 
@@ -300,8 +292,8 @@ scan is looking at rather than a lookup table from another machine.
 the planner reads, asks the compiled scene which bottles have a free joint, and
 maps each of the planner's ten verbs onto the executor step that crosses it off.
 
-Each ingredient therefore shows its ten primitives — locate, traverse,
-approach, read barcode, verify id, pick, to balance, dose, weigh, return — with
+Each ingredient therefore shows its ten primitives (locate, traverse,
+approach, read barcode, verify id, pick, to balance, dose, weigh, return) with
 the line of English a VLA would be given and, where a skill exists behind it
 (`pick`, `place`), a chip naming it. The five before the pick all belong to
 `locate`, because travelling to a flask, approaching it and reading its ring is
@@ -309,25 +301,25 @@ one act for this scan and they finish together. Dosing and weighing are shown
 dimmed: `armlab` has no skill for either, and the plan says so rather than
 inventing one.
 
-The plan is read-only. The six steps still run the order; the heap is the same
-order spelled out the way the robot would be told. It is planned once, when the
-order is made, and an order the planner cannot handle simply has none.
+The plan is read-only: the six steps still run the order, and the plan is that
+same order spelled out the way the robot would be told. It is built once, when
+the order is made. An order the planner cannot handle has no plan.
 
 ### The check, and what a flask still holds
 
-The check is where a formula is accepted or refused, and it refuses whole. A
-formula the bench can only half make is not run with the half it has: the order
-goes to `rejected`, not a step of it is attempted, the Check stage is marked
-failed with the reasons, the chat says which line and why, and a toast over the
-viewport asks for the compound to be restocked. Two things fail it:
+The check accepts or refuses a formula as a whole. If the bench can only make
+part of it, nothing runs: the order goes to `rejected`, no step is attempted,
+the Check stage is marked failed with the reasons, the chat says which line and
+why, and a toast over the viewport asks for the compound to be restocked. Two
+things fail it:
 
-- **A compound no flask on the bench carries** — the scan never named one.
-- **A flask without enough left in it.** Flasks are not full. The lookup table
+- A compound no flask on the bench carries, because the scan never named one.
+- A flask without enough left in it. Flasks are not full. The lookup table
   carries a capacity and no level, so `catalogue.Levels` invents one per sample,
   derived from the sample id, so every machine and every restart agrees; about
-  one flask in six starts nearly empty. `resolve` picks the *fullest* flask of a
+  one flask in six starts nearly empty. `resolve` picks the fullest flask of a
   compound, not the biggest, and a dose larger than what is in it fails the
-  check — `only 0.4 g left in SMP-0039 (50 ml flask)`. Dosing draws the level
+  check (`only 0.4 g left in SMP-0039 (50 ml flask)`). Dosing draws the level
   down, so the next formula's check sees what the last one used. Millilitres are
   read as grams (`G_PER_ML`); the catalogue carries no densities.
 
@@ -371,7 +363,7 @@ Current formula; the camera has the middle to itself, top to bottom; the right
 column carries the Balance and Info side by side, half of it each, over the
 Formula chat. Both side columns take their space from the camera rather than
 covering it, and Formulas, Balance and Info each open and close from their
-button in the header — the readout row disappears when both of its panels are
+button in the header. The readout row disappears when both of its panels are
 closed, leaving the chat the whole column. The edges between views drag to
 resize them, including the split between the two drawer panels and the one
 under the readouts (double-click an edge to reset it), and the layout is
