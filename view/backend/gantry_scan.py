@@ -30,9 +30,7 @@ POUR_ABOVE = 0.06           # how far over the beaker's mouth the hand stands to
 # machine the hand therefore stands ON the vessel rather than around it, which is
 # all the mimed pipetting needs, and never lower than the lens can go.
 CAMERA_CLEAR = 0.02         # the lens keeps this much over the bench
-# Where the finished mixture is set down: the right-hand end of the worktop,
-# past the last flask and clear of all three balances.
-DELIVERY = (1.15, -0.55)
+CLEARANCE = 0.15            # how far the hand backs off the finished mixture
 
 
 def machine_contacts(model, data, allow=()):
@@ -266,44 +264,22 @@ def controller(model, data, world, perception, bench_map_to):
                              f'which now holds {vessels["beaker"].volume:.1f} ml')
 
     def deliver():
-        """Take the finished mixture to the end of the bench.
+        """Leave the finished mixture standing where it was mixed.
 
-        The one thing in the whole run that is really carried: the cage closes
-        on the beaker, lifts it off the balance, crosses the bench and sets it
-        down. Everything before this was mimed, so if the beaker does not come
-        with the hand it is worth knowing, and the grip is checked rather than
-        assumed.
+        Nothing in the run was ever grasped, so there is nothing to carry: the
+        beaker stays on the balance that weighed it, which is also where the
+        panel reads it from. Lifting it off and crossing the bench was worse
+        than doing nothing --- the cage cannot close squarely on a vessel it
+        never picked up, and it put the mixture over on the way. All the arm
+        does at the end of a formula now is take itself out of the shot.
         """
         if 'beaker' not in vessels:
             return
         mujoco.mj_forward(model, data)
-        stood = data.body('beaker').xpos.copy()
-        on = np.array([stood[0], stood[1],
-                       max(stood[2] + vp.grasp_height(model, 0.10), camera_floor())])
-        yield from drive(on, 'reaching down for the beaker', allow=('beaker',))
-        for step in range(int(0.8 / dt)):
-            data.ctrl[fingers] = gt.SHUT * min((step + 1) / (0.4 / dt), 1.0)
-            mujoco.mj_step(model, data)
-            yield 'closing on the beaker'
-        shut = float(data.ctrl[fingers])
-        lifted = on + (0, 0, 0.12)
-        yield from drive(lifted, 'lifting the beaker', allow=('beaker',), grip=shut)
-        if data.body('beaker').xpos[2] < stood[2] + 0.05:
-            world.log(data.time, 'the beaker did not come with the hand; it stays on the balance')
-            data.ctrl[fingers] = gt.OPEN
-            return
-        down = np.array([*DELIVERY, max(vp.rk.BENCH_TOP + vp.grasp_height(model, 0.10) + 0.01,
-                                        camera_floor())])
-        yield from drive(np.array([*DELIVERY, lifted[2]]),
-                         'carrying the mixture to the end of the bench',
-                         allow=('beaker',), grip=shut)
-        yield from drive(down, 'setting the mixture down', allow=('beaker',), grip=shut)
-        for _ in range(int(0.5 / dt)):
-            data.ctrl[fingers] = gt.OPEN
-            mujoco.mj_step(model, data)
-            yield 'letting go of the mixture'
-        yield from drive(down + (0, 0, 0.15), 'clear of the mixture')
-        world.log(data.time, f'the mixture stands at the end of the bench, '
+        clear = data.site(SITE).xpos.copy()
+        clear[2] = max(clear[2] + CLEARANCE, camera_floor())
+        yield from drive(clear, 'clear of the mixture', allow=('beaker',))
+        world.log(data.time, f'the mixture stands on the balance, '
                              f'{vessels["beaker"].volume:.1f} ml')
 
     # The formula, one compound at a time, as the executor asks for them.
