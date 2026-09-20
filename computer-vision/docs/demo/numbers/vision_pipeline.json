@@ -1,0 +1,161 @@
+{
+ "_about": "Measurements of the rest of the vision pipeline, copied from the documents named in each block's 'source'. Those documents are the record; this file only makes their tables drawable.",
+
+ "zero_shot_real_photos": {
+  "source": "docs/BENCHMARK.md, Main table: 5 real laboratory photographs, 11 hand-annotated flasks, CPU, 640 px unless stated",
+  "rows": [
+   {"model": "YOLO-World L", "prompts": "everyday", "ms": 1090, "ap": 0.92, "recall": 1.00, "precision": 0.85, "family": "open vocabulary"},
+   {"model": "YOLO-World S", "prompts": "everyday", "ms": 470, "ap": 0.89, "recall": 0.82, "precision": 1.00, "family": "open vocabulary"},
+   {"model": "YOLOE-11 M", "prompts": "laboratory", "ms": 1570, "ap": 0.87, "recall": 1.00, "precision": 0.73, "family": "open vocabulary"},
+   {"model": "YOLO-World L", "prompts": "laboratory", "ms": 1090, "ap": 0.86, "recall": 0.91, "precision": 0.91, "family": "open vocabulary"},
+   {"model": "OWLv2 base", "prompts": "everyday", "ms": 9100, "ap": 0.80, "recall": 0.82, "precision": 0.75, "family": "open vocabulary"},
+   {"model": "YOLO-World S @960", "prompts": "laboratory", "ms": 481, "ap": 0.74, "recall": 0.82, "precision": 0.69, "family": "open vocabulary"},
+   {"model": "YOLOE-11 S @960", "prompts": "laboratory", "ms": 549, "ap": 0.74, "recall": 0.82, "precision": 0.64, "family": "open vocabulary"},
+   {"model": "YOLOE-11 S", "prompts": "everyday", "ms": 375, "ap": 0.71, "recall": 0.82, "precision": 0.53, "family": "open vocabulary"},
+   {"model": "YOLO-World S", "prompts": "laboratory", "ms": 470, "ap": 0.71, "recall": 0.64, "precision": 1.00, "family": "open vocabulary"},
+   {"model": "YOLO11 S COCO", "prompts": "", "ms": 419, "ap": 0.61, "recall": 0.73, "precision": 0.67, "family": "fixed classes"},
+   {"model": "YOLO11 S COCO @960", "prompts": "", "ms": 724, "ap": 0.60, "recall": 0.73, "precision": 0.67, "family": "fixed classes"},
+   {"model": "Grounding DINO T", "prompts": "everyday", "ms": 13465, "ap": 0.58, "recall": 0.82, "precision": 0.56, "family": "open vocabulary"},
+   {"model": "YOLOE-11 S, no prompts", "prompts": "", "ms": 565, "ap": 0.47, "recall": 0.55, "precision": 0.55, "family": "no prompts"},
+   {"model": "FastSAM S", "prompts": "", "ms": 480, "ap": 0.39, "recall": 0.46, "precision": 0.56, "family": "no prompts"}
+  ]
+ },
+
+ "recall_by_side_real_photos": {
+  "source": "docs/BENCHMARK.md, Size and distance: share of flasks found by flask side at the network input",
+  "bins": ["12–24 px", "24–48 px", "48–96 px", "over 96 px"],
+  "models": {
+   "YOLO-World L (everyday prompts)": [0.12, 0.62, 0.89, 0.87],
+   "YOLOE-11 S (everyday prompts)": [0.34, 0.44, 0.82, 0.90],
+   "YOLO11 S COCO": [0.62, 0.54, 0.85, 0.80],
+   "YOLO-World S (everyday prompts)": [0.16, 0.42, 0.74, 0.68]
+  }
+ },
+
+ "kit_side_from_the_wall": {
+  "source": "docs/BENCHMARK.md: side (square root of width x height) of the kit's bottles from the wall camera, 3.23 m away",
+  "bottles": ["100 ml", "250 ml", "500 ml", "1 L", "2 L"],
+  "side_px_1080p": [19, 25, 32, 40, 48],
+  "side_px_4k": [38, 51, 63, 79, 97],
+  "reliable_from_px": 48
+ },
+
+ "found_by_distance_renders": {
+  "source": "docs/BENCHMARK.md, Size experiment at 1080p on renders: 6 m table, 347 bottles",
+  "bins": ["under 3.0 m", "3.0–3.5 m", "3.5–4.0 m", "over 4.0 m"],
+  "n": [21, 98, 154, 74],
+  "found": {"YOLO-World L": [0.91, 0.87, 0.58, 0.23], "YOLO11 S COCO": [0.48, 0.41, 0.47, 0.49]}
+ },
+
+ "prompts": {
+  "source": "docs/FIXED_CAMERA_BENCHMARK.md, screening (first 30 val frames) and docs/BENCHMARK.md, Prompts matter more than the model",
+  "fixed_camera_ap50": {"everyday vessels: cup, glass, beaker…": 0.576, "the samples: amber bottle, white plastic bottle…": 0.853},
+  "real_photo_recall": {"laboratory words: beaker, erlenmeyer flask…": 0.91, "everyday words: cup, glass, bottle, jar…": 1.00}
+ },
+
+ "fixed_camera_screening": {
+  "source": "docs/FIXED_CAMERA_BENCHMARK.md, screening: first 30 val frames, full 1080p frame, CPU. s/frame marked * in the source ran on a shared machine",
+  "rows": [
+   {"model": "YOLO-World v2 L, bottle prompts", "ap50": 0.853, "recall": 0.770, "precision": 0.892, "false": 0.80, "s": 6.1},
+   {"model": "YOLOE-26 L, bottle prompts", "ap50": 0.839, "recall": 0.685, "precision": 0.926, "false": 0.47, "s": 6.6},
+   {"model": "YOLO26s COCO", "ap50": 0.812, "recall": 0.848, "precision": 0.762, "false": 2.27, "s": 1.2},
+   {"model": "YOLOE-11 L, bottle prompts", "ap50": 0.803, "recall": 0.809, "precision": 0.849, "false": 1.23, "s": 8.7},
+   {"model": "YOLO-World v2 L, everyday prompts", "ap50": 0.576, "recall": 0.778, "precision": 0.656, "false": 3.50, "s": 12.7},
+   {"model": "YOLOE-26 L, visual prompts", "ap50": 0.524, "recall": 0.541, "precision": 0.777, "false": 1.33, "s": 10.4},
+   {"model": "YOLO11s COCO", "ap50": 0.370, "recall": 0.420, "precision": 0.812, "false": 0.83, "s": 1.1}
+  ]
+ },
+
+ "fixed_camera_three_models": {
+  "source": "docs/FIXED_CAMERA_BENCHMARK.md, Main test and Other scene and shifted camera: the same 30 frames a split",
+  "models": ["YOLO26n fine-tuned, 1 epoch on a CPU", "YOLO-World L, no training", "YOLO26s COCO, no training"],
+  "splits": {
+   "the robot's scene": {"ap50": [0.864, 0.871, 0.687], "low": [0.83, 0.84, 0.64], "high": [0.89, 0.89, 0.73], "recall": [0.886, 0.847, 0.722], "false": [1.93, 2.40, 1.17]},
+   "a scene never seen": {"ap50": [0.675, 0.715, 0.500], "low": [0.64, 0.67, 0.45], "high": [0.71, 0.76, 0.55], "recall": [0.870, 0.857, 0.770], "false": [6.83, 10.33, 12.50]},
+   "degraded camera, hard light": {"ap50": [0.767, 0.685, 0.260], "low": [0.73, 0.58, 0.17], "high": [0.81, 0.76, 0.35], "recall": [0.810, 0.675, 0.295], "false": [1.57, 1.87, 0.80]}
+  },
+  "kit_ap50": [0.88, 0.41, null],
+  "recall_by_bottle": {
+   "bottles": ["amber 10 ml", "amber 20 ml", "amber 30 ml", "amber 50 ml", "amber 100 ml", "HDPE 100 ml", "HDPE 250 ml", "HDPE 500 ml", "HDPE 1 L", "HDPE 2 L"],
+   "n": [37, 43, 28, 37, 27, 40, 31, 38, 25, 28],
+   "recall": [[0.76, 0.84, 0.93, 0.86, 0.93, 0.85, 0.94, 0.95, 1.00, 0.89],
+              [0.62, 0.77, 0.86, 0.81, 0.96, 0.90, 0.87, 0.87, 1.00, 0.93],
+              [0.30, 0.60, 0.79, 0.73, 0.89, 0.60, 0.74, 0.89, 1.00, 0.89]]
+  },
+  "recall_by_side": {
+   "bins": ["under 16 px", "16–24 px", "24–32 px", "32–48 px", "48 px and over"],
+   "n": [77, 102, 60, 50, 45],
+   "recall": [[0.81, 0.86, 0.95, 0.94, 0.93], [0.74, 0.84, 0.92, 0.86, 0.93], [0.52, 0.69, 0.78, 0.86, 0.91]]
+  }
+ },
+
+ "worktop_filter": {
+  "source": "README.md, On the perfumery lab: false boxes a frame before and after the worktop filter, no bottle lost",
+  "cameras": ["walkthrough cameras", "fixed camera"],
+  "before": [65, 17.5],
+  "after": [3.9, 1.8],
+  "precision_fixed_camera": [0.33, 0.82]
+ },
+
+ "ean_against_aruco": {
+  "source": "README.md, ArUco against EAN-13: one marker square on, 1080p GoPro pinhole in MuJoCo; turn measured at half the reach",
+  "vessels": ["flask 10 ml", "flask 20 ml", "flask 30 ml", "flask 50 ml", "flask 100 ml", "bottle 100 ml", "bottle 250 ml", "bottle 500 ml", "bottle 1 L", "bottle 2 L"],
+  "ean_module_mm": [0.21, 0.30, 0.36, 0.43, 0.58, 0.32, 0.48, 0.65, 0.66, 0.66],
+  "aruco_module_mm": [2.20, 2.76, 3.16, 3.73, 4.70, 4.56, 5.93, 7.30, 8.68, 9.98],
+  "ring_module_mm": [1.10, 1.38, 1.58, 1.87, 2.35, 2.28, 2.96, 3.65, 4.34, 5.71],
+  "ean_reach_m": [0.15, 0.2, 0.2, 0.3, 0.5, 0.2, 0.2, 0.5, 0.5, 0.5],
+  "aruco_reach_m": [1.0, 1.0, 1.5, 1.5, 2.0, 2.0, 2.5, 3.0, 4.0, 4.0],
+  "ean_max_turn_deg": [80, 80, 80, 80, 80, 70, 70, 50, 40, 50],
+  "aruco_max_turn_deg": [20, 10, 10, 10, 10, 20, 10, 10, 20, 20]
+ },
+
+ "wrist_scan_40_bottles": {
+  "source": "README.md, The bottles carry an ArUco ring: wrist_scan.py on the same 40 bottles, whole 1080p frame decoded. 0.30 m is a GoPro's near focus",
+  "labels": ["EAN-13, parked square to the label", "EAN-13, from the aisle", "ArUco ring, from the aisle"],
+  "from_030_m": [10, 12, 38],
+  "had_to_come_closer": [28, 25, 2],
+  "not_read": [2, 3, 0],
+  "misread": [0, 0, 0],
+  "neighbours_identified_in_passing": [null, 38, 107]
+ },
+
+ "marker_separation": {
+  "source": "docs/READ_CONFIDENCE.md: DICT_4X4_250, minimum Hamming distance 3, 637 pairs at distance 3 among the 200 ids in use",
+  "min_distance": [3, 4, 5, 6, 7],
+  "ids_available": [250, 88, 25, 10, 4],
+  "catalogue": 200,
+  "flipped_bits": [0, 1, 2, 3],
+  "outcome_default": ["right id", "rejected", "rejected", "rejected"],
+  "outcome_rate_2": ["right id", "right id", "right id", "WRONG id, silently"]
+ },
+
+ "anchor_error_mm": {
+  "source": "README.md, From a box to a point on the bench, Measured: exact boxes, 25 positions over a 1.6 m square of bench, mean error",
+  "vessels": ["100 ml", "250 ml", "500 ml", "1 L", "1 L wide", "2 L"],
+  "fit": [0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+  "centre": [0.7, 1.2, 1.9, 3.2, 2.3, 4.1],
+  "base": [3.2, 4.4, 5.6, 7.9, 5.6, 8.5],
+  "base_no_radius_correction": [23, 30, 38, 45, 51, 59]
+ },
+
+ "mm_per_pixel": {
+  "source": "README.md, The real limit is resolution: millimetres of bench one pixel covers, wall camera 3.2 m away",
+  "where": ["near edge", "bench centre", "far edge"],
+  "resolutions": {"1920 × 1080": [3.2, 5.5, 8.4], "4K": [1.6, 2.7, 4.2], "5.3K": [1.2, 2.0, 3.1]},
+  "box_noise_px": [0.5, 1, 2, 3, 5],
+  "mean_error_mm": [2, 4, 8, 12, 21],
+  "p95_error_mm": [5, 9, 17, 26, 50]
+ },
+
+ "end_to_end": {
+  "source": "README.md, Measured end to end in the scene: propose_confirm.py, 12 random layouts (YOLO-World L) and the catalogue bench p05 (41 flasks)",
+  "random_layouts": {"bottles": 77, "proposed": 74, "named_correctly": 74, "named_wrongly": 0, "strays": 11, "strays_read": 0,
+                     "views_needed": {"first": 70, "second": 5, "third": 1},
+                     "general_mm": [10, 27], "wrist_mm": [0.1, 0.5]},
+  "p05": {"bottles": 41,
+          "rail": {"proposed": 41, "named_correctly": 41, "named_wrongly": 0, "strays": 0, "general_mm": [6.7, 8.0], "wrist_mm": [0.11, 0.46]},
+          "world": {"proposed": 38, "named_correctly": 38, "named_wrongly": 0, "strays": 5, "general_mm": [6.7, 8.4], "wrist_mm": [0.12, 0.33]}},
+  "radius_bias": {"flasks": ["10 ml", "20 ml", "50 ml", "100 ml"], "radius_mm": [11.2, 14.1, 19.0, 23.9],
+                  "assumed_minus_true_mm": [6.8, 3.9, -1.0, -5.9], "mean_error_y_mm": [4.9, 2.7, -1.5, -6.4], "n": [6, 5, 3, 27]}
+ }
+}
