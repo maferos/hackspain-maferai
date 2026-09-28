@@ -53,3 +53,18 @@ and each teammate ends up showing something different.
 
 Tasks are tracked with `tk` in `.tickets/` (not beads). Wayfinder maps live
 there too: `tk ready` shows the frontier, `tk start <id>` claims a ticket.
+
+## Pull Requests
+
+- Ask before creating a PR, and always create it as a draft (`gh pr create --draft`). The author decides when it is ready for review.
+- `gh pr create --body` skips the repo template, so write the body with exactly this template:
+
+  ```markdown
+  ## What
+  Describe changes.
+
+  ## Why
+  Explain the reason.
+  ```
+
+- PR titles, descriptions, review comments and replies are always in English, regardless of the language used in the conversation.
